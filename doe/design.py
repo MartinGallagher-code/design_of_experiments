@@ -43,15 +43,15 @@ def _full_factorial(cfg: DOEConfig) -> list[ExperimentRun]:
 
 def _plackett_burman(cfg: DOEConfig) -> list[ExperimentRun]:
     try:
-        import pyDOE2
+        import pyDOE3
     except ImportError:
         raise ImportError(
-            "pyDOE2 is required for Plackett-Burman designs. "
-            "Install it with: pip install pyDOE2"
+            "pyDOE3 is required for Plackett-Burman designs. "
+            "Install it with: pip install pyDOE3"
         )
 
     n_factors = len(cfg.factors)
-    matrix = pyDOE2.pbdesign(n_factors)
+    matrix = pyDOE3.pbdesign(n_factors)
     factor_names = [f.name for f in cfg.factors]
 
     runs = []
