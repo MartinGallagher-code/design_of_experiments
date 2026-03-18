@@ -11,13 +11,17 @@ echo "Starting {{ total_runs }} experiment runs..."
 echo ""
 
 {% for run in runs %}
-echo "=== Run {{ run.run_id }} / {{ total_runs }} (Block {{ run.block_id }}) ==="
-{% for name, value in run.factor_values.items() %}echo "  {{ name }} = {{ value }}"
+if [[ -f "{{ out_directory }}/run_{{ run.run_id }}.json" ]]; then
+  echo "=== Run {{ run.run_id }} / {{ total_runs }} already complete, skipping ==="
+else
+  echo "=== Run {{ run.run_id }} / {{ total_runs }} (Block {{ run.block_id }}) ==="
+{% for name, value in run.factor_values.items() %}  echo "  {{ name }} = {{ value }}"
 {% endfor %}
-"{{ test_script }}" \
-{% for name, value in run.factor_values.items() %}  --{{ name }} "{{ value }}" \
-{% endfor %}{% for s in static_settings %}  {{ s }} \
-{% endfor %}  --out "{{ out_directory }}/run_{{ run.run_id }}.json"
+  "{{ test_script }}" \
+{% for name, value in run.factor_values.items() %}    --{{ name }} "{{ value }}" \
+{% endfor %}{% for s in static_settings %}    {{ s }} \
+{% endfor %}    --out "{{ out_directory }}/run_{{ run.run_id }}.json"
+fi
 
 echo ""
 {% endfor %}
