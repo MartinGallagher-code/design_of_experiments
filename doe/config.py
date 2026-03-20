@@ -1,8 +1,13 @@
 import json
 import os
-from .models import DOEConfig, Factor
+from .models import DOEConfig, Factor, ResponseVar, RunnerConfig
 
-SUPPORTED_OPERATIONS = {"full_factorial", "plackett_burman"}
+SUPPORTED_OPERATIONS = {
+    "full_factorial",
+    "plackett_burman",
+    "latin_hypercube",
+    "central_composite",
+}
 
 
 def load_config(path: str, strict: bool = True) -> DOEConfig:
@@ -10,17 +15,24 @@ def load_config(path: str, strict: bool = True) -> DOEConfig:
         raw = json.load(f)
 
     factors = _parse_factors(raw.get("factors", []))
-    static_settings = raw.get("static_settings", [])
+    fixed_factors = _parse_fixed_factors(raw)
+    responses = _parse_responses(raw.get("responses", []))
     settings = raw.get("settings", {})
+    metadata = raw.get("metadata", {})
+    runner = _parse_runner(raw.get("runner", {}))
 
     cfg = DOEConfig(
         factors=factors,
-        static_settings=static_settings,
+        fixed_factors=fixed_factors,
+        responses=responses,
         block_count=settings.get("block_count", 1),
         test_script=settings.get("test_script", ""),
         operation=settings.get("operation", "full_factorial"),
         processed_directory=settings.get("processed_directory", ""),
         out_directory=settings.get("out_directory", ""),
+        lhs_samples=settings.get("lhs_samples", 0),
+        metadata=metadata,
+        runner=runner,
     )
 
     _validate_config(cfg, strict=strict)
@@ -30,10 +42,70 @@ def load_config(path: str, strict: bool = True) -> DOEConfig:
 def _parse_factors(raw: list) -> list[Factor]:
     factors = []
     for item in raw:
-        if not item or len(item) < 2:
-            raise ValueError(f"Factor must have a name and at least one level: {item}")
-        factors.append(Factor(name=item[0], levels=list(item[1:])))
+        if isinstance(item, dict):
+            name = item.get("name")
+            levels = item.get("levels", [])
+            if not name or len(levels) < 2:
+                raise ValueError(f"Factor must have a name and at least 2 levels: {item}")
+            factors.append(Factor(
+                name=name,
+                levels=[str(l) for l in levels],
+                type=item.get("type", "categorical"),
+                description=item.get("description", ""),
+                unit=item.get("unit", ""),
+            ))
+        elif isinstance(item, list):
+            # legacy array format: ["name", "val1", "val2", ...]
+            if not item or len(item) < 2:
+                raise ValueError(f"Factor must have a name and at least one level: {item}")
+            factors.append(Factor(name=item[0], levels=list(item[1:])))
+        else:
+            raise ValueError(f"Unexpected factor format: {item}")
     return factors
+
+
+def _parse_fixed_factors(raw: dict) -> dict[str, str]:
+    if "fixed_factors" in raw:
+        return {k: str(v) for k, v in raw["fixed_factors"].items()}
+    # Legacy: convert static_settings list of "--key=value" strings
+    result = {}
+    for s in raw.get("static_settings", []):
+        s = s.strip()
+        if s.startswith("--"):
+            s = s[2:]
+        if "=" in s:
+            k, v = s.split("=", 1)
+            result[k] = v
+    return result
+
+
+def _parse_responses(raw: list) -> list[ResponseVar]:
+    if not raw:
+        return [ResponseVar(name="response")]
+    responses = []
+    for item in raw:
+        if isinstance(item, dict):
+            name = item.get("name")
+            if not name:
+                raise ValueError(f"Response must have a name: {item}")
+            responses.append(ResponseVar(
+                name=name,
+                optimize=item.get("optimize", "maximize"),
+                unit=item.get("unit", ""),
+                description=item.get("description", ""),
+            ))
+        elif isinstance(item, str):
+            responses.append(ResponseVar(name=item))
+        else:
+            raise ValueError(f"Unexpected response format: {item}")
+    return responses
+
+
+def _parse_runner(raw: dict) -> RunnerConfig:
+    return RunnerConfig(
+        arg_style=raw.get("arg_style", "double-dash"),
+        result_file=raw.get("result_file", "json"),
+    )
 
 
 def _validate_config(cfg: DOEConfig, strict: bool = True) -> None:
@@ -60,6 +132,41 @@ def _validate_config(cfg: DOEConfig, strict: bool = True) -> None:
                     f"Plackett-Burman requires exactly 2 levels per factor, "
                     f"but factor '{f.name}' has {len(f.levels)}: {f.levels}"
                 )
+
+    if cfg.operation == "central_composite":
+        for f in cfg.factors:
+            if len(f.levels) != 2:
+                raise ValueError(
+                    f"Central composite requires exactly 2 levels (low, high) per factor, "
+                    f"but factor '{f.name}' has {len(f.levels)}: {f.levels}"
+                )
+            try:
+                float(f.levels[0])
+                float(f.levels[1])
+            except ValueError:
+                raise ValueError(
+                    f"Central composite requires numeric levels, "
+                    f"but factor '{f.name}' has non-numeric levels: {f.levels}"
+                )
+
+    response_names = [r.name for r in cfg.responses]
+    if len(response_names) != len(set(response_names)):
+        raise ValueError(f"Response names must be unique, got: {response_names}")
+
+    valid_optimize = {"maximize", "minimize"}
+    for r in cfg.responses:
+        if r.optimize not in valid_optimize:
+            raise ValueError(
+                f"Response '{r.name}' has invalid optimize='{r.optimize}'. "
+                f"Choose from: {sorted(valid_optimize)}"
+            )
+
+    valid_arg_styles = {"double-dash", "env", "positional"}
+    if cfg.runner.arg_style not in valid_arg_styles:
+        raise ValueError(
+            f"runner.arg_style '{cfg.runner.arg_style}' is invalid. "
+            f"Choose from: {sorted(valid_arg_styles)}"
+        )
 
     if strict and cfg.test_script and not os.path.exists(cfg.test_script):
         print(

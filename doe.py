@@ -39,7 +39,7 @@ def main():
         cfg = load_config(args.config)
         matrix = generate_design(cfg, seed=args.seed)
         if args.dry_run:
-            _print_matrix(matrix)
+            _print_matrix(matrix, cfg)
         else:
             from doe.codegen import generate_script
             generate_script(matrix, cfg, args.output, format=args.format)
@@ -50,26 +50,36 @@ def main():
         cfg = load_config(args.config)
         matrix = generate_design(cfg)
         from doe.analysis import analyze
-        report = analyze(matrix, cfg, results_dir=args.results_dir)
+        report = analyze(matrix, cfg, results_dir=args.results_dir, no_plots=args.no_plots)
         _print_report(report)
 
     elif args.command == "info":
         cfg = load_config(args.config, strict=False)
         matrix = generate_design(cfg)
-        _print_matrix(matrix)
+        _print_matrix(matrix, cfg)
 
 
-def _print_matrix(matrix):
-    from doe.models import DesignMatrix
-    meta = matrix.metadata
+def _print_matrix(matrix, cfg=None):
+    if cfg and cfg.metadata.get("name"):
+        print(f"Plan      : {cfg.metadata['name']}")
+        if cfg.metadata.get("description"):
+            print(f"Desc      : {cfg.metadata['description']}")
     print(f"Operation : {matrix.operation}")
     print(f"Factors   : {', '.join(matrix.factor_names)}")
-    print(f"Base runs : {meta.get('n_base_runs', '?')}")
-    print(f"Blocks    : {meta.get('n_blocks', '?')}")
-    print(f"Total runs: {meta.get('n_total_runs', len(matrix.runs))}")
+    print(f"Base runs : {matrix.metadata.get('n_base_runs', '?')}")
+    print(f"Blocks    : {matrix.metadata.get('n_blocks', '?')}")
+    print(f"Total runs: {matrix.metadata.get('n_total_runs', len(matrix.runs))}")
+    if cfg and cfg.responses:
+        resp_str = ", ".join(
+            f"{r.name} [{r.optimize}]{' (' + r.unit + ')' if r.unit else ''}"
+            for r in cfg.responses
+        )
+        print(f"Responses : {resp_str}")
+    if cfg and cfg.fixed_factors:
+        ff_str = ", ".join(f"{k}={v}" for k, v in cfg.fixed_factors.items())
+        print(f"Fixed     : {ff_str}")
     print()
 
-    # header
     cols = ["run_id", "block_id"] + matrix.factor_names
     col_w = max(len(c) for c in cols) + 2
     header = "".join(c.ljust(col_w) for c in cols)
@@ -82,24 +92,25 @@ def _print_matrix(matrix):
 
 
 def _print_report(report):
-    print("\n=== Main Effects ===")
-    print(f"{'Factor':<20} {'Effect':>10} {'Std Error':>12} {'% Contribution':>16}")
-    print("-" * 62)
-    for e in report.effects:
-        print(f"{e.factor_name:<20} {e.main_effect:>10.4f} {e.std_error:>12.4f} {e.pct_contribution:>15.1f}%")
+    for resp_name, analysis in report.results_by_response.items():
+        print(f"\n=== Main Effects: {resp_name} ===")
+        print(f"{'Factor':<20} {'Effect':>10} {'Std Error':>12} {'% Contribution':>16}")
+        print("-" * 62)
+        for e in analysis.effects:
+            print(f"{e.factor_name:<20} {e.main_effect:>10.4f} {e.std_error:>12.4f} {e.pct_contribution:>15.1f}%")
 
-    print("\n=== Summary Statistics ===")
-    for factor, levels in report.summary_stats.items():
-        print(f"\n{factor}:")
-        print(f"  {'Level':<15} {'N':>5} {'Mean':>10} {'Std':>10} {'Min':>10} {'Max':>10}")
-        print(f"  {'-'*60}")
-        for level, s in levels.items():
-            print(f"  {level:<15} {s['n']:>5} {s['mean']:>10.4f} {s['std']:>10.4f} {s['min']:>10.4f} {s['max']:>10.4f}")
+        print(f"\n=== Summary Statistics: {resp_name} ===")
+        for factor, levels in analysis.summary_stats.items():
+            print(f"\n{factor}:")
+            print(f"  {'Level':<15} {'N':>5} {'Mean':>10} {'Std':>10} {'Min':>10} {'Max':>10}")
+            print(f"  {'-'*60}")
+            for level, s in levels.items():
+                print(f"  {level:<15} {s['n']:>5} {s['mean']:>10.4f} {s['std']:>10.4f} {s['min']:>10.4f} {s['max']:>10.4f}")
 
-    if report.pareto_chart_path:
-        print(f"\nPareto chart  : {report.pareto_chart_path}")
-    if report.effects_plot_path:
-        print(f"Main effects  : {report.effects_plot_path}")
+    for resp_name, path in report.pareto_chart_paths.items():
+        print(f"\nPareto chart ({resp_name}): {path}")
+    for resp_name, path in report.effects_plot_paths.items():
+        print(f"Main effects ({resp_name}): {path}")
 
 
 if __name__ == "__main__":

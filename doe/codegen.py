@@ -33,7 +33,6 @@ def generate_script(
     with open(output_path, "w") as f:
         f.write(rendered)
 
-    # make executable
     path = Path(output_path)
     path.chmod(path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
@@ -52,11 +51,13 @@ def _build_template_context(matrix: DesignMatrix, cfg: DOEConfig) -> dict:
     return {
         "runs": runs_data,
         "test_script": cfg.test_script,
-        "static_settings": cfg.static_settings,
+        "fixed_factors": cfg.fixed_factors,
+        "arg_style": cfg.runner.arg_style,
         "out_directory": cfg.out_directory or "results",
         "operation": matrix.operation,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "total_runs": len(matrix.runs),
+        "plan_name": cfg.metadata.get("name", ""),
     }
 
 

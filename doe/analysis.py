@@ -1,66 +1,103 @@
 import json
 import math
 import os
-from .models import AnalysisReport, DesignMatrix, DOEConfig, EffectResult, ExperimentRun
+from .models import AnalysisReport, DesignMatrix, DOEConfig, EffectResult, ExperimentRun, ResponseAnalysis
 
 
 def analyze(
     matrix: DesignMatrix,
     cfg: DOEConfig,
     results_dir: str | None = None,
+    no_plots: bool = False,
 ) -> AnalysisReport:
     results_dir = results_dir or cfg.out_directory or "results"
-    responses = _load_results(matrix.runs, results_dir)
-
-    effects = _compute_main_effects(matrix.runs, responses, matrix.factor_names)
-    summary_stats = _compute_summary_stats(matrix.runs, responses, matrix.factor_names)
-
     processed_dir = cfg.processed_directory or results_dir
-    os.makedirs(processed_dir, exist_ok=True)
 
-    pareto_path = None
-    effects_path = None
+    all_data = _load_all_results(matrix.runs, results_dir)
 
-    try:
-        import matplotlib
-        matplotlib.use("Agg")
+    results_by_response: dict[str, ResponseAnalysis] = {}
+    pareto_chart_paths: dict[str, str] = {}
+    effects_plot_paths: dict[str, str] = {}
 
-        pareto_path = os.path.join(processed_dir, "pareto_chart.png")
-        plot_pareto(effects, pareto_path)
+    for resp in cfg.responses:
+        responses: dict[int, float] = {}
+        missing_keys: list[int] = []
 
-        effects_path = os.path.join(processed_dir, "main_effects.png")
-        plot_main_effects(matrix.runs, responses, matrix.factor_names, effects_path)
-    except ImportError:
-        print("Warning: matplotlib not available; skipping plots.")
+        for run in matrix.runs:
+            data = all_data.get(run.run_id, {})
+            if resp.name in data:
+                responses[run.run_id] = float(data[resp.name])
+            else:
+                missing_keys.append(run.run_id)
+
+        if missing_keys:
+            print(
+                f"Warning: response '{resp.name}' missing in result files for "
+                f"run IDs: {missing_keys}. Those runs will be excluded."
+            )
+
+        if not responses:
+            print(f"Warning: no data found for response '{resp.name}', skipping.")
+            continue
+
+        valid_runs = [r for r in matrix.runs if r.run_id in responses]
+        effects = _compute_main_effects(valid_runs, responses, matrix.factor_names)
+        summary_stats = _compute_summary_stats(valid_runs, responses, matrix.factor_names)
+
+        results_by_response[resp.name] = ResponseAnalysis(
+            response_name=resp.name,
+            effects=effects,
+            summary_stats=summary_stats,
+        )
+
+        if not no_plots:
+            try:
+                import matplotlib
+                matplotlib.use("Agg")
+                os.makedirs(processed_dir, exist_ok=True)
+
+                safe = resp.name.replace("/", "_").replace(" ", "_")
+                unit_label = f" ({resp.unit})" if resp.unit else ""
+                ylabel = f"Mean {resp.name}{unit_label}"
+                title = f"Pareto Chart — {resp.name}{unit_label}"
+
+                pareto_path = os.path.join(processed_dir, f"pareto_{safe}.png")
+                plot_pareto(effects, pareto_path, title=title)
+                pareto_chart_paths[resp.name] = pareto_path
+
+                effects_path = os.path.join(processed_dir, f"main_effects_{safe}.png")
+                plot_main_effects(valid_runs, responses, matrix.factor_names, effects_path, ylabel=ylabel)
+                effects_plot_paths[resp.name] = effects_path
+
+            except ImportError:
+                print("Warning: matplotlib not available; skipping plots.")
 
     return AnalysisReport(
-        effects=effects,
-        summary_stats=summary_stats,
-        pareto_chart_path=pareto_path,
-        effects_plot_path=effects_path,
+        results_by_response=results_by_response,
+        pareto_chart_paths=pareto_chart_paths,
+        effects_plot_paths=effects_plot_paths,
     )
 
 
-def _load_results(runs: list[ExperimentRun], results_dir: str) -> dict[int, float]:
-    responses = {}
-    missing = []
+def _load_all_results(runs: list[ExperimentRun], results_dir: str) -> dict[int, dict]:
+    """Load all run_{N}.json files. Raises if any file is missing."""
+    result_data: dict[int, dict] = {}
+    missing: list[int] = []
+
     for run in runs:
         path = os.path.join(results_dir, f"run_{run.run_id}.json")
         if not os.path.exists(path):
             missing.append(run.run_id)
             continue
         with open(path) as f:
-            data = json.load(f)
-        if "response" not in data:
-            raise ValueError(f"run_{run.run_id}.json is missing 'response' key.")
-        responses[run.run_id] = float(data["response"])
+            result_data[run.run_id] = json.load(f)
 
     if missing:
         raise FileNotFoundError(
             f"Missing result files for run IDs: {missing}. "
             f"Expected in: {results_dir}"
         )
-    return responses
+    return result_data
 
 
 def _compute_main_effects(
@@ -81,13 +118,9 @@ def _compute_main_effects(
             high_mean = sum(level_responses[levels[1]]) / len(level_responses[levels[1]])
             effect = high_mean - low_mean
         else:
-            grand_mean = sum(responses.values()) / len(responses)
-            all_means = [
-                sum(vals) / len(vals) for vals in level_responses.values()
-            ]
+            all_means = [sum(vals) / len(vals) for vals in level_responses.values()]
             effect = max(all_means) - min(all_means)
 
-        # std error across all responses for this factor
         all_vals = [v for vals in level_responses.values() for v in vals]
         n = len(all_vals)
         mean = sum(all_vals) / n
@@ -98,7 +131,7 @@ def _compute_main_effects(
             factor_name=factor_name,
             main_effect=effect,
             std_error=std_error,
-            pct_contribution=0.0,  # filled in below
+            pct_contribution=0.0,
         ))
 
     total_abs = sum(abs(e.main_effect) for e in effects) or 1.0
@@ -135,19 +168,23 @@ def _compute_summary_stats(
     return stats
 
 
-def plot_pareto(effects: list[EffectResult], output_path: str) -> None:
+def plot_pareto(
+    effects: list[EffectResult],
+    output_path: str,
+    title: str = "Pareto Chart of Main Effects",
+) -> None:
     import matplotlib.pyplot as plt
 
     sorted_effects = sorted(effects, key=lambda e: abs(e.main_effect), reverse=True)
     names = [e.factor_name for e in sorted_effects]
     values = [abs(e.main_effect) for e in sorted_effects]
     total = sum(values) or 1.0
-    cumulative = [sum(values[:i+1]) / total * 100 for i in range(len(values))]
+    cumulative = [sum(values[:i + 1]) / total * 100 for i in range(len(values))]
 
     fig, ax1 = plt.subplots(figsize=(max(6, len(names) * 1.2), 5))
     ax1.barh(names[::-1], values[::-1], color="steelblue")
     ax1.set_xlabel("Absolute Main Effect")
-    ax1.set_title("Pareto Chart of Main Effects")
+    ax1.set_title(title)
 
     ax2 = ax1.twiny()
     ax2.plot(cumulative[::-1], range(len(names)), "o-", color="red", markersize=4)
@@ -165,6 +202,7 @@ def plot_main_effects(
     responses: dict[int, float],
     factor_names: list[str],
     output_path: str,
+    ylabel: str = "Mean Response",
 ) -> None:
     import matplotlib.pyplot as plt
 
@@ -188,10 +226,9 @@ def plot_main_effects(
         ax.plot(levels, means, "o-", color="steelblue", linewidth=2, markersize=6)
         ax.set_title(factor_name)
         ax.set_xlabel("Level")
-        ax.set_ylabel("Mean Response")
+        ax.set_ylabel(ylabel)
         ax.grid(True, alpha=0.3)
 
-    # hide unused axes
     for idx in range(n, rows * cols):
         axes[idx // cols][idx % cols].set_visible(False)
 

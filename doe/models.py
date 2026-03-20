@@ -5,17 +5,38 @@ from dataclasses import dataclass, field
 class Factor:
     name: str
     levels: list[str]
+    type: str = "categorical"   # categorical | continuous | ordinal
+    description: str = ""
+    unit: str = ""
+
+
+@dataclass
+class ResponseVar:
+    name: str
+    optimize: str = "maximize"  # maximize | minimize
+    unit: str = ""
+    description: str = ""
+
+
+@dataclass
+class RunnerConfig:
+    arg_style: str = "double-dash"  # double-dash | env | positional
+    result_file: str = "json"
 
 
 @dataclass
 class DOEConfig:
     factors: list[Factor]
-    static_settings: list[str]
+    fixed_factors: dict[str, str]
+    responses: list[ResponseVar]
     block_count: int
     test_script: str
     operation: str
     processed_directory: str
     out_directory: str
+    lhs_samples: int = 0                    # 0 = auto: max(10, 2 * n_factors)
+    metadata: dict = field(default_factory=dict)
+    runner: RunnerConfig = field(default_factory=RunnerConfig)
 
 
 @dataclass
@@ -23,7 +44,6 @@ class ExperimentRun:
     run_id: int
     block_id: int
     factor_values: dict[str, str]
-    static_settings: list[str]
 
 
 @dataclass
@@ -43,8 +63,14 @@ class EffectResult:
 
 
 @dataclass
-class AnalysisReport:
+class ResponseAnalysis:
+    response_name: str
     effects: list[EffectResult]
     summary_stats: dict
-    pareto_chart_path: str | None = None
-    effects_plot_path: str | None = None
+
+
+@dataclass
+class AnalysisReport:
+    results_by_response: dict[str, ResponseAnalysis]
+    pareto_chart_paths: dict[str, str] = field(default_factory=dict)
+    effects_plot_paths: dict[str, str] = field(default_factory=dict)
