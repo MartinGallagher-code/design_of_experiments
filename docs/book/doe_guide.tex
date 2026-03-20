@@ -516,12 +516,63 @@ optimizations that only matter with specific architecture targets, or machine
 learning learning rates that only work with certain batch sizes.
 \end{warning}
 
+\section{DOE in Everyday Life}
+
+The logic of DOE is not confined to laboratories or data centers. You use it---or
+fail to use it---whenever you try to improve anything with multiple knobs to turn.
+
+\begin{example}[Cooking: Testing Seasoning Combinations]
+Suppose you are perfecting a pasta sauce and want to know how much \textbf{salt},
+\textbf{garlic}, and \textbf{chili flake} to add. You could test each seasoning
+one at a time, holding the others constant. But what if garlic only shines when
+paired with enough salt to bring out its flavor? A factorial approach---testing
+all combinations of low/high for each seasoning---lets you discover that the
+magic is in the \emph{combination} of moderate salt with generous garlic, while
+chili flake barely matters. Eight small batches tell you more than twenty
+one-at-a-time tastings.
+\end{example}
+
+\begin{example}[Gardening: Fertilizer, Watering, and Sunlight]
+A gardener wants bigger tomatoes. The controllable factors are
+\textbf{fertilizer} (low vs.\ high), \textbf{watering frequency}
+(daily vs.\ every other day), and \textbf{sunlight exposure} (partial shade
+vs.\ full sun). Instead of changing one factor per growing season (which would
+take three seasons), the gardener plants eight small plots---one for each
+combination---in the same season. The result: fertilizer has a huge effect, but
+\emph{only} when combined with daily watering. Full sun helps regardless. Two
+weeks of harvest data replace three years of guesswork.
+\end{example}
+
+\begin{example}[Shopping: Comparing Products Across Multiple Criteria]
+When buying a laptop, you care about \textbf{price}, \textbf{battery life}, and
+\textbf{weight}. Sorting a comparison table by just one criterion (say, price)
+hides the trade-offs. A DOE mindset asks: ``Which criterion has the biggest
+effect on my satisfaction?'' and ``Do any criteria interact?'' (e.g., you
+only care about weight if battery life is long enough to leave the charger at
+home). Thinking in terms of factors, levels, and interactions helps you make
+multi-criteria decisions systematically, even outside a formal experiment.
+\end{example}
+
 
 % ───────────────────────────────────────────
 \chapter{Statistical Foundations}
 % ───────────────────────────────────────────
 
 \section{The Linear Model}
+
+Before we write down any math, let us understand what we are doing in plain
+English. We are trying to build a simple equation that predicts our response
+from the factor settings. Think of it as:
+
+\medskip
+\centerline{Result = (baseline) + (contribution from factor A) + (contribution from factor B)}
+\centerline{+ (how A and B work together) + (random noise)}
+\medskip
+
+\noindent
+Each factor either pushes the result up or pulls it down by some amount, and
+the interaction term captures any synergy or conflict between factors. The math
+below just makes this precise.
 
 At the heart of DOE analysis is the general linear model. For a single response
 $Y$ with $k$ factors:
@@ -546,6 +597,14 @@ Y = \beta_0 + \sum_{i=1}^{k} \beta_i x_i
 \]
 
 \section{Coded Variables}
+
+Coding is just putting all factors on the same scale. If one factor is measured
+in degrees (150--200) and another in bars (2--6), their raw numbers are not
+comparable. A coefficient of 5 for temperature and 5 for pressure in raw units
+would \emph{not} mean they have the same importance, because a 50-degree change
+is very different from a 4-bar change. Coding transforms both factors to a $-1$
+to $+1$ scale, so a coefficient of 5 for temperature and 5 for pressure
+genuinely means they have the same effect on the response.
 
 Factor levels are coded to simplify calculations and make effects directly
 comparable. For a continuous factor with low value $L$ and high value $H$:
@@ -623,6 +682,13 @@ s_p = \sqrt{\frac{(n_- - 1)s_-^2 + (n_+ - 1)s_+^2}{n_- + n_+ - 2}}
 \]
 
 \section{Analysis of Variance (ANOVA)}
+
+ANOVA answers a simple question: ``How much of the total variation in my results
+is caused by each factor, and how much is just noise?'' It splits the total
+variation into pieces---like splitting a pie chart---so you can see which factors
+account for the biggest slices. If temperature accounts for 60\% of the
+variation, pressure for 15\%, and the remaining 25\% is unexplained noise, you
+know exactly where to focus your optimization effort.
 
 ANOVA decomposes the total variation in the response into components attributable
 to each factor, their interactions, and the residual error:
@@ -1220,6 +1286,143 @@ statistically significant. Temperature definitely matters.\\
 significant. The observed $+1.2$ could be noise.
 \end{example}
 
+\section{Complete Worked Example}
+
+Let us walk through a full analysis of a $2^3$ factorial experiment, step by step,
+with real numbers. Suppose we are studying the effect of three factors on the
+response time (in milliseconds) of an API endpoint:
+
+\begin{itemize}[nosep]
+\item \textbf{A}: Cache enabled ($-1$ = off, $+1$ = on)
+\item \textbf{B}: Thread pool size ($-1$ = 4 threads, $+1$ = 16 threads)
+\item \textbf{C}: Compression ($-1$ = off, $+1$ = on)
+\end{itemize}
+
+\subsection{Step 1: The Raw Data}
+
+\begin{center}
+\begin{tabular}{cccccr}
+\toprule
+Run & $A$ & $B$ & $C$ & $AB$ & Response (ms) \\
+\midrule
+1 & $-1$ & $-1$ & $-1$ & $+1$ & 120 \\
+2 & $+1$ & $-1$ & $-1$ & $-1$ & 75 \\
+3 & $-1$ & $+1$ & $-1$ & $-1$ & 95 \\
+4 & $+1$ & $+1$ & $-1$ & $+1$ & 40 \\
+5 & $-1$ & $-1$ & $+1$ & $+1$ & 130 \\
+6 & $+1$ & $-1$ & $+1$ & $-1$ & 82 \\
+7 & $-1$ & $+1$ & $+1$ & $-1$ & 105 \\
+8 & $+1$ & $+1$ & $+1$ & $+1$ & 48 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The grand mean is $\bar{y} = (120+75+95+40+130+82+105+48)/8 = 86.875$ ms.
+
+\subsection{Step 2: Calculate the Main Effect of A (Cache)}
+
+Average response when $A = +1$ (cache on): $\bar{y}_{A+} = (75 + 40 + 82 + 48)/4 = 61.25$
+
+Average response when $A = -1$ (cache off): $\bar{y}_{A-} = (120 + 95 + 130 + 105)/4 = 112.50$
+
+\[
+\text{ME}_A = \bar{y}_{A+} - \bar{y}_{A-} = 61.25 - 112.50 = -51.25 \text{ ms}
+\]
+
+The negative sign means cache \emph{reduces} response time (good!). Enabling the
+cache cuts response time by an average of 51.25\,ms. The corresponding model
+coefficient is $\text{ME}_A / 2 = -25.625$.
+
+\subsection{Step 3: Calculate Main Effects of B and C}
+
+By the same procedure:
+\begin{align*}
+\text{ME}_B &= \frac{95+40+105+48}{4} - \frac{120+75+130+82}{4} = 72.0 - 101.75 = -29.75 \text{ ms} \\
+\text{ME}_C &= \frac{130+82+105+48}{4} - \frac{120+75+95+40}{4} = 91.25 - 82.50 = +8.75 \text{ ms}
+\end{align*}
+
+More threads (B) reduce response time by 29.75\,ms. Compression (C) actually
+\emph{increases} response time by 8.75\,ms (the CPU cost of compression outweighs
+the bandwidth savings).
+
+\subsection{Step 4: Calculate the AB Interaction}
+
+The $AB$ column is the element-wise product of the $A$ and $B$ columns. We compute:
+
+$\bar{y}_{AB,\text{concordant}} = (120 + 40 + 130 + 48)/4 = 84.50$ (runs where $A$
+and $B$ have the same sign)
+
+$\bar{y}_{AB,\text{discordant}} = (75 + 95 + 82 + 105)/4 = 89.25$ (runs where $A$
+and $B$ have opposite signs)
+
+\[
+\text{IE}_{AB} = 84.50 - 89.25 = -4.75 \text{ ms}
+\]
+
+This is a small interaction. The effect of cache does not depend strongly on the
+thread pool size.
+
+\subsection{Step 5: Pareto Ranking}
+
+Ranking by absolute effect magnitude:
+
+\begin{center}
+\begin{tabular}{lrr}
+\toprule
+Factor & $|\text{Effect}|$ & Cumulative \% \\
+\midrule
+A (Cache) & 51.25 & 54.1\% \\
+B (Threads) & 29.75 & 85.5\% \\
+C (Compression) & 8.75 & 94.7\% \\
+AB & 4.75 & 99.7\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Cache and thread pool size together account for 85.5\% of the total effect---these
+are the ``vital few.'' Compression and the AB interaction are minor.
+
+\subsection{Step 6: Confidence Intervals}
+
+Suppose from replicated runs we estimated the pooled standard deviation as
+$s = 6.0$\,ms. With $N = 8$ runs, the standard error of any main effect is:
+\[
+\text{SE} = \frac{2s}{\sqrt{N}} = \frac{2 \times 6.0}{\sqrt{8}} = 4.24 \text{ ms}
+\]
+
+For a 95\% confidence interval with, say, $\nu = 8$ degrees of freedom
+($t_{0.025, 8} = 2.306$):
+
+\begin{center}
+\begin{tabular}{lrl}
+\toprule
+Factor & Effect & 95\% CI \\
+\midrule
+A (Cache) & $-51.25$ & $[-61.03, -41.47]$ \\
+B (Threads) & $-29.75$ & $[-39.53, -19.97]$ \\
+C (Compression) & $+8.75$ & $[-1.03, +18.53]$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Step 7: Conclusions}
+
+\begin{enumerate}[nosep]
+\item \textbf{Cache (A)} is the dominant factor. Its CI is entirely negative
+      (reduces response time). Enable the cache.
+\item \textbf{Thread pool (B)} is the second most important factor. Its CI is
+      entirely negative. Use 16 threads.
+\item \textbf{Compression (C)} is not statistically significant---its CI
+      includes zero. The 8.75\,ms increase could be noise. Leave compression off
+      (it also saves CPU).
+\item The \textbf{AB interaction} is small and not significant. Cache and threads
+      help independently.
+\item \textbf{Predicted best configuration}: Cache on, 16 threads, compression
+      off. Predicted response: $86.875 - 25.625 - 14.875 - 4.375 = 42.0$\,ms.
+      (This matches run~4 closely.)
+\end{enumerate}
+
+
 \section{Statistical Significance}
 
 \subsection{Using Confidence Intervals}
@@ -1258,6 +1461,29 @@ Response Surface Methodology (RSM) answers: ``What are the optimal settings?''
 
 RSM fits a polynomial model to the data and uses the model to predict the
 response at untested factor combinations, including the predicted optimum.
+
+\section{What Is a Response Surface?}
+
+Imagine your response is the elevation on a landscape. Each factor is a
+direction you can walk---north-south, east-west. A \emph{linear model} says the
+landscape is a flat tilted plane: walking north always goes uphill at the same
+rate, no matter where you are. A \emph{quadratic model} allows hills and
+valleys: there can be a peak (maximum) somewhere in the middle, and walking past
+it starts going downhill.
+
+Response Surface Methodology is about mapping this landscape with a minimum
+number of measurements, then finding the highest peak (if you want to maximize)
+or the lowest valley (if you want to minimize). Instead of measuring the
+elevation at thousands of grid points, you strategically place a few dozen
+measurement stations (your experimental runs) and fit a smooth mathematical
+surface through them. The surface tells you not just what the response is
+\emph{at} your measurement points, but predicts what it would be \emph{between}
+them---including the location of the peak.
+
+The power of RSM is that a quadratic model with $k$ factors requires only about
+$2k^2$ measurements to fit, while a fine grid search would require hundreds or
+thousands. With 3 factors and 20 well-placed runs, you can map a landscape that
+a $10 \times 10 \times 10 = 1000$-point grid would struggle to reveal.
 
 \section{Fitting the Model}
 
@@ -1322,6 +1548,44 @@ experiments at the predicted settings. If the observed response matches the
 prediction (within the confidence interval), the model is validated.
 \end{keypoint}
 
+\section{When the Optimum Is Outside Your Design Space}
+
+Sometimes the stationary point computed from your quadratic model falls outside
+the region you actually tested. For example, you tested temperature from 150 to
+200\textdegree C, but the model predicts the optimum at 220\textdegree C. This
+does \emph{not} mean you should blindly set temperature to 220\textdegree
+C---the model is a polynomial approximation that may be wildly inaccurate
+outside the tested range.
+
+Instead, use the \textbf{method of steepest ascent} (or steepest descent, for
+minimization):
+
+\begin{enumerate}[nosep]
+\item From your current factorial or RSM analysis, identify the direction of
+      greatest improvement. This is determined by the linear coefficients of
+      your model: the factor with the largest positive coefficient (for
+      maximization) points in the most promising direction.
+\item Starting from the center of your current design, take a series of steps
+      along this direction. Each step increases (or decreases) each factor in
+      proportion to its coefficient. For example, if the temperature coefficient
+      is twice the pressure coefficient, increase temperature by 10 units for
+      every 5 units of pressure increase.
+\item Run a few experiments (3--5) along this path, spaced out enough to see
+      the trend. The response will initially improve, then plateau or decline.
+\item Center your next RSM design at the point where the response was best
+      (just before it started declining). Run a new CCD or Box--Behnken there
+      to find the precise optimum in that neighborhood.
+\end{enumerate}
+
+\begin{keypoint}[Steepest Ascent Is Iterative]
+Think of steepest ascent as hiking uphill in fog. You cannot see the summit, but
+you can feel which direction is steepest. You walk that way until the ground
+levels off, then stop and survey the local area more carefully (a new RSM
+design). You may need several rounds of ``hike, then survey'' to reach the true
+summit.
+\end{keypoint}
+
+
 \section{Multi-Response Optimization}
 
 When multiple responses must be optimized simultaneously (e.g., maximize yield
@@ -1340,6 +1604,203 @@ while minimizing cost), the \emph{desirability function} approach is standard:
 % PART IV: PRACTICE
 % ═══════════════════════════════════════════
 \part{Practice}
+
+% ───────────────────────────────────────────
+\chapter{Planning Your First Experiment}
+% ───────────────────────────────────────────
+
+Before you choose a design type, select factor levels, or write a configuration
+file, you need to answer several fundamental questions. Skipping this planning
+step is the single most common reason experiments fail or produce useless
+results. This chapter provides a systematic checklist and a worked example to
+guide you through the process.
+
+\section{The Pre-Experiment Checklist}
+
+\begin{keypoint}[Before You Design Anything, Answer These Questions]
+Work through this checklist in order. Do not proceed to design selection until
+you have clear answers for every item.
+\end{keypoint}
+
+\subsection{1. What Am I Trying to Learn or Optimize?}
+
+State your objective in one sentence. Be specific. Not ``make the system
+faster'' but ``maximize throughput in requests per second under realistic load.''
+Not ``understand the process'' but ``identify which 3 of these 12 factors have
+the largest effect on yield.''
+
+Your objective determines everything else:
+\begin{itemize}[nosep]
+\item \textbf{Screening} (``which factors matter?'') $\to$ Plackett--Burman or
+      fractional factorial.
+\item \textbf{Characterization} (``how do they interact?'') $\to$ full factorial.
+\item \textbf{Optimization} (``what are the best settings?'') $\to$ CCD or
+      Box--Behnken.
+\end{itemize}
+
+\subsection{2. What Factors Can I Control?}
+
+List \emph{all} candidate factors, even ones you are unsure about. It is better
+to screen a factor and discover it does not matter than to omit it and miss
+something important. For each factor, note:
+\begin{itemize}[nosep]
+\item Is it continuous (temperature, pressure) or categorical (algorithm A vs.\ B)?
+\item Can I set it precisely and reproducibly?
+\item Are there any constraints (safety limits, hardware limits)?
+\end{itemize}
+
+\subsection{3. What Are Reasonable Low and High Levels?}
+
+\begin{warning}[Do Not Pick Levels Too Close Together]
+If your low and high levels are too similar, the effect will be smaller than the
+noise and you will conclude (incorrectly) that the factor does not matter. A
+good rule of thumb: the difference between levels should span a range you
+believe could produce a noticeable change. If you are unsure, err on the side of
+a wider range---you can always narrow it later.
+\end{warning}
+
+For each factor, choose levels that:
+\begin{itemize}[nosep]
+\item Are practically achievable (do not set temperature to 5000\textdegree C)
+\item Span a range where you expect the response to change
+\item Avoid known failure regions (the system crashes above 90\% CPU)
+\item Are far enough apart to produce a detectable signal
+\end{itemize}
+
+\subsection{4. What Will I Measure?}
+
+Define each response precisely, including:
+\begin{itemize}[nosep]
+\item \textbf{Name:} What you call it (throughput, yield, latency)
+\item \textbf{Units:} req/sec, \%, milliseconds
+\item \textbf{How measured:} Which tool, which metric, over what time window
+\item \textbf{Direction:} Are you maximizing or minimizing?
+\end{itemize}
+
+Vague responses like ``performance'' are a recipe for confusion. ``p99 latency in
+milliseconds, measured by wrk2 over a 60-second steady-state window'' is
+unambiguous and reproducible.
+
+\subsection{5. How Noisy Is My System?}
+
+Run 5--10 identical experiments (same settings) and measure the response. The
+standard deviation tells you the noise floor. This determines:
+\begin{itemize}[nosep]
+\item Whether you need replication (high noise $\to$ more replicates)
+\item How far apart your factor levels need to be (the effect must exceed the
+      noise)
+\item Whether DOE is even the right approach (if the noise is so large that no
+      effect can be detected, fix the measurement system first)
+\end{itemize}
+
+\subsection{6. How Many Runs Can I Afford?}
+
+Be realistic about your budget in time, money, or compute. This constrains your
+design choice:
+\begin{itemize}[nosep]
+\item \textbf{8--12 runs:} Screening designs (PB, fractional factorial)
+\item \textbf{16--32 runs:} Full factorials on 4--5 factors
+\item \textbf{15--50 runs:} Response surface designs (CCD, Box--Behnken)
+\end{itemize}
+
+It is always better to run a smaller, well-chosen design than a larger design
+you cannot complete.
+
+\subsection{7. Are There Nuisance Variables I Should Block On?}
+
+Nuisance variables are things that affect the response but are not factors you
+want to study---time of day, batch of raw material, which server you run on,
+which operator performs the test. If you know a nuisance variable exists, use
+blocking:
+\begin{itemize}[nosep]
+\item Assign each block a complete (or balanced) subset of the design
+\item The block effect is estimated and removed from the error, giving you
+      sharper estimates of the effects you care about
+\end{itemize}
+
+
+\section{Worked Example: Planning a Web Server Optimization}
+
+Let us walk through the checklist for a concrete scenario.
+
+\begin{example}[Planning Worksheet: Nginx Optimization]
+\textbf{1. Objective:} Maximize requests per second (throughput) for a static
+file workload served by Nginx, while keeping p99 latency below 50\,ms.
+
+\textbf{2. Candidate factors:}
+\begin{center}
+\begin{tabular}{llcc}
+\toprule
+Factor & Type & Low & High \\
+\midrule
+\texttt{worker\_processes} & continuous & 2 & 16 \\
+\texttt{worker\_connections} & continuous & 256 & 2048 \\
+\texttt{sendfile} & categorical & off & on \\
+\texttt{tcp\_nopush} & categorical & off & on \\
+\texttt{keepalive\_timeout} & continuous & 5\,s & 65\,s \\
+\texttt{gzip} & categorical & off & on \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{3. Level rationale:} Worker processes range from 2 (well below the 8-core
+CPU) to 16 (double the cores). Worker connections span a 8$\times$ range. The
+categorical factors are simply on/off toggles.
+
+\textbf{4. Responses:}
+\begin{itemize}[nosep]
+\item Throughput: requests/sec, measured by \texttt{wrk} over 30\,s steady state,
+      maximize.
+\item p99 latency: milliseconds, measured by \texttt{wrk}, minimize (constraint:
+      must stay below 50\,ms).
+\end{itemize}
+
+\textbf{5. Noise estimate:} Five identical runs at default settings gave
+throughput values of 12,340, 12,510, 12,280, 12,450, and 12,390. Standard
+deviation $\approx 90$ req/s (about 0.7\% of the mean). Noise is low; single
+replicates may suffice for screening.
+
+\textbf{6. Budget:} Each run takes about 2 minutes. We can afford up to 20 runs
+in a single session.
+
+\textbf{7. Blocking:} We will run everything on the same machine in one session,
+so no blocking is needed. If we had to split across two days, we would block on
+day.
+
+\textbf{Decision:} Six factors, budget of 20 runs. A Plackett--Burman design
+with 12 runs screens all six factors. That leaves 8 runs for a follow-up
+factorial on the top 3 factors. Total: 20 runs.
+\end{example}
+
+
+\section{Common Pitfalls in Planning}
+
+\begin{enumerate}
+\item \textbf{Starting with optimization before screening.} If you have more
+      than 4--5 factors, do not jump straight to a CCD. Screen first, then
+      optimize the vital few.
+
+\item \textbf{Forgetting to define the response precisely.} ``Performance''
+      is not a response. ``Median throughput in req/s over a 60-second window
+      after 10 seconds of warm-up'' is a response.
+
+\item \textbf{Choosing levels based on convenience, not signal.} Levels of
+      100\,MB and 110\,MB for a buffer size are probably too close. Levels of
+      100\,MB and 1\,GB will produce a detectable effect.
+
+\item \textbf{Ignoring nuisance variables.} If your results depend on time of
+      day, server load, or network conditions, and you do not block on them,
+      they inflate your error and hide real effects.
+
+\item \textbf{Not estimating noise before designing.} Without a noise estimate,
+      you cannot know how many replicates you need or whether your factor levels
+      are far enough apart. Always do a few preliminary runs.
+
+\item \textbf{Planning more runs than you can complete.} An incomplete design is
+      often unanalyzable. It is better to run an 8-run PB to completion than to
+      abandon a 32-run factorial halfway through.
+\end{enumerate}
+
 
 % ───────────────────────────────────────────
 \chapter{The Sequential Experimentation Strategy}
@@ -1711,6 +2172,123 @@ The tool is driven by a JSON configuration file:
 }
 \end{lstlisting}
 
+\section{Configuration Reference}
+
+This section documents every field in the JSON configuration file.
+
+\subsection{Metadata Fields}
+
+\begin{center}
+\begin{tabular}{llp{5.5cm}}
+\toprule
+Field & Required & Description \\
+\midrule
+\texttt{name} & Yes & A short name for the experiment. Used in report titles and file names. \\
+\texttt{description} & No & A longer description of the experiment's purpose. Appears in the HTML report header. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Factor Fields}
+
+Each entry in the \texttt{factors} array describes one controllable input variable.
+
+\begin{center}
+\begin{tabular}{llp{5.5cm}}
+\toprule
+Field & Required & Description \\
+\midrule
+\texttt{name} & Yes & Identifier for the factor. Used as the column header and command-line argument name. Must be a valid identifier (letters, digits, underscores). \\
+\texttt{levels} & Yes & Array of level values (as strings). For 2-level designs, provide exactly 2 values. For multi-level designs, provide all values. \\
+\texttt{type} & No & \texttt{"continuous"} (default) or \texttt{"categorical"}. Continuous factors are coded to $[-1, +1]$ for analysis. Categorical factors are compared by level means. \\
+\texttt{unit} & No & Unit of measurement (e.g., \texttt{"MB"}, \texttt{"ms"}, \texttt{"C"}). Displayed in reports and plots. \\
+\texttt{description} & No & Human-readable description. Shown in the HTML report. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Response Fields}
+
+Each entry in the \texttt{responses} array describes one measurable output.
+
+\begin{center}
+\begin{tabular}{llp{5.5cm}}
+\toprule
+Field & Required & Description \\
+\midrule
+\texttt{name} & Yes & Identifier for the response. Must match a key in the JSON output of your test script. \\
+\texttt{optimize} & No & \texttt{"maximize"} (default) or \texttt{"minimize"}. Determines the direction of optimization in RSM analysis. \\
+\texttt{unit} & No & Unit of measurement (e.g., \texttt{"req/s"}, \texttt{"\%"}). Displayed in reports. \\
+\texttt{description} & No & Human-readable description of what is measured. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Runner Fields}
+
+The \texttt{runner} section controls how factor values are passed to your test script.
+
+\begin{center}
+\begin{tabular}{llp{5.5cm}}
+\toprule
+Field & Required & Description \\
+\midrule
+\texttt{arg\_style} & No & How factor values are passed to the test script. Options below. Default: \texttt{"double-dash"}. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent The three argument styles:
+
+\begin{description}[style=nextline, leftmargin=2.5cm]
+\item[\texttt{double-dash}] Factors are passed as \texttt{-{}-factor\_name value}.
+      Example: \texttt{./test.sh -{}-temperature 200 -{}-pressure 6}. This is the
+      most common and explicit style.
+\item[\texttt{env}] Factors are set as environment variables before invoking the
+      script. Example: \texttt{temperature=200 pressure=6 ./test.sh}. Useful when
+      your test script reads from the environment.
+\item[\texttt{positional}] Factors are passed as positional arguments in the order
+      they appear in the \texttt{factors} array. Example:
+      \texttt{./test.sh 200 6}. Compact but fragile---reordering factors in the
+      config will change which value goes where.
+\end{description}
+
+\subsection{Settings Fields}
+
+\begin{center}
+\begin{tabular}{llp{5.5cm}}
+\toprule
+Field & Required & Description \\
+\midrule
+\texttt{operation} & Yes & Design type. One of: \texttt{full\_factorial}, \texttt{fractional\_factorial}, \texttt{plackett\_burman}, \texttt{latin\_hypercube}, \texttt{central\_composite}, \texttt{box\_behnken}. \\
+\texttt{test\_script} & Yes & Path to the executable that runs one experiment. Receives factor values and writes a JSON result file. \\
+\texttt{block\_count} & No & Number of complete replicates of the entire design. Default: 1 (no replication). Set to 2 or 3 for noisy systems. \\
+\texttt{out\_directory} & No & Directory where raw result JSON files are written. Default: \texttt{"results"}. \\
+\texttt{processed\_directory} & No & Directory where analysis outputs (plots, CSV, reports) are saved. Default: \texttt{"processed"}. \\
+\texttt{lhs\_samples} & No & Number of sample points for Latin Hypercube designs. Only used when \texttt{operation} is \texttt{latin\_hypercube}. Default: 20. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Fixed Factors}
+
+The optional \texttt{fixed\_factors} object contains key-value pairs that are
+passed to every run of the test script but are not varied in the design. Use
+these for parameters that must be set but are not part of the experiment:
+
+\begin{lstlisting}[language=json]
+"fixed_factors": {
+  "workload": "oltp_read_write",
+  "duration": "60",
+  "warmup": "10"
+}
+\end{lstlisting}
+
+Fixed factors appear in the runner script as additional arguments (using the
+same \texttt{arg\_style} as the experimental factors) and are recorded in the
+report for reproducibility.
+
+
 \section{Supported Operations}
 
 \begin{center}
@@ -1786,6 +2364,89 @@ $R^2$, coefficients, predicted optimum, and factor importance ranking.
 
 The \texttt{report} command generates a self-contained HTML file with all tables,
 plots (embedded as base64 images), and a collapsible design matrix.
+
+
+\section{Troubleshooting}
+
+This section covers the most common problems users encounter and how to resolve
+them.
+
+\subsection{``My Effects Are All Near Zero''}
+
+\textbf{Likely causes:}
+\begin{itemize}[nosep]
+\item Factor levels are too close together. If you test buffer size at 100\,MB
+      and 110\,MB, the 10\% difference may be invisible against the noise. Widen
+      your levels.
+\item The response is dominated by noise. If the run-to-run variability is
+      larger than any factor effect, nothing will be significant. Reduce noise
+      (longer measurement windows, more stable environment) or increase
+      replication.
+\item You are studying the wrong factors. The real drivers of performance may
+      not be in your factor list. Revisit your candidate list and consider
+      factors you dismissed.
+\end{itemize}
+
+\subsection{``$R^2$ Is Very Low''}
+
+An $R^2$ below 0.5 means the model explains less than half the variation.
+\textbf{Likely causes:}
+\begin{itemize}[nosep]
+\item Important factors are missing from the model. There may be a factor you
+      did not include that has a large effect.
+\item The wrong model type is fitted. A linear model cannot capture curvature.
+      If the true relationship is quadratic, try a response surface model.
+\item The system is inherently very noisy, and single replicates are
+      insufficient. Add replication to bring down the error variance.
+\end{itemize}
+
+\subsection{``Confidence Intervals Are Huge''}
+
+Wide confidence intervals mean the effect estimates are imprecise.
+\textbf{Likely causes:}
+\begin{itemize}[nosep]
+\item Not enough replication. With a single replicate of a $2^k$ design, the
+      error variance is estimated from higher-order interactions (which may
+      themselves be real effects). Adding even one replicate (\texttt{block\_count
+      = 2}) dramatically improves precision.
+\item High inherent noise. Reduce variability by controlling nuisance variables,
+      using blocking, or increasing measurement duration.
+\end{itemize}
+
+\subsection{``The Predicted Optimum Is Unrealistic''}
+
+If the RSM model predicts an optimum at factor settings that are physically
+impossible or far outside your tested range:
+\begin{itemize}[nosep]
+\item The model is extrapolating beyond the design space. Polynomial models can
+      produce absurd predictions outside the region where data exists. Never
+      trust predictions more than 10--20\% beyond your tested range.
+\item The stationary point is a saddle point, not a true optimum. Check the
+      eigenvalues. If they have mixed signs, the optimum is on the boundary of
+      the design space, not at the stationary point.
+\item Consider shifting your design space toward the predicted optimum using
+      steepest ascent (see Section on ``When the Optimum Is Outside Your Design
+      Space'') and running a new experiment there.
+\end{itemize}
+
+\subsection{``Runner Script Fails on Some Runs''}
+
+If some experimental runs succeed and others fail:
+\begin{itemize}[nosep]
+\item Check the test script's error handling. Does it handle edge cases at
+      extreme factor combinations? A setting that works at (low, low) might
+      crash at (high, high).
+\item Look for missing result files. The analysis tool expects a JSON result
+      file for every run. Missing files produce incomplete data that can bias
+      the analysis.
+\item Check disk space and permissions in the output directory.
+\item Verify that the test script correctly parses all argument styles. A
+      common bug: the script reads \texttt{-{}-factor\_name} but the config
+      uses \texttt{env} style.
+\item If only a few runs failed, you may still be able to analyze the partial
+      results, but the design will no longer be balanced. The effect estimates
+      will have unequal precision, and some interactions may not be estimable.
+\end{itemize}
 
 
 % ═══════════════════════════════════════════
