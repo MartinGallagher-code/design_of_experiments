@@ -1,0 +1,1643 @@
+% Design of Experiments: A Practical Guide
+% 6×9 inch book suitable for Lulu publication
+% Compile with: lualatex doe_guide.tex (run twice for TOC)
+
+\documentclass[11pt]{book}
+
+% ── Page geometry: 6×9 inch trim size for Lulu ──
+\usepackage[
+  paperwidth=6in,
+  paperheight=9in,
+  inner=0.875in,    % gutter (binding side)
+  outer=0.625in,
+  top=0.75in,
+  bottom=0.75in,
+  headheight=14pt,
+]{geometry}
+
+% ── Fonts ──
+\usepackage{fontspec}
+\setmainfont{TeX Gyre Termes}         % Times-like body
+\setsansfont{TeX Gyre Heros}          % Helvetica-like headings
+\setmonofont{TeX Gyre Cursor}[Scale=0.85] % Courier-like code
+
+% ── Packages ──
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, shapes.geometric, calc}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\usepackage{microtype}
+\usepackage{float}
+
+% ── Colors ──
+\definecolor{steelblue}{HTML}{4682B4}
+\definecolor{darkblue}{HTML}{2C3E6B}
+\definecolor{lightgray}{HTML}{F5F5F5}
+\definecolor{codebg}{HTML}{F0F4F8}
+\definecolor{codeframe}{HTML}{D0D8E0}
+
+% ── Hyperref setup ──
+\hypersetup{
+  colorlinks=true,
+  linkcolor=darkblue,
+  urlcolor=steelblue,
+  citecolor=darkblue,
+  pdfauthor={},
+  pdftitle={Design of Experiments: A Practical Guide},
+  pdfsubject={DOE, Statistics, Experimental Design},
+}
+
+% ── Code listings ──
+\lstset{
+  basicstyle=\small\ttfamily,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  rulecolor=\color{codeframe},
+  breaklines=true,
+  breakatwhitespace=true,
+  columns=flexible,
+  keepspaces=true,
+  showstringspaces=false,
+  tabsize=2,
+  xleftmargin=2em,
+  framexleftmargin=1.5em,
+  aboveskip=1em,
+  belowskip=1em,
+}
+\lstdefinelanguage{json}{
+  morestring=[b]",
+  literate=
+    *{:}{{{\color{steelblue}{:}}}}{1}
+    {,}{{{\color{steelblue}{,}}}}{1}
+    {\{}{{{\color{steelblue}{\{}}}}{1}
+    {\}}{{{\color{steelblue}{\}}}}}{1}
+    {[}{{{\color{steelblue}{[}}}}{1}
+    {]}{{{\color{steelblue}{]}}}}{1},
+}
+
+% ── Headers and footers ──
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[LE]{\small\itshape\leftmark}
+\fancyhead[RO]{\small\itshape\rightmark}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ── Chapter title formatting ──
+\titleformat{\chapter}[display]
+  {\normalfont\huge\sffamily\bfseries\color{darkblue}}
+  {\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titleformat{\section}
+  {\normalfont\Large\sffamily\bfseries\color{darkblue}}
+  {\thesection}{1em}{}
+\titleformat{\subsection}
+  {\normalfont\large\sffamily\bfseries\color{steelblue}}
+  {\thesubsection}{1em}{}
+
+% ── Custom environments ──
+\usepackage{tcolorbox}
+\tcbuselibrary{breakable,skins}
+
+\newtcolorbox{keypoint}[1][]{
+  enhanced,
+  breakable,
+  colback=blue!5,
+  colframe=steelblue,
+  fonttitle=\sffamily\bfseries,
+  title={#1},
+  left=4mm,
+  right=4mm,
+  top=2mm,
+  bottom=2mm,
+}
+
+\newtcolorbox{example}[1][]{
+  enhanced,
+  breakable,
+  colback=green!3,
+  colframe=green!40!black,
+  fonttitle=\sffamily\bfseries,
+  title={#1},
+  left=4mm,
+  right=4mm,
+  top=2mm,
+  bottom=2mm,
+}
+
+\newtcolorbox{warning}[1][]{
+  enhanced,
+  breakable,
+  colback=red!3,
+  colframe=red!50!black,
+  fonttitle=\sffamily\bfseries,
+  title={#1},
+  left=4mm,
+  right=4mm,
+  top=2mm,
+  bottom=2mm,
+}
+
+% ── Document ──
+\begin{document}
+
+% ═══════════════════════════════════════════
+% TITLE PAGE
+% ═══════════════════════════════════════════
+\begin{titlepage}
+\centering
+\vspace*{2cm}
+
+{\Huge\sffamily\bfseries\color{darkblue}
+Design of Experiments}\\[0.5cm]
+{\LARGE\sffamily\color{steelblue}
+A Practical Guide}\\[0.3cm]
+{\large\sffamily\color{steelblue}
+From Theory to Automated Analysis}
+
+\vspace{2cm}
+
+\begin{tikzpicture}[scale=0.8]
+  % Factorial cube
+  \coordinate (A) at (0,0,0);
+  \coordinate (B) at (4,0,0);
+  \coordinate (C) at (4,4,0);
+  \coordinate (D) at (0,4,0);
+  \coordinate (E) at (0,0,4);
+  \coordinate (F) at (4,0,4);
+  \coordinate (G) at (4,4,4);
+  \coordinate (H) at (0,4,4);
+
+  % Back faces
+  \draw[thick, steelblue!40] (A) -- (B) -- (C) -- (D) -- cycle;
+  \draw[thick, steelblue!40] (A) -- (E);
+  \draw[thick, steelblue!40] (B) -- (F);
+  \draw[thick, steelblue!40] (D) -- (H);
+
+  % Front faces
+  \draw[thick, steelblue] (E) -- (F) -- (G) -- (H) -- cycle;
+  \draw[thick, steelblue] (C) -- (G);
+
+  % Corner points
+  \foreach \p in {A,B,C,D,E,F,G,H}
+    \fill[steelblue] (\p) circle (3pt);
+
+  % Center point
+  \fill[red!70!black] (2,2,2) circle (4pt);
+
+  % Labels
+  \node[below left] at (A) {\small $(-,-,-)$};
+  \node[above right] at (G) {\small $(+,+,+)$};
+  \node[right, red!70!black] at (2.3,2,2) {\small center};
+\end{tikzpicture}
+
+\vspace{2cm}
+
+\vfill
+{\large\sffamily First Edition}\\[0.5cm]
+{\normalsize 2025}
+\end{titlepage}
+
+% ═══════════════════════════════════════════
+% COPYRIGHT
+% ═══════════════════════════════════════════
+\thispagestyle{empty}
+\vspace*{\fill}
+\begin{center}
+\small
+\textit{Design of Experiments: A Practical Guide}\\[1em]
+First Edition, 2025\\[2em]
+This work is released under the MIT License.\\
+You are free to copy, modify, and distribute this work.\\[2em]
+Typeset in \TeX\ Gyre Termes.\\
+Compiled with Lua\LaTeX.
+\end{center}
+\vspace*{\fill}
+\clearpage
+
+% ═══════════════════════════════════════════
+% TABLE OF CONTENTS
+% ═══════════════════════════════════════════
+\tableofcontents
+
+% ═══════════════════════════════════════════
+% PREFACE
+% ═══════════════════════════════════════════
+\chapter*{Preface}
+\addcontentsline{toc}{chapter}{Preface}
+
+This book teaches the theory and practice of Design of Experiments (DOE)---a
+systematic method for planning experiments that extracts the maximum information
+from the minimum number of runs. It is written for engineers, scientists, and
+anyone who runs experiments, benchmarks, or tests and wants to do so more
+efficiently.
+
+DOE is not new. Ronald Fisher developed the foundations in the 1920s and 1930s
+for agricultural experiments at Rothamsted. George Box, Genichi Taguchi, and
+others extended it to manufacturing, quality engineering, and process
+optimization. Yet the technique remains underused, especially in software
+engineering and technology, where practitioners often default to changing one
+variable at a time or running exhaustive grid searches.
+
+This guide takes a practical approach. Each chapter introduces the theory you
+need, then shows you how to apply it. Mathematical derivations are included
+where they build intuition, but the emphasis is on understanding \emph{when} and
+\emph{why} to use each technique, not on proofs.
+
+The examples throughout this book can be run using the open-source DOE Helper
+Tool that accompanies it. The tool reads a JSON configuration file, generates an
+optimized experimental design, produces an executable runner script, and
+analyzes the results with statistical summaries, plots, and reports.
+
+\vspace{1em}
+\noindent\textit{Who this book is for:}
+\begin{itemize}[nosep]
+\item Engineers optimizing systems, processes, or software configurations
+\item Scientists planning laboratory or field experiments
+\item Data scientists evaluating model hyperparameters
+\item Quality engineers improving manufacturing processes
+\item Anyone who has ever wondered: ``Which of these 10 knobs actually matters?''
+\end{itemize}
+
+\noindent\textit{Prerequisites:} Basic familiarity with mean, variance, and
+standard deviation. No prior statistics coursework is assumed.
+
+% ═══════════════════════════════════════════
+% PART I: FOUNDATIONS
+% ═══════════════════════════════════════════
+\part{Foundations}
+
+% ───────────────────────────────────────────
+\chapter{Why Design of Experiments?}
+% ───────────────────────────────────────────
+
+\section{The Cost of Unplanned Experiments}
+
+Every experiment costs something---time, money, materials, compute cycles. A
+poorly planned experiment wastes these resources and may lead to wrong
+conclusions. A well-designed experiment extracts the maximum learning from each
+run.
+
+Consider a team tuning a database. They have five configuration knobs they
+suspect affect performance: buffer pool size, I/O capacity, connection limit,
+query cache, and thread pool size. The one-variable-at-a-time (OVAT) approach
+would be:
+
+\begin{enumerate}[nosep]
+\item Fix all knobs at their defaults.
+\item Change buffer pool size. Measure.
+\item Reset buffer pool. Change I/O capacity. Measure.
+\item Continue for each knob.
+\end{enumerate}
+
+This requires at least 10 runs (2 per knob) and only measures each knob's
+effect \emph{in isolation, at the default settings of every other knob}. It
+tells you nothing about how the knobs interact.
+
+A Plackett--Burman screening design tests all five knobs in just 8 runs and
+estimates every main effect simultaneously. A full factorial on the two most
+important knobs then takes 4 more runs and reveals their interaction. Twelve
+runs total, and you know more than OVAT would teach you in fifty.
+
+\section{The Three Principles of DOE}
+
+Fisher established three principles that remain the foundation of every
+well-designed experiment:
+
+\subsection{Randomization}
+
+\begin{keypoint}[Randomization]
+Randomly assign the order in which experimental runs are performed to protect
+against unknown lurking variables.
+\end{keypoint}
+
+If you run all low-temperature experiments in the morning and all
+high-temperature experiments in the afternoon, any morning-to-afternoon drift
+(ambient temperature, operator alertness, equipment warm-up) becomes confounded
+with your temperature factor. You cannot tell whether the observed difference is
+due to temperature or time of day.
+
+Randomization does not eliminate lurking variables---it distributes their effects
+equally across all treatments, on average. This ensures that the statistical
+tests remain valid.
+
+Mathematically, if $Y_{ij}$ is the response for factor level $i$ in run order
+$j$, and there is a time trend $\delta_j$, then without randomization:
+\[
+E[Y_{ij}] = \mu + \tau_i + \delta_j
+\]
+where $\tau_i$ and $\delta_j$ may be confounded. With randomization, $\delta_j$
+is equally likely to affect any treatment, so:
+\[
+E[\bar{Y}_{i\cdot}] = \mu + \tau_i
+\]
+and the time trend averages out.
+
+\subsection{Replication}
+
+\begin{keypoint}[Replication]
+Repeat experimental runs to estimate experimental error and increase the
+precision of effect estimates.
+\end{keypoint}
+
+A single run at each factor combination tells you the response at that
+combination, but it does not tell you how much that response varies. Without an
+estimate of variability, you cannot determine whether an observed difference is
+real or just noise.
+
+Replication provides:
+\begin{itemize}[nosep]
+\item An estimate of the experimental error variance $\sigma^2$
+\item More precise estimates of effects (standard error decreases as $1/\sqrt{n}$)
+\item The ability to construct confidence intervals and perform significance tests
+\end{itemize}
+
+\begin{warning}[Replication vs.\ Repetition]
+\textbf{Replication} means independently setting up and running the experiment
+again. \textbf{Repetition} means measuring the same setup multiple times.
+Repetition estimates measurement error, but replication estimates the full
+experimental error, including setup variation. DOE requires replication.
+\end{warning}
+
+\subsection{Blocking}
+
+\begin{keypoint}[Blocking]
+Group experimental runs into blocks of similar conditions to remove known sources
+of variation from the experimental error.
+\end{keypoint}
+
+If you must run experiments over two days, make each day a block. Within each
+block (day), randomize the run order. The day-to-day variation is then
+accounted for in the analysis and does not inflate the error estimate.
+
+The model becomes:
+\[
+Y_{ijk} = \mu + \tau_i + \beta_j + \epsilon_{ijk}
+\]
+where $\beta_j$ is the block effect. Because blocks are orthogonal to
+treatments in a balanced design, the treatment effects $\tau_i$ are estimated
+without bias.
+
+\section{The OVAT Trap: A Quantitative Example}
+
+Suppose the true relationship between yield and two factors (temperature $T$ and
+pressure $P$) is:
+\[
+Y = 50 + 10T + 5P + 8TP + \epsilon
+\]
+where $T, P \in \{-1, +1\}$ (coded levels) and $\epsilon \sim N(0, 1)$.
+
+\subsection{OVAT Analysis}
+
+\begin{enumerate}[nosep]
+\item Run at $T=-1, P=-1$: $Y = 50 - 10 - 5 + 8 = 43$
+\item Change $T$ to $+1$: $Y = 50 + 10 - 5 - 8 = 47$
+\item Conclude: Temperature effect $= 47 - 43 = 4$
+\end{enumerate}
+
+But the true main effect of temperature is $+10$, not $+4$! The OVAT estimate is
+biased because it was measured at $P=-1$, where the interaction $TP$ reduces
+temperature's apparent effect. At $P=+1$, the temperature effect would appear as $+18$.
+
+\subsection{Factorial Analysis}
+
+A $2^2$ factorial runs all four combinations:
+
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+Run & $T$ & $P$ & $Y$ (expected) \\
+\midrule
+1 & $-1$ & $-1$ & 43 \\
+2 & $+1$ & $-1$ & 47 \\
+3 & $-1$ & $+1$ & 37 \\
+4 & $+1$ & $+1$ & 73 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Main effect of $T$:
+\[
+\text{ME}_T = \frac{(Y_2 + Y_4)}{2} - \frac{(Y_1 + Y_3)}{2}
+= \frac{47 + 73}{2} - \frac{43 + 37}{2} = 60 - 40 = 20
+\]
+
+Wait---the formula gives 20, but we said the coefficient was 10. In the effects
+model, the main effect is \emph{twice} the coefficient because we move from
+$-1$ to $+1$ (a change of 2 units). So $\text{ME}_T / 2 = 10$, exactly the
+true coefficient.
+
+The interaction effect:
+\[
+\text{IE}_{TP} = \frac{(Y_1 + Y_4)}{2} - \frac{(Y_2 + Y_3)}{2}
+= \frac{43 + 73}{2} - \frac{47 + 37}{2} = 58 - 42 = 16
+\]
+
+Again, $\text{IE}_{TP} / 2 = 8$, the true interaction coefficient. The factorial
+design correctly estimates both effects and their interaction, using the same
+number of runs where each piece of data contributes to every estimate.
+
+\begin{keypoint}[Hidden Replication in Factorials]
+In a $2^k$ factorial, every effect estimate uses \emph{all} $2^k$ observations.
+Each observation plays a role in estimating every effect. This is why factorials
+are so efficient---there is no wasted data.
+\end{keypoint}
+
+
+% ───────────────────────────────────────────
+\chapter{Statistical Foundations}
+% ───────────────────────────────────────────
+
+\section{The Linear Model}
+
+At the heart of DOE analysis is the general linear model. For a single response
+$Y$ with $k$ factors:
+\[
+Y = \beta_0 + \sum_{i=1}^{k} \beta_i x_i
++ \sum_{i<j} \beta_{ij} x_i x_j + \epsilon
+\]
+where:
+\begin{itemize}[nosep]
+\item $\beta_0$ is the grand mean (intercept)
+\item $\beta_i$ are the main effect coefficients
+\item $\beta_{ij}$ are the interaction coefficients
+\item $x_i \in \{-1, +1\}$ are the coded factor levels
+\item $\epsilon \sim N(0, \sigma^2)$ is the random error
+\end{itemize}
+
+For a quadratic (response surface) model, add squared terms:
+\[
+Y = \beta_0 + \sum_{i=1}^{k} \beta_i x_i
++ \sum_{i<j} \beta_{ij} x_i x_j
++ \sum_{i=1}^{k} \beta_{ii} x_i^2 + \epsilon
+\]
+
+\section{Coded Variables}
+
+Factor levels are coded to simplify calculations and make effects directly
+comparable. For a continuous factor with low value $L$ and high value $H$:
+\[
+x = \frac{\text{actual value} - \frac{L+H}{2}}{\frac{H-L}{2}}
+\]
+
+This maps $L \to -1$ and $H \to +1$. The center is at $x=0$. All factors are on
+the same scale, so their coefficients are directly comparable---a coefficient of
+10 means the same magnitude of effect regardless of whether the factor is
+measured in degrees or bars.
+
+\section{Estimating Effects}
+
+\subsection{Main Effects}
+
+The main effect of factor $A$ is the difference in the average response when $A$
+is at its high level versus its low level:
+\[
+\text{ME}_A = \bar{Y}_{A+} - \bar{Y}_{A-}
+\]
+
+In a $2^k$ design, each average uses half the total runs, so the standard error
+of a main effect is:
+\[
+\text{SE}(\text{ME}_A) = \sqrt{\frac{4s^2}{N}}
+= \frac{2s}{\sqrt{N}}
+\]
+where $s^2$ is the pooled variance estimate and $N$ is the total number of runs.
+
+\subsection{Interaction Effects}
+
+The two-factor interaction $AB$ measures whether the effect of $A$ depends on the
+level of $B$. Compute it as:
+\[
+\text{IE}_{AB} = \frac{1}{2}\bigl[(\text{effect of } A \text{ at } B_{+})
+- (\text{effect of } A \text{ at } B_{-})\bigr]
+\]
+
+Equivalently, in a $2^k$ design:
+\[
+\text{IE}_{AB} = \bar{Y}_{\text{concordant}} - \bar{Y}_{\text{discordant}}
+\]
+where ``concordant'' runs have $A$ and $B$ both high or both low, and
+``discordant'' runs have one high and one low.
+
+\subsection{Percentage Contribution}
+
+To rank factors by importance, compute each factor's percentage contribution:
+\[
+\text{PC}_i = \frac{|\text{ME}_i|}{\sum_{j=1}^{k} |\text{ME}_j|} \times 100\%
+\]
+
+This appears on the Pareto chart. The ``vital few'' factors typically account
+for 70--80\% of the total effect magnitude.
+
+\section{Confidence Intervals}
+
+A 95\% confidence interval for a main effect is:
+\[
+\text{ME}_A \pm t_{\alpha/2, \nu} \cdot \text{SE}(\text{ME}_A)
+\]
+where $t_{\alpha/2, \nu}$ is the critical value from the $t$-distribution with
+$\nu$ degrees of freedom. If the interval contains zero, the effect is not
+statistically significant at the 5\% level.
+
+For a two-level design with $n_-$ and $n_+$ observations at the low and high
+levels respectively:
+\[
+\text{SE}(\text{ME}_A) = s_p \sqrt{\frac{1}{n_-} + \frac{1}{n_+}}
+\]
+where $s_p$ is the pooled standard deviation:
+\[
+s_p = \sqrt{\frac{(n_- - 1)s_-^2 + (n_+ - 1)s_+^2}{n_- + n_+ - 2}}
+\]
+
+\section{Analysis of Variance (ANOVA)}
+
+ANOVA decomposes the total variation in the response into components attributable
+to each factor, their interactions, and the residual error:
+\[
+\text{SS}_{\text{Total}} = \sum_i \text{SS}_{A_i}
++ \sum_{i<j} \text{SS}_{A_iA_j} + \text{SS}_{\text{Error}}
+\]
+
+For a main effect in a $2^k$ design:
+\[
+\text{SS}_A = \frac{N}{4} \cdot \text{ME}_A^2
+\]
+
+The $F$-statistic for testing whether factor $A$ has a significant effect is:
+\[
+F_A = \frac{\text{SS}_A / 1}{\text{SS}_{\text{Error}} / \nu_E}
+= \frac{\text{MS}_A}{\text{MS}_E}
+\]
+
+If $F_A > F_{\alpha, 1, \nu_E}$, reject the null hypothesis that factor $A$ has
+no effect.
+
+\section{The $R^2$ Statistic}
+
+$R^2$ measures the proportion of variance in the response explained by the
+model:
+\[
+R^2 = 1 - \frac{\text{SS}_{\text{Error}}}{\text{SS}_{\text{Total}}}
+\]
+
+The adjusted $R^2$ penalizes for model complexity:
+\[
+R^2_{\text{adj}} = 1 - \frac{\text{SS}_{\text{Error}} / \nu_E}
+{\text{SS}_{\text{Total}} / \nu_T}
+\]
+
+An $R^2$ near 1.0 means the model explains nearly all the variation. An $R^2$
+below 0.7 suggests important factors or relationships are missing from the
+model.
+
+
+% ═══════════════════════════════════════════
+% PART II: DESIGN TYPES
+% ═══════════════════════════════════════════
+\part{Design Types}
+
+% ───────────────────────────────────────────
+\chapter{Full Factorial Designs}
+% ───────────────────────────────────────────
+
+\section{The $2^k$ Factorial}
+
+The $2^k$ full factorial design tests every combination of $k$ factors at 2
+levels each. It is the most complete two-level design: it estimates all main
+effects, all two-factor interactions, and all higher-order interactions with no
+confounding.
+
+\subsection{Run Count}
+
+\begin{center}
+\begin{tabular}{ccl}
+\toprule
+Factors ($k$) & Runs ($2^k$) & Notes \\
+\midrule
+2 & 4  & Minimum useful design \\
+3 & 8  & Very practical \\
+4 & 16 & Still manageable \\
+5 & 32 & Getting expensive \\
+6 & 64 & Consider fractional \\
+7 & 128 & Fractional almost always better \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{The Design Matrix}
+
+For a $2^3$ design with factors $A$, $B$, $C$:
+
+\begin{center}
+\begin{tabular}{cccccccc}
+\toprule
+Run & $A$ & $B$ & $C$ & $AB$ & $AC$ & $BC$ & $ABC$ \\
+\midrule
+1 & $-$ & $-$ & $-$ & $+$ & $+$ & $+$ & $-$ \\
+2 & $+$ & $-$ & $-$ & $-$ & $-$ & $+$ & $+$ \\
+3 & $-$ & $+$ & $-$ & $-$ & $+$ & $-$ & $+$ \\
+4 & $+$ & $+$ & $-$ & $+$ & $-$ & $-$ & $-$ \\
+5 & $-$ & $-$ & $+$ & $+$ & $-$ & $-$ & $+$ \\
+6 & $+$ & $-$ & $+$ & $-$ & $+$ & $-$ & $-$ \\
+7 & $-$ & $+$ & $+$ & $-$ & $-$ & $+$ & $-$ \\
+8 & $+$ & $+$ & $+$ & $+$ & $+$ & $+$ & $+$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The interaction columns are computed by multiplying the corresponding main
+effect columns element-wise. This orthogonality property---every column has an
+equal number of $+$ and $-$ signs, and the inner product of any two columns is
+zero---is what makes the effect estimates independent and unbiased.
+
+\subsection{Geometric Interpretation}
+
+\begin{center}
+\begin{tikzpicture}[scale=1.5]
+  % Cube
+  \coordinate (A) at (0,0);
+  \coordinate (B) at (3,0);
+  \coordinate (C) at (3,3);
+  \coordinate (D) at (0,3);
+  \coordinate (E) at (1,1);
+  \coordinate (F) at (4,1);
+  \coordinate (G) at (4,4);
+  \coordinate (H) at (1,4);
+
+  \draw[thick, steelblue!40] (A) -- (E) (B) -- (F) (D) -- (H);
+  \draw[thick, steelblue] (A) -- (B) -- (C) -- (D) -- cycle;
+  \draw[thick, steelblue] (E) -- (F) -- (G) -- (H) -- cycle;
+  \draw[thick, steelblue] (C) -- (G);
+
+  \foreach \p in {A,B,C,D,E,F,G,H}
+    \fill[steelblue] (\p) circle (2.5pt);
+
+  \node[below left] at (A) {\footnotesize $(-,-,-)$};
+  \node[below right] at (B) {\footnotesize $(+,-,-)$};
+  \node[above right] at (C) {\footnotesize $(+,+,-)$};
+  \node[above left] at (D) {\footnotesize $(-,+,-)$};
+  \node[below left] at (E) {\footnotesize $(-,-,+)$};
+  \node[below right] at (F) {\footnotesize $(+,-,+)$};
+  \node[above right] at (G) {\footnotesize $(+,+,+)$};
+  \node[above left] at (H) {\footnotesize $(-,+,+)$};
+
+  \draw[->] (A) -- +(-0.5, -0.5) node[below] {\footnotesize $C$};
+  \draw[->] (A) -- +(3.5, 0) node[right] {\footnotesize $A$};
+  \draw[->] (A) -- +(0, 3.5) node[above] {\footnotesize $B$};
+\end{tikzpicture}
+\captionof{figure}{A $2^3$ full factorial as a cube. Each vertex is an
+experimental run. The main effect of $A$ is the average of the four right-face
+responses minus the average of the four left-face responses.}
+\end{center}
+
+\section{Mixed-Level Factorials}
+
+Full factorials are not limited to two levels. A $3 \times 2 \times 4$ design
+tests one factor at 3 levels, one at 2, and one at 4, yielding $3 \times 2
+\times 4 = 24$ runs. The analysis uses the range of level means (maximum mean
+minus minimum mean) instead of the simple high-minus-low formula.
+
+\section{When to Use Full Factorials}
+
+\begin{itemize}[nosep]
+\item 2--4 factors: almost always the right choice
+\item You need to estimate all interactions, not just main effects
+\item Runs are cheap relative to the information gained
+\item You suspect important interactions exist
+\end{itemize}
+
+
+% ───────────────────────────────────────────
+\chapter{Fractional Factorial Designs}
+% ───────────────────────────────────────────
+
+\section{The Problem of Exponential Growth}
+
+As the number of factors increases, full factorials become impractical. With 7
+factors at 2 levels, a full factorial requires $2^7 = 128$ runs. But in
+practice, the \emph{effect sparsity principle} states that most of the variation
+is explained by main effects and low-order interactions. Higher-order
+interactions ($ABC$, $ABCD$, etc.) are usually negligible.
+
+Fractional factorials exploit this by deliberately confounding higher-order
+interactions with main effects or lower-order interactions, trading information
+about unlikely-to-matter effects for a dramatic reduction in runs.
+
+\section{The $2^{k-p}$ Design}
+
+A $2^{k-p}$ fractional factorial uses $2^{k-p}$ runs to study $k$ factors. The
+integer $p$ is the \emph{degree of fractionation}: each increase in $p$ halves
+the number of runs.
+
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+Design & Factors & Runs & Fraction \\
+\midrule
+$2^{4-1}$ & 4 & 8 & $\frac{1}{2}$ \\
+$2^{5-1}$ & 5 & 16 & $\frac{1}{2}$ \\
+$2^{5-2}$ & 5 & 8 & $\frac{1}{4}$ \\
+$2^{7-4}$ & 7 & 8 & $\frac{1}{16}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Resolution}
+
+The \emph{resolution} of a fractional factorial describes the severity of the
+confounding:
+
+\begin{center}
+\begin{tabular}{cl}
+\toprule
+Resolution & Confounding Pattern \\
+\midrule
+III & Main effects aliased with 2-factor interactions \\
+IV & Main effects clear; 2FIs aliased with other 2FIs \\
+V & Main effects and 2FIs clear; 2FIs aliased with 3FIs \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{keypoint}[Choosing Resolution]
+Use Resolution III for initial screening (many factors, few runs). Use
+Resolution IV or V when you suspect important 2-factor interactions and want
+to estimate them separately from main effects. The higher the resolution, the
+more runs are required.
+\end{keypoint}
+
+\section{Generator Strings and Aliasing}
+
+A fractional factorial is defined by its \emph{generators}---the rules that
+assign aliased factor columns. For a $2^{5-2}_{III}$ design, the base factors
+are $A$, $B$, $C$ (requiring $2^3 = 8$ runs), and the two additional factors
+are defined as:
+\begin{align*}
+D &= AB \\
+E &= AC
+\end{align*}
+
+The \emph{defining relation} is the set of column products equal to $I$ (the
+identity):
+\[
+I = ABD = ACE = BCDE
+\]
+
+Any two columns whose product appears in the defining relation are aliased
+(confounded). For example, $A = BD = CE$ and $B = AD = CDE$.
+
+\section{Practical Guidance}
+
+\begin{enumerate}[nosep]
+\item If you have $k \leq 4$ factors, use a full factorial.
+\item If $5 \leq k \leq 7$, use a Resolution IV or V fraction.
+\item If $k > 7$ and you are screening, use Resolution III or a Plackett--Burman.
+\item Always check the alias structure before running the experiment to ensure
+      the effects you care about are not aliased with each other.
+\end{enumerate}
+
+
+% ───────────────────────────────────────────
+\chapter{Screening Designs}
+% ───────────────────────────────────────────
+
+\section{Plackett--Burman Designs}
+
+When you have many factors (5--20 or more) and your primary goal is to identify
+the \emph{vital few} that have large main effects, Plackett--Burman (PB) designs
+are the most efficient choice.
+
+PB designs are 2-level designs where the number of runs is always a multiple of
+4. They can screen up to $N-1$ factors in $N$ runs:
+
+\begin{center}
+\begin{tabular}{cc}
+\toprule
+Runs ($N$) & Max Factors ($N-1$) \\
+\midrule
+8 & 7 \\
+12 & 11 \\
+16 & 15 \\
+20 & 19 \\
+24 & 23 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Properties}
+
+\begin{itemize}[nosep]
+\item All main effects are estimated with equal precision.
+\item Main effects are partially confounded with two-factor interactions (complex
+      aliasing, unlike the clean aliasing of fractional factorials).
+\item The design is \emph{not} suitable for estimating interactions---it is a pure
+      screening tool.
+\end{itemize}
+
+\subsection{The Screening-to-Optimization Pipeline}
+
+PB designs are almost always the first step in a sequential strategy:
+
+\begin{enumerate}[nosep]
+\item \textbf{Screen} with PB: Run $N$ experiments, identify the 3--5 factors with
+      the largest main effects.
+\item \textbf{Characterize} with a full or fractional factorial on the important
+      factors.
+\item \textbf{Optimize} with a response surface design (CCD or Box--Behnken).
+\end{enumerate}
+
+
+% ───────────────────────────────────────────
+\chapter{Response Surface Designs}
+% ───────────────────────────────────────────
+
+\section{Beyond Main Effects}
+
+Screening and factorial designs estimate linear effects: how much does the
+response change when a factor moves from low to high? But many real systems have
+\emph{curvature}---the optimum is not at an extreme, but somewhere in the
+middle. To find this optimum, we need a quadratic model:
+\[
+Y = \beta_0 + \sum_i \beta_i x_i + \sum_{i<j} \beta_{ij} x_i x_j
++ \sum_i \beta_{ii} x_i^2 + \epsilon
+\]
+
+Response surface designs provide the data points needed to fit this model. They
+include runs at the center of the factor space (to estimate curvature) and,
+for CCD, star points beyond the factorial range.
+
+\section{Central Composite Design (CCD)}
+
+The CCD consists of three components:
+
+\begin{enumerate}[nosep]
+\item \textbf{Factorial points:} A $2^k$ (or $2^{k-p}$) factorial at the corners.
+\item \textbf{Axial (star) points:} $2k$ points along each axis at distance
+      $\alpha$ from the center.
+\item \textbf{Center points:} Several runs at the center of the design space.
+\end{enumerate}
+
+\begin{center}
+\begin{tikzpicture}[scale=1.8]
+  % Factorial points
+  \fill[steelblue] (-1,-1) circle (2.5pt);
+  \fill[steelblue] (1,-1) circle (2.5pt);
+  \fill[steelblue] (-1,1) circle (2.5pt);
+  \fill[steelblue] (1,1) circle (2.5pt);
+
+  % Star points
+  \fill[red!70!black] (-1.41,0) circle (2.5pt);
+  \fill[red!70!black] (1.41,0) circle (2.5pt);
+  \fill[red!70!black] (0,-1.41) circle (2.5pt);
+  \fill[red!70!black] (0,1.41) circle (2.5pt);
+
+  % Center points
+  \fill[green!50!black] (0,0) circle (3pt);
+
+  % Axes
+  \draw[->] (-1.8,0) -- (1.8,0) node[right] {\footnotesize $x_1$};
+  \draw[->] (0,-1.8) -- (0,1.8) node[above] {\footnotesize $x_2$};
+
+  % Labels
+  \draw[dashed, steelblue!50] (-1,-1) rectangle (1,1);
+  \node[below right, steelblue] at (1.1,-1) {\footnotesize factorial};
+  \node[right, red!70!black] at (1.5,0.15) {\footnotesize star};
+  \node[right, green!50!black] at (0.1,-0.2) {\footnotesize center};
+
+  % Alpha annotation
+  \draw[<->, thick, gray] (0,-0.1) -- (1.41,-0.1);
+  \node[below, gray] at (0.7,-0.15) {\footnotesize $\alpha$};
+\end{tikzpicture}
+\captionof{figure}{Central Composite Design for 2 factors. Blue squares are
+factorial points, red circles are star (axial) points, and the green circle is
+the center point.}
+\end{center}
+
+The value of $\alpha$ determines the design's properties:
+\begin{itemize}[nosep]
+\item $\alpha = 1$: Face-centered CCD (star points on the face of the cube).
+      Does not require runs outside the factor range, but the quadratic fit is
+      less precise.
+\item $\alpha = \sqrt{k}$: Spherical CCD. Star points lie on the sphere
+      circumscribing the factorial cube.
+\item $\alpha = (2^k)^{1/4}$: Rotatable CCD. The prediction variance is
+      constant at all points equidistant from the center, making the model
+      equally precise in all directions.
+\end{itemize}
+
+\subsection{Run Count}
+
+\begin{center}
+\begin{tabular}{ccccc}
+\toprule
+Factors & Factorial & Star & Center & Total \\
+\midrule
+2 & 4 & 4 & 5 & 13 \\
+3 & 8 & 6 & 6 & 20 \\
+4 & 16 & 8 & 7 & 31 \\
+5 & 32 & 10 & 8 & 50 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Box--Behnken Design}
+
+\begin{keypoint}[Box--Behnken Advantage]
+Box--Behnken designs avoid extreme corners of the design space. Every run has
+at most two factors at their extreme levels; the remaining factors are at the
+center. This makes them safer for physical experiments where corner points are
+dangerous or infeasible.
+\end{keypoint}
+
+\begin{center}
+\begin{tikzpicture}[scale=1.8]
+  % Edge midpoints for 2 factors (projected from 3D BB)
+  \fill[steelblue] (-1,-1) circle (2.5pt);
+  \fill[steelblue] (1,-1) circle (2.5pt);
+  \fill[steelblue] (-1,1) circle (2.5pt);
+  \fill[steelblue] (1,1) circle (2.5pt);
+
+  % Missing corners (these would be dangerous)
+  \draw[red!50, thick] (-1.3,-1.3) -- (-0.7,-0.7);
+  \draw[red!50, thick] (-1.3,-0.7) -- (-0.7,-1.3);
+
+  % Edge midpoints representing the 3rd factor at center
+  \fill[green!50!black] (0,0) circle (3pt);
+  \fill[green!50!black] (0,0.15) circle (1.5pt);
+  \fill[green!50!black] (0,-0.15) circle (1.5pt);
+
+  % Axes
+  \draw[->] (-1.5,0) -- (1.5,0) node[right] {\footnotesize $x_1$};
+  \draw[->] (0,-1.5) -- (0,1.5) node[above] {\footnotesize $x_2$};
+
+  \node[below, font=\footnotesize] at (0,-1.7) {($x_3$ at center for each pair)};
+\end{tikzpicture}
+\captionof{figure}{Box--Behnken design concept. The extreme corner (crossed
+out) is not tested. Each pair of factors is tested at all four edge
+combinations while the third stays at center.}
+\end{center}
+
+For 3 factors, Box--Behnken requires 15 runs (12 edge-midpoint runs + 3 center
+replicates), compared to 20 for a CCD. For 4 factors: 27 runs.
+
+\subsection{When to Use Box--Behnken vs.\ CCD}
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+Criterion & CCD & Box--Behnken \\
+\midrule
+Avoids extreme corners & No & Yes \\
+Points outside factor range & Yes (star) & No \\
+Minimum factors & 2 & 3 \\
+Sequential augmentation from $2^k$ & Yes & No \\
+Rotatable option & Yes & No \\
+Fewer runs (3--4 factors) & Depends & Often \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Latin Hypercube Sampling}
+
+Latin Hypercube Sampling (LHS) is a space-filling design used primarily for
+computer experiments and simulations where the response is deterministic (no
+random error).
+
+\subsection{Construction}
+
+For $n$ samples and $k$ factors:
+\begin{enumerate}[nosep]
+\item Divide each factor's range into $n$ equal intervals.
+\item Place exactly one sample point in each interval of each factor.
+\item The placement within each interval is random.
+\end{enumerate}
+
+This guarantees that the projection onto any single factor axis covers the
+entire range uniformly---a property called \emph{stratification}.
+
+\subsection{When to Use LHS}
+
+\begin{itemize}[nosep]
+\item Computer experiments with deterministic outputs (no noise)
+\item High-dimensional spaces (many factors) where factorial designs are infeasible
+\item Building surrogate models (kriging, Gaussian processes)
+\item Sensitivity analysis and uncertainty quantification
+\end{itemize}
+
+
+% ═══════════════════════════════════════════
+% PART III: ANALYSIS
+% ═══════════════════════════════════════════
+\part{Analysis and Optimization}
+
+% ───────────────────────────────────────────
+\chapter{Analyzing Results}
+% ───────────────────────────────────────────
+
+\section{The Pareto Chart}
+
+The Pareto chart is the single most useful visualization in DOE. It displays
+factors sorted by the absolute magnitude of their main effects, with a
+cumulative percentage line overlaid.
+
+\begin{keypoint}[The 80/20 Rule]
+The Pareto principle states that roughly 80\% of the total effect magnitude is
+caused by 20\% of the factors. The Pareto chart's cumulative line helps you
+identify these ``vital few'' factors. Factors below the 80\% line are
+candidates for being fixed at their cheapest or most convenient level.
+\end{keypoint}
+
+\subsection{Reading a Pareto Chart}
+
+\begin{enumerate}[nosep]
+\item Factors are sorted from largest to smallest absolute effect (top to bottom
+      or left to right).
+\item The bar length represents the magnitude of the main effect.
+\item The cumulative line shows the running total as a percentage of the sum of
+      all effect magnitudes.
+\item The 80\% reference line marks where the ``vital few'' end and the
+      ``trivial many'' begin.
+\end{enumerate}
+
+\section{Main Effects Plots}
+
+A main effects plot shows the mean response at each level of a factor, connected
+by line segments. The slope of the line indicates the magnitude and direction of
+the effect.
+
+\begin{itemize}[nosep]
+\item A steep line means a large effect.
+\item A flat line means the factor has little influence.
+\item A non-linear pattern (for $>$2 levels) suggests curvature.
+\end{itemize}
+
+\section{Interaction Plots}
+
+An interaction plot shows the mean response for each combination of two factors.
+If the lines are parallel, there is no interaction. If they cross or diverge,
+the interaction is significant.
+
+\section{Statistical Significance}
+
+\subsection{Using Confidence Intervals}
+
+For each main effect, compute the 95\% confidence interval:
+\[
+\text{CI} = \text{ME} \pm t_{0.025, \nu} \cdot \text{SE}
+\]
+
+If the interval does not contain zero, the effect is statistically significant.
+Report the confidence interval alongside the point estimate---it conveys both
+the magnitude and the uncertainty.
+
+\subsection{Practical vs.\ Statistical Significance}
+
+A factor can be statistically significant (the CI excludes zero) but practically
+unimportant (the effect is tiny). Conversely, a factor can be practically
+important but not statistically significant (the experiment was too small to
+detect it). Always consider both.
+
+\begin{warning}[Do Not Over-Rely on $p$-Values]
+A $p$-value tells you how unlikely the observed data would be if the true effect
+were zero. It does \emph{not} tell you the probability that the effect is real,
+nor the magnitude of the effect. Focus on effect sizes and confidence intervals.
+\end{warning}
+
+
+% ───────────────────────────────────────────
+\chapter{Response Surface Methodology}
+% ───────────────────────────────────────────
+
+\section{From Effects to Models}
+
+Screening and factorial designs answer the question: ``Which factors matter?''
+Response Surface Methodology (RSM) answers: ``What are the optimal settings?''
+
+RSM fits a polynomial model to the data and uses the model to predict the
+response at untested factor combinations, including the predicted optimum.
+
+\section{Fitting the Model}
+
+Given $n$ observations, the linear model in matrix form is:
+\[
+\mathbf{y} = \mathbf{X}\boldsymbol{\beta} + \boldsymbol{\epsilon}
+\]
+
+The least-squares estimate is:
+\[
+\hat{\boldsymbol{\beta}} = (\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{y}
+\]
+
+For a linear model with $k$ factors, $\mathbf{X}$ is an $n \times (k+1)$ matrix
+(including the intercept column). For a quadratic model, $\mathbf{X}$ has
+$1 + 2k + \binom{k}{2}$ columns (intercept + linear + squared + interaction
+terms).
+
+\section{Model Adequacy}
+
+\subsection{$R^2$ and Adjusted $R^2$}
+
+$R^2$ always increases when you add terms to the model, even if those terms are
+pure noise. Adjusted $R^2$ penalizes for model complexity:
+
+\begin{itemize}[nosep]
+\item $R^2 > 0.9$: Excellent fit
+\item $0.7 < R^2 < 0.9$: Good fit, some unexplained variation
+\item $R^2 < 0.7$: Consider adding terms or transforming variables
+\end{itemize}
+
+A large gap between $R^2$ and $R^2_{\text{adj}}$ suggests overfitting.
+
+\subsection{Residual Analysis}
+
+Always check the residuals $e_i = y_i - \hat{y}_i$:
+\begin{itemize}[nosep]
+\item Plot residuals vs.\ fitted values: should show no pattern
+\item Plot residuals vs.\ run order: should show no trend (drift)
+\item Normal probability plot of residuals: should be approximately linear
+\end{itemize}
+
+\section{Finding the Optimum}
+
+For a quadratic model, the stationary point (where the partial derivatives are
+zero) can be found analytically:
+\[
+\hat{\mathbf{x}}_s = -\frac{1}{2}\mathbf{B}^{-1}\mathbf{b}
+\]
+where $\mathbf{b}$ is the vector of linear coefficients and $\mathbf{B}$ is the
+matrix of quadratic and interaction coefficients.
+
+If the stationary point is a maximum (all eigenvalues of $\mathbf{B}$ are
+negative), it is the predicted optimum for a ``maximize'' response. If it is a
+minimum (all eigenvalues positive), it is the optimum for ``minimize.'' If
+eigenvalues have mixed signs, the stationary point is a saddle point, and the
+optimum lies on the boundary of the design space.
+
+\begin{keypoint}[Confirmation Runs]
+Never trust a predicted optimum without verification. Run 3--5 confirmation
+experiments at the predicted settings. If the observed response matches the
+prediction (within the confidence interval), the model is validated.
+\end{keypoint}
+
+\section{Multi-Response Optimization}
+
+When multiple responses must be optimized simultaneously (e.g., maximize yield
+while minimizing cost), the \emph{desirability function} approach is standard:
+
+\begin{enumerate}[nosep]
+\item For each response $i$, define a desirability $d_i$ that maps the response
+      to a $[0, 1]$ scale (0 = unacceptable, 1 = ideal).
+\item Compute the overall desirability as the geometric mean:
+      $D = (d_1 \cdot d_2 \cdot \ldots \cdot d_m)^{1/m}$
+\item Find the factor settings that maximize $D$.
+\end{enumerate}
+
+
+% ═══════════════════════════════════════════
+% PART IV: PRACTICE
+% ═══════════════════════════════════════════
+\part{Practice}
+
+% ───────────────────────────────────────────
+\chapter{The Sequential Experimentation Strategy}
+% ───────────────────────────────────────────
+
+\section{Phase 1: Screening}
+
+\textbf{Goal:} Identify the vital few factors from a large list of candidates.
+
+\textbf{Design:} Plackett--Burman or Resolution III fractional factorial.
+
+\textbf{Runs:} 8--20 (regardless of how many factors you have).
+
+\textbf{Analysis:} Pareto chart, main effects. Ignore interaction estimates (they
+are confounded). Rank factors by absolute effect magnitude.
+
+\textbf{Decision:} Select the top 3--5 factors for further study. Fix the rest
+at their cheapest, easiest, or most robust level.
+
+\section{Phase 2: Characterization}
+
+\textbf{Goal:} Understand main effects \emph{and} interactions among the important
+factors.
+
+\textbf{Design:} Full factorial ($2^k$ with $k = 3$--5) or Resolution V
+fractional factorial.
+
+\textbf{Runs:} 8--32.
+
+\textbf{Analysis:} Full ANOVA, interaction effects, confidence intervals. Check
+for curvature by including center points---if the center-point mean differs
+significantly from the average of the corner points, curvature exists.
+
+\textbf{Decision:} If no curvature, the optimal settings are at the best corner.
+If curvature exists, proceed to Phase 3.
+
+\section{Phase 3: Optimization}
+
+\textbf{Goal:} Find the optimal factor settings within the design space.
+
+\textbf{Design:} Central Composite Design or Box--Behnken.
+
+\textbf{Runs:} 15--50 (depending on the number of factors).
+
+\textbf{Analysis:} Fit a quadratic RSM model. Check $R^2$, residuals, and the
+location of the stationary point.
+
+\textbf{Decision:} Identify the predicted optimum. If it is within the design
+space, proceed to confirmation. If it is on the boundary, consider shifting the
+design space and running a new experiment.
+
+\section{Phase 4: Confirmation}
+
+\textbf{Goal:} Validate the predicted optimum.
+
+\textbf{Design:} 3--5 replicate runs at the predicted optimal settings.
+
+\textbf{Analysis:} Compare the observed mean to the predicted value. If the
+observed value falls within the prediction interval, the model is confirmed.
+
+
+% ───────────────────────────────────────────
+\chapter{Applications}
+% ───────────────────────────────────────────
+
+\section{Software Performance Benchmarking}
+
+Software systems have many tunable parameters---thread pool sizes, buffer
+capacities, timeout values, caching strategies---and engineers often tune them
+by intuition, one at a time. DOE provides a systematic alternative.
+
+\subsection{Example: Database Configuration}
+
+A database administrator suspects five configuration knobs affect transaction
+throughput:
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+Factor & Low & High \\
+\midrule
+\texttt{buffer\_pool\_size} & 1\,GB & 4\,GB \\
+\texttt{io\_capacity} & 200 & 2000 \\
+\texttt{max\_connections} & 100 & 500 \\
+\texttt{query\_cache} & 0\,MB & 256\,MB \\
+\texttt{thread\_pool\_size} & 4 & 16 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Phase 1:} A Plackett--Burman design with 8 runs reveals that
+\texttt{buffer\_pool\_size} and \texttt{io\_capacity} account for 75\% of the
+throughput variation. The other three knobs have negligible effects.
+
+\textbf{Phase 2:} A $2^2$ full factorial on the two important knobs (4 runs,
+with 2 center points) confirms a significant interaction: large buffer pools
+only help when I/O capacity is also high.
+
+\textbf{Phase 3:} A CCD with 13 runs on the two knobs finds the optimal
+settings: \texttt{buffer\_pool\_size} = 3.2\,GB, \texttt{io\_capacity} = 1600.
+
+Total: 27 runs. An OVAT approach would have tested each knob at 3--4 values
+($\approx$15--20 runs) and missed the interaction entirely.
+
+\subsection{Example: Compiler Flags}
+
+A performance engineer wants to understand how compiler optimization level
+(\texttt{-O1}, \texttt{-O2}, \texttt{-O3}), link-time optimization
+(\texttt{off}, \texttt{thin}, \texttt{full}), and architecture target
+(\texttt{native}, \texttt{x86-64-v3}) affect runtime and binary size.
+
+A $3 \times 3 \times 2 = 18$ full factorial tests all combinations. The analysis
+reveals that \texttt{-O3} with \texttt{thin} LTO produces the best runtime, but
+\texttt{full} LTO produces the smallest binary. The interaction between
+optimization level and LTO is significant: \texttt{full} LTO improves
+\texttt{-O1} more than \texttt{-O3} (diminishing returns when the optimizer has
+already done most of the work).
+
+\section{Scientific and Engineering Experiments}
+
+\subsection{Example: Chemical Reactor Optimization}
+
+A chemical engineer wants to maximize yield and purity while minimizing cost in a
+batch reactor. Three factors are controlled: temperature (150--200\textdegree C),
+pressure (2--6 bar), and catalyst concentration (0.5--2.0 g/L).
+
+Running the reactor at all extremes simultaneously (200\textdegree C, 6 bar,
+2.0 g/L) risks a runaway reaction. A Box--Behnken design avoids this: each run
+has at most two factors at their extremes while the third is at center.
+
+With 15 runs, the engineer fits a quadratic model for each response and discovers
+that:
+\begin{itemize}[nosep]
+\item Temperature has the largest effect on yield (quadratic, with a maximum near
+      185\textdegree C).
+\item Catalyst concentration has the largest effect on purity (linear, higher is
+      better).
+\item Cost increases linearly with all three factors, with a temperature--pressure
+      interaction.
+\end{itemize}
+
+The desirability function approach finds the compromise: 185\textdegree C,
+3.5 bar, 1.8 g/L, yielding 78\% yield, 95\% purity, at \$55/batch.
+
+\subsection{Example: Materials Science}
+
+A materials scientist studies the tensile strength of a new alloy as a function
+of four processing parameters. A CCD with 31 runs reveals that annealing
+temperature has a strong quadratic effect (optimum at 520\textdegree C) and
+interacts with cooling rate. The quadratic model achieves $R^2 = 0.94$ and
+correctly predicts the confirmation runs within $\pm 3\%$.
+
+\section{Machine Learning Hyperparameter Tuning}
+
+DOE can replace random search or grid search for hyperparameter optimization:
+
+\begin{itemize}[nosep]
+\item \textbf{Screening:} Use a PB design to test 10+ hyperparameters and
+      identify the 3--4 that actually affect validation accuracy.
+\item \textbf{Optimization:} Use a CCD or LHS on the important hyperparameters
+      to find the optimal region.
+\item \textbf{Advantage over grid search:} A $2^{10}$ grid search requires
+      1024 training runs. A PB screen requires 12.
+\item \textbf{Advantage over random search:} LHS guarantees better space coverage
+      than pure random sampling with the same number of points.
+\end{itemize}
+
+
+% ───────────────────────────────────────────
+\chapter{Using the DOE Helper Tool}
+% ───────────────────────────────────────────
+
+\section{Installation}
+
+\begin{lstlisting}[language=bash]
+# Clone the repository
+git clone <repository-url>
+cd design_of_experiments
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Or install as a package
+pip install -e .
+\end{lstlisting}
+
+\section{Configuration File}
+
+The tool is driven by a JSON configuration file:
+
+\begin{lstlisting}[language=json]
+{
+  "metadata": {
+    "name": "My Experiment",
+    "description": "What I am investigating"
+  },
+  "factors": [
+    {"name": "temperature", "levels": ["150", "200"],
+     "type": "continuous", "unit": "C"},
+    {"name": "catalyst", "levels": ["A", "B"],
+     "type": "categorical"}
+  ],
+  "responses": [
+    {"name": "yield", "optimize": "maximize", "unit": "%"},
+    {"name": "cost",  "optimize": "minimize", "unit": "USD"}
+  ],
+  "settings": {
+    "operation": "full_factorial",
+    "test_script": "my_test.sh",
+    "out_directory": "results",
+    "block_count": 1
+  }
+}
+\end{lstlisting}
+
+\section{Supported Operations}
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Operation & Design Type & Requirements \\
+\midrule
+\texttt{full\_factorial} & All combinations & Any levels \\
+\texttt{fractional\_factorial} & $2^{k-p}$ fraction & 2 levels \\
+\texttt{plackett\_burman} & PB screening & 2 levels \\
+\texttt{latin\_hypercube} & Space-filling & Any \\
+\texttt{central\_composite} & CCD & 2 numeric levels \\
+\texttt{box\_behnken} & Box--Behnken & 2 numeric, $\geq$3 factors \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Workflow}
+
+\begin{lstlisting}[language=bash]
+# 1. Preview the design
+doe info --config config.json
+
+# 2. Generate runner script
+doe generate --config config.json --output run.sh --seed 42
+
+# 3. Execute experiments
+bash run.sh
+
+# 4. Analyze results
+doe analyze --config config.json
+
+# 5. Get optimization recommendations
+doe optimize --config config.json
+
+# 6. Generate HTML report
+doe report --config config.json --output report.html
+
+# 7. Export to CSV
+doe analyze --config config.json --csv results/csv
+\end{lstlisting}
+
+\section{Test Script Protocol}
+
+Your test script must:
+\begin{enumerate}[nosep]
+\item Accept factor values via the configured argument style
+      (\texttt{-{}-name value}, environment variables, or positional arguments).
+\item Accept \texttt{-{}-out <path>} to specify the output file.
+\item Write a JSON file to the output path with keys matching your response names.
+\end{enumerate}
+
+\begin{lstlisting}[language=bash]
+#!/bin/bash
+# Example test script
+# ... run your experiment here ...
+echo '{"yield": 85.3, "cost": 12.50}' > "$OUT_PATH"
+\end{lstlisting}
+
+\section{Analysis Output}
+
+The \texttt{analyze} command computes and displays:
+\begin{itemize}[nosep]
+\item Main effects with standard errors and 95\% confidence intervals
+\item Two-factor interaction effects (for 2-level factors)
+\item Summary statistics (count, mean, std, min, max) per factor per level
+\item Pareto chart with cumulative contribution line
+\item Main effects plots (grid of line plots, one per factor)
+\end{itemize}
+
+The \texttt{optimize} command additionally fits a linear RSM model and reports
+$R^2$, coefficients, predicted optimum, and factor importance ranking.
+
+The \texttt{report} command generates a self-contained HTML file with all tables,
+plots (embedded as base64 images), and a collapsible design matrix.
+
+
+% ═══════════════════════════════════════════
+% APPENDICES
+% ═══════════════════════════════════════════
+\appendix
+
+\chapter{Mathematical Reference}
+
+\section{Effect Estimation Formulas}
+
+For a $2^k$ factorial with $N = 2^k$ runs, coded levels $x \in \{-1, +1\}$, and
+response vector $\mathbf{y}$:
+
+\paragraph{Main effect of factor $i$:}
+\[
+\text{ME}_i = \frac{2}{N} \sum_{j=1}^{N} x_{ij} y_j
+= \bar{y}_{i+} - \bar{y}_{i-}
+\]
+
+\paragraph{Interaction effect of factors $i$ and $k$:}
+\[
+\text{IE}_{ik} = \frac{2}{N} \sum_{j=1}^{N} x_{ij} x_{kj} y_j
+\]
+
+\paragraph{Standard error of any effect:}
+\[
+\text{SE} = \frac{2s}{\sqrt{N}}
+\]
+where $s^2 = \text{MS}_E$ (mean square error from ANOVA or from replicates).
+
+\paragraph{Sum of squares for any effect:}
+\[
+\text{SS}_{\text{effect}} = \frac{N}{4} \cdot \text{ME}^2
+\]
+
+\section{Response Surface Model}
+
+For $k$ factors, the full quadratic model has $p = 1 + 2k + \binom{k}{2}$
+parameters:
+\[
+\hat{y} = b_0 + \sum_{i=1}^k b_i x_i
++ \sum_{i=1}^k b_{ii} x_i^2
++ \sum_{i<j} b_{ij} x_i x_j
+\]
+
+\begin{center}
+\begin{tabular}{cc}
+\toprule
+$k$ & $p$ (parameters) \\
+\midrule
+2 & 6 \\
+3 & 10 \\
+4 & 15 \\
+5 & 21 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The design must have at least $p$ distinct runs (and preferably $\geq 1.5p$) to
+fit the model.
+
+\section{Minimum Run Counts by Design}
+
+\begin{center}
+\begin{tabular}{lcccccc}
+\toprule
+ & \multicolumn{6}{c}{Number of Factors} \\
+Design & 2 & 3 & 4 & 5 & 6 & 7 \\
+\midrule
+Full factorial & 4 & 8 & 16 & 32 & 64 & 128 \\
+Frac.\ factorial (Res.\ III) & -- & 4 & 8 & 8 & 8 & 8 \\
+Plackett--Burman & 4 & 4 & 8 & 8 & 8 & 8 \\
+CCD & 13 & 20 & 31 & 52 & -- & -- \\
+Box--Behnken & -- & 15 & 27 & 46 & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\chapter{Glossary}
+
+\begin{description}[style=nextline, leftmargin=3cm]
+\item[ANOVA] Analysis of Variance. Partitions total variation into components.
+\item[Blocking] Grouping runs to account for known nuisance variation.
+\item[CCD] Central Composite Design. A response surface design with factorial,
+  star, and center points.
+\item[Coded variable] A factor rescaled so that $-1$ = low and $+1$ = high.
+\item[Confounding] When two effects cannot be distinguished because they produce
+  identical patterns in the design matrix.
+\item[DOE] Design of Experiments.
+\item[Effect] The change in the mean response caused by changing a factor from
+  one level to another.
+\item[Factor] A controllable input variable in an experiment.
+\item[Fractional factorial] A subset of a full factorial that trades
+  higher-order information for fewer runs.
+\item[Interaction] When the effect of one factor depends on the level of another.
+\item[Level] A specific value or setting of a factor.
+\item[LHS] Latin Hypercube Sampling. A space-filling design.
+\item[Main effect] The average effect of a factor across all levels of other
+  factors.
+\item[OVAT] One Variable At a Time. An inefficient experimental strategy.
+\item[Pareto chart] A bar chart ranking effects by magnitude.
+\item[Plackett--Burman] An efficient screening design for identifying important
+  main effects.
+\item[Randomization] Randomly ordering experimental runs to protect against
+  lurking variables.
+\item[Replication] Independently repeating experimental runs.
+\item[Resolution] A measure of the confounding severity in a fractional factorial.
+\item[Response] A measurable outcome of an experiment.
+\item[RSM] Response Surface Methodology. Fitting polynomial models to find
+  optimal settings.
+\item[$R^2$] Coefficient of determination. Proportion of variance explained by
+  the model.
+\end{description}
+
+
+% ═══════════════════════════════════════════
+% BIBLIOGRAPHY
+% ═══════════════════════════════════════════
+\chapter*{References}
+\addcontentsline{toc}{chapter}{References}
+
+\begin{enumerate}[label={[\arabic*]}, leftmargin=2em]
+\item Box, G.E.P., Hunter, J.S., \& Hunter, W.G. (2005). \textit{Statistics for
+  Experimenters: Design, Innovation, and Discovery}, 2nd ed. Wiley.
+
+\item Montgomery, D.C. (2017). \textit{Design and Analysis of Experiments},
+  9th ed. Wiley.
+
+\item Myers, R.H., Montgomery, D.C., \& Anderson-Cook, C.M. (2016).
+  \textit{Response Surface Methodology: Process and Product Optimization Using
+  Designed Experiments}, 4th ed. Wiley.
+
+\item Box, G.E.P. \& Behnken, D.W. (1960). Some new three level designs for the
+  study of quantitative variables. \textit{Technometrics}, 2(4), 455--475.
+
+\item Plackett, R.L. \& Burman, J.P. (1946). The design of optimum multifactorial
+  experiments. \textit{Biometrika}, 33(4), 305--325.
+
+\item Fisher, R.A. (1935). \textit{The Design of Experiments}. Oliver \& Boyd.
+
+\item NIST/SEMATECH e-Handbook of Statistical Methods. Available at:
+  \url{https://www.itl.nist.gov/div898/handbook/}
+\end{enumerate}
+
+\end{document}
