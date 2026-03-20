@@ -28,6 +28,7 @@ def main():
     ana.add_argument("--config", required=True, metavar="FILE", help="Input JSON config file")
     ana.add_argument("--results-dir", default=None, help="Override out_directory from config")
     ana.add_argument("--no-plots", action="store_true", help="Skip generating plots")
+    ana.add_argument("--csv", default=None, metavar="DIR", help="Export analysis results to CSV files in DIR")
 
     # --- info ---
     info = subparsers.add_parser("info", help="Show design info without generating anything")
@@ -52,6 +53,11 @@ def main():
         from doe.analysis import analyze
         report = analyze(matrix, cfg, results_dir=args.results_dir, no_plots=args.no_plots)
         _print_report(report)
+        if args.csv:
+            from doe.analysis import export_csv
+            csv_files = export_csv(report, args.csv)
+            for p in csv_files:
+                print(f"CSV exported: {p}")
 
     elif args.command == "info":
         cfg = load_config(args.config, strict=False)
@@ -98,6 +104,13 @@ def _print_report(report):
         print("-" * 62)
         for e in analysis.effects:
             print(f"{e.factor_name:<20} {e.main_effect:>10.4f} {e.std_error:>12.4f} {e.pct_contribution:>15.1f}%")
+
+        if analysis.interactions:
+            print(f"\n=== Interaction Effects: {resp_name} ===")
+            print(f"{'Factor A':<20} {'Factor B':<20} {'Interaction':>12} {'% Contribution':>16}")
+            print("-" * 72)
+            for ix in analysis.interactions:
+                print(f"{ix.factor_a:<20} {ix.factor_b:<20} {ix.interaction_effect:>12.4f} {ix.pct_contribution:>15.1f}%")
 
         print(f"\n=== Summary Statistics: {resp_name} ===")
         for factor, levels in analysis.summary_stats.items():

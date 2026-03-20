@@ -60,6 +60,16 @@ class EffectResult:
     main_effect: float
     std_error: float
     pct_contribution: float
+    ci_low: float = 0.0
+    ci_high: float = 0.0
+
+
+@dataclass
+class InteractionEffect:
+    factor_a: str
+    factor_b: str
+    interaction_effect: float
+    pct_contribution: float
 
 
 @dataclass
@@ -67,6 +77,7 @@ class ResponseAnalysis:
     response_name: str
     effects: list[EffectResult]
     summary_stats: dict
+    interactions: list[InteractionEffect] = field(default_factory=list)
 
 
 @dataclass

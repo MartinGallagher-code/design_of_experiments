@@ -4,9 +4,11 @@
 # Total runs: {{ total_runs }}{% if plan_name %}
 # Plan: {{ plan_name }}{% endif %}
 
-set -euo pipefail
+set -uo pipefail
 
 mkdir -p "{{ out_directory }}"
+
+FAILED_RUNS=()
 
 echo "Starting {{ total_runs }} experiment runs..."
 echo ""
@@ -21,21 +23,36 @@ else
 {% if arg_style == "env" %}
 {% for name, value in run.factor_values.items() %}  export {{ name | upper }}="{{ value }}"
 {% endfor %}{% for name, value in fixed_factors.items() %}  export {{ name | upper }}="{{ value }}"
-{% endfor %}  "{{ test_script }}" \
-    --out "{{ out_directory }}/run_{{ run.run_id }}.json"
+{% endfor %}  if ! "{{ test_script }}" \
+    --out "{{ out_directory }}/run_{{ run.run_id }}.json"; then
+    echo "ERROR: Run {{ run.run_id }} failed"
+    FAILED_RUNS+=({{ run.run_id }})
+  fi
 {% elif arg_style == "positional" %}
-  "{{ test_script }}" \
+  if ! "{{ test_script }}" \
 {% for name, value in run.factor_values.items() %}    "{{ value }}" \
 {% endfor %}{% for name, value in fixed_factors.items() %}    "{{ value }}" \
-{% endfor %}    --out "{{ out_directory }}/run_{{ run.run_id }}.json"
+{% endfor %}    --out "{{ out_directory }}/run_{{ run.run_id }}.json"; then
+    echo "ERROR: Run {{ run.run_id }} failed"
+    FAILED_RUNS+=({{ run.run_id }})
+  fi
 {% else %}
-  "{{ test_script }}" \
+  if ! "{{ test_script }}" \
 {% for name, value in run.factor_values.items() %}    --{{ name }} "{{ value }}" \
 {% endfor %}{% for name, value in fixed_factors.items() %}    --{{ name }} "{{ value }}" \
-{% endfor %}    --out "{{ out_directory }}/run_{{ run.run_id }}.json"
+{% endfor %}    --out "{{ out_directory }}/run_{{ run.run_id }}.json"; then
+    echo "ERROR: Run {{ run.run_id }} failed"
+    FAILED_RUNS+=({{ run.run_id }})
+  fi
 {% endif %}
 fi
 
 echo ""
 {% endfor %}
+{% raw %}if [[ ${#FAILED_RUNS[@]} -gt 0 ]]; then
+  echo "WARNING: ${#FAILED_RUNS[@]} run(s) failed: ${FAILED_RUNS[*]}"{% endraw %}
+  echo "Results (partial) in: {{ out_directory }}"
+  exit 1
+fi
+
 echo "All runs complete. Results in: {{ out_directory }}"

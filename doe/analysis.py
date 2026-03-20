@@ -1,7 +1,8 @@
+import csv
 import json
 import math
 import os
-from .models import AnalysisReport, DesignMatrix, DOEConfig, EffectResult, ExperimentRun, ResponseAnalysis
+from .models import AnalysisReport, DesignMatrix, DOEConfig, EffectResult, ExperimentRun, InteractionEffect, ResponseAnalysis
 
 
 def analyze(
@@ -9,6 +10,7 @@ def analyze(
     cfg: DOEConfig,
     results_dir: str | None = None,
     no_plots: bool = False,
+    pareto_threshold: float = 80,
 ) -> AnalysisReport:
     results_dir = results_dir or cfg.out_directory or "results"
     processed_dir = cfg.processed_directory or results_dir
@@ -42,12 +44,14 @@ def analyze(
 
         valid_runs = [r for r in matrix.runs if r.run_id in responses]
         effects = _compute_main_effects(valid_runs, responses, matrix.factor_names)
+        interactions = _compute_interaction_effects(valid_runs, responses, matrix.factor_names)
         summary_stats = _compute_summary_stats(valid_runs, responses, matrix.factor_names)
 
         results_by_response[resp.name] = ResponseAnalysis(
             response_name=resp.name,
             effects=effects,
             summary_stats=summary_stats,
+            interactions=interactions,
         )
 
         if not no_plots:
@@ -62,7 +66,7 @@ def analyze(
                 title = f"Pareto Chart — {resp.name}{unit_label}"
 
                 pareto_path = os.path.join(processed_dir, f"pareto_{safe}.png")
-                plot_pareto(effects, pareto_path, title=title)
+                plot_pareto(effects, pareto_path, title=title, threshold=pareto_threshold)
                 pareto_chart_paths[resp.name] = pareto_path
 
                 effects_path = os.path.join(processed_dir, f"main_effects_{safe}.png")
@@ -105,6 +109,13 @@ def _compute_main_effects(
     responses: dict[int, float],
     factor_names: list[str],
 ) -> list[EffectResult]:
+    # Try to import scipy for confidence intervals
+    try:
+        from scipy.stats import t as t_dist
+        _has_scipy = True
+    except ImportError:
+        _has_scipy = False
+
     effects = []
     for factor_name in factor_names:
         level_responses: dict[str, list[float]] = {}
@@ -127,11 +138,31 @@ def _compute_main_effects(
         variance = sum((v - mean) ** 2 for v in all_vals) / max(n - 1, 1)
         std_error = math.sqrt(variance / n)
 
+        # Compute 95% confidence intervals for 2-level factors
+        ci_low = 0.0
+        ci_high = 0.0
+        if _has_scipy and len(levels) == 2:
+            n_low = len(level_responses[levels[0]])
+            n_high = len(level_responses[levels[1]])
+            # Pooled standard error
+            var_low = sum((v - low_mean) ** 2 for v in level_responses[levels[0]]) / max(n_low - 1, 1)
+            var_high = sum((v - high_mean) ** 2 for v in level_responses[levels[1]]) / max(n_high - 1, 1)
+            df = n_low + n_high - 2
+            if df > 0:
+                pooled_var = ((n_low - 1) * var_low + (n_high - 1) * var_high) / df
+                pooled_se = math.sqrt(pooled_var)
+                se_effect = pooled_se * math.sqrt(1.0 / n_low + 1.0 / n_high)
+                t_crit = t_dist.ppf(0.975, df)
+                ci_low = effect - t_crit * se_effect
+                ci_high = effect + t_crit * se_effect
+
         effects.append(EffectResult(
             factor_name=factor_name,
             main_effect=effect,
             std_error=std_error,
             pct_contribution=0.0,
+            ci_low=ci_low,
+            ci_high=ci_high,
         ))
 
     total_abs = sum(abs(e.main_effect) for e in effects) or 1.0
@@ -139,6 +170,61 @@ def _compute_main_effects(
         e.pct_contribution = abs(e.main_effect) / total_abs * 100
 
     return sorted(effects, key=lambda e: abs(e.main_effect), reverse=True)
+
+
+def _compute_interaction_effects(
+    runs: list[ExperimentRun],
+    responses: dict[int, float],
+    factor_names: list[str],
+) -> list[InteractionEffect]:
+    """Compute two-factor interaction effects for all pairs of 2-level factors."""
+    from itertools import combinations
+
+    # Identify which factors have exactly 2 levels
+    factor_levels: dict[str, set[str]] = {}
+    for run in runs:
+        for fname in factor_names:
+            factor_levels.setdefault(fname, set()).add(run.factor_values[fname])
+
+    two_level_factors = [f for f in factor_names if len(factor_levels[f]) == 2]
+
+    interactions: list[InteractionEffect] = []
+    for fa, fb in combinations(two_level_factors, 2):
+        levels_a = sorted(factor_levels[fa])
+        levels_b = sorted(factor_levels[fb])
+
+        # Both high or both low (concordant) vs one high one low (discordant)
+        concordant: list[float] = []
+        discordant: list[float] = []
+        for run in runs:
+            val_a = run.factor_values[fa]
+            val_b = run.factor_values[fb]
+            y = responses[run.run_id]
+            # "low" = levels[0], "high" = levels[1]
+            a_is_high = (val_a == levels_a[1])
+            b_is_high = (val_b == levels_b[1])
+            if a_is_high == b_is_high:
+                concordant.append(y)
+            else:
+                discordant.append(y)
+
+        if concordant and discordant:
+            effect = (sum(concordant) / len(concordant)) - (sum(discordant) / len(discordant))
+        else:
+            effect = 0.0
+
+        interactions.append(InteractionEffect(
+            factor_a=fa,
+            factor_b=fb,
+            interaction_effect=effect,
+            pct_contribution=0.0,
+        ))
+
+    total_abs = sum(abs(ix.interaction_effect) for ix in interactions) or 1.0
+    for ix in interactions:
+        ix.pct_contribution = abs(ix.interaction_effect) / total_abs * 100
+
+    return sorted(interactions, key=lambda ix: abs(ix.interaction_effect), reverse=True)
 
 
 def _compute_summary_stats(
@@ -172,6 +258,7 @@ def plot_pareto(
     effects: list[EffectResult],
     output_path: str,
     title: str = "Pareto Chart of Main Effects",
+    threshold: float = 80,
 ) -> None:
     import matplotlib.pyplot as plt
 
@@ -188,7 +275,7 @@ def plot_pareto(
 
     ax2 = ax1.twiny()
     ax2.plot(cumulative[::-1], range(len(names)), "o-", color="red", markersize=4)
-    ax2.axvline(80, color="red", linestyle="--", linewidth=0.8, alpha=0.7)
+    ax2.axvline(threshold, color="red", linestyle="--", linewidth=0.8, alpha=0.7)
     ax2.set_xlabel("Cumulative % Contribution")
     ax2.set_xlim(0, 105)
 
@@ -235,3 +322,33 @@ def plot_main_effects(
     plt.tight_layout()
     plt.savefig(output_path, dpi=150)
     plt.close()
+
+
+def export_csv(report: AnalysisReport, output_dir: str) -> list[str]:
+    """Export analysis results to CSV files. Returns list of created file paths."""
+    os.makedirs(output_dir, exist_ok=True)
+    created = []
+
+    for resp_name, analysis in report.results_by_response.items():
+        safe = resp_name.replace("/", "_").replace(" ", "_")
+
+        # Main effects CSV
+        effects_path = os.path.join(output_dir, f"main_effects_{safe}.csv")
+        with open(effects_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["factor_name", "main_effect", "std_error", "pct_contribution", "ci_low", "ci_high"])
+            for e in analysis.effects:
+                writer.writerow([e.factor_name, e.main_effect, e.std_error, e.pct_contribution, e.ci_low, e.ci_high])
+        created.append(effects_path)
+
+        # Summary stats CSV
+        stats_path = os.path.join(output_dir, f"summary_stats_{safe}.csv")
+        with open(stats_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["factor", "level", "n", "mean", "std", "min", "max"])
+            for factor, levels in analysis.summary_stats.items():
+                for level, s in sorted(levels.items()):
+                    writer.writerow([factor, level, s["n"], s["mean"], s["std"], s["min"], s["max"]])
+        created.append(stats_path)
+
+    return created

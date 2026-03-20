@@ -8,6 +8,7 @@ Plan: {{ plan_name }}{% endif %}
 
 import os
 import subprocess
+import sys
 
 RUNS = [
 {% for run in runs %}    {
@@ -23,6 +24,8 @@ FIXED_FACTORS = {{ fixed_factors | tojson }}
 ARG_STYLE = "{{ arg_style }}"
 
 os.makedirs(OUT_DIRECTORY, exist_ok=True)
+
+failed_runs = []
 
 print(f"Starting {{ total_runs }} experiment runs...")
 
@@ -40,24 +43,33 @@ for run in RUNS:
     for name, value in factors.items():
         print(f"  {name} = {value}")
 
-    if ARG_STYLE == "env":
-        env = dict(os.environ)
-        env.update({k.upper(): v for k, v in factors.items()})
-        env.update({k.upper(): v for k, v in FIXED_FACTORS.items()})
-        subprocess.run([TEST_SCRIPT, "--out", out_path], check=True, env=env)
-    elif ARG_STYLE == "positional":
-        cmd = [TEST_SCRIPT]
-        cmd += list(factors.values())
-        cmd += list(FIXED_FACTORS.values())
-        cmd += ["--out", out_path]
-        subprocess.run(cmd, check=True)
-    else:  # double-dash
-        cmd = [TEST_SCRIPT]
-        for name, value in factors.items():
-            cmd += [f"--{name}", value]
-        for name, value in FIXED_FACTORS.items():
-            cmd += [f"--{name}", value]
-        cmd += ["--out", out_path]
-        subprocess.run(cmd, check=True)
+    try:
+        if ARG_STYLE == "env":
+            env = dict(os.environ)
+            env.update({k.upper(): v for k, v in factors.items()})
+            env.update({k.upper(): v for k, v in FIXED_FACTORS.items()})
+            subprocess.run([TEST_SCRIPT, "--out", out_path], check=True, env=env)
+        elif ARG_STYLE == "positional":
+            cmd = [TEST_SCRIPT]
+            cmd += list(factors.values())
+            cmd += list(FIXED_FACTORS.values())
+            cmd += ["--out", out_path]
+            subprocess.run(cmd, check=True)
+        else:  # double-dash
+            cmd = [TEST_SCRIPT]
+            for name, value in factors.items():
+                cmd += [f"--{name}", value]
+            for name, value in FIXED_FACTORS.items():
+                cmd += [f"--{name}", value]
+            cmd += ["--out", out_path]
+            subprocess.run(cmd, check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"ERROR: Run {run_id} failed with exit code {e.returncode}")
+        failed_runs.append(run_id)
+
+if failed_runs:
+    print(f"\nWARNING: {len(failed_runs)} run(s) failed: {failed_runs}")
+    print(f"Results (partial) in: {OUT_DIRECTORY}")
+    sys.exit(1)
 
 print(f"\nAll runs complete. Results in: {OUT_DIRECTORY}")
