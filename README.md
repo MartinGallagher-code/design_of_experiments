@@ -58,10 +58,16 @@ bash run.sh
 python doe.py analyze --config examples/example_config.json
 
 # Export analysis results to CSV
-python doe.py analyze --config examples/example_config.json --csv
+python doe.py analyze --config examples/example_config.json --csv results/csv
 
 # Show design summary
 python doe.py info --config examples/example_config.json
+
+# Get optimization recommendations
+python doe.py optimize --config examples/example_config.json
+
+# Generate an interactive HTML report
+python doe.py report --config examples/example_config.json --output report.html
 ```
 
 ## Configuration
@@ -163,9 +169,11 @@ If omitted, defaults to a single response named `"response"`.
 | Operation | Description | Requirements |
 |-----------|-------------|--------------|
 | `full_factorial` | All combinations of factor levels | Any number of levels per factor |
+| `fractional_factorial` | Resolution III fractional factorial | Exactly 2 levels per factor |
 | `plackett_burman` | 2-level screening design | Exactly 2 levels per factor |
 | `latin_hypercube` | Space-filling design for continuous factors | Any factor types; continuous factors are interpolated |
 | `central_composite` | Response surface methodology (CCD) | Exactly 2 numeric levels per factor |
+| `box_behnken` | 3-level response surface design | At least 3 factors, exactly 2 numeric levels each |
 
 ## CLI Reference
 
@@ -199,6 +207,28 @@ python doe.py analyze --config FILE [--results-dir DIR] [--no-plots] [--csv]
 python doe.py info --config FILE
 ```
 
+### `optimize` — Recommend optimal factor settings
+```
+python doe.py optimize --config FILE [--results-dir DIR] [--response NAME]
+```
+
+| Flag | Description |
+|------|-------------|
+| `--config` | Path to JSON config file (required) |
+| `--results-dir` | Override `out_directory` from config |
+| `--response` | Optimize for a specific response (default: all) |
+
+### `report` — Generate interactive HTML report
+```
+python doe.py report --config FILE [--results-dir DIR] [--output FILE]
+```
+
+| Flag | Description |
+|------|-------------|
+| `--config` | Path to JSON config file (required) |
+| `--results-dir` | Override `out_directory` from config |
+| `--output` | Output HTML file path (default: `report.html`) |
+
 ## Test Script Protocol
 
 Your test script must:
@@ -226,22 +256,26 @@ The `analyze` command computes:
 
 ```
 design_of_experiments/
-├── doe.py                  # CLI entry point
+├── doe.py                  # Thin CLI wrapper
 ├── doe/
+│   ├── cli.py              # CLI entry point (argparse, subcommands)
 │   ├── models.py           # Dataclasses (Factor, DOEConfig, DesignMatrix, etc.)
 │   ├── config.py           # JSON config loading and validation
-│   ├── design.py           # Design matrix generation
+│   ├── design.py           # Design matrix generation (6 design types)
 │   ├── codegen.py          # Runner script generation (Jinja2)
-│   └── analysis.py         # Results analysis, plotting, CSV export
+│   ├── analysis.py         # Results analysis, plotting, CSV export
+│   ├── rsm.py              # Response surface modeling (linear/quadratic)
+│   ├── optimize.py         # Optimization recommendations
+│   └── report.py           # Self-contained HTML report generation
 ├── templates/
-│   ├── runner_sh.j2        # Bash runner template
-│   └── runner_py.j2        # Python runner template
-├── tests/                  # Test suite (pytest)
+│   ├── runner_sh.j2        # Bash runner template (with error recovery)
+│   └── runner_py.j2        # Python runner template (with error recovery)
+├── tests/                  # Test suite (93 tests, pytest)
 ├── examples/
 │   ├── example_config.json
 │   └── sysbench_config.json
 └── .github/workflows/
-    └── ci.yml              # CI pipeline
+    └── ci.yml              # CI pipeline (Python 3.10/3.11/3.12)
 ```
 
 ## Development

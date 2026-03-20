@@ -12,6 +12,10 @@ def generate_design(cfg: DOEConfig, seed: int | None = None) -> DesignMatrix:
         base_runs = _latin_hypercube(cfg, seed=seed)
     elif cfg.operation == "central_composite":
         base_runs = _central_composite(cfg)
+    elif cfg.operation == "fractional_factorial":
+        base_runs = _fractional_factorial(cfg)
+    elif cfg.operation == "box_behnken":
+        base_runs = _box_behnken(cfg)
     else:
         raise ValueError(f"Unknown operation: {cfg.operation}")
 
@@ -147,6 +151,88 @@ def _decode_coded_value(code: float, factor) -> str:
     center = (low + high) / 2.0
     half_range = (high - low) / 2.0
     return f"{center + code * half_range:.6g}"
+
+
+def _fractional_factorial(cfg: DOEConfig) -> list[ExperimentRun]:
+    try:
+        import pyDOE3
+    except ImportError:
+        raise ImportError(
+            "pyDOE3 is required for Fractional Factorial designs. "
+            "Install it with: pip install pyDOE3"
+        )
+
+    n_factors = len(cfg.factors)
+    # Build generator string for a 2^(n-p) Resolution III design.
+    # First k base factors get single-letter generators; remaining factors
+    # are aliased as interactions of the base factors.
+    from itertools import combinations
+
+    # Determine minimum k base factors such that we can generate enough
+    # columns: k base + interactions of base factors >= n_factors
+    k = n_factors  # default: no fractionation
+    for candidate_k in range(2, n_factors + 1):
+        # Count available columns: candidate_k base + all interactions of order >= 2
+        n_interactions = 0
+        for r in range(2, candidate_k + 1):
+            n_interactions += len(list(combinations(range(candidate_k), r)))
+        if candidate_k + n_interactions >= n_factors:
+            k = candidate_k
+            break
+
+    base_letters = [chr(ord('a') + i) for i in range(k)]
+    gen_parts = list(base_letters)  # base factors
+
+    # Generate aliases for additional factors from 2-factor interactions and higher
+    if n_factors > k:
+        interactions = []
+        for r in range(2, k + 1):
+            for combo in combinations(base_letters, r):
+                interactions.append("".join(combo))
+            if len(interactions) >= n_factors - k:
+                break
+        gen_parts.extend(interactions[: n_factors - k])
+
+    gen_string = " ".join(gen_parts)
+    matrix = pyDOE3.fracfact(gen_string)
+    factor_names = [f.name for f in cfg.factors]
+
+    runs = []
+    for i, row in enumerate(matrix):
+        factor_values = {}
+        for j, val in enumerate(row):
+            factor = cfg.factors[j]
+            level = factor.levels[0] if val < 0 else factor.levels[1]
+            factor_values[factor_names[j]] = level
+        runs.append(ExperimentRun(run_id=i + 1, block_id=1, factor_values=factor_values))
+    return runs
+
+
+def _box_behnken(cfg: DOEConfig) -> list[ExperimentRun]:
+    try:
+        import pyDOE3
+    except ImportError:
+        raise ImportError(
+            "pyDOE3 is required for Box-Behnken designs. "
+            "Install it with: pip install pyDOE3"
+        )
+
+    n_factors = len(cfg.factors)
+    matrix = pyDOE3.bbdesign(n_factors, center=3)
+    factor_names = [f.name for f in cfg.factors]
+
+    runs = []
+    for i, row in enumerate(matrix):
+        factor_values = {}
+        for j, code in enumerate(row):
+            factor = cfg.factors[j]
+            low = float(factor.levels[0])
+            high = float(factor.levels[1])
+            center = (low + high) / 2.0
+            half_range = (high - low) / 2.0
+            factor_values[factor_names[j]] = f"{center + code * half_range:.6g}"
+        runs.append(ExperimentRun(run_id=i + 1, block_id=1, factor_values=factor_values))
+    return runs
 
 
 def _apply_blocks(base_runs: list[ExperimentRun], block_count: int) -> list[ExperimentRun]:

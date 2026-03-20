@@ -2,7 +2,7 @@
 
 ## Context
 
-The repository had only a README.md describing a DOE helper tool. This plan documents the full implementation that was built from scratch. The tool reads a JSON config, generates a design matrix (full-factorial or Plackett-Burman), produces an executable runner script, and analyzes results with main effects plots.
+A Python CLI tool that automates the creation and analysis of experimental designs. It reads a JSON config, generates a design matrix using classical DOE techniques, produces executable runner scripts, and analyzes results with main effects, interaction effects, response surface modeling, and visualization.
 
 ---
 
@@ -13,21 +13,32 @@ The repository had only a README.md describing a DOE helper tool. This plan docu
 ├── README.md
 ├── PLAN.md                          # this file
 ├── pyproject.toml                   # package metadata and deps
-├── requirements.txt                 # numpy, pandas, matplotlib, pyDOE2, Jinja2
-├── doe.py                           # CLI entry point
+├── requirements.txt
+├── doe.py                           # thin CLI wrapper (calls doe.cli:main)
 ├── doe/
 │   ├── __init__.py
-│   ├── models.py                    # dataclasses: Factor, DOEConfig, ExperimentRun, DesignMatrix, AnalysisReport
+│   ├── cli.py                       # CLI entry point (argparse, subcommands)
+│   ├── models.py                    # dataclasses: Factor, DOEConfig, DesignMatrix, etc.
 │   ├── config.py                    # JSON loading + validation → DOEConfig
-│   ├── design.py                    # design matrix generation (full_factorial, plackett_burman)
+│   ├── design.py                    # design matrix generation (6 design types)
 │   ├── codegen.py                   # Jinja2 script rendering → runner.sh / runner.py
-│   └── analysis.py                  # results loading, main effects, summary stats, plots
+│   ├── analysis.py                  # results loading, effects, stats, plots, CSV export
+│   ├── rsm.py                       # response surface modeling (linear/quadratic fits)
+│   ├── optimize.py                  # optimization recommendations from results
+│   └── report.py                    # self-contained HTML report generation
 ├── templates/
-│   ├── runner_sh.j2                 # shell script template
-│   └── runner_py.j2                 # Python runner template
-└── examples/
-    ├── example_config.json          # 3 factors × 2 levels, full_factorial
-    └── example_test_script.sh       # stub that writes {"response": <float>} to --out path
+│   ├── runner_sh.j2                 # shell script template (with error recovery)
+│   └── runner_py.j2                 # Python runner template (with error recovery)
+├── tests/
+│   ├── __init__.py
+│   └── test_doe.py                  # comprehensive test suite (pytest)
+├── examples/
+│   ├── example_config.json          # 3 factors × 2 levels, full_factorial
+│   ├── example_test_script.sh
+│   ├── sysbench_config.json         # multi-response, plackett_burman
+│   └── sysbench_test.sh
+└── .github/workflows/
+    └── ci.yml                       # CI pipeline (Python 3.10/3.11/3.12)
 ```
 
 ---
@@ -38,8 +49,12 @@ The repository had only a README.md describing a DOE helper tool. This plan docu
 Input JSON
     → doe/config.py    load_config()       → DOEConfig
     → doe/design.py    generate_design()   → DesignMatrix
-    → doe/codegen.py   generate_script()   → runner.sh
-    → doe/analysis.py  analyze()           → AnalysisReport (after experiments run)
+    → doe/codegen.py   generate_script()   → runner.sh / runner.py
+    → (user runs experiments)
+    → doe/analysis.py  analyze()           → AnalysisReport
+    → doe/rsm.py       fit_rsm()           → RSMModel
+    → doe/optimize.py  recommend()         → stdout recommendations
+    → doe/report.py    generate_report()   → report.html
 ```
 
 ---
@@ -48,43 +63,69 @@ Input JSON
 
 ### `doe/models.py`
 Typed dataclasses shared across all modules:
-- `Factor(name, levels)`
-- `DOEConfig(factors, static_settings, block_count, test_script, operation, processed_directory, out_directory)`
-- `ExperimentRun(run_id, block_id, factor_values, static_settings)`
+- `Factor(name, levels, type, description, unit)`
+- `ResponseVar(name, optimize, unit, description)`
+- `RunnerConfig(arg_style, result_file)`
+- `DOEConfig(factors, fixed_factors, responses, block_count, test_script, operation, ...)`
+- `ExperimentRun(run_id, block_id, factor_values)`
 - `DesignMatrix(runs, factor_names, operation, metadata)`
-- `EffectResult(factor_name, main_effect, std_error, pct_contribution)`
-- `AnalysisReport(effects, summary_stats, pareto_chart_path, effects_plot_path)`
+- `EffectResult(factor_name, main_effect, std_error, pct_contribution, ci_low, ci_high)`
+- `InteractionEffect(factor_a, factor_b, interaction_effect, pct_contribution)`
+- `ResponseAnalysis(response_name, effects, summary_stats, interactions)`
+- `AnalysisReport(results_by_response, pareto_chart_paths, effects_plot_paths)`
 
 ### `doe/config.py`
 - `load_config(path, strict=True) -> DOEConfig` — parse JSON, validate, return typed config
-- `_validate_config(cfg)` — checks: supported operation, PB requires 2 levels per factor, unique factor names, block_count ≥ 1
-- `SUPPORTED_OPERATIONS = {"full_factorial", "plackett_burman"}`
+- Supports modern dict-based and legacy array-based factor formats
+- Converts legacy `static_settings` to `fixed_factors`
+- `SUPPORTED_OPERATIONS = {"full_factorial", "fractional_factorial", "plackett_burman", "latin_hypercube", "central_composite", "box_behnken"}`
 
 ### `doe/design.py`
 - `generate_design(cfg, seed=None) -> DesignMatrix` — dispatch by operation
-- `_full_factorial(cfg)` — `itertools.product` over all factor levels; zero extra deps
-- `_plackett_burman(cfg)` — `pyDOE2.pbdesign(n)`, maps ±1 to factor levels; requires 2 levels per factor
-- `_apply_blocks(runs, block_count, static_settings)` — replicate + assign block_id
-- `_randomize_run_order(runs, seed)` — shuffle within each block independently
-
-### `doe/codegen.py`
-- `generate_script(matrix, cfg, output_path, format="sh") -> str` — render Jinja2 template, write file, chmod +x
-- Shell template: loops over runs, calls `test_script --<factor> <value> ... --out run_N.json`
+- `_full_factorial(cfg)` — `itertools.product`; zero extra deps
+- `_fractional_factorial(cfg)` — `pyDOE3.fracfact()`; Resolution III auto-generation
+- `_plackett_burman(cfg)` — `pyDOE3.pbdesign()`; 2-level screening
+- `_latin_hypercube(cfg, seed)` — `pyDOE3.lhs()`; maximin criterion
+- `_central_composite(cfg)` — `pyDOE3.ccdesign()`; circumscribed CCD
+- `_box_behnken(cfg)` — `pyDOE3.bbdesign()`; 3+ factors, numeric levels
+- `_apply_blocks()` — replicate + assign block_id
+- `_randomize_run_order()` — shuffle within each block independently
 
 ### `doe/analysis.py`
-- `analyze(matrix, cfg, results_dir=None) -> AnalysisReport`
-- `_load_results(runs, results_dir)` — reads `run_{N}.json`, extracts `response` float
-- `_compute_main_effects(runs, responses, factor_names)` — mean(high) − mean(low); % contribution
-- `_compute_summary_stats(...)` — per-factor per-level: n, mean, std, min, max
-- `plot_pareto(effects, output_path)` — horizontal bar chart sorted by |effect|, 80% cumulative line
-- `plot_main_effects(runs, responses, factor_names, output_path)` — grid of subplots, one per factor
+- `analyze(matrix, cfg, results_dir, no_plots, pareto_threshold)` → AnalysisReport
+- Main effects with 95% confidence intervals (scipy.stats.t)
+- Two-factor interaction effects for 2-level factors
+- Summary statistics per factor per level
+- Pareto charts and main effects plots (matplotlib)
+- `export_csv(report, output_dir)` — CSV export of effects and stats
 
-### `doe.py` (CLI)
-Three subcommands via argparse:
+### `doe/rsm.py`
+- `fit_rsm(runs, responses, factor_names, factors, model_type)` → RSMModel
+- Linear and quadratic polynomial regression via numpy least-squares
+- R² and adjusted R² statistics
+- Predicted optimum from observed factor combinations
+
+### `doe/optimize.py`
+- `recommend(matrix, cfg, results_dir, response_name)` — print optimization recommendations
+- Best observed run, RSM model fit, factor importance ranking
+
+### `doe/report.py`
+- `generate_report(matrix, cfg, results_dir, output_path)` — self-contained HTML report
+- Embedded base64 plot images, collapsible sections, responsive tables
+
+### `doe/codegen.py`
+- `generate_script(matrix, cfg, output_path, format)` — render Jinja2 template, chmod +x
+- Three arg styles: double-dash, env, positional
+- Error recovery: track failed runs, continue on failure, summary at end
+
+### `doe/cli.py`
+Six subcommands via argparse:
 ```
-python doe.py generate --config FILE [--output FILE] [--format sh|py] [--seed N] [--dry-run]
-python doe.py analyze  --config FILE [--results-dir DIR] [--no-plots]
-python doe.py info     --config FILE
+doe generate  --config FILE [--output FILE] [--format sh|py] [--seed N] [--dry-run]
+doe analyze   --config FILE [--results-dir DIR] [--no-plots] [--csv DIR]
+doe info      --config FILE
+doe optimize  --config FILE [--results-dir DIR] [--response NAME]
+doe report    --config FILE [--results-dir DIR] [--output FILE]
 ```
 
 ---
@@ -93,52 +134,32 @@ python doe.py info     --config FILE
 
 | Package | Purpose |
 |---------|---------|
-| `pyDOE2>=1.3.0` | Plackett-Burman design matrices |
-| `numpy>=1.26.0` | Array operations |
-| `pandas>=2.0.0` | Result aggregation |
+| `pyDOE3>=1.0.0` | PB, LHS, CCD, fractional factorial, Box-Behnken |
+| `numpy>=1.26.0` | Array operations, RSM least-squares |
 | `matplotlib>=3.7.0` | Pareto + main effects plots |
-| `scipy>=1.11.0` | Optional deeper analysis |
+| `scipy>=1.11.0` | Confidence intervals (t-distribution) |
 | `Jinja2>=3.1.0` | Script template rendering |
 
-> Full-factorial uses only stdlib (`itertools.product`). pyDOE2 is only imported inside the Plackett-Burman code path, so the tool works without it for full-factorial designs.
-
----
-
-## Usage
-
-```bash
-# Install deps
-pip install -r requirements.txt
-
-# Preview the design (dry run — no files written)
-python doe.py generate --config examples/example_config.json --dry-run
-
-# Show design summary
-python doe.py info --config examples/example_config.json
-
-# Generate runner script
-python doe.py generate --config examples/example_config.json --output run.sh --seed 42
-
-# Run experiments (make stub executable first)
-chmod +x examples/example_test_script.sh
-bash run.sh
-
-# Analyze results
-python doe.py analyze --config examples/example_config.json
-```
-
-Expected output for the example config: 8 runs (3 factors × 2 levels, full-factorial). After running, a Pareto chart and main effects plot are written to `results/analysis/`.
+> Full-factorial uses only stdlib. pyDOE3 is lazily imported only when needed.
 
 ---
 
 ## Design Decisions
 
-1. **Re-derive design at analysis time** — The `DesignMatrix` is reconstructed from the same config rather than serialized. Use `--seed` to ensure reproducible run order between `generate` and `analyze`.
+1. **Re-derive design at analysis time** — The `DesignMatrix` is reconstructed from the same config. Use `--seed` for reproducible run order between `generate` and `analyze`.
 
-2. **pyDOE2 as optional import** — Full-factorial has zero extra deps. pyDOE2 is only imported inside `_plackett_burman()` with a helpful install message on `ImportError`.
+2. **pyDOE3 as optional import** — Full-factorial has zero extra deps. pyDOE3 is only imported inside design functions with helpful install messages.
 
-3. **Per-run JSON result files** — Each run writes `run_{N}.json` with `{"response": <float>}`. Partial failures are isolated; partial results can be inspected individually.
+3. **Per-run JSON result files** — Each run writes `run_{N}.json`. Partial failures are isolated.
 
-4. **Jinja2 templates** — Keeps template logic separate from Python. New script formats (PowerShell, batch) can be added by adding a template file, no Python changes needed.
+4. **Jinja2 templates** — Script format extensible by adding template files.
 
-5. **Block randomization** — Run order is shuffled within blocks, not across blocks. This is the statistically correct approach for blocked DOE.
+5. **Block randomization** — Within-block shuffling (statistically correct).
+
+6. **Multi-response framework** — Each response analyzed independently with per-response plots and optimization direction.
+
+7. **Self-contained HTML reports** — Base64-encoded images, inline CSS, no external dependencies.
+
+8. **Runner error recovery** — Failed runs tracked and reported; partial results preserved.
+
+9. **CLI in package** — `doe/cli.py` holds CLI logic; `doe.py` is a thin wrapper; `pyproject.toml` entry point is `doe.cli:main`.

@@ -527,6 +527,118 @@ class TestDesignGeneration:
 
 
 # ===================================================================
+# 2b. FRACTIONAL FACTORIAL AND BOX-BEHNKEN TESTS
+# ===================================================================
+
+class TestFractionalFactorial:
+
+    def test_fewer_runs_than_full_factorial(self):
+        """Fractional factorial should produce fewer runs than full factorial for >= 4 factors."""
+        factors = [
+            Factor(name=f"F{i}", levels=["lo", "hi"])
+            for i in range(5)
+        ]
+        ff_cfg = _make_doe_config(factors=factors, operation="fractional_factorial")
+        full_cfg = _make_doe_config(factors=factors, operation="full_factorial")
+
+        ff_matrix = generate_design(ff_cfg, seed=42)
+        full_matrix = generate_design(full_cfg, seed=42)
+
+        assert len(ff_matrix.runs) < len(full_matrix.runs)
+
+    def test_all_factor_names_present(self):
+        """All factor names should appear in every run."""
+        factors = [
+            Factor(name="A", levels=["lo", "hi"]),
+            Factor(name="B", levels=["lo", "hi"]),
+            Factor(name="C", levels=["lo", "hi"]),
+            Factor(name="D", levels=["lo", "hi"]),
+        ]
+        cfg = _make_doe_config(factors=factors, operation="fractional_factorial")
+        matrix = generate_design(cfg, seed=42)
+
+        expected_names = {"A", "B", "C", "D"}
+        for run in matrix.runs:
+            assert set(run.factor_values.keys()) == expected_names
+
+    def test_validation_requires_2_levels(self, tmp_path):
+        """Fractional factorial should reject factors with != 2 levels."""
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "A", "levels": [1, 2, 3]},
+                {"name": "B", "levels": [10, 20]},
+            ],
+            operation="fractional_factorial",
+        )
+        path = _write_config(tmp_path, cfg_dict)
+        with pytest.raises(ValueError, match="Fractional factorial requires exactly 2 levels"):
+            load_config(path, strict=False)
+
+
+class TestBoxBehnken:
+
+    def test_center_points_present(self):
+        """Box-Behnken design should include center points (all factors at midpoint)."""
+        factors = [
+            Factor(name="A", levels=["10", "20"]),
+            Factor(name="B", levels=["100", "200"]),
+            Factor(name="C", levels=["1", "5"]),
+        ]
+        cfg = _make_doe_config(factors=factors, operation="box_behnken")
+        matrix = generate_design(cfg, seed=42)
+
+        # Center point: A=15, B=150, C=3
+        center_runs = [
+            r for r in matrix.runs
+            if (float(r.factor_values["A"]) == 15.0
+                and float(r.factor_values["B"]) == 150.0
+                and float(r.factor_values["C"]) == 3.0)
+        ]
+        assert len(center_runs) >= 1, "Expected at least one center point in Box-Behnken design"
+
+    def test_requires_at_least_3_factors(self, tmp_path):
+        """Box-Behnken should reject designs with fewer than 3 factors."""
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "A", "levels": [1, 2]},
+                {"name": "B", "levels": [10, 20]},
+            ],
+            operation="box_behnken",
+        )
+        path = _write_config(tmp_path, cfg_dict)
+        with pytest.raises(ValueError, match="Box-Behnken requires at least 3 factors"):
+            load_config(path, strict=False)
+
+    def test_requires_2_numeric_levels(self, tmp_path):
+        """Box-Behnken should reject non-numeric levels."""
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "A", "levels": ["low", "high"]},
+                {"name": "B", "levels": [1, 2]},
+                {"name": "C", "levels": [10, 20]},
+            ],
+            operation="box_behnken",
+        )
+        path = _write_config(tmp_path, cfg_dict)
+        with pytest.raises(ValueError, match="Box-Behnken requires numeric levels"):
+            load_config(path, strict=False)
+
+    def test_requires_exactly_2_levels(self, tmp_path):
+        """Box-Behnken should reject factors with != 2 levels."""
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "A", "levels": [1, 2, 3]},
+                {"name": "B", "levels": [10, 20]},
+                {"name": "C", "levels": [100, 200]},
+            ],
+            operation="box_behnken",
+        )
+        path = _write_config(tmp_path, cfg_dict)
+        with pytest.raises(ValueError, match="Box-Behnken requires exactly 2 levels"):
+            load_config(path, strict=False)
+
+
+# ===================================================================
 # 3. ANALYSIS TESTS
 # ===================================================================
 
@@ -1012,3 +1124,414 @@ class TestModels:
         report = AnalysisReport(results_by_response={})
         assert report.pareto_chart_paths == {}
         assert report.effects_plot_paths == {}
+
+
+# ===================================================================
+# REPORT GENERATION TESTS
+# ===================================================================
+
+class TestReportGeneration:
+    """Tests for doe.report.generate_report."""
+
+    def test_generate_report_produces_html_file(self, tmp_path):
+        """generate_report should create an HTML file at the given output path."""
+        from doe.report import generate_report
+
+        cfg = _make_doe_config(
+            metadata={"name": "Test Plan", "description": "A test experiment"},
+        )
+        matrix = generate_design(cfg)
+
+        # Create result files for each run
+        results_dir = str(tmp_path / "results")
+        results = {run.run_id: {"response": float(run.run_id * 10)} for run in matrix.runs}
+        _write_result_files(results_dir, results)
+        cfg.out_directory = results_dir
+        cfg.processed_directory = str(tmp_path / "processed")
+
+        output_path = str(tmp_path / "report.html")
+        result = generate_report(matrix, cfg, results_dir=results_dir, output_path=output_path)
+
+        assert result == output_path
+        assert os.path.exists(output_path)
+        content = Path(output_path).read_text(encoding="utf-8")
+        assert content.startswith("<!DOCTYPE html>")
+        assert len(content) > 500  # non-trivial file
+
+    def test_report_contains_key_sections(self, tmp_path):
+        """The HTML report must contain the expected section headings."""
+        from doe.report import generate_report
+
+        cfg = _make_doe_config(
+            metadata={"name": "Section Test", "description": "Check sections"},
+        )
+        matrix = generate_design(cfg)
+
+        results_dir = str(tmp_path / "results")
+        results = {run.run_id: {"response": float(run.run_id)} for run in matrix.runs}
+        _write_result_files(results_dir, results)
+        cfg.out_directory = results_dir
+        cfg.processed_directory = str(tmp_path / "processed")
+
+        output_path = str(tmp_path / "report.html")
+        generate_report(matrix, cfg, results_dir=results_dir, output_path=output_path)
+
+        content = Path(output_path).read_text(encoding="utf-8")
+        assert "Design Summary" in content
+        assert "Main Effects" in content
+        assert "Design Matrix" in content
+        assert "Generated by DOE Helper Tool" in content
+        assert "Section Test" in content
+
+    def test_report_is_self_contained(self, tmp_path):
+        """Report must not reference external CSS or JS files."""
+        from doe.report import generate_report
+
+        cfg = _make_doe_config(
+            metadata={"name": "Self-contained Test"},
+        )
+        matrix = generate_design(cfg)
+
+        results_dir = str(tmp_path / "results")
+        results = {run.run_id: {"response": float(run.run_id * 5)} for run in matrix.runs}
+        _write_result_files(results_dir, results)
+        cfg.out_directory = results_dir
+        cfg.processed_directory = str(tmp_path / "processed")
+
+        output_path = str(tmp_path / "report.html")
+        generate_report(matrix, cfg, results_dir=results_dir, output_path=output_path)
+
+        content = Path(output_path).read_text(encoding="utf-8")
+        # Must not contain external stylesheet or script links
+        assert 'rel="stylesheet"' not in content
+        assert "<link " not in content
+        assert '<script src=' not in content
+        # CSS must be inline
+        assert "<style>" in content
+
+    def test_report_embeds_plots_as_base64(self, tmp_path):
+        """Plot images should be embedded as base64 data URIs."""
+        from doe.report import generate_report
+
+        cfg = _make_doe_config(
+            metadata={"name": "Plot Embed Test"},
+        )
+        matrix = generate_design(cfg)
+
+        results_dir = str(tmp_path / "results")
+        results = {run.run_id: {"response": float(run.run_id * 3)} for run in matrix.runs}
+        _write_result_files(results_dir, results)
+        cfg.out_directory = results_dir
+        cfg.processed_directory = str(tmp_path / "processed")
+
+        output_path = str(tmp_path / "report.html")
+        generate_report(matrix, cfg, results_dir=results_dir, output_path=output_path)
+
+        content = Path(output_path).read_text(encoding="utf-8")
+        assert "data:image/png;base64," in content
+
+    def test_report_html_escapes_user_strings(self, tmp_path):
+        """User-provided strings with HTML special chars must be escaped."""
+        from doe.report import generate_report
+
+        cfg = _make_doe_config(
+            metadata={
+                "name": "Test <script>alert(1)</script>",
+                "description": 'Desc with "quotes" & <tags>',
+            },
+        )
+        matrix = generate_design(cfg)
+
+        results_dir = str(tmp_path / "results")
+        results = {run.run_id: {"response": float(run.run_id)} for run in matrix.runs}
+        _write_result_files(results_dir, results)
+        cfg.out_directory = results_dir
+        cfg.processed_directory = str(tmp_path / "processed")
+
+        output_path = str(tmp_path / "report.html")
+        generate_report(matrix, cfg, results_dir=results_dir, output_path=output_path)
+
+        content = Path(output_path).read_text(encoding="utf-8")
+        # Raw script tag must NOT appear
+        assert "<script>alert(1)</script>" not in content
+        # Escaped version should be present
+        assert "&lt;script&gt;" in content
+
+
+# ===================================================================
+# RSM TESTS
+# ===================================================================
+
+class TestRSM:
+    """Tests for the Response Surface Modeling module."""
+
+    def _make_runs_and_responses(self):
+        """Create a simple 2-factor, 2-level full factorial with known responses.
+
+        Factors: A (levels "1", "3"), B (levels "10", "20")
+        Response: y = 10 + 5*A_coded + 3*B_coded
+        where A_coded = (A - 2)/1, B_coded = (B - 15)/5
+
+        Run 1: A=1, B=10 -> A_coded=-1, B_coded=-1 -> y = 10 - 5 - 3 = 2
+        Run 2: A=1, B=20 -> A_coded=-1, B_coded=+1 -> y = 10 - 5 + 3 = 8
+        Run 3: A=3, B=10 -> A_coded=+1, B_coded=-1 -> y = 10 + 5 - 3 = 12
+        Run 4: A=3, B=20 -> A_coded=+1, B_coded=+1 -> y = 10 + 5 + 3 = 18
+        """
+        from doe.models import Factor
+
+        factors = [
+            Factor(name="A", levels=["1", "3"], type="continuous"),
+            Factor(name="B", levels=["10", "20"], type="continuous"),
+        ]
+        factor_names = ["A", "B"]
+
+        runs = [
+            ExperimentRun(run_id=1, block_id=1, factor_values={"A": "1", "B": "10"}),
+            ExperimentRun(run_id=2, block_id=1, factor_values={"A": "1", "B": "20"}),
+            ExperimentRun(run_id=3, block_id=1, factor_values={"A": "3", "B": "10"}),
+            ExperimentRun(run_id=4, block_id=1, factor_values={"A": "3", "B": "20"}),
+        ]
+        responses = {1: 2.0, 2: 8.0, 3: 12.0, 4: 18.0}
+        return runs, responses, factor_names, factors
+
+    def test_linear_fit_perfect(self):
+        """Linear RSM on data generated from a linear model should give R^2 = 1.0."""
+        from doe.rsm import fit_rsm
+
+        runs, responses, factor_names, factors = self._make_runs_and_responses()
+        model = fit_rsm(runs, responses, factor_names, factors, model_type="linear")
+
+        assert model.r_squared == pytest.approx(1.0, abs=1e-6)
+        assert model.adj_r_squared == pytest.approx(1.0, abs=1e-6)
+
+        # Check coefficients
+        assert model.coefficients["intercept"] == pytest.approx(10.0, abs=1e-6)
+        assert model.coefficients["A"] == pytest.approx(5.0, abs=1e-6)
+        assert model.coefficients["B"] == pytest.approx(3.0, abs=1e-6)
+
+    def test_linear_fit_noisy(self):
+        """Linear RSM on noisy data should have R^2 < 1.0 but still reasonable."""
+        from doe.rsm import fit_rsm
+        from doe.models import Factor
+
+        factors = [
+            Factor(name="A", levels=["1", "3"], type="continuous"),
+            Factor(name="B", levels=["10", "20"], type="continuous"),
+        ]
+        runs = [
+            ExperimentRun(run_id=1, block_id=1, factor_values={"A": "1", "B": "10"}),
+            ExperimentRun(run_id=2, block_id=1, factor_values={"A": "1", "B": "20"}),
+            ExperimentRun(run_id=3, block_id=1, factor_values={"A": "3", "B": "10"}),
+            ExperimentRun(run_id=4, block_id=1, factor_values={"A": "3", "B": "20"}),
+        ]
+        # Add noise to the perfect linear response
+        responses = {1: 2.5, 2: 7.5, 3: 12.5, 4: 17.0}
+        model = fit_rsm(runs, responses, ["A", "B"], factors, model_type="linear")
+
+        assert 0.9 < model.r_squared <= 1.0
+        assert model.predicted_optimum is not None
+
+    def test_quadratic_fit(self):
+        """Quadratic RSM should include interaction and squared terms."""
+        from doe.rsm import fit_rsm
+        from doe.models import Factor
+
+        factors = [
+            Factor(name="A", levels=["1", "2", "3"], type="continuous"),
+            Factor(name="B", levels=["10", "15", "20"], type="continuous"),
+        ]
+        # 3x3 grid: 9 runs with a quadratic response
+        # y = 10 + 2*A_coded + 3*B_coded + 1.5*A_coded*B_coded - 2*A_coded^2
+        runs = []
+        responses = {}
+        run_id = 1
+        for a_val in ["1", "2", "3"]:
+            for b_val in ["10", "15", "20"]:
+                runs.append(ExperimentRun(
+                    run_id=run_id, block_id=1,
+                    factor_values={"A": a_val, "B": b_val},
+                ))
+                # Encode: A center=2, half_range=1; B center=15, half_range=5
+                a_coded = (float(a_val) - 2.0) / 1.0
+                b_coded = (float(b_val) - 15.0) / 5.0
+                y = 10 + 2 * a_coded + 3 * b_coded + 1.5 * a_coded * b_coded - 2 * a_coded ** 2
+                responses[run_id] = y
+                run_id += 1
+
+        model = fit_rsm(runs, responses, ["A", "B"], factors, model_type="quadratic")
+
+        assert model.r_squared == pytest.approx(1.0, abs=1e-6)
+        assert "A*B" in model.coefficients
+        assert "A^2" in model.coefficients
+        assert "B^2" in model.coefficients
+        assert model.coefficients["A*B"] == pytest.approx(1.5, abs=1e-4)
+        assert model.coefficients["A^2"] == pytest.approx(-2.0, abs=1e-4)
+
+    def test_categorical_encoding(self):
+        """Categorical 2-level factors should be encoded as -1/+1."""
+        from doe.rsm import fit_rsm
+        from doe.models import Factor
+
+        factors = [
+            Factor(name="method", levels=["fast", "slow"], type="categorical"),
+        ]
+        runs = [
+            ExperimentRun(run_id=1, block_id=1, factor_values={"method": "fast"}),
+            ExperimentRun(run_id=2, block_id=1, factor_values={"method": "slow"}),
+        ]
+        # fast -> -1 (sorted: fast < slow), slow -> +1
+        # y = 50 + 10*x -> fast=40, slow=60
+        responses = {1: 40.0, 2: 60.0}
+        model = fit_rsm(runs, responses, ["method"], factors, model_type="linear")
+
+        assert model.r_squared == pytest.approx(1.0, abs=1e-6)
+        assert model.coefficients["intercept"] == pytest.approx(50.0, abs=1e-6)
+        assert model.coefficients["method"] == pytest.approx(10.0, abs=1e-6)
+
+    def test_empty_runs(self):
+        """fit_rsm with no valid runs should return a zero model."""
+        from doe.rsm import fit_rsm
+
+        model = fit_rsm([], {}, [], [])
+        assert model.r_squared == 0.0
+        assert model.coefficients == {"intercept": 0.0}
+
+
+# ===================================================================
+# OPTIMIZE TESTS
+# ===================================================================
+
+class TestOptimize:
+    """Tests for the optimize module."""
+
+    def _setup_results(self, tmp_path):
+        """Create a config and result files for a 2^2 full factorial."""
+        from doe.models import Factor
+
+        factors = [
+            Factor(name="A", levels=["low", "high"]),
+            Factor(name="B", levels=["low", "high"]),
+        ]
+        responses_cfg = [
+            ResponseVar(name="throughput", optimize="maximize"),
+        ]
+        cfg = DOEConfig(
+            factors=factors,
+            fixed_factors={},
+            responses=responses_cfg,
+            block_count=1,
+            test_script="echo test",
+            operation="full_factorial",
+            processed_directory=str(tmp_path / "processed"),
+            out_directory=str(tmp_path / "results"),
+        )
+        matrix = generate_design(cfg)
+
+        # Create result files with known throughput values
+        results_dir = tmp_path / "results"
+        results_dir.mkdir(parents=True, exist_ok=True)
+
+        # Assign throughput based on factor levels:
+        # A=high is good (+20), B=high is slightly good (+5)
+        for run in matrix.runs:
+            val = 50.0
+            if run.factor_values["A"] == "high":
+                val += 20.0
+            if run.factor_values["B"] == "high":
+                val += 5.0
+            result_file = results_dir / f"run_{run.run_id}.json"
+            result_file.write_text(json.dumps({"throughput": val}))
+
+        return matrix, cfg, str(results_dir)
+
+    def test_recommend_runs_without_error(self, tmp_path):
+        """recommend() should run to completion without errors."""
+        from doe.optimize import recommend
+
+        matrix, cfg, results_dir = self._setup_results(tmp_path)
+        # Should not raise
+        recommend(matrix, cfg, results_dir=results_dir)
+
+    def test_recommend_specific_response(self, tmp_path):
+        """recommend() with a specific response name should work."""
+        from doe.optimize import recommend
+
+        matrix, cfg, results_dir = self._setup_results(tmp_path)
+        recommend(matrix, cfg, results_dir=results_dir, response_name="throughput")
+
+    def test_recommend_missing_response(self, tmp_path, capsys):
+        """recommend() with a nonexistent response should print an error."""
+        from doe.optimize import recommend
+
+        matrix, cfg, results_dir = self._setup_results(tmp_path)
+        recommend(matrix, cfg, results_dir=results_dir, response_name="nonexistent")
+        captured = capsys.readouterr()
+        assert "not found" in captured.out
+
+    def test_best_observed_run(self, tmp_path, capsys):
+        """recommend() should identify the best observed run correctly."""
+        from doe.optimize import recommend
+
+        matrix, cfg, results_dir = self._setup_results(tmp_path)
+        recommend(matrix, cfg, results_dir=results_dir, response_name="throughput")
+        captured = capsys.readouterr()
+
+        # The best run should have A=high and B=high (value 75.0)
+        assert "75.0" in captured.out
+        # A=high should appear in the best run section
+        assert "A = high" in captured.out
+        assert "B = high" in captured.out
+
+    def test_best_observed_run_minimize(self, tmp_path, capsys):
+        """recommend() with minimize should find the lowest value."""
+        from doe.optimize import recommend
+        from doe.models import Factor
+
+        factors = [
+            Factor(name="X", levels=["low", "high"]),
+        ]
+        responses_cfg = [
+            ResponseVar(name="latency", optimize="minimize"),
+        ]
+        cfg = DOEConfig(
+            factors=factors,
+            fixed_factors={},
+            responses=responses_cfg,
+            block_count=1,
+            test_script="echo test",
+            operation="full_factorial",
+            processed_directory=str(tmp_path / "processed"),
+            out_directory=str(tmp_path / "results"),
+        )
+        matrix = generate_design(cfg)
+
+        results_dir = tmp_path / "results"
+        results_dir.mkdir(parents=True, exist_ok=True)
+        for run in matrix.runs:
+            val = 100.0 if run.factor_values["X"] == "high" else 20.0
+            (results_dir / f"run_{run.run_id}.json").write_text(
+                json.dumps({"latency": val})
+            )
+
+        recommend(matrix, cfg, results_dir=str(results_dir), response_name="latency")
+        captured = capsys.readouterr()
+
+        assert "minimize" in captured.out
+        assert "20.0" in captured.out
+
+    def test_factor_importance_order(self, tmp_path, capsys):
+        """Factor A should be ranked above Factor B in importance."""
+        from doe.optimize import recommend
+
+        matrix, cfg, results_dir = self._setup_results(tmp_path)
+        recommend(matrix, cfg, results_dir=results_dir, response_name="throughput")
+        captured = capsys.readouterr()
+
+        # In the "Factor importance" section, A should come first
+        lines = captured.out.split("\n")
+        importance_lines = [
+            l for l in lines if l.strip().startswith("1.") or l.strip().startswith("2.")
+        ]
+        assert len(importance_lines) == 2
+        assert "A" in importance_lines[0]
+        assert "B" in importance_lines[1]

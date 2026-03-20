@@ -7,6 +7,8 @@ SUPPORTED_OPERATIONS = {
     "plackett_burman",
     "latin_hypercube",
     "central_composite",
+    "fractional_factorial",
+    "box_behnken",
 }
 
 
@@ -131,6 +133,35 @@ def _validate_config(cfg: DOEConfig, strict: bool = True) -> None:
                 raise ValueError(
                     f"Plackett-Burman requires exactly 2 levels per factor, "
                     f"but factor '{f.name}' has {len(f.levels)}: {f.levels}"
+                )
+
+    if cfg.operation == "fractional_factorial":
+        for f in cfg.factors:
+            if len(f.levels) != 2:
+                raise ValueError(
+                    f"Fractional factorial requires exactly 2 levels per factor, "
+                    f"but factor '{f.name}' has {len(f.levels)}: {f.levels}"
+                )
+
+    if cfg.operation == "box_behnken":
+        if len(cfg.factors) < 3:
+            raise ValueError(
+                f"Box-Behnken requires at least 3 factors, "
+                f"but only {len(cfg.factors)} were provided."
+            )
+        for f in cfg.factors:
+            if len(f.levels) != 2:
+                raise ValueError(
+                    f"Box-Behnken requires exactly 2 levels (low, high) per factor, "
+                    f"but factor '{f.name}' has {len(f.levels)}: {f.levels}"
+                )
+            try:
+                float(f.levels[0])
+                float(f.levels[1])
+            except ValueError:
+                raise ValueError(
+                    f"Box-Behnken requires numeric levels, "
+                    f"but factor '{f.name}' has non-numeric levels: {f.levels}"
                 )
 
     if cfg.operation == "central_composite":
