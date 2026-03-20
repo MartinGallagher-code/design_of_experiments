@@ -635,6 +635,18 @@ of a main effect is:
 \]
 where $s^2$ is the pooled variance estimate and $N$ is the total number of runs.
 
+\begin{example}[Calculating a Main Effect by Hand]
+Suppose we have a $2^2$ design with factors $A$ and $B$, and the response values are:
+$Y(A{-}, B{-}) = 20$, $Y(A{+}, B{-}) = 40$, $Y(A{-}, B{+}) = 30$, $Y(A{+}, B{+}) = 60$.
+
+Main effect of $A$ = average when $A$ is high $-$ average when $A$ is low:
+\[
+\text{ME}_A = \frac{40 + 60}{2} - \frac{20 + 30}{2} = 50 - 25 = +25
+\]
+
+This means changing $A$ from low to high increases the response by 25 units, on average.
+\end{example}
+
 \subsection{Interaction Effects}
 
 The two-factor interaction $AB$ measures whether the effect of $A$ depends on the
@@ -650,6 +662,23 @@ Equivalently, in a $2^k$ design:
 \]
 where ``concordant'' runs have $A$ and $B$ both high or both low, and
 ``discordant'' runs have one high and one low.
+
+\begin{example}[Calculating an Interaction by Hand]
+Using the same $2^2$ data as before ($Y(A{-}, B{-}) = 20$, $Y(A{+}, B{-}) = 40$,
+$Y(A{-}, B{+}) = 30$, $Y(A{+}, B{+}) = 60$):
+
+Effect of $A$ when $B$ is low $= 40 - 20 = 20$.
+
+Effect of $A$ when $B$ is high $= 60 - 30 = 30$.
+
+The interaction $AB = (30 - 20)/2 = +5$.
+
+This positive interaction means $A$ is MORE effective when $B$ is high.
+The factors amplify each other.
+
+If the interaction were negative, $A$ would be LESS effective at $B$-high
+(the factors would cancel each other).
+\end{example}
 
 \subsection{Percentage Contribution}
 
@@ -728,6 +757,18 @@ R^2_{\text{adj}} = 1 - \frac{\text{SS}_{\text{Error}} / \nu_E}
 An $R^2$ near 1.0 means the model explains nearly all the variation. An $R^2$
 below 0.7 suggests important factors or relationships are missing from the
 model.
+
+\begin{warning}[When High $R^2$ Is Misleading]
+$R^2$ can be artificially inflated by having many model terms relative to data
+points. If you fit a quadratic model with 10 parameters to 12 data points,
+$R^2$ will be high even if the model is meaningless.
+
+Always compare $R^2$ and $R^2_{\text{adj}}$. A large gap (e.g., $R^2 = 0.95$
+but $R^2_{\text{adj}} = 0.75$) signals overfitting.
+
+Rule of thumb: you need at least $1.5\times$ as many data points as model
+parameters.
+\end{warning}
 
 
 % ═══════════════════════════════════════════
@@ -846,6 +887,175 @@ minus minimum mean) instead of the simple high-minus-low formula.
 \end{itemize}
 
 
+\section{Worked Example: A Complete $2^3$ Analysis}
+
+Consider a packaging engineer testing three factors that affect the seal
+strength (in Newtons) of a heat-sealed pouch:
+
+\begin{itemize}[nosep]
+\item \textbf{A}: Seal temperature ($-1$ = 150\textdegree C, $+1$ = 190\textdegree C)
+\item \textbf{B}: Pressure ($-1$ = 2\,bar, $+1$ = 5\,bar)
+\item \textbf{C}: Dwell time ($-1$ = 0.5\,s, $+1$ = 1.5\,s)
+\end{itemize}
+
+\noindent A $2^3$ full factorial requires $8$ runs. The engineer randomizes the
+run order, performs the experiment, and records the following seal strength
+values:
+
+\begin{center}
+\begin{tabular}{ccccr}
+\toprule
+Run & $A$ (temp) & $B$ (pressure) & $C$ (dwell) & Seal Strength (N) \\
+\midrule
+1 & $-1$ & $-1$ & $-1$ & 28.4 \\
+2 & $+1$ & $-1$ & $-1$ & 39.1 \\
+3 & $-1$ & $+1$ & $-1$ & 31.6 \\
+4 & $+1$ & $+1$ & $-1$ & 46.5 \\
+5 & $-1$ & $-1$ & $+1$ & 29.8 \\
+6 & $+1$ & $-1$ & $+1$ & 40.7 \\
+7 & $-1$ & $+1$ & $+1$ & 33.0 \\
+8 & $+1$ & $+1$ & $+1$ & 48.3 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The grand mean is:
+\[
+\bar{y} = \frac{28.4 + 39.1 + 31.6 + 46.5 + 29.8 + 40.7 + 33.0 + 48.3}{8}
+= \frac{297.4}{8} = 37.175 \text{ N}
+\]
+
+\subsection{Main Effect of A (Seal Temperature)}
+
+Average at $A = +1$: $\bar{y}_{A+} = (39.1 + 46.5 + 40.7 + 48.3)/4 = 43.65$
+
+Average at $A = -1$: $\bar{y}_{A-} = (28.4 + 31.6 + 29.8 + 33.0)/4 = 30.70$
+
+\[
+\text{ME}_A = 43.65 - 30.70 = +12.95 \text{ N}
+\]
+
+Increasing temperature from 150\textdegree C to 190\textdegree C raises seal
+strength by an average of 12.95\,N.
+
+\subsection{Main Effect of B (Pressure)}
+
+Average at $B = +1$: $\bar{y}_{B+} = (31.6 + 46.5 + 33.0 + 48.3)/4 = 39.85$
+
+Average at $B = -1$: $\bar{y}_{B-} = (28.4 + 39.1 + 29.8 + 40.7)/4 = 34.50$
+
+\[
+\text{ME}_B = 39.85 - 34.50 = +5.35 \text{ N}
+\]
+
+\subsection{Main Effect of C (Dwell Time)}
+
+Average at $C = +1$: $\bar{y}_{C+} = (29.8 + 40.7 + 33.0 + 48.3)/4 = 37.95$
+
+Average at $C = -1$: $\bar{y}_{C-} = (28.4 + 39.1 + 31.6 + 46.5)/4 = 36.40$
+
+\[
+\text{ME}_C = 37.95 - 36.40 = +1.55 \text{ N}
+\]
+
+\subsection{The AB Interaction (Temperature $\times$ Pressure)}
+
+To calculate the $AB$ interaction, we compare runs where $A$ and $B$ have the
+same sign (concordant) against runs where they have opposite signs (discordant):
+
+Concordant ($AB = +1$): runs 1, 4, 5, 8 $\to$ $\bar{y} = (28.4 + 46.5 + 29.8 + 48.3)/4 = 38.25$
+
+Discordant ($AB = -1$): runs 2, 3, 6, 7 $\to$ $\bar{y} = (39.1 + 31.6 + 40.7 + 33.0)/4 = 36.10$
+
+\[
+\text{IE}_{AB} = 38.25 - 36.10 = +2.15 \text{ N}
+\]
+
+This positive interaction means that the combined effect of high temperature
+\emph{and} high pressure is greater than the sum of their individual effects.
+Temperature works even better at high pressure.
+
+\subsection{Summary of All Effects}
+
+\begin{center}
+\begin{tabular}{lrr}
+\toprule
+Effect & Magnitude (N) & Cumulative \% \\
+\midrule
+A (temperature) & 12.95 & 58.8\% \\
+B (pressure) & 5.35 & 83.1\% \\
+AB (temp $\times$ pressure) & 2.15 & 92.8\% \\
+C (dwell time) & 1.55 & 99.9\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Seal temperature has by far the largest effect ($+12.95$\,N). The $AB$
+interaction is moderate ($+2.15$\,N), meaning temperature works better at high
+pressure---the polymer chains flow more readily into good contact when both heat
+and pressure are elevated. Dwell time has a negligible effect ($+1.55$\,N) and
+can be set to the short value (0.5\,s) to minimize cycle time and maximize
+production throughput.
+
+\section{Adding Center Points}
+
+A $2^k$ full factorial tests only the corners of the factor space. If the true
+relationship between a factor and the response is curved (quadratic), the
+factorial design cannot detect it. \emph{Center points} address this limitation
+at minimal cost.
+
+\subsection{What Are Center Points?}
+
+Center points are experimental runs performed at the midpoint of every factor
+simultaneously. For the packaging example above, a center point would be:
+$\text{temp} = 170$\textdegree C, $\text{pressure} = 3.5$\,bar,
+$\text{dwell} = 1.0$\,s.
+
+Typically 3--5 center point replicates are added to the factorial design. These
+runs serve two purposes: they provide an independent estimate of pure error
+(since they are replicates at the same settings), and they allow a test for
+curvature.
+
+\subsection{Testing for Curvature}
+
+The curvature effect is defined as the difference between the average of the
+center points and the average of the factorial (corner) points:
+\[
+\text{Curvature} = \bar{y}_{\text{center}} - \bar{y}_{\text{factorial}}
+\]
+
+If this difference is close to zero, the response surface is approximately
+planar over the tested region, and the factorial model is adequate. If the
+difference is large and statistically significant, curvature exists---the
+optimum is not at a corner of the design space but somewhere in the interior.
+
+To test significance, compute:
+\[
+t = \frac{\bar{y}_{\text{center}} - \bar{y}_{\text{factorial}}}
+{s_p \sqrt{\dfrac{1}{n_c} + \dfrac{1}{n_f}}}
+\]
+where $n_c$ is the number of center points, $n_f$ is the number of factorial
+points, and $s_p$ is the pooled standard deviation estimated from the center
+point replicates.
+
+\subsection{When Curvature Is Detected}
+
+If the curvature test is significant, the $2^k$ factorial model is not adequate
+to describe the response surface. The next step is to augment the design into a
+response surface design:
+
+\begin{itemize}[nosep]
+\item Add axial (star) points to create a \textbf{Central Composite Design}
+      (CCD). The existing factorial points and center points are reused; only the
+      $2k$ star points need to be run.
+\item Alternatively, run a \textbf{Box--Behnken} design from scratch if the
+      axial points fall outside feasible operating conditions.
+\end{itemize}
+
+This sequential approach is efficient: you invest the minimum runs (factorial +
+center points) first, and only escalate to a full response surface design when
+the data demand it.
+
 % ───────────────────────────────────────────
 \chapter{Fractional Factorial Designs}
 % ───────────────────────────────────────────
@@ -936,6 +1146,186 @@ Any two columns whose product appears in the defining relation are aliased
 \end{enumerate}
 
 
+\section{Worked Example: A $2^{4-1}$ Half Fraction}
+
+Suppose we want to study 4 factors in only 8 runs instead of the 16 required by
+a full $2^4$ factorial. We construct a $2^{4-1}$ design by starting with a full
+$2^3$ factorial in factors $A$, $B$, and $C$ (the base design), then defining
+the fourth factor as:
+\[
+D = ABC
+\]
+
+This is the \emph{generator} of the design. It means that in each run, the
+level of $D$ is set equal to the product of the levels of $A$, $B$, and $C$.
+The defining relation is $I = ABCD$, which tells us that the column of all
+$+1$s (the identity $I$) is identical to the element-wise product $ABCD$.
+
+The complete design matrix is:
+
+\begin{center}
+\begin{tabular}{ccccc}
+\toprule
+Run & $A$ & $B$ & $C$ & $D = ABC$ \\
+\midrule
+1 & $-$ & $-$ & $-$ & $-$ \\
+2 & $+$ & $-$ & $-$ & $+$ \\
+3 & $-$ & $+$ & $-$ & $+$ \\
+4 & $+$ & $+$ & $-$ & $-$ \\
+5 & $-$ & $-$ & $+$ & $+$ \\
+6 & $+$ & $-$ & $+$ & $-$ \\
+7 & $-$ & $+$ & $+$ & $-$ \\
+8 & $+$ & $+$ & $+$ & $+$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{The Alias Structure}
+
+From the defining relation $I = ABCD$, we can find every alias pair by
+multiplying each effect by $ABCD$:
+
+\begin{center}
+\begin{tabular}{lcl}
+\toprule
+Effect & is aliased with & Alias \\
+\midrule
+$A$ & $\leftrightarrow$ & $BCD$ \\
+$B$ & $\leftrightarrow$ & $ACD$ \\
+$C$ & $\leftrightarrow$ & $ABD$ \\
+$D$ & $\leftrightarrow$ & $ABC$ \\
+$AB$ & $\leftrightarrow$ & $CD$ \\
+$AC$ & $\leftrightarrow$ & $BD$ \\
+$BC$ & $\leftrightarrow$ & $AD$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+This is a \textbf{Resolution~IV} design. Main effects ($A$, $B$, $C$, $D$) are
+aliased with three-factor interactions ($BCD$, $ACD$, $ABD$, $ABC$). By the
+effect sparsity principle, three-factor interactions are almost always
+negligible, so the main effect estimates are trustworthy. However, two-factor
+interactions are aliased with other two-factor interactions ($AB = CD$,
+$AC = BD$, $BC = AD$), so if we observe a large ``$AB$'' effect, we cannot tell
+whether it is due to the $AB$ interaction, the $CD$ interaction, or some
+combination of both.
+
+\subsection{Response Data and Main Effects}
+
+Suppose the four factors are settings of a web application:
+\begin{itemize}[nosep]
+\item $A$: Database connection pool size (10 vs.\ 50)
+\item $B$: API timeout (1\,s vs.\ 5\,s)
+\item $C$: Cache enabled (no vs.\ yes)
+\item $D$: Compression enabled (no vs.\ yes)
+\end{itemize}
+
+\noindent Running the 8 experiments yields the following response times (ms):
+
+\begin{center}
+\begin{tabular}{ccccccr}
+\toprule
+Run & $A$ & $B$ & $C$ & $D$ & & Response (ms) \\
+\midrule
+1 & $-$ & $-$ & $-$ & $-$ & & 245 \\
+2 & $+$ & $-$ & $-$ & $+$ & & 198 \\
+3 & $-$ & $+$ & $-$ & $+$ & & 231 \\
+4 & $+$ & $+$ & $-$ & $-$ & & 187 \\
+5 & $-$ & $-$ & $+$ & $+$ & & 178 \\
+6 & $+$ & $-$ & $+$ & $-$ & & 142 \\
+7 & $-$ & $+$ & $+$ & $-$ & & 165 \\
+8 & $+$ & $+$ & $+$ & $+$ & & 121 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Computing main effects:
+\begin{align*}
+\text{ME}_A &= \frac{198+187+142+121}{4} - \frac{245+231+178+165}{4}
+= 162.0 - 204.75 = -42.75 \text{ ms} \\
+\text{ME}_B &= \frac{231+187+165+121}{4} - \frac{245+198+178+142}{4}
+= 176.0 - 190.75 = -14.75 \text{ ms} \\
+\text{ME}_C &= \frac{178+142+165+121}{4} - \frac{245+198+231+187}{4}
+= 151.5 - 215.25 = -63.75 \text{ ms} \\
+\text{ME}_D &= \frac{198+231+178+121}{4} - \frac{245+187+142+165}{4}
+= 182.0 - 184.75 = -2.75 \text{ ms}
+\end{align*}
+
+Cache ($C$) has the largest effect: enabling it reduces response time by
+63.75\,ms on average. Connection pool size ($A$) is the second most important
+factor at $-42.75$\,ms. We can trust these main effect estimates because their
+aliases---the three-factor interactions $ABD$ and $BCD$---are almost certainly
+negligible. Compression ($D$) has essentially no effect ($-2.75$\,ms) and can
+be set to whichever value minimizes CPU usage.
+
+\section{Foldover: Recovering Lost Information}
+
+Sometimes a Resolution~III design is the only option within the run budget.
+In such a design, main effects are aliased with two-factor interactions
+(e.g., $A = BC$), which is uncomfortable because two-factor interactions are
+often \emph{not} negligible.
+
+The \emph{foldover} technique offers a sequential escape. After running the
+original fraction, you run its \textbf{mirror image}---a second fraction in
+which the sign of every factor in every run is reversed (every $+$ becomes $-$
+and vice versa).
+
+\subsection{How Foldover Works}
+
+Consider a $2^{3-1}_{III}$ design with generator $C = AB$:
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+Run & $A$ & $B$ & $C = AB$ \\
+\midrule
+1 & $-$ & $-$ & $+$ \\
+2 & $+$ & $-$ & $-$ \\
+3 & $-$ & $+$ & $-$ \\
+4 & $+$ & $+$ & $+$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The alias structure is $A = BC$, $B = AC$, $C = AB$. Every main effect is
+confounded with a two-factor interaction.
+
+The foldover reverses all signs:
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+Run & $A$ & $B$ & $C$ \\
+\midrule
+5 & $+$ & $+$ & $-$ \\
+6 & $-$ & $+$ & $+$ \\
+7 & $+$ & $-$ & $+$ \\
+8 & $-$ & $-$ & $-$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Combining the original 4 runs and the foldover 4 runs produces the complete
+$2^3$ full factorial---all 8 runs. The combined design is Resolution~IV (in
+fact, it is the full factorial with no aliasing at all in this case). Main
+effects are now completely separated from two-factor interactions.
+
+\subsection{The Sequential Strategy}
+
+Foldover is a powerful sequential strategy:
+
+\begin{enumerate}[nosep]
+\item Run the initial fraction. Analyze the results.
+\item If the results are clear---a few factors dominate with large effects and
+      the aliased two-factor interactions are likely small---stop and proceed to
+      a factorial on the important factors.
+\item If the results are ambiguous---you suspect that aliased interactions are
+      inflating or deflating main effect estimates---run the foldover. The
+      combined data separates the main effects from the two-factor interactions.
+\end{enumerate}
+
+This ``try the cheap design first, escalate if needed'' approach is the essence
+of sequential experimentation. You never run more experiments than necessary,
+but you always have a recovery path if the initial design is insufficient.
+
 % ───────────────────────────────────────────
 \chapter{Screening Designs}
 % ───────────────────────────────────────────
@@ -985,6 +1375,196 @@ PB designs are almost always the first step in a sequential strategy:
 \item \textbf{Optimize} with a response surface design (CCD or Box--Behnken).
 \end{enumerate}
 
+
+\subsection{How Plackett--Burman Works}
+
+A Plackett--Burman design for $N$ runs is constructed from a single generating
+row of $N-1$ entries (each $+$ or $-$). The remaining rows are created by
+cyclically shifting this row one position to the right, and a final row of all
+minus signs is appended. The result is an $N \times (N-1)$ matrix with
+remarkable balance properties.
+
+For the PB(8) design---8 runs screening up to 7 factors---the generating row is:
+\[
++\;+\;+\;-\;+\;-\;-
+\]
+
+Applying cyclic shifts and appending the all-minus row produces the following
+design matrix:
+
+\begin{center}
+\begin{tabular}{cccccccc}
+\toprule
+Run & $A$ & $B$ & $C$ & $D$ & $E$ & $F$ & $G$ \\
+\midrule
+1 & $+$ & $+$ & $+$ & $-$ & $+$ & $-$ & $-$ \\
+2 & $-$ & $+$ & $+$ & $+$ & $-$ & $+$ & $-$ \\
+3 & $-$ & $-$ & $+$ & $+$ & $+$ & $-$ & $+$ \\
+4 & $+$ & $-$ & $-$ & $+$ & $+$ & $+$ & $-$ \\
+5 & $-$ & $+$ & $-$ & $-$ & $+$ & $+$ & $+$ \\
+6 & $+$ & $-$ & $+$ & $-$ & $-$ & $+$ & $+$ \\
+7 & $+$ & $+$ & $-$ & $+$ & $-$ & $-$ & $+$ \\
+8 & $-$ & $-$ & $-$ & $-$ & $-$ & $-$ & $-$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+To read this matrix: in run~1, factors $A$, $B$, $C$, and $E$ are at their high
+level ($+$) while $D$, $F$, and $G$ are at their low level ($-$). In run~8,
+every factor is at its low level. Each column contains exactly four plus signs
+and four minus signs, so every main effect is estimated from four observations
+at each level.
+
+\subsubsection{Complex Aliasing}
+
+In a regular fractional factorial, the aliasing structure is clean: each main
+effect is confounded with one specific higher-order interaction (e.g., $A = BCD$
+in a $2^{4-1}$ design). In a Plackett--Burman design, the aliasing is
+\emph{complex}---each main effect is partially confounded with \emph{every}
+two-factor interaction. No single two-factor interaction is completely
+confounded with a main effect, but each main effect estimate carries a small
+bias from each of the $\binom{k}{2}$ two-factor interactions. This means:
+
+\begin{itemize}[nosep]
+\item If all two-factor interactions are small, the main effect estimates are
+      reliable.
+\item If one or more two-factor interactions are large, the main effect estimates
+      can be noticeably biased, and you cannot determine which interaction is
+      responsible without follow-up experiments.
+\end{itemize}
+
+This is the fundamental trade-off of Plackett--Burman designs: maximum
+efficiency for screening at the cost of any ability to interpret interactions.
+
+\subsection{Worked Example: Server Configuration Screening}
+
+A systems engineer wants to identify which of seven server configuration
+parameters most affect throughput (requests per second). The factors and their
+levels are:
+
+\begin{center}
+\begin{tabular}{llcc}
+\toprule
+Factor & Name & Low ($-$) & High ($+$) \\
+\midrule
+$A$ & \texttt{buffer\_size} & 4\,KB & 64\,KB \\
+$B$ & \texttt{threads} & 4 & 64 \\
+$C$ & \texttt{cache\_ttl} & 10\,s & 300\,s \\
+$D$ & \texttt{compression} & off & on \\
+$E$ & \texttt{keepalive} & off & on \\
+$F$ & \texttt{log\_level} & debug & error \\
+$G$ & \texttt{max\_connections} & 100 & 1000 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Using the PB(8) matrix above, the engineer runs 8 experiments with
+the following actual settings and observed throughput:
+
+\begin{center}
+\begin{tabular}{cccccccccr}
+\toprule
+Run & $A$ & $B$ & $C$ & $D$ & $E$ & $F$ & $G$ & & Throughput \\
+    & (buf) & (thr) & (ttl) & (comp) & (ka) & (log) & (conn) & & (req/s) \\
+\midrule
+1 & 64K & 64 & 300s & off & on & debug & 100  & & 2840 \\
+2 & 4K  & 64 & 300s & on  & off & error & 100 & & 1920 \\
+3 & 4K  & 4  & 300s & on  & on  & debug & 1000 & & 980 \\
+4 & 64K & 4  & 10s  & on  & on  & error & 100  & & 1350 \\
+5 & 4K  & 64 & 10s  & off & on  & error & 1000 & & 2410 \\
+6 & 64K & 4  & 300s & off & off & error & 1000 & & 1180 \\
+7 & 64K & 64 & 10s  & on  & off & debug & 1000 & & 2260 \\
+8 & 4K  & 4  & 10s  & off & off & debug & 100  & & 890 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsubsection{Calculating Main Effects}
+
+The main effect of factor $A$ (\texttt{buffer\_size}) is:
+\begin{align*}
+\bar{y}_{A+} &= \frac{2840 + 1350 + 1180 + 2260}{4} = \frac{7630}{4} = 1907.5 \\
+\bar{y}_{A-} &= \frac{1920 + 980 + 2410 + 890}{4} = \frac{6200}{4} = 1550.0 \\
+\text{ME}_A &= 1907.5 - 1550.0 = +357.5 \text{ req/s}
+\end{align*}
+
+The main effect of factor $B$ (\texttt{threads}) is:
+\begin{align*}
+\bar{y}_{B+} &= \frac{2840 + 1920 + 2410 + 2260}{4} = \frac{9430}{4} = 2357.5 \\
+\bar{y}_{B-} &= \frac{980 + 1350 + 1180 + 890}{4} = \frac{4400}{4} = 1100.0 \\
+\text{ME}_B &= 2357.5 - 1100.0 = +1257.5 \text{ req/s}
+\end{align*}
+
+By the same procedure for all remaining factors:
+\begin{align*}
+\text{ME}_C &= -42.5 \text{ req/s} \\
+\text{ME}_D &= -137.5 \text{ req/s} \\
+\text{ME}_E &= +182.5 \text{ req/s} \\
+\text{ME}_F &= -262.5 \text{ req/s} \\
+\text{ME}_G &= +72.5 \text{ req/s}
+\end{align*}
+
+\subsubsection{Pareto Ranking}
+
+Ranking the factors by absolute effect magnitude:
+
+\begin{center}
+\begin{tabular}{llrr}
+\toprule
+Rank & Factor & $|\text{ME}|$ (req/s) & Cumulative \% \\
+\midrule
+1 & $B$ (\texttt{threads}) & 1257.5 & 54.5\% \\
+2 & $A$ (\texttt{buffer\_size}) & 357.5 & 70.0\% \\
+3 & $F$ (\texttt{log\_level}) & 262.5 & 81.4\% \\
+4 & $E$ (\texttt{keepalive}) & 182.5 & 89.3\% \\
+5 & $D$ (\texttt{compression}) & 137.5 & 95.2\% \\
+6 & $G$ (\texttt{max\_connections}) & 72.5 & 98.4\% \\
+7 & $C$ (\texttt{cache\_ttl}) & 42.5 & 100.0\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\texttt{threads} and \texttt{buffer\_size} account for 70\% of the total
+variation in throughput. Adding \texttt{log\_level} brings the total to 81\%.
+The remaining four factors---\texttt{keepalive}, \texttt{compression},
+\texttt{max\_connections}, and \texttt{cache\_ttl}---contribute little and can
+be fixed at convenient values. The engineer should now run a full factorial on
+\texttt{threads}, \texttt{buffer\_size}, and \texttt{log\_level} to
+characterize their interactions before final optimization.
+
+\subsection{Limitations and When NOT to Use Plackett--Burman}
+
+\begin{enumerate}
+\item \textbf{Cannot estimate any interactions.} PB designs are saturated or
+      near-saturated for main effects. There are no degrees of freedom left to
+      estimate two-factor interactions, let alone higher-order ones. If you need
+      interaction information, use a fractional factorial of at least Resolution~IV.
+
+\item \textbf{Biased estimates when interactions are large.} Because of the
+      complex aliasing structure, every main effect estimate is contaminated by a
+      linear combination of all two-factor interactions. If the true system has
+      one or more large interactions, the main effect estimates will be biased,
+      and you may incorrectly rank factor importance. There is no way to diagnose
+      this from PB data alone.
+
+\item \textbf{Not suitable when you already know which factors matter.} If
+      prior knowledge or a previous screening experiment has already narrowed the
+      field to 3--5 important factors, skip PB and go directly to a full or
+      fractional factorial. PB's efficiency advantage only manifests when $k$ is
+      large relative to the run budget.
+
+\item \textbf{Should always be followed by a deeper design.} A PB screen is
+      never the final word. It identifies candidates for importance, but the
+      estimates are rough and interaction-blind. Always follow a PB screen with a
+      factorial or response surface design on the factors identified as important.
+\end{enumerate}
+
+\begin{warning}[The PB Trap]
+A common mistake is to take the PB results at face value and set all factors to
+their ``best'' levels. Because PB cannot detect interactions, the predicted
+optimum based on main effects alone can be far from the true optimum. Use PB
+only for ranking and selection, not for final optimization.
+\end{warning}
 
 % ───────────────────────────────────────────
 \chapter{Response Surface Designs}
@@ -1079,6 +1659,40 @@ Factors & Factorial & Star & Center & Total \\
 \end{tabular}
 \end{center}
 
+\subsection{Understanding Alpha}
+
+The parameter $\alpha$ controls how far the star (axial) points extend beyond
+the factorial cube. In plain language, it determines how ``extreme'' your
+additional test conditions will be.
+
+When $\alpha = 1$, the star points land exactly on the face of the cube. This
+is called a \emph{face-centered} CCD. The star points test at the same extreme
+values as the factorial points, just along one axis at a time. No run goes
+beyond the original factor range, which is convenient when equipment or safety
+limits constrain your experiments.
+
+When $\alpha > 1$, the star points push beyond the cube into more extreme
+territory. The rotatable value $\alpha = (2^k)^{1/4}$ (e.g., $\alpha = 1.41$
+for $k = 2$ factors, $\alpha = 1.68$ for $k = 3$) ensures that the prediction
+variance is the same at all points equidistant from the center. This improves
+the quality of the quadratic fit but requires running experiments at conditions
+outside the original factor range.
+
+\medskip
+\noindent\textbf{Practical example.}
+Suppose temperature ranges from 150--200\textdegree C (center = 175\textdegree C,
+half-range = 25\textdegree C). For a 2-factor CCD with $\alpha = 1.41$, the
+star points along the temperature axis are at:
+\[
+175 \pm 1.41 \times 25 = 175 \pm 35.25
+\]
+This means testing at 139.75\textdegree C and 210.25\textdegree C. If your
+equipment cannot reach these temperatures safely, use a face-centered design
+($\alpha = 1$) instead, which keeps the star points at 150\textdegree C and
+200\textdegree C. The face-centered design sacrifices some statistical
+optimality (the quadratic terms are estimated less precisely), but it stays
+within practical operating limits.
+
 \section{Box--Behnken Design}
 
 \begin{keypoint}[Box--Behnken Advantage]
@@ -1135,6 +1749,49 @@ Fewer runs (3--4 factors) & Depends & Often \\
 \bottomrule
 \end{tabular}
 \end{center}
+
+\subsection{Box--Behnken Worked Example}
+
+Consider an experiment with 3 factors: temperature (150--200\textdegree C),
+pressure (2--6 bar), and catalyst concentration (0.5--2.0 g/L). The coded
+center values are 175\textdegree C, 4 bar, and 1.25 g/L respectively. The
+complete 15-run Box--Behnken design matrix in actual (uncoded) values is:
+
+\begin{center}
+\begin{tabular}{cccc}
+\toprule
+Run & Temperature (\textdegree C) & Pressure (bar) & Catalyst (g/L) \\
+\midrule
+ 1 & 150 & 2 & 1.25 \\
+ 2 & 200 & 2 & 1.25 \\
+ 3 & 150 & 6 & 1.25 \\
+ 4 & 200 & 6 & 1.25 \\
+ 5 & 150 & 4 & 0.5 \\
+ 6 & 200 & 4 & 0.5 \\
+ 7 & 150 & 4 & 2.0 \\
+ 8 & 200 & 4 & 2.0 \\
+ 9 & 175 & 2 & 0.5 \\
+10 & 175 & 6 & 0.5 \\
+11 & 175 & 2 & 2.0 \\
+12 & 175 & 6 & 2.0 \\
+13 & 175 & 4 & 1.25 \\
+14 & 175 & 4 & 1.25 \\
+15 & 175 & 4 & 1.25 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Notice the structure: in runs 1--4, catalyst (factor C) is held at its center
+value (1.25 g/L) while temperature and pressure vary at their extremes. In
+runs 5--8, pressure (factor B) is at its center (4 bar) while temperature and
+catalyst vary. In runs 9--12, temperature (factor A) is at its center
+(175\textdegree C) while pressure and catalyst vary. Runs 13--15 are center
+points where all three factors are at their midpoints.
+
+Critically, no run has all three factors at their extreme levels
+simultaneously. The corner point (200\textdegree C, 6 bar, 2.0 g/L) is never
+tested---precisely the condition that might cause a dangerous runaway reaction.
+This is the defining safety advantage of the Box--Behnken design.
 
 \section{Latin Hypercube Sampling}
 
@@ -1502,6 +2159,46 @@ For a linear model with $k$ factors, $\mathbf{X}$ is an $n \times (k+1)$ matrix
 $1 + 2k + \binom{k}{2}$ columns (intercept + linear + squared + interaction
 terms).
 
+\subsection{A Concrete Fitting Example}
+
+To see how the matrix equation works in practice, consider 5 data points from a
+2-factor CCD (4 factorial corners plus 1 center point). We will fit a linear
+model $Y = b_0 + b_1 x_1 + b_2 x_2$. The design matrix $\mathbf{X}$ (with
+intercept column) and response vector $\mathbf{y}$ are:
+
+\[
+\mathbf{X} = \begin{pmatrix}
+1 & -1 & -1 \\
+1 & +1 & -1 \\
+1 & -1 & +1 \\
+1 & +1 & +1 \\
+1 &  0 &  0
+\end{pmatrix},
+\qquad
+\mathbf{y} = \begin{pmatrix}
+61.1 \\ 77.7 \\ 66.9 \\ 84.3 \\ 72.5
+\end{pmatrix}
+\]
+
+The least-squares solution minimizes the sum of squared residuals. In practice,
+you do not compute this by hand---the tool does it automatically. But
+understanding the structure helps you interpret the coefficients.
+
+Applying $\hat{\boldsymbol{\beta}} = (\mathbf{X}^T\mathbf{X})^{-1}
+\mathbf{X}^T\mathbf{y}$ yields:
+\[
+\hat{b}_0 = 72.5, \qquad \hat{b}_1 = +8.3, \qquad \hat{b}_2 = -3.1
+\]
+
+Interpreting each coefficient:
+\begin{itemize}[nosep]
+\item $b_0 = 72.5$ is the predicted response at the center of the design space.
+\item $b_1 = +8.3$ means increasing factor $A$ by one coded unit increases the
+      response by 8.3.
+\item $b_2 = -3.1$ means increasing factor $B$ by one coded unit decreases the
+      response by 3.1.
+\end{itemize}
+
 \section{Model Adequacy}
 
 \subsection{$R^2$ and Adjusted $R^2$}
@@ -1525,6 +2222,24 @@ Always check the residuals $e_i = y_i - \hat{y}_i$:
 \item Plot residuals vs.\ run order: should show no trend (drift)
 \item Normal probability plot of residuals: should be approximately linear
 \end{itemize}
+
+\subsection{Interpreting Residual Plots}
+
+Good residuals look like random scatter---no patterns, no trends, no funnels.
+Here is what to look for and what each pattern means:
+
+\begin{itemize}[nosep]
+\item If residuals fan out (larger spread at higher fitted values), try a log
+      transformation of the response.
+\item If residuals show a curved pattern, add squared terms to the model.
+\item If residuals trend with run order, there is drift in your experiment---blocking
+      should have been used.
+\end{itemize}
+
+\begin{keypoint}[Residual Health Check]
+Residual plots are your model's health check. Always look at them before
+trusting any predictions.
+\end{keypoint}
 
 \section{Finding the Optimum}
 
@@ -1598,6 +2313,35 @@ while minimizing cost), the \emph{desirability function} approach is standard:
       $D = (d_1 \cdot d_2 \cdot \ldots \cdot d_m)^{1/m}$
 \item Find the factor settings that maximize $D$.
 \end{enumerate}
+
+\subsection{Worked Example: Desirability Calculation}
+
+Suppose yield has a desirability of $0.9$ at a candidate point and cost has a
+desirability of $0.7$. The overall desirability is:
+\[
+D = (0.9 \times 0.7)^{1/2} = (0.63)^{1/2} = 0.79
+\]
+
+\subsection{Constructing Individual Desirability Functions}
+
+For a response you want to \textbf{maximize}:
+\begin{itemize}[nosep]
+\item $d = 0$ below the minimum acceptable value.
+\item $d = 1$ at or above the target value.
+\item $d$ increases linearly between the minimum and the target.
+\end{itemize}
+
+For a response you want to \textbf{minimize}:
+\begin{itemize}[nosep]
+\item $d = 1$ at or below the target value.
+\item $d = 0$ above the maximum acceptable value.
+\item $d$ decreases linearly between the target and the maximum.
+\end{itemize}
+
+The geometric mean ensures that if ANY response is unacceptable ($d_i = 0$),
+the overall desirability is zero, regardless of how good the other responses
+are. This is a strict veto property: a single failing response kills the
+candidate point.
 
 
 % ═══════════════════════════════════════════
@@ -1820,6 +2564,27 @@ are confounded). Rank factors by absolute effect magnitude.
 \textbf{Decision:} Select the top 3--5 factors for further study. Fix the rest
 at their cheapest, easiest, or most robust level.
 
+\medskip
+\noindent\textbf{Worked Example.}
+A chemical company suspects 15 process parameters affect product quality.
+They run a Plackett--Burman design with 20 runs (PB(20)), which can test up
+to 19 factors in a single experiment. The Pareto chart of absolute effects
+reveals that temperature, catalyst\_concentration, and mixing\_speed account
+for 83\% of the observed variation. The remaining 12 parameters contribute
+only noise-level effects and are fixed at their current operating values for
+all subsequent experiments.
+
+\medskip
+\noindent\textbf{Tips for fixing unimportant factors.}
+Set unimportant factors at the level that is cheapest, most convenient, or
+most robust. If a factor has a small positive effect (beneficial but not
+statistically significant), set it to its high level---it helps a little and
+costs nothing extra in experimentation. If a factor has zero effect, set it
+to whatever minimizes cost or operational complexity. The key insight is that
+``not statistically significant'' does not mean ``has no effect at all;''
+it means the effect is too small to matter relative to the noise. Use this to
+your advantage by choosing levels that are operationally favorable.
+
 \section{Phase 2: Characterization}
 
 \textbf{Goal:} Understand main effects \emph{and} interactions among the important
@@ -1837,6 +2602,39 @@ significantly from the average of the corner points, curvature exists.
 \textbf{Decision:} If no curvature, the optimal settings are at the best corner.
 If curvature exists, proceed to Phase 3.
 
+\medskip
+\noindent\textbf{Understanding center points.}
+Add 3--5 center points to your factorial design. Center points are runs where
+every factor is set to the midpoint of its range. Because a purely linear model
+predicts that the center-point response equals the average of all corner-point
+responses, any significant difference between the center-point mean and the
+corner-point mean is direct evidence of curvature. If their average differs
+significantly from the average of the corners, you have curvature and need
+Phase~3. A simple $t$-test comparing the two averages is sufficient; many DOE
+software packages report this automatically.
+
+\medskip
+\noindent\textbf{Worked Example (continued).}
+Continuing the chemical company example, a $2^3$ full factorial on
+temperature, catalyst\_concentration, and mixing\_speed is run with 8 corner
+runs plus 4 center-point replicates, for a total of 12 runs. The ANOVA
+reveals a strong temperature $\times$ catalyst interaction: high catalyst
+concentration amplifies the effect of temperature on product quality. The
+4 center points have an average response of 82.3, while the average of the
+8 corner points is 76.1. This statistically significant difference
+($p = 0.003$) confirms curvature in the temperature direction, so the
+optimum lies somewhere inside the design space, not at a corner. Phase~3 is
+needed.
+
+\medskip
+\noindent\textbf{What if there is no curvature?}
+If center points match the corner average (i.e., the curvature test yields
+$p > 0.05$), the system is well described by a linear-plus-interactions model.
+The optimal settings are at the best corner combination identified by the
+factorial analysis. You may skip Phase~3 entirely and proceed directly to
+confirmation runs (Phase~4). This saves 15--50 runs and is a perfectly valid
+outcome---not every system has curvature.
+
 \section{Phase 3: Optimization}
 
 \textbf{Goal:} Find the optimal factor settings within the design space.
@@ -1852,6 +2650,40 @@ location of the stationary point.
 space, proceed to confirmation. If it is on the boundary, consider shifting the
 design space and running a new experiment.
 
+\medskip
+\noindent\textbf{Model fitting.}
+A quadratic RSM model with $k$ factors has $1 + 2k + \binom{k}{2}$ parameters:
+one intercept, $k$ linear terms, $k$ squared terms, and $\binom{k}{2}$
+interaction terms. For 3 factors this is 10 parameters (1 intercept, 3 linear,
+3 squared, 3 interaction). A Box--Behnken design with 15 runs provides enough
+data to estimate all 10 parameters with 5 degrees of freedom left for error
+estimation. A CCD with 20 runs for 3 factors provides even more error degrees
+of freedom.
+
+\medskip
+\noindent\textbf{Worked Example (continued).}
+The Box--Behnken design on temperature, catalyst\_concentration, and
+mixing\_speed (15 runs) reveals that temperature has a strong quadratic effect
+with an optimum near 185\textdegree C---not at either extreme of the
+150--200\textdegree C range. Catalyst concentration shows a linear increasing
+trend: higher is better, at least within the tested range. The temperature
+$\times$ catalyst interaction is significant, meaning that higher catalyst
+concentration shifts the optimal temperature upward (from about 180\textdegree C
+at low catalyst to 190\textdegree C at high catalyst). Mixing speed has a
+moderate linear effect but no significant curvature or interactions.
+
+\medskip
+\noindent\textbf{Interpreting $R^2$.}
+The coefficient of determination $R^2$ measures how much of the response
+variation the model explains. If $R^2 > 0.85$, the model is adequate for
+optimization---it captures the main trends and the predicted optimum is
+likely reliable. If $R^2 < 0.7$, the model may be missing important terms or
+there may be outliers distorting the fit. In this case, check the residual
+plots for patterns, consider adding higher-order terms or transforming the
+response, and inspect individual runs for measurement errors. Also check
+$R^2_{\text{adj}}$, which penalizes for unnecessary terms: a large gap between
+$R^2$ and $R^2_{\text{adj}}$ suggests overfitting.
+
 \section{Phase 4: Confirmation}
 
 \textbf{Goal:} Validate the predicted optimum.
@@ -1860,6 +2692,73 @@ design space and running a new experiment.
 
 \textbf{Analysis:} Compare the observed mean to the predicted value. If the
 observed value falls within the prediction interval, the model is confirmed.
+
+\medskip
+\noindent\textbf{How many confirmation runs?}
+Run at least 3 independent replicates at the predicted optimum. Five replicates
+are better if the measurement has high variability. Each replicate must be a
+fully independent run---reset the equipment, prepare fresh materials, and
+re-measure from scratch. Do not simply repeat the measurement on the same
+batch, as that only estimates measurement error, not process variability.
+
+\medskip
+\noindent\textbf{What to compare.}
+Compute the mean and confidence interval of the confirmation runs. If the
+predicted value from the RSM model falls within this confidence interval, the
+model is validated. Alternatively, compute a prediction interval from the model
+(which accounts for both model uncertainty and noise) and check whether the
+confirmation mean falls within it. Either approach works; the key is that the
+predicted and observed values agree within statistical uncertainty.
+
+\medskip
+\noindent\textbf{What if it does not match?}
+If the confirmation results are significantly different from the prediction,
+the model may be over-fitted, the process may have drifted between the
+optimization experiment and the confirmation runs, or the design space may
+have shifted due to an uncontrolled variable (e.g., a new batch of raw
+material). In this case, consider re-running Phase~3 with the design centered
+on the confirmation results rather than the original center. This ``move and
+re-fit'' strategy often converges in one additional round.
+
+\section{Cost--Benefit Analysis of the Sequential Strategy}
+
+The sequential approach is dramatically more efficient than brute-force
+alternatives. Consider the chemical company example:
+
+\begin{center}
+\begin{tabular}{llr}
+\toprule
+Phase & Purpose & Runs \\
+\midrule
+Phase 1: Screening & PB(20) to screen 15 factors & 20 \\
+Phase 2: Characterization & $2^3$ + 4 center points on 3 factors & 12 \\
+Phase 3: Optimization & Box--Behnken on 3 factors & 15 \\
+Phase 4: Confirmation & Replicates at the predicted optimum & 5 \\
+\midrule
+\textbf{Total} & \textbf{From 15 unknowns to validated optimum} & \textbf{52} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\noindent Compare this to the alternatives:
+
+\begin{itemize}[nosep]
+\item \textbf{Brute-force grid search} at 3 levels per factor:
+      $3^{15} = 14{,}348{,}907$ runs. Even testing one combination per second
+      would take over 166 days of continuous operation.
+\item \textbf{Random search} would need hundreds of runs with no guarantee of
+      finding the optimum. With 15 factors, even 500 random runs cover a
+      vanishingly small fraction of the design space, and the results provide
+      no structured information about interactions or curvature.
+\item \textbf{One-variable-at-a-time (OVAT)} would require roughly
+      $15 \times 3 = 45$ runs for initial screening, then more for each
+      subsequent factor---but would miss all interactions and likely converge
+      to a suboptimal solution.
+\end{itemize}
+
+\noindent The sequential DOE strategy achieves in 52 runs what grid search
+attempts in 14 million: a validated, interaction-aware optimum with
+quantified uncertainty.
 
 
 % ───────────────────────────────────────────
@@ -1944,6 +2843,22 @@ that:
 
 The desirability function approach finds the compromise: 185\textdegree C,
 3.5 bar, 1.8 g/L, yielding 78\% yield, 95\% purity, at \$55/batch.
+
+\subsection{Lessons from the Reactor Example}
+
+This example illustrates the central trade-off in multi-response optimization.
+No single set of factor settings simultaneously maximizes yield, maximizes
+purity, AND minimizes cost. The engineer must decide which response matters
+most---or find a compromise using desirability functions.
+
+The sequential strategy was crucial here: screening with Plackett--Burman would
+have been wasted because there were only 3 factors. Starting directly with
+Box--Behnken was the right call.
+
+The quadratic effects (especially temperature's optimum at 185\textdegree C,
+not at either extreme) could never have been detected by a 2-level factorial.
+Response surface designs earn their keep precisely in these situations---when
+the optimal setting lies between the extremes, not at them.
 
 \subsection{Example: Materials Science}
 
