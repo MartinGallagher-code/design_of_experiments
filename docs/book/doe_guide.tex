@@ -286,6 +286,15 @@ poorly planned experiment wastes these resources and may lead to wrong
 conclusions. A well-designed experiment extracts the maximum learning from each
 run.
 
+\begin{example}[The Cake Analogy]
+Imagine you are baking a cake and want to make it taste better. You could try
+changing the sugar amount, then the oven temperature, then the baking time---one
+thing at a time. After dozens of attempts, you might find a decent recipe. But
+you would never discover that a \emph{specific combination} of less sugar
+\emph{with} higher temperature produces the best result, because you never tested
+them together. DOE solves exactly this problem.
+\end{example}
+
 Consider a team tuning a database. They have five configuration knobs they
 suspect affect performance: buffer pool size, I/O capacity, connection limit,
 query cache, and thread pool size. The one-variable-at-a-time (OVAT) approach
@@ -450,6 +459,62 @@ In a $2^k$ factorial, every effect estimate uses \emph{all} $2^k$ observations.
 Each observation plays a role in estimating every effect. This is why factorials
 are so efficient---there is no wasted data.
 \end{keypoint}
+
+\section{A Concrete Example: Web Server Tuning}
+
+This example makes the OVAT trap viscerally clear. Suppose you are optimizing
+a web server and suspect two things matter: \textbf{thread count} (10 or 100)
+and \textbf{cache size} (64\,MB or 512\,MB). The true relationship (which you
+do not know yet) is:
+
+\begin{center}
+\begin{tabular}{ccr}
+\toprule
+Thread Count & Cache Size & Throughput (req/sec) \\
+\midrule
+10 & 64\,MB & 500 \\
+100 & 64\,MB & 600 \\
+10 & 512\,MB & 700 \\
+100 & 512\,MB & 1400 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{OVAT Gets the Wrong Answer}
+
+Starting at (10 threads, 64\,MB cache):
+\begin{enumerate}[nosep]
+\item Change threads to 100, keep cache at 64\,MB $\to$ throughput goes from
+      500 to 600. \emph{Conclusion: threads help a little (+100).}
+\item Reset threads to 10. Change cache to 512\,MB $\to$ throughput goes from
+      500 to 700. \emph{Conclusion: cache helps more (+200).}
+\item Final recommendation: use 512\,MB cache. Predicted throughput: 700.
+\end{enumerate}
+
+\subsection{DOE Gets the Right Answer}
+
+A $2^2$ full factorial tests all four combinations:
+\begin{itemize}[nosep]
+\item Main effect of threads: $\frac{600 + 1400}{2} - \frac{500 + 700}{2}
+      = 1000 - 600 = \mathbf{+400}$
+\item Main effect of cache: $\frac{700 + 1400}{2} - \frac{500 + 600}{2}
+      = 1050 - 550 = \mathbf{+500}$
+\item Interaction effect: $\mathbf{+500}$ (threads and cache amplify each other)
+\item Recommendation: use \emph{both} 100 threads and 512\,MB cache.
+      Throughput: \textbf{1400}.
+\end{itemize}
+
+Same number of experiments. Completely different---and correct---conclusion.
+The OVAT approach missed the interaction entirely and left 700 req/sec of
+throughput on the table.
+
+\begin{warning}[Interactions Are the Rule, Not the Exception]
+In the web server example, the cache is only truly effective when there are
+enough threads to use it. This kind of synergy is extremely common in real
+systems---database buffer pools that only help with high I/O capacity, compiler
+optimizations that only matter with specific architecture targets, or machine
+learning learning rates that only work with certain batch sizes.
+\end{warning}
 
 
 % ───────────────────────────────────────────
@@ -1033,6 +1098,31 @@ entire range uniformly---a property called \emph{stratification}.
 \end{itemize}
 
 
+\section{Quick Reference: Choosing a Design}
+
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+Design & Best For & Min Runs & Interactions? & Finds Optimum? \\
+\midrule
+Full Factorial & Complete picture & $2^k$ & All & No \\
+Fractional Fact. & Screening + some 2FIs & $2^{k-p}$ & Some & No \\
+Plackett--Burman & Fast screening & $k{+}1$ & No & No \\
+Latin Hypercube & Exploration & Your choice & No & No \\
+CCD & Finding the optimum & $2^k{+}2k{+}c$ & Yes & Yes \\
+Box--Behnken & Safe optimization & $\sim 15$--$46$ & Yes & Yes \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{keypoint}[The Decision Rule]
+\textbf{2--4 factors, want everything:} Full Factorial.
+\textbf{5+ factors, screening:} Plackett--Burman.
+\textbf{2--5 factors, finding the optimum:} CCD (corners OK) or Box--Behnken
+(avoid corners). \textbf{Computer simulation:} Latin Hypercube.
+\end{keypoint}
+
+
 % ═══════════════════════════════════════════
 % PART III: ANALYSIS
 % ═══════════════════════════════════════════
@@ -1084,6 +1174,51 @@ the effect.
 An interaction plot shows the mean response for each combination of two factors.
 If the lines are parallel, there is no interaction. If they cross or diverge,
 the interaction is significant.
+
+\begin{keypoint}[How to Spot Interactions]
+\textbf{Parallel lines} = no interaction (the effect of $A$ is the same
+regardless of $B$'s level). \textbf{Non-parallel lines} = interaction.
+\textbf{Crossing lines} = strong interaction (the best level of $A$ depends
+on $B$'s level---this completely changes your recommendation).
+\end{keypoint}
+
+\section{Reading Tool Output}
+
+When you run the analysis tool, the output looks like this:
+
+\begin{lstlisting}[basicstyle=\footnotesize\ttfamily]
+=== Main Effects: throughput ===
+Factor             Effect  Std Error  % Contribution
+------------------------------------------------------
+buffer_pool_size  +850.3      45.2         62.1%
+worker_threads    +312.7      45.2         22.8%
+gc_heap_size      +142.1      45.2         10.4%
+log_level          -64.5      45.2          4.7%
+\end{lstlisting}
+
+\noindent How to read each column:
+\begin{itemize}[nosep]
+\item \textbf{Effect:} How much the response changes when the factor goes from
+      low to high. Positive means ``high level produces more.'' Negative means
+      ``high level produces less.''
+\item \textbf{Std Error:} The uncertainty in the effect estimate. Smaller is
+      more precise. If the effect is much larger than its std error ($>$2--3$\times$),
+      the effect is likely real, not noise.
+\item \textbf{\% Contribution:} How much of the total variation this factor
+      explains. The Pareto chart visualizes this. Factors totaling $\sim$80\%
+      are the ``vital few.''
+\end{itemize}
+
+\begin{example}[Interpreting Confidence Intervals]
+\begin{lstlisting}[basicstyle=\footnotesize\ttfamily]
+temperature:  effect=+8.5, 95% CI=[+3.2, +13.8]
+pressure:     effect=+1.2, 95% CI=[-4.1, +6.5]
+\end{lstlisting}
+\textbf{Temperature:} The CI is entirely positive, so the effect is
+statistically significant. Temperature definitely matters.\\
+\textbf{Pressure:} The CI includes zero, so the effect is NOT statistically
+significant. The observed $+1.2$ could be noise.
+\end{example}
 
 \section{Statistical Significance}
 
@@ -1357,9 +1492,49 @@ temperature has a strong quadratic effect (optimum at 520\textdegree C) and
 interacts with cooling rate. The quadratic model achieves $R^2 = 0.94$ and
 correctly predicts the confirmation runs within $\pm 3\%$.
 
+\subsection{Example: Microservice Configuration}
+
+A platform team needs to optimize a Kubernetes-deployed microservice for latency
+and cost. The controllable factors are:
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+Factor & Low & High \\
+\midrule
+\texttt{replicas} & 2 & 8 \\
+\texttt{cpu\_limit} & 500m & 2 cores \\
+\texttt{memory\_limit} & 512\,Mi & 2\,Gi \\
+\texttt{hpa\_target\_cpu} & 50\% & 80\% \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+A $2^4 = 16$ full factorial gives the complete picture. The analysis reveals
+that more replicas only help up to a point (interaction with CPU limit), and
+that doubling memory has no effect when CPU is the bottleneck. The team sets
+\texttt{replicas=4}, \texttt{cpu\_limit=1.5}, \texttt{memory\_limit=512Mi},
+\texttt{hpa\_target\_cpu=60\%}---saving 40\% on compute cost with no latency
+increase.
+
 \section{Machine Learning Hyperparameter Tuning}
 
-DOE can replace random search or grid search for hyperparameter optimization:
+DOE can replace random search or grid search for hyperparameter optimization.
+The efficiency gains are dramatic:
+
+\begin{center}
+\begin{tabular}{lcl}
+\toprule
+Approach & Runs (8 params) & What You Learn \\
+\midrule
+Grid search ($3^8$) & 6,561 & Everything, wastefully \\
+Random search & $\sim$100 & Noisy, unstructured \\
+PB screening & 12 & Which 3 params matter \\
+\quad + full factorial & 8 more & Their interactions \\
+\textbf{Total DOE} & \textbf{20} & \textbf{Focused, actionable} \\
+\bottomrule
+\end{tabular}
+\end{center}
 
 \begin{itemize}[nosep]
 \item \textbf{Screening:} Use a PB design to test 10+ hyperparameters and
@@ -1371,6 +1546,122 @@ DOE can replace random search or grid search for hyperparameter optimization:
 \item \textbf{Advantage over random search:} LHS guarantees better space coverage
       than pure random sampling with the same number of points.
 \end{itemize}
+
+\begin{example}[Hyperparameter Screening in Practice]
+A data scientist tests 8 hyperparameters (learning rate, batch size, dropout,
+hidden layers, hidden units, optimizer, weight decay, activation) using a PB
+design with 12 training runs. The Pareto chart immediately shows that
+\texttt{learning\_rate}, \texttt{batch\_size}, and \texttt{hidden\_units}
+account for 85\% of the validation accuracy variation. The other 5 parameters
+are fixed at defaults, and a $2^3$ factorial (8 runs) on the important three
+reveals that \texttt{learning\_rate} and \texttt{batch\_size} interact strongly.
+Total: 20 training runs instead of 6,561.
+\end{example}
+
+
+% ───────────────────────────────────────────
+\chapter{Common Mistakes and How to Avoid Them}
+% ───────────────────────────────────────────
+
+Even experienced experimenters fall into these traps. Each one can invalidate
+your results or waste your budget. Learn them once, avoid them forever.
+
+\section{Choosing Factor Levels Too Close Together}
+
+\textbf{The mistake:} Testing temperature at 198\textdegree C and
+202\textdegree C. The true effect is tiny relative to experimental noise, so
+you conclude (incorrectly) that temperature does not matter.
+
+\textbf{The fix:} Make the difference between levels large enough to produce a
+detectable effect. A rule of thumb: the difference should be at least 2--3 times
+the expected noise level. If your measurement varies by $\pm 5$\%, a 1\% change
+in the factor level will be invisible.
+
+\section{Not Randomizing Run Order}
+
+\textbf{The mistake:} Running all ``high temperature'' experiments in the
+morning and all ``low temperature'' experiments in the afternoon. Equipment
+drift, ambient temperature changes, or operator fatigue get confounded with
+your factor.
+
+\textbf{The fix:} Always randomize. Use the \texttt{-{}-seed} flag for
+reproducibility. Never run experiments in the order they appear in the design
+matrix.
+
+\section{Changing Other Things Between Runs}
+
+\textbf{The mistake:} Updating the OS halfway through the experiment, or a
+colleague restarting the server. Now some runs operated under different
+conditions, and you cannot tell whether observed differences are due to your
+factors or the environment change.
+
+\textbf{The fix:} Keep everything constant except the factors you are studying.
+If something does change unavoidably, use blocking to account for it---assign
+a new block at the change point.
+
+\section{Testing Too Many Factors Without Screening}
+
+\textbf{The mistake:} Running a full factorial on 8 factors (256 runs) when only
+3 of them matter. You burn 253 runs on factors that contribute nothing.
+
+\textbf{The fix:} Start with a Plackett--Burman screening design (12 runs for
+up to 11 factors). Identify the vital few, then focus your runs on those.
+
+\section{Ignoring Interactions}
+
+\textbf{The mistake:} You find that ``thread count = 32'' is best based on its
+main effect. But in reality it is only best when combined with a large
+connection pool. At a small connection pool, 32 threads actually makes things
+worse (thread contention).
+
+\textbf{The fix:} Use a design that estimates interactions (full factorial or
+fractional factorial with Resolution IV+). Always check the interaction effects
+table, not just main effects.
+
+\section{Not Running Confirmation Experiments}
+
+\textbf{The mistake:} Trusting the RSM model's predicted optimum without
+verifying it. The model is a polynomial approximation---it may be wrong,
+especially if you are near the edge of the design space.
+
+\textbf{The fix:} Always run 3--5 experiments at the predicted optimal settings.
+If the observed response matches the prediction (within the confidence interval),
+you are done. If not, the model needs refinement.
+
+\section{Confusing Replication with Repetition}
+
+\textbf{The mistake:} Running the benchmark 5 times without restarting the
+server and computing a standard deviation. This measures only \emph{measurement}
+variability, not the full experimental variability that includes setup,
+configuration application, and environmental factors.
+
+\textbf{The fix:} True replication means independently resetting the entire
+experimental setup between runs---restart the server, re-apply the
+configuration, let it warm up, then measure. Use \texttt{block\_count > 1} to
+get genuine replicates.
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+ & Replication & Repetition \\
+\midrule
+What & Re-do entire setup & Re-measure same setup \\
+Captures & Full experimental error & Measurement noise only \\
+Example & Restart server, re-run & Run benchmark 3$\times$ \\
+Use for & Estimating real variability & Estimating measurement noise \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section{Over-Engineering the First Experiment}
+
+\textbf{The mistake:} Spending weeks designing a 50-run CCD as your very first
+experiment on a system you have never studied before.
+
+\textbf{The fix:} Follow the sequential strategy. Your first experiment should
+be a cheap screening design (8--12 runs). Learn which factors matter, then
+invest runs wisely. You can always add more runs later; you cannot un-waste runs
+you already spent.
 
 
 % ───────────────────────────────────────────
