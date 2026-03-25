@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DDoS Mitigation Threshold — DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../quickstart.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F310;</div>
+    <div class="uc-badge" style="background:rgba(67,56,202,.12);color:#4338ca;">Plackett-Burman Design</div>
+    <h1>DDoS Mitigation Threshold</h1>
+    <p class="uc-subtitle">Plackett-Burman screening of 6 anti-DDoS parameters for detection accuracy and clean traffic impact</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>syn_rate_limit</code></td><td>1000</td><td>50000</td><td>pps</td></tr>
+            <tr><td><code>connection_limit</code></td><td>100</td><td>10000</td><td>conns/IP</td></tr>
+            <tr><td><code>challenge_mode</code></td><td>off</td><td>javascript</td><td></td></tr>
+            <tr><td><code>geo_blocking</code></td><td>off</td><td>on</td><td></td></tr>
+            <tr><td><code>anomaly_window_s</code></td><td>10</td><td>300</td><td>s</td></tr>
+            <tr><td><code>whitelist_size</code></td><td>100</td><td>10000</td><td>IPs</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> mitigation_provider = in_house, baseline_traffic = 5000_rps</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>detection_rate</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+            <tr><td><code>false_positive_pct</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/53_ddos_mitigation_threshold/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  <span class="key">&quot;metadata&quot;</span>: {
+    <span class="key">&quot;name&quot;</span>: &quot;DDoS Mitigation Threshold&quot;,
+    <span class="key">&quot;description&quot;</span>: &quot;Plackett-Burman screening of 6 anti-DDoS parameters for detection accuracy and clean traffic impact&quot;
+  },
+  <span class="key">&quot;factors&quot;</span>: [
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;syn_rate_limit&quot;,
+      <span class="key">&quot;levels&quot;</span>: [
+        &quot;1000&quot;,
+        &quot;50000&quot;
+      ],
+      <span class="key">&quot;type&quot;</span>: &quot;continuous&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;pps&quot;
+    },
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;connection_limit&quot;,
+      <span class="key">&quot;levels&quot;</span>: [
+        &quot;100&quot;,
+        &quot;10000&quot;
+      ],
+      <span class="key">&quot;type&quot;</span>: &quot;continuous&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;conns/IP&quot;
+    },
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;challenge_mode&quot;,
+      <span class="key">&quot;levels&quot;</span>: [
+        &quot;off&quot;,
+        &quot;javascript&quot;
+      ],
+      <span class="key">&quot;type&quot;</span>: &quot;categorical&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;&quot;
+    },
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;geo_blocking&quot;,
+      <span class="key">&quot;levels&quot;</span>: [
+        &quot;off&quot;,
+        &quot;on&quot;
+      ],
+      <span class="key">&quot;type&quot;</span>: &quot;categorical&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;&quot;
+    },
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;anomaly_window_s&quot;,
+      <span class="key">&quot;levels&quot;</span>: [
+        &quot;10&quot;,
+        &quot;300&quot;
+      ],
+      <span class="key">&quot;type&quot;</span>: &quot;continuous&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;s&quot;
+    },
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;whitelist_size&quot;,
+      <span class="key">&quot;levels&quot;</span>: [
+        &quot;100&quot;,
+        &quot;10000&quot;
+      ],
+      <span class="key">&quot;type&quot;</span>: &quot;continuous&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;IPs&quot;
+    }
+  ],
+  <span class="key">&quot;fixed_factors&quot;</span>: {
+    &quot;mitigation_provider&quot;: &quot;in_house&quot;,
+    &quot;baseline_traffic&quot;: &quot;5000_rps&quot;
+  },
+  <span class="key">&quot;responses&quot;</span>: [
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;detection_rate&quot;,
+      <span class="key">&quot;optimize&quot;</span>: &quot;maximize&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;%&quot;
+    },
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;false_positive_pct&quot;,
+      <span class="key">&quot;optimize&quot;</span>: &quot;minimize&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;%&quot;
+    }
+  ],
+  <span class="key">&quot;settings&quot;</span>: {
+    <span class="key">&quot;operation&quot;</span>: &quot;plackett_burman&quot;,
+    <span class="key">&quot;test_script&quot;</span>: &quot;use_cases/53_ddos_mitigation_threshold/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/53_ddos_mitigation_threshold/config.json</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/53_ddos_mitigation_threshold/config.json \
+    <span class="flag">--output</span> use_cases/53_ddos_mitigation_threshold/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/53_ddos_mitigation_threshold/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/53_ddos_mitigation_threshold/config.json</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/53_ddos_mitigation_threshold/config.json</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/53_ddos_mitigation_threshold/config.json \
+    <span class="flag">--output</span> use_cases/53_ddos_mitigation_threshold/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>plackett_burman</code></td></tr>
+        <tr><td>Factor types</td><td><code>categorical, continuous</code></td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (detection_rate &#x2191;, false_positive_pct &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>8</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+    <h3>Pareto Charts</h3>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">pareto detection rate</p>
+      <img src="../images/53_pareto_detection_rate.png" alt="pareto detection rate" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">pareto false positive pct</p>
+      <img src="../images/53_pareto_false_positive_pct.png" alt="pareto false positive pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <h3>Main Effects</h3>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">main effects detection rate</p>
+      <img src="../images/53_main_effects_detection_rate.png" alt="main effects detection rate" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">main effects false positive pct</p>
+      <img src="../images/53_main_effects_false_positive_pct.png" alt="main effects false positive pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <h3>Response Surfaces</h3>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm detection rate anomaly window s vs whitelist size</p>
+      <img src="../images/53_rsm_detection_rate_anomaly_window_s_vs_whitelist_size.png" alt="rsm detection rate anomaly window s vs whitelist size" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm detection rate connection limit vs anomaly window s</p>
+      <img src="../images/53_rsm_detection_rate_connection_limit_vs_anomaly_window_s.png" alt="rsm detection rate connection limit vs anomaly window s" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm detection rate connection limit vs whitelist size</p>
+      <img src="../images/53_rsm_detection_rate_connection_limit_vs_whitelist_size.png" alt="rsm detection rate connection limit vs whitelist size" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm detection rate syn rate limit vs anomaly window s</p>
+      <img src="../images/53_rsm_detection_rate_syn_rate_limit_vs_anomaly_window_s.png" alt="rsm detection rate syn rate limit vs anomaly window s" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm detection rate syn rate limit vs connection limit</p>
+      <img src="../images/53_rsm_detection_rate_syn_rate_limit_vs_connection_limit.png" alt="rsm detection rate syn rate limit vs connection limit" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm detection rate syn rate limit vs whitelist size</p>
+      <img src="../images/53_rsm_detection_rate_syn_rate_limit_vs_whitelist_size.png" alt="rsm detection rate syn rate limit vs whitelist size" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm false positive pct anomaly window s vs whitelist size</p>
+      <img src="../images/53_rsm_false_positive_pct_anomaly_window_s_vs_whitelist_size.png" alt="rsm false positive pct anomaly window s vs whitelist size" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm false positive pct connection limit vs anomaly window s</p>
+      <img src="../images/53_rsm_false_positive_pct_connection_limit_vs_anomaly_window_s.png" alt="rsm false positive pct connection limit vs anomaly window s" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm false positive pct connection limit vs whitelist size</p>
+      <img src="../images/53_rsm_false_positive_pct_connection_limit_vs_whitelist_size.png" alt="rsm false positive pct connection limit vs whitelist size" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm false positive pct syn rate limit vs anomaly window s</p>
+      <img src="../images/53_rsm_false_positive_pct_syn_rate_limit_vs_anomaly_window_s.png" alt="rsm false positive pct syn rate limit vs anomaly window s" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm false positive pct syn rate limit vs connection limit</p>
+      <img src="../images/53_rsm_false_positive_pct_syn_rate_limit_vs_connection_limit.png" alt="rsm false positive pct syn rate limit vs connection limit" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm false positive pct syn rate limit vs whitelist size</p>
+      <img src="../images/53_rsm_false_positive_pct_syn_rate_limit_vs_whitelist_size.png" alt="rsm false positive pct syn rate limit vs whitelist size" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: detection_rate ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+connection_limit       -10.9000       2.7088            39.6%
+syn_rate_limit           7.5000       2.7088            27.3%
+geo_blocking             4.1000       2.7088            14.9%
+challenge_mode           3.2000       2.7088            11.6%
+whitelist_size          -1.5000       2.7088             5.5%
+anomaly_window_s         0.3000       2.7088             1.1%
+
+=== Interaction Effects: detection_rate ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+syn_rate_limit       challenge_mode            10.9000            18.8%
+geo_blocking         whitelist_size           -10.9000            18.8%
+connection_limit     challenge_mode            -7.5000            12.9%
+geo_blocking         anomaly_window_s           7.5000            12.9%
+syn_rate_limit       anomaly_window_s           4.1000             7.1%
+connection_limit     whitelist_size             4.1000             7.1%
+syn_rate_limit       connection_limit          -3.2000             5.5%
+anomaly_window_s     whitelist_size            -3.2000             5.5%
+connection_limit     geo_blocking              -1.5000             2.6%
+challenge_mode       anomaly_window_s           1.5000             2.6%
+syn_rate_limit       whitelist_size            -1.0000             1.7%
+connection_limit     anomaly_window_s          -1.0000             1.7%
+challenge_mode       geo_blocking               1.0000             1.7%
+syn_rate_limit       geo_blocking               0.3000             0.5%
+challenge_mode       whitelist_size            -0.3000             0.5%
+
+=== Summary Statistics: detection_rate ===
+
+syn_rate_limit:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1000                4    83.9000     4.9659    78.4000    89.9000
+  50000               4    91.4000     8.6491    83.4000   101.9000
+
+connection_limit:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4    93.1000     7.0128    85.6000   101.9000
+  10000               4    82.2000     2.9292    78.4000    85.3000
+
+challenge_mode:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  javascript          4    86.0500     2.7453    83.4000    89.9000
+  off                 4    89.2500    11.0726    78.4000   101.9000
+
+geo_blocking:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4    85.6000     6.9532    78.4000    95.0000
+  on                  4    89.7000     8.7985    81.7000   101.9000
+
+anomaly_window_s:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4    87.5000     6.1226    81.7000    95.0000
+  300                 4    87.8000     9.9710    78.4000   101.9000
+
+whitelist_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4    88.4000    10.1571    78.4000   101.9000
+  10000               4    86.9000     5.6833    81.7000    95.0000
+
+=== Main Effects: false_positive_pct ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+geo_blocking             5.4675       1.7731            27.0%
+syn_rate_limit           5.0275       1.7731            24.8%
+connection_limit        -4.4375       1.7731            21.9%
+anomaly_window_s         2.6775       1.7731            13.2%
+whitelist_size          -1.4175       1.7731             7.0%
+challenge_mode           1.2175       1.7731             6.0%
+
+=== Interaction Effects: false_positive_pct ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+syn_rate_limit       anomaly_window_s           5.4675            12.1%
+connection_limit     whitelist_size             5.4675            12.1%
+connection_limit     challenge_mode            -5.0275            11.1%
+geo_blocking         anomaly_window_s           5.0275            11.1%
+syn_rate_limit       challenge_mode             4.4375             9.8%
+geo_blocking         whitelist_size            -4.4375             9.8%
+syn_rate_limit       geo_blocking               2.6775             5.9%
+challenge_mode       whitelist_size            -2.6775             5.9%
+syn_rate_limit       whitelist_size             1.5825             3.5%
+connection_limit     anomaly_window_s           1.5825             3.5%
+challenge_mode       geo_blocking              -1.5825             3.5%
+connection_limit     geo_blocking              -1.4175             3.1%
+challenge_mode       anomaly_window_s           1.4175             3.1%
+syn_rate_limit       connection_limit          -1.2175             2.7%
+anomaly_window_s     whitelist_size            -1.2175             2.7%
+
+=== Summary Statistics: false_positive_pct ===
+
+syn_rate_limit:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1000                4     1.7150     3.0085    -0.0000     6.2200
+  50000               4     6.7425     5.7256    -0.2400    13.5600
+
+connection_limit:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4     6.4475     5.4038     0.4300    13.5600
+  10000               4     2.0100     4.0442    -0.2400     8.0700
+
+challenge_mode:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  javascript          4     3.6200     4.1488    -0.2400     8.0700
+  off                 4     4.8375     6.3626    -0.0000    13.5600
+
+geo_blocking:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4     1.4950     2.7376    -0.2400     5.5800
+  on                  4     6.9625     5.5911    -0.0000    13.5600
+
+anomaly_window_s:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4     2.8900     3.4868    -0.2400     6.2200
+  300                 4     5.5675     6.4611     0.2100    13.5600
+
+whitelist_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4     4.9375     6.4588    -0.2400    13.5600
+  10000               4     3.5200     3.9533    -0.0000     8.0700</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: detection_rate ===
+Direction: maximize
+
+Best observed run: #4
+  syn_rate_limit = 1000
+  connection_limit = 10000
+  challenge_mode = off
+  geo_blocking = off
+  anomaly_window_s = 300
+  whitelist_size = 100
+  Value: 101.9
+
+RSM Model (linear, R² = 0.9815, Adj R² = 0.8704):
+  Coefficients:
+    intercept                      +87.6500
+    syn_rate_limit                 -0.3250
+    connection_limit               +2.4750
+    challenge_mode                 +5.4500
+    geo_blocking                   +0.3250
+    anomaly_window_s               +2.5000
+    whitelist_size                 -2.8500
+
+  Predicted optimum (from linear model):
+    syn_rate_limit = 1000
+    connection_limit = 10000
+    challenge_mode = off
+    geo_blocking = off
+    anomaly_window_s = 300
+    whitelist_size = 100
+    Predicted value: 100.9250
+
+  Model quality: Excellent fit — surface predictions are reliable.
+
+Factor importance:
+  1. challenge_mode  (effect: 10.9, contribution: 39.1%)
+  2. whitelist_size  (effect: -5.7, contribution: 20.5%)
+  3. anomaly_window_s  (effect: 5.0, contribution: 18.0%)
+  4. connection_limit  (effect: 5.0, contribution: 17.8%)
+  5. syn_rate_limit  (effect: -0.7, contribution: 2.3%)
+  6. geo_blocking  (effect: 0.6, contribution: 2.3%)
+
+=== Optimization: false_positive_pct ===
+Direction: minimize
+
+Best observed run: #5
+  syn_rate_limit = 50000
+  connection_limit = 10000
+  challenge_mode = javascript
+  geo_blocking = off
+  anomaly_window_s = 10
+  whitelist_size = 100
+  Value: -0.24
+
+RSM Model (linear, R² = 0.9248, Adj R² = 0.4737):
+  Coefficients:
+    intercept                      +4.2287
+    syn_rate_limit                 -0.7688
+    connection_limit               +2.6737
+    challenge_mode                 +2.2188
+    geo_blocking                   +0.7388
+    anomaly_window_s               +2.6263
+    whitelist_size                 -0.4963
+
+  Predicted optimum (from linear model):
+    syn_rate_limit = 1000
+    connection_limit = 10000
+    challenge_mode = off
+    geo_blocking = off
+    anomaly_window_s = 300
+    whitelist_size = 100
+    Predicted value: 12.2738
+
+  Model quality: Excellent fit — surface predictions are reliable.
+
+Factor importance:
+  1. connection_limit  (effect: 5.3, contribution: 28.1%)
+  2. anomaly_window_s  (effect: 5.3, contribution: 27.6%)
+  3. challenge_mode  (effect: 4.4, contribution: 23.3%)
+  4. syn_rate_limit  (effect: -1.5, contribution: 8.1%)
+  5. geo_blocking  (effect: 1.5, contribution: 7.8%)
+  6. whitelist_size  (effect: -1.0, contribution: 5.2%)</div></div>
+
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="vpn-tunnel-mtu.html">&larr; VPN Tunnel MTU</a>
+    <a href="http2-stream-multiplexing.html">HTTP/2 Stream Multiplexing &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

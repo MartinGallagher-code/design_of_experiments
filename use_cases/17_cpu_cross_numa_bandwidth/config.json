@@ -1,0 +1,66 @@
+{
+    "metadata": {
+        "name": "CPU Cross-NUMA Bandwidth",
+        "description": "Full factorial design to characterize CPU-to-CPU memory bandwidth and latency across NUMA domains on a 4-socket HPC node"
+    },
+    "factors": [
+        {
+            "name": "numa_hop",
+            "levels": ["local", "near", "far"],
+            "type": "categorical",
+            "unit": "",
+            "description": "NUMA distance: local (same socket), near (adjacent socket), far (diagonal socket)"
+        },
+        {
+            "name": "transfer_mode",
+            "levels": ["memcpy", "streaming_store"],
+            "type": "categorical",
+            "unit": "",
+            "description": "Data transfer mechanism"
+        },
+        {
+            "name": "thread_count",
+            "levels": ["1", "14"],
+            "type": "continuous",
+            "unit": "threads",
+            "description": "Number of threads performing the transfer"
+        },
+        {
+            "name": "buffer_size",
+            "levels": ["1048576", "268435456"],
+            "type": "continuous",
+            "unit": "bytes",
+            "description": "Transfer buffer size (1 MB to 256 MB)"
+        }
+    ],
+    "fixed_factors": {
+        "sockets": "4",
+        "cores_per_socket": "28",
+        "numa_distance_near": "21",
+        "numa_distance_far": "31"
+    },
+    "responses": [
+        {
+            "name": "bandwidth_GBs",
+            "optimize": "maximize",
+            "unit": "GB/s",
+            "description": "Cross-NUMA memory bandwidth"
+        },
+        {
+            "name": "latency_ns",
+            "optimize": "minimize",
+            "unit": "ns",
+            "description": "Average per-cacheline access latency"
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "use_cases/17_cpu_cross_numa_bandwidth/sim.sh",
+        "operation": "full_factorial",
+        "processed_directory": "use_cases/17_cpu_cross_numa_bandwidth/results/analysis",
+        "out_directory": "use_cases/17_cpu_cross_numa_bandwidth/results"
+    }
+}

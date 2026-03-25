@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MPI Collective Tuning &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .caption { font-size:.72rem; color:var(--faint); margin-bottom:4px; }
+  </style>
+</head>
+<body>
+
+<img src="../logo-light.svg" alt="" class="bg-logo-light">
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><span class="dot"></span> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<section class="uc-hero-detail" style="background:linear-gradient(135deg, #16a34a11, #16a34a08);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-badge" style="background:#16a34a18;color:#16a34a;">Plackett-Burman</div>
+    <h1>MPI Collective Tuning</h1>
+    <p class="uc-subtitle">Tune MPI collective communication parameters for large-scale HPC clusters.</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Levels</th><th>Type</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>msg_size</code></td><td>4096, 1048576</td><td>continuous</td><td>bytes</td></tr>
+            <tr><td><code>algorithm</code></td><td>ring, recursive_doubling</td><td>categorical</td><td></td></tr>
+            <tr><td><code>ppn</code></td><td>16, 64</td><td>continuous</td><td></td></tr>
+            <tr><td><code>eager_limit</code></td><td>4096, 262144</td><td>continuous</td><td>bytes</td></tr>
+            <tr><td><code>binding</code></td><td>core, socket</td><td>categorical</td><td></td></tr>
+            <tr><td><code>coll_tuning</code></td><td>on, off</td><td>categorical</td><td></td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> nodes=32, mpi_impl=openmpi</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>allreduce_latency</code></td><td style="color:#e11d48;font-weight:600;">&#x2193; minimize</td><td>us</td></tr>
+            <tr><td><code>bandwidth</code></td><td style="color:var(--green);font-weight:600;">&#x2191; maximize</td><td>GB/s</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Plackett-Burman Design produces <strong>16 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>Block</th><th><code>msg_size</code></th><th><code>algorithm</code></th><th><code>ppn</code></th><th><code>eager_limit</code></th><th><code>binding</code></th><th><code>coll_tuning</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>1</td><td>1048576</td><td>recursive_doubling</td><td>64</td><td>4096</td><td>core</td><td>on</td></tr>
+        <tr><td>2</td><td>1</td><td>4096</td><td>ring</td><td>64</td><td>262144</td><td>core</td><td>on</td></tr>
+        <tr><td>3</td><td>1</td><td>4096</td><td>recursive_doubling</td><td>16</td><td>262144</td><td>core</td><td>off</td></tr>
+        <tr><td>4</td><td>1</td><td>1048576</td><td>recursive_doubling</td><td>64</td><td>262144</td><td>socket</td><td>off</td></tr>
+        <tr><td>5</td><td>1</td><td>4096</td><td>recursive_doubling</td><td>16</td><td>4096</td><td>socket</td><td>on</td></tr>
+        <tr><td>6</td><td>1</td><td>1048576</td><td>ring</td><td>16</td><td>262144</td><td>socket</td><td>on</td></tr>
+        <tr><td>7</td><td>1</td><td>4096</td><td>ring</td><td>64</td><td>4096</td><td>socket</td><td>off</td></tr>
+        <tr><td>8</td><td>1</td><td>1048576</td><td>ring</td><td>16</td><td>4096</td><td>core</td><td>off</td></tr>
+        <tr><td>9</td><td>2</td><td>1048576</td><td>recursive_doubling</td><td>64</td><td>4096</td><td>core</td><td>on</td></tr>
+        <tr><td>10</td><td>2</td><td>1048576</td><td>recursive_doubling</td><td>64</td><td>262144</td><td>socket</td><td>off</td></tr>
+        <tr><td>11</td><td>2</td><td>4096</td><td>recursive_doubling</td><td>16</td><td>4096</td><td>socket</td><td>on</td></tr>
+        <tr><td>12</td><td>2</td><td>4096</td><td>ring</td><td>64</td><td>4096</td><td>socket</td><td>off</td></tr>
+        <tr><td>13</td><td>2</td><td>4096</td><td>ring</td><td>64</td><td>262144</td><td>core</td><td>on</td></tr>
+        <tr><td>14</td><td>2</td><td>4096</td><td>recursive_doubling</td><td>16</td><td>262144</td><td>core</td><td>off</td></tr>
+        <tr><td>15</td><td>2</td><td>1048576</td><td>ring</td><td>16</td><td>262144</td><td>socket</td><td>on</td></tr>
+        <tr><td>16</td><td>2</td><td>1048576</td><td>ring</td><td>16</td><td>4096</td><td>core</td><td>off</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="uc-section">
+    <h2>How to Run</h2>
+    <div class="code-block"><div class="code-header"><span>terminal</span></div><div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/07_mpi_collective_tuning/config.json
+<span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/07_mpi_collective_tuning/config.json <span class="flag">--output</span> results/run.sh <span class="flag">--seed</span> 42
+<span class="prompt">$ </span>bash results/run.sh
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/07_mpi_collective_tuning/config.json
+<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/07_mpi_collective_tuning/config.json
+<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/07_mpi_collective_tuning/config.json <span class="flag">--output</span> report.html</div></div>
+  </section>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs.</p>
+
+    <h3>Response: allreduce_latency</h3>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/07_pareto_allreduce_latency.png" alt="Pareto chart for allreduce_latency">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/07_main_effects_allreduce_latency.png" alt="Main effects plot for allreduce_latency">
+      </div>
+    </div>
+
+    <h3>Response: bandwidth</h3>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/07_pareto_bandwidth.png" alt="Pareto chart for bandwidth">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/07_main_effects_bandwidth.png" alt="Main effects plot for bandwidth">
+      </div>
+    </div>
+
+      <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+    <div class="callout info" style="margin-top:24px;">
+      <span class="callout-icon">&#x1F4CA;</span>
+      <div class="callout-body">
+        <h4>How to Read These Surfaces</h4>
+        <p style="margin-bottom:10px;">Each plot shows predicted response (vertical axis) across two factors while other factors are held at center. Red dots are actual experimental observations.</p>
+        <ul style="font-size:.82rem;line-height:1.6;margin:0 0 0 16px;">
+          <li><strong>Flat surface</strong> — these two factors have little effect on the response.</li>
+          <li><strong>Tilted plane</strong> — strong linear effect; moving along one axis consistently changes the response.</li>
+          <li><strong>Curved/domed surface</strong> — quadratic curvature; there is an optimum somewhere in the middle.</li>
+          <li><strong>Saddle shape</strong> — significant interaction; the best setting of one factor depends on the other.</li>
+          <li><strong>Red dots far from surface</strong> — poor model fit in that region; be cautious about predictions there.</li>
+        </ul>
+        <p style="margin-top:12px;font-size:.82rem;"><strong>allreduce_latency (us)</strong> — R² = 0.753, Adj R² = 0.753<br>Moderate fit — surface shows general trends but some noise remains.<br>Curvature detected in msg_size, algorithm — look for a peak or valley in the surface.<br>Strongest linear driver: <code>algorithm</code> (decreases allreduce_latency).<br>Notable interaction: <code>msg_size</code> × <code>coll_tuning</code> — the effect of one depends on the level of the other. Look for a twisted surface.</p>
+        <p style="margin-top:12px;font-size:.82rem;"><strong>bandwidth (GB/s)</strong> — R² = 0.299, Adj R² = 0.299<br>Weak fit — interpret the surface shape with caution.<br>Curvature detected in msg_size, algorithm — look for a peak or valley in the surface.<br>Strongest linear driver: <code>algorithm</code> (decreases bandwidth).<br>Notable interaction: <code>msg_size</code> × <code>coll_tuning</code> — the effect of one depends on the level of the other. Look for a twisted surface.</p>
+      </div>
+    </div>
+
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">allreduce: latency msg size vs eager limit</p>
+      <img src="../images/07_rsm_allreduce_latency_msg_size_vs_eager_limit.png" alt="RSM surface: allreduce — latency msg size vs eager limit" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">allreduce: latency msg size vs ppn</p>
+      <img src="../images/07_rsm_allreduce_latency_msg_size_vs_ppn.png" alt="RSM surface: allreduce — latency msg size vs ppn" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">allreduce: latency ppn vs eager limit</p>
+      <img src="../images/07_rsm_allreduce_latency_ppn_vs_eager_limit.png" alt="RSM surface: allreduce — latency ppn vs eager limit" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">bandwidth: msg size vs eager limit</p>
+      <img src="../images/07_rsm_bandwidth_msg_size_vs_eager_limit.png" alt="RSM surface: bandwidth — msg size vs eager limit" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">bandwidth: msg size vs ppn</p>
+      <img src="../images/07_rsm_bandwidth_msg_size_vs_ppn.png" alt="RSM surface: bandwidth — msg size vs ppn" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">bandwidth: ppn vs eager limit</p>
+      <img src="../images/07_rsm_bandwidth_ppn_vs_eager_limit.png" alt="RSM surface: bandwidth — ppn vs eager limit" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+  </section>
+
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: allreduce_latency ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+eager_limit            -23.7200       5.1709            37.2%
+binding                 15.3625       5.1709            24.1%
+msg_size               -13.1775       5.1709            20.7%
+ppn                     -5.9300       5.1709             9.3%
+coll_tuning              3.9775       5.1709             6.2%
+algorithm               -1.6375       5.1709             2.6%
+
+=== Interaction Effects: allreduce_latency ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+msg_size             binding                  -23.7200            17.8%
+algorithm            coll_tuning               23.7200            17.8%
+msg_size             eager_limit               15.3625            11.5%
+ppn                  coll_tuning              -15.3625            11.5%
+algorithm            ppn                      -13.1775             9.9%
+eager_limit          binding                  -13.1775             9.9%
+msg_size             algorithm                 -5.9300             4.4%
+binding              coll_tuning                5.9300             4.4%
+algorithm            eager_limit               -3.9775             3.0%
+ppn                  binding                   -3.9775             3.0%
+msg_size             coll_tuning               -2.0050             1.5%
+algorithm            binding                    2.0050             1.5%
+ppn                  eager_limit                2.0050             1.5%
+msg_size             ppn                       -1.6375             1.2%
+eager_limit          coll_tuning                1.6375             1.2%
+
+=== Summary Statistics: allreduce_latency ===
+
+msg_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1048576             8    66.1363    23.5214    34.2000    96.6600
+  4096                8    52.9588    16.2556    35.5400    84.3300
+
+algorithm:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  recursive_doubling     8    60.3663    21.3574    35.5400    91.5800
+  ring                8    58.7287    21.4256    34.2000    96.6600
+
+ppn:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  16                  8    62.5125    24.6412    34.2000    96.6600
+  64                  8    56.5825    17.0131    39.3600    91.5800
+
+eager_limit:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  262144              8    71.4075    21.6409    35.5400    96.6600
+  4096                8    47.6875    11.2646    34.2000    67.4600
+
+binding:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  core                8    51.8663    16.2748    34.2000    84.3300
+  socket              8    67.2288    22.7375    39.6400    96.6600
+
+coll_tuning:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 8    57.5588    22.0870    34.2000    91.5800
+  on                  8    61.5362    20.4902    39.3600    96.6600
+
+=== Main Effects: bandwidth ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+eager_limit             -4.2275       1.7031            31.1%
+ppn                     -3.5800       1.7031            26.4%
+msg_size                -2.9300       1.7031            21.6%
+coll_tuning             -1.0375       1.7031             7.6%
+binding                  0.9575       1.7031             7.1%
+algorithm                0.8400       1.7031             6.2%
+
+=== Interaction Effects: bandwidth ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+msg_size             coll_tuning                5.5025            12.6%
+algorithm            binding                   -5.5025            12.6%
+ppn                  eager_limit               -5.5025            12.6%
+msg_size             binding                   -4.2275             9.7%
+algorithm            coll_tuning                4.2275             9.7%
+msg_size             algorithm                 -3.5800             8.2%
+binding              coll_tuning                3.5800             8.2%
+algorithm            ppn                       -2.9300             6.7%
+eager_limit          binding                   -2.9300             6.7%
+algorithm            eager_limit                1.0375             2.4%
+ppn                  binding                    1.0375             2.4%
+msg_size             eager_limit                0.9575             2.2%
+ppn                  coll_tuning               -0.9575             2.2%
+msg_size             ppn                        0.8400             1.9%
+eager_limit          coll_tuning               -0.8400             1.9%
+
+=== Summary Statistics: bandwidth ===
+
+msg_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1048576             8    19.9925     6.5195     9.5400    30.1400
+  4096                8    17.0625     7.2134     9.2100    29.9100
+
+algorithm:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  recursive_doubling     8    18.1075     5.6671     9.5400    24.5600
+  ring                8    18.9475     8.1807     9.2100    30.1400
+
+ppn:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  16                  8    20.3175     5.5034    13.5000    30.1400
+  64                  8    16.7375     7.8634     9.2100    29.9100
+
+eager_limit:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  262144              8    20.6412     6.1679     9.2100    29.9100
+  4096                8    16.4138     7.1546     9.5400    30.1400
+
+binding:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  core                8    18.0488     8.1889     9.2100    30.1400
+  socket              8    19.0062     5.6445    11.2800    24.5600
+
+coll_tuning:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 8    19.0463     6.5192    11.2800    30.1400
+  on                  8    18.0087     7.5052     9.2100    29.9100</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: allreduce_latency ===
+Direction: minimize
+
+Best observed run: #2
+  msg_size = 1048576
+  algorithm = recursive_doubling
+  ppn = 64
+  eager_limit = 4096
+  binding = core
+  coll_tuning = on
+  Value: 34.2
+
+RSM Model (linear, R² = 0.27):
+  Coefficients:
+    intercept:  +59.5475
+    msg_size:  -2.3600
+    algorithm:  -2.4125
+    ppn:  +4.3000
+    eager_limit:  -4.6425
+    binding:  +6.7700
+    coll_tuning:  +3.4600
+  Predicted optimum:
+    msg_size = 4096
+    algorithm = recursive_doubling
+    ppn = 16
+    eager_limit = 4096
+    binding = socket
+    coll_tuning = on
+    Predicted value: 74.8925
+
+Factor importance:
+  1. binding  (effect: 13.5, contribution: 28.3%)
+  2. eager_limit  (effect: 9.3, contribution: 19.4%)
+  3. ppn  (effect: 8.6, contribution: 18.0%)
+  4. coll_tuning  (effect: 6.9, contribution: 14.4%)
+  5. algorithm  (effect: -4.8, contribution: 10.1%)
+  6. msg_size  (effect: 4.7, contribution: 9.9%)
+
+=== Optimization: bandwidth ===
+Direction: maximize
+
+Best observed run: #15
+  msg_size = 1048576
+  algorithm = ring
+  ppn = 16
+  eager_limit = 262144
+  binding = socket
+  coll_tuning = on
+  Value: 30.14
+
+RSM Model (linear, R² = 0.21):
+  Coefficients:
+    intercept:  +18.5275
+    msg_size:  +0.1463
+    algorithm:  +0.9300
+    ppn:  -1.3213
+    eager_limit:  -1.9263
+    binding:  +0.9800
+    coll_tuning:  +1.3487
+  Predicted optimum:
+    msg_size = 4096
+    algorithm = recursive_doubling
+    ppn = 16
+    eager_limit = 4096
+    binding = socket
+    coll_tuning = on
+    Predicted value: 23.0275
+
+Factor importance:
+  1. eager_limit  (effect: 3.9, contribution: 29.0%)
+  2. coll_tuning  (effect: 2.7, contribution: 20.3%)
+  3. ppn  (effect: -2.6, contribution: 19.9%)
+  4. binding  (effect: 2.0, contribution: 14.7%)
+  5. algorithm  (effect: 1.9, contribution: 14.0%)
+  6. msg_size  (effect: -0.3, contribution: 2.2%)</div></div>
+  </section>
+
+  <div class="chapter-nav">
+    <a href="index.html">&larr; All Use Cases</a>
+    <a href="08-gpu-kernel-optimization.html">GPU Kernel Optimization &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <span>doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

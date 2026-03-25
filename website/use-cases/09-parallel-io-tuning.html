@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parallel I/O Tuning &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .caption { font-size:.72rem; color:var(--faint); margin-bottom:4px; }
+  </style>
+</head>
+<body>
+
+<img src="../logo-light.svg" alt="" class="bg-logo-light">
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><span class="dot"></span> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<section class="uc-hero-detail" style="background:linear-gradient(135deg, #0891b211, #0891b208);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-badge" style="background:#0891b218;color:#0891b2;">Fractional Factorial</div>
+    <h1>Parallel I/O Tuning</h1>
+    <p class="uc-subtitle">Tune Lustre filesystem striping and MPI-IO aggregation for large-scale parallel writes.</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Levels</th><th>Type</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>stripe_count</code></td><td>4, 32</td><td>continuous</td><td></td></tr>
+            <tr><td><code>stripe_size</code></td><td>1, 16</td><td>continuous</td><td>MB</td></tr>
+            <tr><td><code>aggregators</code></td><td>4, 64</td><td>continuous</td><td></td></tr>
+            <tr><td><code>collective_io</code></td><td>on, off</td><td>categorical</td><td></td></tr>
+            <tr><td><code>alignment</code></td><td>1, 4</td><td>continuous</td><td>MB</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> filesystem=lustre, file_size_gb=100</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>write_bw</code></td><td style="color:var(--green);font-weight:600;">&#x2191; maximize</td><td>GB/s</td></tr>
+            <tr><td><code>read_bw</code></td><td style="color:var(--green);font-weight:600;">&#x2191; maximize</td><td>GB/s</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Fractional Factorial Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>stripe_count</code></th><th><code>stripe_size</code></th><th><code>aggregators</code></th><th><code>collective_io</code></th><th><code>alignment</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>4</td><td>16</td><td>64</td><td>on</td><td>1</td></tr>
+        <tr><td>2</td><td>32</td><td>1</td><td>4</td><td>on</td><td>1</td></tr>
+        <tr><td>3</td><td>32</td><td>16</td><td>4</td><td>off</td><td>1</td></tr>
+        <tr><td>4</td><td>32</td><td>16</td><td>64</td><td>off</td><td>4</td></tr>
+        <tr><td>5</td><td>4</td><td>16</td><td>4</td><td>on</td><td>4</td></tr>
+        <tr><td>6</td><td>32</td><td>1</td><td>64</td><td>on</td><td>4</td></tr>
+        <tr><td>7</td><td>4</td><td>1</td><td>4</td><td>off</td><td>4</td></tr>
+        <tr><td>8</td><td>4</td><td>1</td><td>64</td><td>off</td><td>1</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="uc-section">
+    <h2>How to Run</h2>
+    <div class="code-block"><div class="code-header"><span>terminal</span></div><div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/09_parallel_io_tuning/config.json
+<span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/09_parallel_io_tuning/config.json <span class="flag">--output</span> results/run.sh <span class="flag">--seed</span> 42
+<span class="prompt">$ </span>bash results/run.sh
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/09_parallel_io_tuning/config.json
+<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/09_parallel_io_tuning/config.json
+<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/09_parallel_io_tuning/config.json <span class="flag">--output</span> report.html</div></div>
+  </section>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs.</p>
+
+    <h3>Response: write_bw</h3>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/09_pareto_write_bw.png" alt="Pareto chart for write_bw">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/09_main_effects_write_bw.png" alt="Main effects plot for write_bw">
+      </div>
+    </div>
+
+    <h3>Response: read_bw</h3>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/09_pareto_read_bw.png" alt="Pareto chart for read_bw">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/09_main_effects_read_bw.png" alt="Main effects plot for read_bw">
+      </div>
+    </div>
+
+      <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+    <div class="callout info" style="margin-top:24px;">
+      <span class="callout-icon">&#x1F4CA;</span>
+      <div class="callout-body">
+        <h4>How to Read These Surfaces</h4>
+        <p style="margin-bottom:10px;">Each plot shows predicted response (vertical axis) across two factors while other factors are held at center. Red dots are actual experimental observations.</p>
+        <ul style="font-size:.82rem;line-height:1.6;margin:0 0 0 16px;">
+          <li><strong>Flat surface</strong> — these two factors have little effect on the response.</li>
+          <li><strong>Tilted plane</strong> — strong linear effect; moving along one axis consistently changes the response.</li>
+          <li><strong>Curved/domed surface</strong> — quadratic curvature; there is an optimum somewhere in the middle.</li>
+          <li><strong>Saddle shape</strong> — significant interaction; the best setting of one factor depends on the other.</li>
+          <li><strong>Red dots far from surface</strong> — poor model fit in that region; be cautious about predictions there.</li>
+        </ul>
+        <p style="margin-top:12px;font-size:.82rem;"><strong>write_bw (GB/s)</strong> — R² = 1.000, Adj R² = 1.000<br>The model fits well — the surface shape is reliable.<br>Curvature detected in stripe_count, stripe_size — look for a peak or valley in the surface.<br>Strongest linear driver: <code>collective_io</code> (decreases write_bw).<br>Notable interaction: <code>stripe_count</code> × <code>stripe_size</code> — the effect of one depends on the level of the other. Look for a twisted surface.</p>
+        <p style="margin-top:12px;font-size:.82rem;"><strong>read_bw (GB/s)</strong> — R² = 1.000, Adj R² = 1.000<br>The model fits well — the surface shape is reliable.<br>Curvature detected in stripe_count, stripe_size — look for a peak or valley in the surface.<br>Strongest linear driver: <code>collective_io</code> (decreases read_bw).<br>Notable interaction: <code>stripe_count</code> × <code>stripe_size</code> — the effect of one depends on the level of the other. Look for a twisted surface.</p>
+      </div>
+    </div>
+
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">read: bw aggregators vs alignment</p>
+      <img src="../images/09_rsm_read_bw_aggregators_vs_alignment.png" alt="RSM surface: read — bw aggregators vs alignment" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">read: bw stripe count vs aggregators</p>
+      <img src="../images/09_rsm_read_bw_stripe_count_vs_aggregators.png" alt="RSM surface: read — bw stripe count vs aggregators" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">read: bw stripe count vs alignment</p>
+      <img src="../images/09_rsm_read_bw_stripe_count_vs_alignment.png" alt="RSM surface: read — bw stripe count vs alignment" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">read: bw stripe count vs stripe size</p>
+      <img src="../images/09_rsm_read_bw_stripe_count_vs_stripe_size.png" alt="RSM surface: read — bw stripe count vs stripe size" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">read: bw stripe size vs aggregators</p>
+      <img src="../images/09_rsm_read_bw_stripe_size_vs_aggregators.png" alt="RSM surface: read — bw stripe size vs aggregators" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">read: bw stripe size vs alignment</p>
+      <img src="../images/09_rsm_read_bw_stripe_size_vs_alignment.png" alt="RSM surface: read — bw stripe size vs alignment" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">write: bw aggregators vs alignment</p>
+      <img src="../images/09_rsm_write_bw_aggregators_vs_alignment.png" alt="RSM surface: write — bw aggregators vs alignment" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">write: bw stripe count vs aggregators</p>
+      <img src="../images/09_rsm_write_bw_stripe_count_vs_aggregators.png" alt="RSM surface: write — bw stripe count vs aggregators" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">write: bw stripe count vs alignment</p>
+      <img src="../images/09_rsm_write_bw_stripe_count_vs_alignment.png" alt="RSM surface: write — bw stripe count vs alignment" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">write: bw stripe count vs stripe size</p>
+      <img src="../images/09_rsm_write_bw_stripe_count_vs_stripe_size.png" alt="RSM surface: write — bw stripe count vs stripe size" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">write: bw stripe size vs aggregators</p>
+      <img src="../images/09_rsm_write_bw_stripe_size_vs_aggregators.png" alt="RSM surface: write — bw stripe size vs aggregators" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">write: bw stripe size vs alignment</p>
+      <img src="../images/09_rsm_write_bw_stripe_size_vs_alignment.png" alt="RSM surface: write — bw stripe size vs alignment" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+  </section>
+
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: write_bw ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+stripe_count            -7.3525       1.8006            49.5%
+collective_io            3.6175       1.8006            24.3%
+alignment               -1.5575       1.8006            10.5%
+stripe_size             -1.4225       1.8006             9.6%
+aggregators             -0.9125       1.8006             6.1%
+
+=== Interaction Effects: write_bw ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+stripe_size          collective_io             -7.3525            21.5%
+aggregators          alignment                  7.3525            21.5%
+stripe_count         stripe_size                3.6175            10.6%
+stripe_size          aggregators               -3.4325            10.0%
+collective_io        alignment                  3.4325            10.0%
+stripe_size          alignment                  2.5625             7.5%
+aggregators          collective_io             -2.5625             7.5%
+stripe_count         aggregators                1.5575             4.6%
+stripe_count         collective_io             -1.4225             4.2%
+stripe_count         alignment                  0.9125             2.7%
+
+=== Summary Statistics: write_bw ===
+
+stripe_count:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  32                  4    18.1700     3.2792    13.9800    21.4900
+  4                   4    10.8175     3.7047     6.4000    14.5900
+
+stripe_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    15.2050     6.9202     6.4000    21.4900
+  16                  4    13.7825     3.3585     9.2400    17.3200
+
+aggregators:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  4                   4    14.9500     6.3671     6.4000    21.4900
+  64                  4    14.0375     4.4070     9.2400    19.8900
+
+collective_io:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4    12.6850     4.5748     6.4000    17.3200
+  on                  4    16.3025     5.5555     9.2400    21.4900
+
+alignment:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    15.2725     5.2986     9.2400    21.4900
+  4                   4    13.7150     5.5520     6.4000    19.8900
+
+=== Main Effects: read_bw ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+stripe_count            -7.9600       2.0289            54.4%
+collective_io            5.2850       2.0289            36.1%
+stripe_size             -1.1000       2.0289             7.5%
+alignment                0.1950       2.0289             1.3%
+aggregators             -0.0800       2.0289             0.5%
+
+=== Interaction Effects: read_bw ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+stripe_size          collective_io             -7.9600            22.1%
+aggregators          alignment                  7.9600            22.1%
+stripe_count         stripe_size                5.2850            14.7%
+stripe_size          aggregators               -3.5850            10.0%
+collective_io        alignment                  3.5850            10.0%
+stripe_size          alignment                  3.1400             8.7%
+aggregators          collective_io             -3.1400             8.7%
+stripe_count         collective_io             -1.1000             3.1%
+stripe_count         aggregators               -0.1950             0.5%
+stripe_count         alignment                  0.0800             0.2%
+
+=== Summary Statistics: read_bw ===
+
+stripe_count:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  32                  4    22.3575     3.6959    19.0000    25.8300
+  4                   4    14.3975     4.5759     9.0800    19.9900
+
+stripe_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    18.9275     8.0909     9.0800    25.8300
+  16                  4    17.8275     3.2512    12.9900    19.9900
+
+aggregators:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  4                   4    18.4175     6.7688     9.0800    25.2700
+  64                  4    18.3375     5.5694    12.9900    25.8300
+
+collective_io:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4    15.7350     4.7580     9.0800    19.3300
+  on                  4    21.0200     5.9649    12.9900    25.8300
+
+alignment:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    18.2800     5.3388    12.9900    25.2700
+  4                   4    18.4750     6.9506     9.0800    25.8300</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: write_bw ===
+Direction: maximize
+
+Best observed run: #6
+  stripe_count = 4
+  stripe_size = 16
+  aggregators = 64
+  collective_io = on
+  alignment = 1
+  Value: 21.49
+
+RSM Model (linear, R² = 0.48):
+  Coefficients:
+    intercept:  +14.4937
+    stripe_count:  -2.9937
+    stripe_size:  -0.6137
+    aggregators:  +0.3037
+    collective_io:  +1.1663
+    alignment:  +0.0563
+  Predicted optimum:
+    stripe_count = 4
+    stripe_size = 16
+    aggregators = 64
+    collective_io = on
+    alignment = 1
+    Predicted value: 18.2875
+
+Factor importance:
+  1. stripe_count  (effect: 6.0, contribution: 58.3%)
+  2. collective_io  (effect: 2.3, contribution: 22.7%)
+  3. stripe_size  (effect: -1.2, contribution: 12.0%)
+  4. aggregators  (effect: 0.6, contribution: 5.9%)
+  5. alignment  (effect: 0.1, contribution: 1.1%)
+
+=== Optimization: read_bw ===
+Direction: maximize
+
+Best observed run: #4
+  stripe_count = 4
+  stripe_size = 1
+  aggregators = 4
+  collective_io = off
+  alignment = 4
+  Value: 25.83
+
+RSM Model (linear, R² = 0.66):
+  Coefficients:
+    intercept:  +18.3775
+    stripe_count:  -4.1450
+    stripe_size:  -0.9100
+    aggregators:  -0.2075
+    collective_io:  +1.0175
+    alignment:  +0.1800
+  Predicted optimum:
+    stripe_count = 4
+    stripe_size = 16
+    aggregators = 4
+    collective_io = on
+    alignment = 4
+    Predicted value: 23.0175
+
+Factor importance:
+  1. stripe_count  (effect: 8.3, contribution: 64.2%)
+  2. collective_io  (effect: 2.0, contribution: 15.8%)
+  3. stripe_size  (effect: -1.8, contribution: 14.1%)
+  4. aggregators  (effect: -0.4, contribution: 3.2%)
+  5. alignment  (effect: 0.4, contribution: 2.8%)</div></div>
+  </section>
+
+  <div class="chapter-nav">
+    <a href="08-gpu-kernel-optimization.html">&larr; GPU Kernel Optimization</a>
+    <a href="10-numa-memory-placement.html">NUMA Memory Placement &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <span>doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

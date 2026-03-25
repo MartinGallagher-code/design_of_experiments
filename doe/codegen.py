@@ -48,12 +48,15 @@ def _build_template_context(matrix: DesignMatrix, cfg: DOEConfig) -> dict:
         }
         for run in matrix.runs
     ]
+    # Resolve to absolute paths so the generated script works from any directory
+    test_script = str(Path(cfg.test_script).resolve()) if cfg.test_script else ""
+    out_directory = str(Path(cfg.out_directory or "results").resolve())
     return {
         "runs": runs_data,
-        "test_script": cfg.test_script,
+        "test_script": test_script,
         "fixed_factors": cfg.fixed_factors,
         "arg_style": cfg.runner.arg_style,
-        "out_directory": cfg.out_directory or "results",
+        "out_directory": out_directory,
         "operation": matrix.operation,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "total_runs": len(matrix.runs),

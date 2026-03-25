@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GPU Kernel Optimization &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .caption { font-size:.72rem; color:var(--faint); margin-bottom:4px; }
+  </style>
+</head>
+<body>
+
+<img src="../logo-light.svg" alt="" class="bg-logo-light">
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><span class="dot"></span> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<section class="uc-hero-detail" style="background:linear-gradient(135deg, #5046e511, #5046e508);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-badge" style="background:#5046e518;color:#5046e5;">Full Factorial</div>
+    <h1>GPU Kernel Optimization</h1>
+    <p class="uc-subtitle">Optimize CUDA kernel launch parameters for maximum throughput on NVIDIA GPUs.</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Levels</th><th>Type</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>block_size</code></td><td>128, 512</td><td>continuous</td><td>threads</td></tr>
+            <tr><td><code>shared_mem</code></td><td>16, 48</td><td>continuous</td><td>KB</td></tr>
+            <tr><td><code>unroll_factor</code></td><td>2, 8</td><td>continuous</td><td></td></tr>
+            <tr><td><code>precision</code></td><td>fp32, fp64</td><td>categorical</td><td></td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> gpu_model=A100, problem_size=8192</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>gflops</code></td><td style="color:var(--green);font-weight:600;">&#x2191; maximize</td><td>GFLOPS</td></tr>
+            <tr><td><code>occupancy</code></td><td style="color:var(--green);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Full Factorial Design produces <strong>16 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>block_size</code></th><th><code>shared_mem</code></th><th><code>unroll_factor</code></th><th><code>precision</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>128</td><td>48</td><td>8</td><td>fp64</td></tr>
+        <tr><td>2</td><td>512</td><td>16</td><td>2</td><td>fp64</td></tr>
+        <tr><td>3</td><td>128</td><td>48</td><td>2</td><td>fp64</td></tr>
+        <tr><td>4</td><td>128</td><td>48</td><td>8</td><td>fp32</td></tr>
+        <tr><td>5</td><td>512</td><td>48</td><td>8</td><td>fp32</td></tr>
+        <tr><td>6</td><td>512</td><td>16</td><td>8</td><td>fp32</td></tr>
+        <tr><td>7</td><td>512</td><td>48</td><td>2</td><td>fp32</td></tr>
+        <tr><td>8</td><td>512</td><td>16</td><td>2</td><td>fp32</td></tr>
+        <tr><td>9</td><td>128</td><td>16</td><td>2</td><td>fp64</td></tr>
+        <tr><td>10</td><td>128</td><td>16</td><td>8</td><td>fp32</td></tr>
+        <tr><td>11</td><td>512</td><td>48</td><td>2</td><td>fp64</td></tr>
+        <tr><td>12</td><td>512</td><td>48</td><td>8</td><td>fp64</td></tr>
+        <tr><td>13</td><td>128</td><td>48</td><td>2</td><td>fp32</td></tr>
+        <tr><td>14</td><td>512</td><td>16</td><td>8</td><td>fp64</td></tr>
+        <tr><td>15</td><td>128</td><td>16</td><td>2</td><td>fp32</td></tr>
+        <tr><td>16</td><td>128</td><td>16</td><td>8</td><td>fp64</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="uc-section">
+    <h2>How to Run</h2>
+    <div class="code-block"><div class="code-header"><span>terminal</span></div><div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/08_gpu_kernel_optimization/config.json
+<span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/08_gpu_kernel_optimization/config.json <span class="flag">--output</span> results/run.sh <span class="flag">--seed</span> 42
+<span class="prompt">$ </span>bash results/run.sh
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/08_gpu_kernel_optimization/config.json
+<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/08_gpu_kernel_optimization/config.json
+<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/08_gpu_kernel_optimization/config.json <span class="flag">--output</span> report.html</div></div>
+  </section>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs.</p>
+
+    <h3>Response: gflops</h3>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/08_pareto_gflops.png" alt="Pareto chart for gflops">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/08_main_effects_gflops.png" alt="Main effects plot for gflops">
+      </div>
+    </div>
+
+    <h3>Response: occupancy</h3>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/08_pareto_occupancy.png" alt="Pareto chart for occupancy">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/08_main_effects_occupancy.png" alt="Main effects plot for occupancy">
+      </div>
+    </div>
+
+      <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+    <div class="callout info" style="margin-top:24px;">
+      <span class="callout-icon">&#x1F4CA;</span>
+      <div class="callout-body">
+        <h4>How to Read These Surfaces</h4>
+        <p style="margin-bottom:10px;">Each plot shows predicted response (vertical axis) across two factors while other factors are held at center. Red dots are actual experimental observations.</p>
+        <ul style="font-size:.82rem;line-height:1.6;margin:0 0 0 16px;">
+          <li><strong>Flat surface</strong> — these two factors have little effect on the response.</li>
+          <li><strong>Tilted plane</strong> — strong linear effect; moving along one axis consistently changes the response.</li>
+          <li><strong>Curved/domed surface</strong> — quadratic curvature; there is an optimum somewhere in the middle.</li>
+          <li><strong>Saddle shape</strong> — significant interaction; the best setting of one factor depends on the other.</li>
+          <li><strong>Red dots far from surface</strong> — poor model fit in that region; be cautious about predictions there.</li>
+        </ul>
+        <p style="margin-top:12px;font-size:.82rem;"><strong>gflops (GFLOPS)</strong> — R² = 0.941, Adj R² = 0.118<br>The model fits well — the surface shape is reliable.<br>Curvature detected in block_size, shared_mem — look for a peak or valley in the surface.<br>Strongest linear driver: <code>unroll_factor</code> (increases gflops).<br>Notable interaction: <code>block_size</code> × <code>precision</code> — the effect of one depends on the level of the other. Look for a twisted surface.</p>
+        <p style="margin-top:12px;font-size:.82rem;"><strong>occupancy (%)</strong> — R² = 0.775, Adj R² = -2.381<br>Moderate fit — surface shows general trends but some noise remains.<br>Curvature detected in unroll_factor, block_size — look for a peak or valley in the surface.<br>Strongest linear driver: <code>shared_mem</code> (decreases occupancy).<br>Notable interaction: <code>block_size</code> × <code>shared_mem</code> — the effect of one depends on the level of the other. Look for a twisted surface.</p>
+      </div>
+    </div>
+
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">gflops: block size vs shared mem</p>
+      <img src="../images/08_rsm_gflops_block_size_vs_shared_mem.png" alt="RSM surface: gflops — block size vs shared mem" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">gflops: block size vs unroll factor</p>
+      <img src="../images/08_rsm_gflops_block_size_vs_unroll_factor.png" alt="RSM surface: gflops — block size vs unroll factor" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">gflops: shared mem vs unroll factor</p>
+      <img src="../images/08_rsm_gflops_shared_mem_vs_unroll_factor.png" alt="RSM surface: gflops — shared mem vs unroll factor" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">occupancy: block size vs shared mem</p>
+      <img src="../images/08_rsm_occupancy_block_size_vs_shared_mem.png" alt="RSM surface: occupancy — block size vs shared mem" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">occupancy: block size vs unroll factor</p>
+      <img src="../images/08_rsm_occupancy_block_size_vs_unroll_factor.png" alt="RSM surface: occupancy — block size vs unroll factor" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">occupancy: shared mem vs unroll factor</p>
+      <img src="../images/08_rsm_occupancy_shared_mem_vs_unroll_factor.png" alt="RSM surface: occupancy — shared mem vs unroll factor" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+  </section>
+
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: gflops ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+unroll_factor         -117.3000      38.1811            71.4%
+shared_mem             -19.9000      38.1811            12.1%
+precision              -16.7000      38.1811            10.2%
+block_size              10.3250      38.1811             6.3%
+
+=== Interaction Effects: gflops ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+block_size           precision               -134.9000            36.4%
+shared_mem           unroll_factor             98.8750            26.7%
+block_size           shared_mem               -80.6500            21.8%
+block_size           unroll_factor             27.4000             7.4%
+unroll_factor        precision                -25.0750             6.8%
+shared_mem           precision                 -3.5750             1.0%
+
+=== Summary Statistics: gflops ===
+
+block_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  128                 8   433.5250   178.1231   196.0000   705.9000
+  512                 8   443.8500   134.8807   259.0000   593.5000
+
+shared_mem:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  16                  8   448.6375   179.4997   196.0000   705.9000
+  48                  8   428.7375   132.4202   252.2000   620.9000
+
+unroll_factor:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2                   8   497.3375   145.8686   259.0000   705.9000
+  8                   8   380.0375   144.3657   196.0000   620.9000
+
+precision:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  fp32                8   447.0375   115.6024   252.2000   592.4000
+  fp64                8   430.3375   190.9405   196.0000   705.9000
+
+=== Main Effects: occupancy ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+shared_mem              -8.6250       3.9148            43.8%
+precision               -5.5750       3.9148            28.3%
+block_size              -2.7500       3.9148            14.0%
+unroll_factor           -2.7250       3.9148            13.9%
+
+=== Interaction Effects: occupancy ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+shared_mem           precision                -10.1500            32.7%
+shared_mem           unroll_factor              8.2500            26.6%
+unroll_factor        precision                 -6.1500            19.8%
+block_size           unroll_factor             -4.0250            13.0%
+block_size           precision                 -2.1250             6.8%
+block_size           shared_mem                 0.3250             1.0%
+
+=== Summary Statistics: occupancy ===
+
+block_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  128                 8    52.4750    13.5118    28.5000    73.2000
+  512                 8    49.7250    18.3997    28.4000    77.0000
+
+shared_mem:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  16                  8    55.4125    13.9524    35.0000    77.0000
+  48                  8    46.7875    16.9783    28.4000    72.0000
+
+unroll_factor:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2                   8    52.4625    20.4763    28.4000    77.0000
+  8                   8    49.7375    10.0955    29.1000    65.3000
+
+precision:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  fp32                8    53.8875    16.2604    28.5000    73.2000
+  fp64                8    48.3125    15.5974    28.4000    77.0000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: gflops ===
+Direction: maximize
+
+Best observed run: #6
+  block_size = 512
+  shared_mem = 16
+  unroll_factor = 2
+  precision = fp32
+  Value: 705.9
+
+RSM Model (linear, R² = 0.30):
+  Coefficients:
+    intercept:  +438.6875
+    block_size:  +0.1250
+    shared_mem:  -69.4875
+    unroll_factor:  -13.3125
+    precision:  -40.0625
+  Predicted optimum:
+    block_size = 512
+    shared_mem = 16
+    unroll_factor = 2
+    precision = fp32
+    Predicted value: 561.6750
+
+Factor importance:
+  1. shared_mem  (effect: -139.0, contribution: 56.5%)
+  2. precision  (effect: -80.1, contribution: 32.6%)
+  3. unroll_factor  (effect: -26.6, contribution: 10.8%)
+  4. block_size  (effect: 0.2, contribution: 0.1%)
+
+=== Optimization: occupancy ===
+Direction: maximize
+
+Best observed run: #10
+  block_size = 128
+  shared_mem = 16
+  unroll_factor = 2
+  precision = fp32
+  Value: 77.0
+
+RSM Model (linear, R² = 0.48):
+  Coefficients:
+    intercept:  +51.1000
+    block_size:  -4.9875
+    shared_mem:  -6.6000
+    unroll_factor:  -4.4750
+    precision:  -4.7250
+  Predicted optimum:
+    block_size = 128
+    shared_mem = 16
+    unroll_factor = 2
+    precision = fp32
+    Predicted value: 71.8875
+
+Factor importance:
+  1. shared_mem  (effect: -13.2, contribution: 31.7%)
+  2. block_size  (effect: -10.0, contribution: 24.0%)
+  3. precision  (effect: -9.5, contribution: 22.7%)
+  4. unroll_factor  (effect: -9.0, contribution: 21.5%)</div></div>
+  </section>
+
+  <div class="chapter-nav">
+    <a href="07-mpi-collective-tuning.html">&larr; MPI Collective Tuning</a>
+    <a href="09-parallel-io-tuning.html">Parallel I/O Tuning &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <span>doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

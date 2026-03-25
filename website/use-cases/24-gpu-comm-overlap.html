@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GPU Compute-Communication Overlap &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .caption { font-size:.72rem; color:var(--faint); margin-bottom:4px; }
+  </style>
+</head>
+<body>
+
+<img src="../logo-light.svg" alt="" class="bg-logo-light">
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><span class="dot"></span> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<section class="uc-hero-detail" style="background:linear-gradient(135deg, #6366f111, #6366f108);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-badge" style="background:#6366f118;color:#6366f1;">Full Factorial</div>
+    <h1>GPU Compute-Communication Overlap</h1>
+    <p class="uc-subtitle">Maximize GPU computation and inter-node communication overlap in distributed stencil codes.</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Levels</th><th>Type</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td>num_streams</td><td>1 &ndash; 4</td><td>continuous</td><td>&mdash;</td></tr>
+            <tr><td>gdrdma</td><td>off / on</td><td>categorical</td><td>&mdash;</td></tr>
+            <tr><td>chunk_count</td><td>1 &ndash; 8</td><td>continuous</td><td>&mdash;</td></tr>
+            <tr><td>kernel_fusion</td><td>off / on</td><td>categorical</td><td>&mdash;</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> gpus = 64, gpu_model = H100 SXM, interconnect = NDR InfiniBand, problem_size = 2048^3</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td>overlap_efficiency</td><td style="color:var(--green);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+            <tr><td>step_time_ms</td><td style="color:var(--green);font-weight:600;">&#x2193; minimize</td><td>ms</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Full Factorial Design produces <strong>16 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>num_streams</code></th><th><code>gdrdma</code></th><th><code>chunk_count</code></th><th><code>kernel_fusion</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>1</td><td>on</td><td>8</td><td>on</td></tr>
+        <tr><td>2</td><td>4</td><td>off</td><td>1</td><td>on</td></tr>
+        <tr><td>3</td><td>1</td><td>on</td><td>1</td><td>on</td></tr>
+        <tr><td>4</td><td>1</td><td>on</td><td>8</td><td>off</td></tr>
+        <tr><td>5</td><td>4</td><td>on</td><td>8</td><td>off</td></tr>
+        <tr><td>6</td><td>4</td><td>off</td><td>8</td><td>off</td></tr>
+        <tr><td>7</td><td>4</td><td>on</td><td>1</td><td>off</td></tr>
+        <tr><td>8</td><td>4</td><td>off</td><td>1</td><td>off</td></tr>
+        <tr><td>9</td><td>1</td><td>off</td><td>1</td><td>on</td></tr>
+        <tr><td>10</td><td>1</td><td>off</td><td>8</td><td>off</td></tr>
+        <tr><td>11</td><td>4</td><td>on</td><td>1</td><td>on</td></tr>
+        <tr><td>12</td><td>4</td><td>on</td><td>8</td><td>on</td></tr>
+        <tr><td>13</td><td>1</td><td>on</td><td>1</td><td>off</td></tr>
+        <tr><td>14</td><td>4</td><td>off</td><td>8</td><td>on</td></tr>
+        <tr><td>15</td><td>1</td><td>off</td><td>1</td><td>off</td></tr>
+        <tr><td>16</td><td>1</td><td>off</td><td>8</td><td>on</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="uc-section">
+    <h2>How to Run</h2>
+    <div class="code-block"><div class="code-header"><span>terminal</span></div><div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/24_gpu_comm_overlap/config.json
+<span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/24_gpu_comm_overlap/config.json <span class="flag">--output</span> results/run.sh <span class="flag">--seed</span> 42
+<span class="prompt">$ </span>bash results/run.sh
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/24_gpu_comm_overlap/config.json
+<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/24_gpu_comm_overlap/config.json
+<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/24_gpu_comm_overlap/config.json <span class="flag">--output</span> report.html</div></div>
+  </section>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs.</p>
+
+    <h3>Response: overlap_efficiency</h3>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/24_pareto_overlap_efficiency.png" alt="Pareto chart for overlap_efficiency">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/24_main_effects_overlap_efficiency.png" alt="Main effects plot for overlap_efficiency">
+      </div>
+    </div>
+
+    <h3>Response: step_time_ms</h3>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/24_pareto_step_time_ms.png" alt="Pareto chart for step_time_ms">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/24_main_effects_step_time_ms.png" alt="Main effects plot for step_time_ms">
+      </div>
+    </div>
+
+    <h3>Response Surface Plots</h3>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">overlap_efficiency: num_streams vs chunk_count</p>
+      <img src="../images/24_rsm_overlap_efficiency_num_streams_vs_chunk_count.png" alt="RSM surface: overlap_efficiency: num_streams vs chunk_count" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">step_time_ms: num_streams vs chunk_count</p>
+      <img src="../images/24_rsm_step_time_ms_num_streams_vs_chunk_count.png" alt="RSM surface: step_time_ms: num_streams vs chunk_count" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: overlap_efficiency ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+kernel_fusion          -12.7575       3.0791            56.6%
+gdrdma                  -4.9700       3.0791            22.0%
+num_streams             -2.7900       3.0791            12.4%
+chunk_count              2.0400       3.0791             9.0%
+
+=== Interaction Effects: overlap_efficiency ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+gdrdma               chunk_count              -10.5825            33.9%
+chunk_count          kernel_fusion             -9.8300            31.5%
+gdrdma               kernel_fusion             -3.8400            12.3%
+num_streams          chunk_count               -3.6825            11.8%
+num_streams          gdrdma                    -2.2225             7.1%
+num_streams          kernel_fusion             -1.0400             3.3%
+
+=== Summary Statistics: overlap_efficiency ===
+
+num_streams:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   8    48.1863    13.4865    32.1300    71.1200
+  4                   8    45.3963    11.7783    24.5600    61.8500
+
+gdrdma:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 8    49.2763    12.9130    35.7000    71.1200
+  on                  8    44.3062    12.0084    24.5600    62.0000
+
+chunk_count:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   8    45.7713     8.3288    35.7000    62.0000
+  8                   8    47.8113    15.9158    24.5600    71.1200
+
+kernel_fusion:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 8    53.1700    11.5749    35.7000    71.1200
+  on                  8    40.4125     9.9036    24.5600    53.5800
+
+=== Main Effects: step_time_ms ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+kernel_fusion           10.7475       2.5064            55.8%
+gdrdma                   3.8800       2.5064            20.2%
+num_streams              2.4975       2.5064            13.0%
+chunk_count             -2.1250       2.5064            11.0%
+
+=== Interaction Effects: step_time_ms ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+gdrdma               chunk_count                8.2025            32.6%
+chunk_count          kernel_fusion              7.9900            31.8%
+num_streams          chunk_count                3.7750            15.0%
+gdrdma               kernel_fusion              2.6250            10.4%
+num_streams          kernel_fusion              1.5425             6.1%
+num_streams          gdrdma                     1.0100             4.0%
+
+=== Summary Statistics: step_time_ms ===
+
+num_streams:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   8    65.9675    10.6844    47.1100    78.0900
+  4                   8    68.4650     9.8823    54.5400    85.2000
+
+gdrdma:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 8    65.2763    10.9366    47.1100    78.1600
+  on                  8    69.1562     9.3364    56.5000    85.2000
+
+chunk_count:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   8    68.2788     6.1498    56.5000    75.6200
+  8                   8    66.1538    13.2280    47.1100    85.2000
+
+kernel_fusion:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 8    61.8425     9.1360    47.1100    75.6200
+  on                  8    72.5900     8.1185    60.6400    85.2000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: overlap_efficiency ===
+Direction: maximize
+
+Best observed run: #12
+  num_streams = 1
+  gdrdma = off
+  chunk_count = 8
+  kernel_fusion = off
+  Value: 71.12
+
+Factor importance:
+  1. gdrdma  (effect: -4.2, contribution: 29.9%)
+  2. chunk_count  (effect: 4.0, contribution: 28.5%)
+  3. num_streams  (effect: -3.8, contribution: 26.8%)
+  4. kernel_fusion  (effect: 2.1, contribution: 14.8%)
+
+=== Optimization: step_time_ms ===
+Direction: minimize
+
+Best observed run: #12
+  num_streams = 1
+  gdrdma = off
+  chunk_count = 8
+  kernel_fusion = off
+  Value: 47.11
+
+Factor importance:
+  1. num_streams  (effect: 4.0, contribution: 34.2%)
+  2. gdrdma  (effect: 3.3, contribution: 28.6%)
+  3. chunk_count  (effect: -2.5, contribution: 21.4%)
+  4. kernel_fusion  (effect: -1.8, contribution: 15.8%)</div></div>
+  </section>
+
+  <div class="chapter-nav">
+    <a href="23-parallel-filesystem-metadata.html">&larr; Parallel FS Metadata</a>
+    <a href="25-cpu-frequency-governor.html">CPU Frequency Governor &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <span>doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

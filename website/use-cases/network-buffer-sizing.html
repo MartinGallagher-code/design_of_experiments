@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Network Buffer Sizing — DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../quickstart.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F310;</div>
+    <div class="uc-badge" style="background:rgba(67,56,202,.12);color:#4338ca;">Latin Hypercube Design</div>
+    <h1>Network Buffer Sizing</h1>
+    <p class="uc-subtitle">Latin Hypercube of 4 kernel network buffer parameters for throughput and latency</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>netdev_budget</code></td><td>128</td><td>1024</td><td>packets</td></tr>
+            <tr><td><code>txqueuelen</code></td><td>500</td><td>10000</td><td>packets</td></tr>
+            <tr><td><code>tcp_wmem_max_kb</code></td><td>256</td><td>16384</td><td>KB</td></tr>
+            <tr><td><code>backlog_max</code></td><td>1000</td><td>65536</td><td>packets</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> nic = mlx5, ring_buffer = 4096</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>throughput_gbps</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>Gbps</td></tr>
+            <tr><td><code>softirq_pct</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/55_network_buffer_sizing/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  <span class="key">&quot;metadata&quot;</span>: {
+    <span class="key">&quot;name&quot;</span>: &quot;Network Buffer Sizing&quot;,
+    <span class="key">&quot;description&quot;</span>: &quot;Latin Hypercube of 4 kernel network buffer parameters for throughput and latency&quot;
+  },
+  <span class="key">&quot;factors&quot;</span>: [
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;netdev_budget&quot;,
+      <span class="key">&quot;levels&quot;</span>: [
+        &quot;128&quot;,
+        &quot;1024&quot;
+      ],
+      <span class="key">&quot;type&quot;</span>: &quot;continuous&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;packets&quot;
+    },
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;txqueuelen&quot;,
+      <span class="key">&quot;levels&quot;</span>: [
+        &quot;500&quot;,
+        &quot;10000&quot;
+      ],
+      <span class="key">&quot;type&quot;</span>: &quot;continuous&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;packets&quot;
+    },
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;tcp_wmem_max_kb&quot;,
+      <span class="key">&quot;levels&quot;</span>: [
+        &quot;256&quot;,
+        &quot;16384&quot;
+      ],
+      <span class="key">&quot;type&quot;</span>: &quot;continuous&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;KB&quot;
+    },
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;backlog_max&quot;,
+      <span class="key">&quot;levels&quot;</span>: [
+        &quot;1000&quot;,
+        &quot;65536&quot;
+      ],
+      <span class="key">&quot;type&quot;</span>: &quot;continuous&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;packets&quot;
+    }
+  ],
+  <span class="key">&quot;fixed_factors&quot;</span>: {
+    &quot;nic&quot;: &quot;mlx5&quot;,
+    &quot;ring_buffer&quot;: &quot;4096&quot;
+  },
+  <span class="key">&quot;responses&quot;</span>: [
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;throughput_gbps&quot;,
+      <span class="key">&quot;optimize&quot;</span>: &quot;maximize&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;Gbps&quot;
+    },
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;softirq_pct&quot;,
+      <span class="key">&quot;optimize&quot;</span>: &quot;minimize&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;%&quot;
+    }
+  ],
+  <span class="key">&quot;settings&quot;</span>: {
+    <span class="key">&quot;operation&quot;</span>: &quot;latin_hypercube&quot;,
+    <span class="key">&quot;test_script&quot;</span>: &quot;use_cases/55_network_buffer_sizing/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/55_network_buffer_sizing/config.json</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/55_network_buffer_sizing/config.json \
+    <span class="flag">--output</span> use_cases/55_network_buffer_sizing/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/55_network_buffer_sizing/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/55_network_buffer_sizing/config.json</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/55_network_buffer_sizing/config.json</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/55_network_buffer_sizing/config.json \
+    <span class="flag">--output</span> use_cases/55_network_buffer_sizing/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>latin_hypercube</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code></td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (throughput_gbps &#x2191;, softirq_pct &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>10</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+    <h3>Pareto Charts</h3>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">pareto softirq pct</p>
+      <img src="../images/55_pareto_softirq_pct.png" alt="pareto softirq pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">pareto throughput gbps</p>
+      <img src="../images/55_pareto_throughput_gbps.png" alt="pareto throughput gbps" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <h3>Main Effects</h3>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">main effects softirq pct</p>
+      <img src="../images/55_main_effects_softirq_pct.png" alt="main effects softirq pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">main effects throughput gbps</p>
+      <img src="../images/55_main_effects_throughput_gbps.png" alt="main effects throughput gbps" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <h3>Response Surfaces</h3>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm softirq pct netdev budget vs backlog max</p>
+      <img src="../images/55_rsm_softirq_pct_netdev_budget_vs_backlog_max.png" alt="rsm softirq pct netdev budget vs backlog max" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm softirq pct netdev budget vs tcp wmem max kb</p>
+      <img src="../images/55_rsm_softirq_pct_netdev_budget_vs_tcp_wmem_max_kb.png" alt="rsm softirq pct netdev budget vs tcp wmem max kb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm softirq pct netdev budget vs txqueuelen</p>
+      <img src="../images/55_rsm_softirq_pct_netdev_budget_vs_txqueuelen.png" alt="rsm softirq pct netdev budget vs txqueuelen" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm softirq pct tcp wmem max kb vs backlog max</p>
+      <img src="../images/55_rsm_softirq_pct_tcp_wmem_max_kb_vs_backlog_max.png" alt="rsm softirq pct tcp wmem max kb vs backlog max" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm softirq pct txqueuelen vs backlog max</p>
+      <img src="../images/55_rsm_softirq_pct_txqueuelen_vs_backlog_max.png" alt="rsm softirq pct txqueuelen vs backlog max" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm softirq pct txqueuelen vs tcp wmem max kb</p>
+      <img src="../images/55_rsm_softirq_pct_txqueuelen_vs_tcp_wmem_max_kb.png" alt="rsm softirq pct txqueuelen vs tcp wmem max kb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm throughput gbps netdev budget vs backlog max</p>
+      <img src="../images/55_rsm_throughput_gbps_netdev_budget_vs_backlog_max.png" alt="rsm throughput gbps netdev budget vs backlog max" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm throughput gbps netdev budget vs tcp wmem max kb</p>
+      <img src="../images/55_rsm_throughput_gbps_netdev_budget_vs_tcp_wmem_max_kb.png" alt="rsm throughput gbps netdev budget vs tcp wmem max kb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm throughput gbps netdev budget vs txqueuelen</p>
+      <img src="../images/55_rsm_throughput_gbps_netdev_budget_vs_txqueuelen.png" alt="rsm throughput gbps netdev budget vs txqueuelen" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm throughput gbps tcp wmem max kb vs backlog max</p>
+      <img src="../images/55_rsm_throughput_gbps_tcp_wmem_max_kb_vs_backlog_max.png" alt="rsm throughput gbps tcp wmem max kb vs backlog max" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm throughput gbps txqueuelen vs backlog max</p>
+      <img src="../images/55_rsm_throughput_gbps_txqueuelen_vs_backlog_max.png" alt="rsm throughput gbps txqueuelen vs backlog max" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm throughput gbps txqueuelen vs tcp wmem max kb</p>
+      <img src="../images/55_rsm_throughput_gbps_txqueuelen_vs_tcp_wmem_max_kb.png" alt="rsm throughput gbps txqueuelen vs tcp wmem max kb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: throughput_gbps ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+netdev_budget            4.9000       0.4326            25.0%
+txqueuelen               4.9000       0.4326            25.0%
+tcp_wmem_max_kb          4.9000       0.4326            25.0%
+backlog_max              4.9000       0.4326            25.0%
+
+=== Summary Statistics: throughput_gbps ===
+
+netdev_budget:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  161.176             1     4.6000     0.0000     4.6000     4.6000
+  300.559             1     8.5000     0.0000     8.5000     8.5000
+  338.188             1     8.1000     0.0000     8.1000     8.1000
+  421.577             1     8.0000     0.0000     8.0000     8.0000
+  506.36              1     6.9000     0.0000     6.9000     6.9000
+  641.396             1     6.8000     0.0000     6.8000     6.8000
+  734.403             1     6.7000     0.0000     6.7000     6.7000
+  774.994             1     9.5000     0.0000     9.5000     9.5000
+  850.106             1     7.9000     0.0000     7.9000     7.9000
+  998.503             1     8.6000     0.0000     8.6000     8.6000
+
+txqueuelen:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1432.53             1     6.8000     0.0000     6.8000     6.8000
+  2225.88             1     8.0000     0.0000     8.0000     8.0000
+  3118.79             1     4.6000     0.0000     4.6000     4.6000
+  3770.36             1     6.7000     0.0000     6.7000     6.7000
+  4863.16             1     7.9000     0.0000     7.9000     7.9000
+  6144.67             1     9.5000     0.0000     9.5000     9.5000
+  7033.71             1     8.5000     0.0000     8.5000     8.5000
+  7855.48             1     8.6000     0.0000     8.6000     8.6000
+  8885.47             1     6.9000     0.0000     6.9000     6.9000
+  9921.33             1     8.1000     0.0000     8.1000     8.1000
+
+tcp_wmem_max_kb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10857.6             1     8.5000     0.0000     8.5000     8.5000
+  11613.4             1     8.6000     0.0000     8.6000     8.6000
+  13716               1     7.9000     0.0000     7.9000     7.9000
+  14930               1     4.6000     0.0000     4.6000     4.6000
+  1926.77             1     8.0000     0.0000     8.0000     8.0000
+  3978.96             1     6.9000     0.0000     6.9000     6.9000
+  5745.79             1     6.7000     0.0000     6.7000     6.7000
+  723.938             1     9.5000     0.0000     9.5000     9.5000
+  8275.92             1     8.1000     0.0000     8.1000     8.1000
+  9272.13             1     6.8000     0.0000     6.8000     6.8000
+
+backlog_max:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  15160.8             1     4.6000     0.0000     4.6000     4.6000
+  23293.9             1     8.5000     0.0000     8.5000     8.5000
+  29072.5             1     6.8000     0.0000     6.8000     6.8000
+  2936.74             1     6.9000     0.0000     6.9000     6.9000
+  34719.9             1     8.6000     0.0000     8.6000     8.6000
+  44321.2             1     8.1000     0.0000     8.1000     8.1000
+  49274.3             1     8.0000     0.0000     8.0000     8.0000
+  54524               1     9.5000     0.0000     9.5000     9.5000
+  59908.7             1     6.7000     0.0000     6.7000     6.7000
+  8400.35             1     7.9000     0.0000     7.9000     7.9000
+
+=== Main Effects: softirq_pct ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+netdev_budget            7.3000       0.6716            25.0%
+txqueuelen               7.3000       0.6716            25.0%
+tcp_wmem_max_kb          7.3000       0.6716            25.0%
+backlog_max              7.3000       0.6716            25.0%
+
+=== Summary Statistics: softirq_pct ===
+
+netdev_budget:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  161.176             1     7.0000     0.0000     7.0000     7.0000
+  300.559             1    11.5000     0.0000    11.5000    11.5000
+  338.188             1    13.1000     0.0000    13.1000    13.1000
+  421.577             1     9.7000     0.0000     9.7000     9.7000
+  506.36              1    10.8000     0.0000    10.8000    10.8000
+  641.396             1    13.4000     0.0000    13.4000    13.4000
+  734.403             1     9.9000     0.0000     9.9000     9.9000
+  774.994             1    11.3000     0.0000    11.3000    11.3000
+  850.106             1    12.1000     0.0000    12.1000    12.1000
+  998.503             1    14.3000     0.0000    14.3000    14.3000
+
+txqueuelen:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1432.53             1    13.4000     0.0000    13.4000    13.4000
+  2225.88             1     9.7000     0.0000     9.7000     9.7000
+  3118.79             1     7.0000     0.0000     7.0000     7.0000
+  3770.36             1     9.9000     0.0000     9.9000     9.9000
+  4863.16             1    12.1000     0.0000    12.1000    12.1000
+  6144.67             1    11.3000     0.0000    11.3000    11.3000
+  7033.71             1    11.5000     0.0000    11.5000    11.5000
+  7855.48             1    14.3000     0.0000    14.3000    14.3000
+  8885.47             1    10.8000     0.0000    10.8000    10.8000
+  9921.33             1    13.1000     0.0000    13.1000    13.1000
+
+tcp_wmem_max_kb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10857.6             1    11.5000     0.0000    11.5000    11.5000
+  11613.4             1    14.3000     0.0000    14.3000    14.3000
+  13716               1    12.1000     0.0000    12.1000    12.1000
+  14930               1     7.0000     0.0000     7.0000     7.0000
+  1926.77             1     9.7000     0.0000     9.7000     9.7000
+  3978.96             1    10.8000     0.0000    10.8000    10.8000
+  5745.79             1     9.9000     0.0000     9.9000     9.9000
+  723.938             1    11.3000     0.0000    11.3000    11.3000
+  8275.92             1    13.1000     0.0000    13.1000    13.1000
+  9272.13             1    13.4000     0.0000    13.4000    13.4000
+
+backlog_max:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  15160.8             1     7.0000     0.0000     7.0000     7.0000
+  23293.9             1    11.5000     0.0000    11.5000    11.5000
+  29072.5             1    13.4000     0.0000    13.4000    13.4000
+  2936.74             1    10.8000     0.0000    10.8000    10.8000
+  34719.9             1    14.3000     0.0000    14.3000    14.3000
+  44321.2             1    13.1000     0.0000    13.1000    13.1000
+  49274.3             1     9.7000     0.0000     9.7000     9.7000
+  54524               1    11.3000     0.0000    11.3000    11.3000
+  59908.7             1     9.9000     0.0000     9.9000     9.9000
+  8400.35             1    12.1000     0.0000    12.1000    12.1000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: throughput_gbps ===
+Direction: maximize
+
+Best observed run: #9
+  netdev_budget = 610.597
+  txqueuelen = 7705.13
+  tcp_wmem_max_kb = 1608.35
+  backlog_max = 43554.9
+  Value: 9.5
+
+RSM Model (linear, R² = 0.3801, Adj R² = -0.1158):
+  Coefficients:
+    intercept                      +7.5854
+    netdev_budget                  +0.3697
+    txqueuelen                     +0.1344
+    tcp_wmem_max_kb                -0.7517
+    backlog_max                    +0.7527
+
+  Predicted optimum (from linear model):
+    netdev_budget = 865.15
+    txqueuelen = 8516.12
+    tcp_wmem_max_kb = 2086.86
+    backlog_max = 61616.4
+    Predicted value: 9.1588
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. netdev_budget  (effect: 4.9, contribution: 25.0%)
+  2. txqueuelen  (effect: 4.9, contribution: 25.0%)
+  3. tcp_wmem_max_kb  (effect: 4.9, contribution: 25.0%)
+  4. backlog_max  (effect: 4.9, contribution: 25.0%)
+
+=== Optimization: softirq_pct ===
+Direction: minimize
+
+Best observed run: #3
+  netdev_budget = 143.036
+  txqueuelen = 3988.8
+  tcp_wmem_max_kb = 5950.01
+  backlog_max = 3668.16
+  Value: 7.0
+
+RSM Model (linear, R² = 0.1817, Adj R² = -0.4729):
+  Coefficients:
+    intercept                      +11.3590
+    netdev_budget                  +1.7230
+    txqueuelen                     -0.5001
+    tcp_wmem_max_kb                +0.1055
+    backlog_max                    -0.1057
+
+  Predicted optimum (from linear model):
+    netdev_budget = 799.571
+    txqueuelen = 4932.14
+    tcp_wmem_max_kb = 15079.2
+    backlog_max = 14000
+    Predicted value: 12.4039
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. netdev_budget  (effect: 7.3, contribution: 25.0%)
+  2. txqueuelen  (effect: 7.3, contribution: 25.0%)
+  3. tcp_wmem_max_kb  (effect: 7.3, contribution: 25.0%)
+  4. backlog_max  (effect: 7.3, contribution: 25.0%)</div></div>
+
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="http2-stream-multiplexing.html">&larr; HTTP/2 Stream Multiplexing</a>
+    <a href="wifi-channel-power.html">WiFi Channel & Power &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

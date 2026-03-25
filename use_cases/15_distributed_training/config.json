@@ -1,0 +1,68 @@
+{
+    "metadata": {
+        "name": "Distributed Deep Learning Scaling",
+        "description": "Optimize multi-GPU distributed training configuration for ResNet-50 on ImageNet",
+        "version": "1.0",
+        "author": "AI Infrastructure Team"
+    },
+    "factors": [
+        {
+            "name": "gpu_count",
+            "type": "continuous",
+            "unit": "GPUs",
+            "levels": [
+                "8",
+                "64"
+            ]
+        },
+        {
+            "name": "batch_per_gpu",
+            "type": "continuous",
+            "unit": "images",
+            "levels": [
+                "32",
+                "256"
+            ]
+        },
+        {
+            "name": "gradient_compression",
+            "type": "continuous",
+            "unit": "%",
+            "levels": [
+                "0",
+                "90"
+            ]
+        }
+    ],
+    "fixed": {
+        "model": "resnet50",
+        "dataset": "imagenet"
+    },
+    "responses": [
+        {
+            "name": "images_per_sec",
+            "objective": "maximize",
+            "unit": "img/s"
+        },
+        {
+            "name": "scaling_efficiency",
+            "objective": "maximize",
+            "unit": "%"
+        }
+    ],
+    "design": "box_behnken",
+    "runner": {
+        "command": "bash sim.sh",
+        "timeout": 60
+    },
+    "settings": {
+        "replicates": 1,
+        "randomize": true,
+        "seed": 2024,
+        "test_script": "use_cases/15_distributed_training/sim.sh",
+        "out_directory": "use_cases/15_distributed_training/results",
+        "processed_directory": "use_cases/15_distributed_training/results/analysis",
+        "block_count": 1,
+        "operation": "box_behnken"
+    }
+}

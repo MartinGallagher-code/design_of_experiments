@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TLS Handshake Optimization &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F310;</div>
+    <div class="uc-badge" style="background:rgba(124,58,237,.12);color:#7c3aed;">Box-Behnken Design</div>
+    <h1>TLS Handshake Optimization</h1>
+    <p class="uc-subtitle">Box-Behnken design for TLS version, cipher choice, and session cache for handshake speed</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>session_cache_size</code></td><td>1000</td><td>100000</td><td>entries</td></tr>
+            <tr><td><code>session_timeout_s</code></td><td>60</td><td>86400</td><td>s</td></tr>
+            <tr><td><code>ocsp_stapling_workers</code></td><td>1</td><td>8</td><td>threads</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> tls_version = 1.3, cipher = AES-256-GCM</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>handshake_ms</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>ms</td></tr>
+            <tr><td><code>resumption_rate</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/48_tls_handshake_optimization/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;TLS Handshake Optimization&quot;,
+    &quot;description&quot;: &quot;Box-Behnken design for TLS version, cipher choice, and session cache for handshake speed&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;session_cache_size&quot;,
+      &quot;levels&quot;: [
+        &quot;1000&quot;,
+        &quot;100000&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;entries&quot;
+    },
+    {
+      &quot;name&quot;: &quot;session_timeout_s&quot;,
+      &quot;levels&quot;: [
+        &quot;60&quot;,
+        &quot;86400&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;s&quot;
+    },
+    {
+      &quot;name&quot;: &quot;ocsp_stapling_workers&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;8&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;threads&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;tls_version&quot;: &quot;1.3&quot;,
+    &quot;cipher&quot;: &quot;AES-256-GCM&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;handshake_ms&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;name&quot;: &quot;resumption_rate&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;box_behnken&quot;,
+    &quot;test_script&quot;: &quot;use_cases/48_tls_handshake_optimization/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Box-Behnken Design produces <strong>15 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>session_cache_size</code></th><th><code>session_timeout_s</code></th><th><code>ocsp_stapling_workers</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>50500</td><td>60</td><td>1</td></tr>
+        <tr><td>2</td><td>50500</td><td>43230</td><td>4.5</td></tr>
+        <tr><td>3</td><td>100000</td><td>43230</td><td>8</td></tr>
+        <tr><td>4</td><td>100000</td><td>43230</td><td>1</td></tr>
+        <tr><td>5</td><td>50500</td><td>43230</td><td>4.5</td></tr>
+        <tr><td>6</td><td>50500</td><td>43230</td><td>4.5</td></tr>
+        <tr><td>7</td><td>1000</td><td>43230</td><td>8</td></tr>
+        <tr><td>8</td><td>100000</td><td>60</td><td>4.5</td></tr>
+        <tr><td>9</td><td>50500</td><td>60</td><td>8</td></tr>
+        <tr><td>10</td><td>100000</td><td>86400</td><td>4.5</td></tr>
+        <tr><td>11</td><td>1000</td><td>43230</td><td>1</td></tr>
+        <tr><td>12</td><td>50500</td><td>86400</td><td>8</td></tr>
+        <tr><td>13</td><td>1000</td><td>60</td><td>4.5</td></tr>
+        <tr><td>14</td><td>1000</td><td>86400</td><td>4.5</td></tr>
+        <tr><td>15</td><td>50500</td><td>86400</td><td>1</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/48_tls_handshake_optimization/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/48_tls_handshake_optimization/config.json \
+    <span class="flag">--output</span> use_cases/48_tls_handshake_optimization/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/48_tls_handshake_optimization/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/48_tls_handshake_optimization/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/48_tls_handshake_optimization/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/48_tls_handshake_optimization/config.json \
+    <span class="flag">--output</span> use_cases/48_tls_handshake_optimization/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>box_behnken</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (handshake_ms &#x2193;, resumption_rate &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>15</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: handshake_ms</h3>
+    <p>Top factors: ocsp_stapling_workers (51.7%), session_cache_size (43.0%), session_timeout_s (5.3%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/48_pareto_handshake_ms.png" alt="Pareto chart for handshake_ms">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/48_main_effects_handshake_ms.png" alt="Main effects plot for handshake_ms">
+      </div>
+    </div>
+
+    <h3>Response: resumption_rate</h3>
+    <p>Top factors: session_cache_size (44.5%), ocsp_stapling_workers (42.3%), session_timeout_s (13.2%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/48_pareto_resumption_rate.png" alt="Pareto chart for resumption_rate">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/48_main_effects_resumption_rate.png" alt="Main effects plot for resumption_rate">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">handshake ms session cache size vs ocsp stapling workers</p>
+      <img src="../images/48_rsm_handshake_ms_session_cache_size_vs_ocsp_stapling_workers.png" alt="RSM surface: handshake ms session cache size vs ocsp stapling workers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">handshake ms session cache size vs session timeout s</p>
+      <img src="../images/48_rsm_handshake_ms_session_cache_size_vs_session_timeout_s.png" alt="RSM surface: handshake ms session cache size vs session timeout s" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">handshake ms session timeout s vs ocsp stapling workers</p>
+      <img src="../images/48_rsm_handshake_ms_session_timeout_s_vs_ocsp_stapling_workers.png" alt="RSM surface: handshake ms session timeout s vs ocsp stapling workers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">resumption rate session cache size vs ocsp stapling workers</p>
+      <img src="../images/48_rsm_resumption_rate_session_cache_size_vs_ocsp_stapling_workers.png" alt="RSM surface: resumption rate session cache size vs ocsp stapling workers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">resumption rate session cache size vs session timeout s</p>
+      <img src="../images/48_rsm_resumption_rate_session_cache_size_vs_session_timeout_s.png" alt="RSM surface: resumption rate session cache size vs session timeout s" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">resumption rate session timeout s vs ocsp stapling workers</p>
+      <img src="../images/48_rsm_resumption_rate_session_timeout_s_vs_ocsp_stapling_workers.png" alt="RSM surface: resumption rate session timeout s vs ocsp stapling workers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: handshake_ms ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+ocsp_stapling_workers    11.2000       3.1456            51.7%
+session_cache_size       9.3071       3.1456            43.0%
+session_timeout_s        1.1464       3.1456             5.3%
+
+=== Summary Statistics: handshake_ms ===
+
+session_cache_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1000                4    49.4000    10.0780    41.0000    63.6000
+  100000              4    54.9500    18.8952    35.0000    75.6000
+  50500               7    45.6429     8.9552    32.0000    55.7000
+
+session_timeout_s:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  43230               7    49.4714    12.3978    35.0000    65.7000
+  60                  4    48.3250    18.9493    32.0000    75.6000
+  86400               4    49.3250     4.9949    43.5000    55.7000
+
+ocsp_stapling_workers:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    54.2500    15.4455    32.0000    65.7000
+  4.5                 7    49.6714    12.9512    36.6000    75.6000
+  8                   4    43.0500     5.8026    35.0000    48.8000
+
+=== Main Effects: resumption_rate ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+session_cache_size      17.0643       5.1048            44.5%
+ocsp_stapling_workers    16.2250       5.1048            42.3%
+session_timeout_s        5.0750       5.1048            13.2%
+
+=== Summary Statistics: resumption_rate ===
+
+session_cache_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1000                4    47.2500    16.2912    33.8000    69.7000
+  100000              4    41.0500    25.0660    13.2000    66.8000
+  50500               7    58.1143    18.1950    33.5000    85.9000
+
+session_timeout_s:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  43230               7    51.1286    20.2189    27.2000    85.9000
+  60                  4    52.8000    27.7216    13.2000    74.0000
+  86400               4    47.7250    14.8296    33.5000    63.6000
+
+ocsp_stapling_workers:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    42.1250    21.4668    27.2000    74.0000
+  4.5                 7    51.1571    23.6352    13.2000    85.9000
+  8                   4    58.3500     8.3365    48.7000    66.8000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: handshake_ms ===
+Direction: minimize
+
+Best observed run: #3
+  session_cache_size = 50500
+  session_timeout_s = 43230
+  ocsp_stapling_workers = 4.5
+  Value: 32.0
+
+RSM Model (linear, R² = 0.3237, Adj R² = 0.1393):
+  Coefficients:
+    intercept                      +49.1267
+    session_cache_size             +5.8875
+    session_timeout_s              -5.1125
+    ocsp_stapling_workers          +4.8250
+
+RSM Model (quadratic, R² = 0.8759, Adj R² = 0.6524):
+  Coefficients:
+    intercept                      +38.6000
+    session_cache_size             +5.8875
+    session_timeout_s              -5.1125
+    ocsp_stapling_workers          +4.8250
+    session_cache_size*session_timeout_s -7.7250
+    session_cache_size*ocsp_stapling_workers +6.9500
+    session_timeout_s*ocsp_stapling_workers -3.3000
+    session_cache_size^2           +11.5375
+    session_timeout_s^2            +7.7875
+    ocsp_stapling_workers^2        +0.4125
+
+  Curvature analysis:
+    session_cache_size             coef=+11.5375  convex (has a minimum)
+    session_timeout_s              coef=+7.7875  convex (has a minimum)
+    ocsp_stapling_workers          coef=+0.4125  convex (has a minimum)
+
+  Notable interactions:
+    session_cache_size*session_timeout_s coef=-7.7250  (antagonistic)
+    session_cache_size*ocsp_stapling_workers coef=+6.9500  (synergistic)
+    session_timeout_s*ocsp_stapling_workers coef=-3.3000  (antagonistic)
+
+  Predicted optimum (from quadratic model):
+    session_cache_size = 100000
+    session_timeout_s = 60
+    ocsp_stapling_workers = 4.5
+    Predicted value: 76.6500
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. session_cache_size  (effect: 16.8, contribution: 43.7%)
+  2. session_timeout_s  (effect: 12.0, contribution: 31.3%)
+  3. ocsp_stapling_workers  (effect: 9.6, contribution: 25.0%)
+
+=== Optimization: resumption_rate ===
+Direction: maximize
+
+Best observed run: #10
+  session_cache_size = 50500
+  session_timeout_s = 86400
+  ocsp_stapling_workers = 1
+  Value: 85.9
+
+RSM Model (linear, R² = 0.2503, Adj R² = 0.0458):
+  Coefficients:
+    intercept                      +50.6667
+    session_cache_size             -6.2125
+    session_timeout_s              +9.2375
+    ocsp_stapling_workers          -6.8750
+
+RSM Model (quadratic, R² = 0.8475, Adj R² = 0.5729):
+  Coefficients:
+    intercept                      +68.1333
+    session_cache_size             -6.2125
+    session_timeout_s              +9.2375
+    ocsp_stapling_workers          -6.8750
+    session_cache_size*session_timeout_s +8.4500
+    session_cache_size*ocsp_stapling_workers -10.4250
+    session_timeout_s*ocsp_stapling_workers +1.1750
+    session_cache_size^2           -25.6417
+    session_timeout_s^2            -7.0417
+    ocsp_stapling_workers^2        -0.0667
+
+  Curvature analysis:
+    session_cache_size             coef=-25.6417  concave (has a maximum)
+    session_timeout_s              coef=-7.0417  concave (has a maximum)
+    ocsp_stapling_workers          coef=-0.0667  negligible curvature
+
+  Notable interactions:
+    session_cache_size*ocsp_stapling_workers coef=-10.4250  (antagonistic)
+    session_cache_size*session_timeout_s coef=+8.4500  (synergistic)
+    session_timeout_s*ocsp_stapling_workers coef=+1.1750  (synergistic)
+
+  Predicted optimum (from quadratic model):
+    session_cache_size = 50500
+    session_timeout_s = 86400
+    ocsp_stapling_workers = 1
+    Predicted value: 75.9625
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. session_cache_size  (effect: 31.3, contribution: 49.3%)
+  2. session_timeout_s  (effect: 18.5, contribution: 29.1%)
+  3. ocsp_stapling_workers  (effect: 13.8, contribution: 21.6%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="47-tcp-congestion-control.html">&larr; Previous: TCP Congestion Control</a>
+    <a href="49-firewall-rule-ordering.html">Next: Firewall Rule Ordering &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Database Connection Pooling &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x2601;</div>
+    <div class="uc-badge" style="background:rgba(29,78,216,.12);color:#1d4ed8;">Box-Behnken Design</div>
+    <h1>Database Connection Pooling</h1>
+    <p class="uc-subtitle">Box-Behnken design to optimize connection pool size, idle timeout, and max lifetime for throughput</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>pool_size</code></td><td>5</td><td>50</td><td>conns</td></tr>
+            <tr><td><code>idle_timeout</code></td><td>30</td><td>300</td><td>s</td></tr>
+            <tr><td><code>max_lifetime</code></td><td>300</td><td>3600</td><td>s</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> db_engine = postgresql, ssl = true</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>throughput_qps</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>qps</td></tr>
+            <tr><td><code>p95_latency_ms</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>ms</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/31_database_connection_pooling/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Database Connection Pooling&quot;,
+    &quot;description&quot;: &quot;Box-Behnken design to optimize connection pool size, idle timeout, and max lifetime for throughput&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;pool_size&quot;,
+      &quot;levels&quot;: [
+        &quot;5&quot;,
+        &quot;50&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;conns&quot;
+    },
+    {
+      &quot;name&quot;: &quot;idle_timeout&quot;,
+      &quot;levels&quot;: [
+        &quot;30&quot;,
+        &quot;300&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;s&quot;
+    },
+    {
+      &quot;name&quot;: &quot;max_lifetime&quot;,
+      &quot;levels&quot;: [
+        &quot;300&quot;,
+        &quot;3600&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;s&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;db_engine&quot;: &quot;postgresql&quot;,
+    &quot;ssl&quot;: &quot;true&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;throughput_qps&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;qps&quot;
+    },
+    {
+      &quot;name&quot;: &quot;p95_latency_ms&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;ms&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;box_behnken&quot;,
+    &quot;test_script&quot;: &quot;use_cases/31_database_connection_pooling/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Box-Behnken Design produces <strong>15 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>pool_size</code></th><th><code>idle_timeout</code></th><th><code>max_lifetime</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>27.5</td><td>30</td><td>300</td></tr>
+        <tr><td>2</td><td>27.5</td><td>165</td><td>1950</td></tr>
+        <tr><td>3</td><td>50</td><td>165</td><td>3600</td></tr>
+        <tr><td>4</td><td>50</td><td>165</td><td>300</td></tr>
+        <tr><td>5</td><td>27.5</td><td>165</td><td>1950</td></tr>
+        <tr><td>6</td><td>27.5</td><td>165</td><td>1950</td></tr>
+        <tr><td>7</td><td>5</td><td>165</td><td>3600</td></tr>
+        <tr><td>8</td><td>50</td><td>30</td><td>1950</td></tr>
+        <tr><td>9</td><td>27.5</td><td>30</td><td>3600</td></tr>
+        <tr><td>10</td><td>50</td><td>300</td><td>1950</td></tr>
+        <tr><td>11</td><td>5</td><td>165</td><td>300</td></tr>
+        <tr><td>12</td><td>27.5</td><td>300</td><td>3600</td></tr>
+        <tr><td>13</td><td>5</td><td>30</td><td>1950</td></tr>
+        <tr><td>14</td><td>5</td><td>300</td><td>1950</td></tr>
+        <tr><td>15</td><td>27.5</td><td>300</td><td>300</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/31_database_connection_pooling/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/31_database_connection_pooling/config.json \
+    <span class="flag">--output</span> use_cases/31_database_connection_pooling/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/31_database_connection_pooling/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/31_database_connection_pooling/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/31_database_connection_pooling/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/31_database_connection_pooling/config.json \
+    <span class="flag">--output</span> use_cases/31_database_connection_pooling/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>box_behnken</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (throughput_qps &#x2191;, p95_latency_ms &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>15</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: throughput_qps</h3>
+    <p>Top factors: idle_timeout (41.7%), pool_size (39.6%), max_lifetime (18.8%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/31_pareto_throughput_qps.png" alt="Pareto chart for throughput_qps">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/31_main_effects_throughput_qps.png" alt="Main effects plot for throughput_qps">
+      </div>
+    </div>
+
+    <h3>Response: p95_latency_ms</h3>
+    <p>Top factors: pool_size (43.0%), idle_timeout (34.5%), max_lifetime (22.5%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/31_pareto_p95_latency_ms.png" alt="Pareto chart for p95_latency_ms">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/31_main_effects_p95_latency_ms.png" alt="Main effects plot for p95_latency_ms">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">p95 latency ms idle timeout vs max lifetime</p>
+      <img src="../images/31_rsm_p95_latency_ms_idle_timeout_vs_max_lifetime.png" alt="RSM surface: p95 latency ms idle timeout vs max lifetime" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">p95 latency ms pool size vs idle timeout</p>
+      <img src="../images/31_rsm_p95_latency_ms_pool_size_vs_idle_timeout.png" alt="RSM surface: p95 latency ms pool size vs idle timeout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">p95 latency ms pool size vs max lifetime</p>
+      <img src="../images/31_rsm_p95_latency_ms_pool_size_vs_max_lifetime.png" alt="RSM surface: p95 latency ms pool size vs max lifetime" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput qps idle timeout vs max lifetime</p>
+      <img src="../images/31_rsm_throughput_qps_idle_timeout_vs_max_lifetime.png" alt="RSM surface: throughput qps idle timeout vs max lifetime" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput qps pool size vs idle timeout</p>
+      <img src="../images/31_rsm_throughput_qps_pool_size_vs_idle_timeout.png" alt="RSM surface: throughput qps pool size vs idle timeout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput qps pool size vs max lifetime</p>
+      <img src="../images/31_rsm_throughput_qps_pool_size_vs_max_lifetime.png" alt="RSM surface: throughput qps pool size vs max lifetime" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: throughput_qps ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+idle_timeout          1512.2500     325.0559            41.7%
+pool_size             1435.6429     325.0559            39.6%
+max_lifetime           681.2143     325.0559            18.8%
+
+=== Summary Statistics: throughput_qps ===
+
+pool_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  27.5                7  4913.1429  1081.0622  2632.0000  5964.0000
+  5                   4  3477.5000  1331.8159  1926.0000  4715.0000
+  50                  4  4783.5000  1177.2076  3031.0000  5549.0000
+
+idle_timeout:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  165                 7  4407.5714  1073.8108  2818.0000  5602.0000
+  30                  4  3816.7500  1798.8832  1926.0000  5358.0000
+  300                 4  5329.0000   543.6610  4715.0000  5964.0000
+
+max_lifetime:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1950                7  4700.7143  1273.4847  1926.0000  5602.0000
+  300                 4  4019.5000  1513.2262  2632.0000  5964.0000
+  3600                4  4613.2500  1201.6909  2818.0000  5351.0000
+
+=== Main Effects: p95_latency_ms ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+pool_size                4.6393       1.0427            43.0%
+idle_timeout             3.7250       1.0427            34.5%
+max_lifetime             2.4250       1.0427            22.5%
+
+=== Summary Statistics: p95_latency_ms ===
+
+pool_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  27.5                7    12.6857     3.3662     9.3000    18.7000
+  5                   4    17.3250     4.2758    12.8000    22.7000
+  50                  4    14.0250     4.0958    10.4000    19.7000
+
+idle_timeout:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  165                 7    14.4429     3.9606     9.3000    19.7000
+  30                  4    16.0000     5.7149    10.4000    22.7000
+  300                 4    12.2750     1.6439    10.3000    14.2000
+
+max_lifetime:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1950                7    13.7000     4.5775     9.3000    22.7000
+  300                 4    16.0000     4.2411    10.3000    19.7000
+  3600                4    13.5750     3.2887    11.8000    18.5000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: throughput_qps ===
+Direction: maximize
+
+Best observed run: #3
+  pool_size = 50
+  idle_timeout = 165
+  max_lifetime = 3600
+  Value: 5964.0
+
+RSM Model (linear, R² = 0.2807, Adj R² = 0.0846):
+  Coefficients:
+    intercept                      +4495.7333
+    pool_size                      +718.2500
+    idle_timeout                   -369.2500
+    max_lifetime                   -355.5000
+
+RSM Model (quadratic, R² = 0.9148, Adj R² = 0.7615):
+  Coefficients:
+    intercept                      +5275.6667
+    pool_size                      +718.2500
+    idle_timeout                   -369.2500
+    max_lifetime                   -355.5000
+    pool_size*idle_timeout         +388.2500
+    pool_size*max_lifetime         +739.7500
+    idle_timeout*max_lifetime      +1225.7500
+    pool_size^2                    +215.5417
+    idle_timeout^2                 -786.4583
+    max_lifetime^2                 -891.4583
+
+  Curvature analysis:
+    max_lifetime                   coef=-891.4583  concave (has a maximum)
+    idle_timeout                   coef=-786.4583  concave (has a maximum)
+    pool_size                      coef=+215.5417  convex (has a minimum)
+
+  Notable interactions:
+    idle_timeout*max_lifetime      coef=+1225.7500  (synergistic)
+    pool_size*max_lifetime         coef=+739.7500  (synergistic)
+    pool_size*idle_timeout         coef=+388.2500  (synergistic)
+
+  Predicted optimum (from quadratic model):
+    pool_size = 50
+    idle_timeout = 165
+    max_lifetime = 3600
+    Predicted value: 5702.2500
+
+  Model quality: Excellent fit — surface predictions are reliable.
+
+Factor importance:
+  1. pool_size  (effect: 1436.5, contribution: 38.3%)
+  2. max_lifetime  (effect: 1206.2, contribution: 32.2%)
+  3. idle_timeout  (effect: 1107.4, contribution: 29.5%)
+
+=== Optimization: p95_latency_ms ===
+Direction: minimize
+
+Best observed run: #8
+  pool_size = 50
+  idle_timeout = 30
+  max_lifetime = 1950
+  Value: 9.3
+
+RSM Model (linear, R² = 0.3185, Adj R² = 0.1327):
+  Coefficients:
+    intercept                      +14.2800
+    pool_size                      -1.8000
+    idle_timeout                   +1.8875
+    max_lifetime                   +1.5125
+
+RSM Model (quadratic, R² = 0.8074, Adj R² = 0.4606):
+  Coefficients:
+    intercept                      +12.3667
+    pool_size                      -1.8000
+    idle_timeout                   +1.8875
+    max_lifetime                   +1.5125
+    pool_size*idle_timeout         -0.7000
+    pool_size*max_lifetime         -1.8500
+    idle_timeout*max_lifetime      -3.5250
+    pool_size^2                    -1.1208
+    idle_timeout^2                 +2.5542
+    max_lifetime^2                 +2.1542
+
+  Curvature analysis:
+    idle_timeout                   coef=+2.5542  convex (has a minimum)
+    max_lifetime                   coef=+2.1542  convex (has a minimum)
+    pool_size                      coef=-1.1208  concave (has a maximum)
+
+  Notable interactions:
+    idle_timeout*max_lifetime      coef=-3.5250  (antagonistic)
+    pool_size*max_lifetime         coef=-1.8500  (antagonistic)
+    pool_size*idle_timeout         coef=-0.7000  (antagonistic)
+
+  Predicted optimum (from quadratic model):
+    pool_size = 27.5
+    idle_timeout = 300
+    max_lifetime = 300
+    Predicted value: 20.9750
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. idle_timeout  (effect: 4.4, contribution: 37.9%)
+  2. pool_size  (effect: 3.6, contribution: 31.2%)
+  3. max_lifetime  (effect: 3.6, contribution: 30.9%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="30-serverless-cold-start.html">&larr; Previous: Serverless Cold Start</a>
+    <a href="32-load-balancer-algorithm.html">Next: Load Balancer Algorithm &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

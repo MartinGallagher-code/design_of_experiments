@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kubernetes Pod Autoscaling &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x2601;</div>
+    <div class="uc-badge" style="background:rgba(29,78,216,.12);color:#1d4ed8;">Central Composite Design</div>
+    <h1>Kubernetes Pod Autoscaling</h1>
+    <p class="uc-subtitle">Central Composite design to optimize HPA target CPU, scale-up window, and replica bounds for request latency and cost</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>target_cpu_pct</code></td><td>40</td><td>80</td><td>%</td></tr>
+            <tr><td><code>scaleup_window</code></td><td>15</td><td>120</td><td>s</td></tr>
+            <tr><td><code>max_replicas</code></td><td>5</td><td>30</td><td>pods</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> min_replicas = 2, namespace = production</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>p99_latency_ms</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>ms</td></tr>
+            <tr><td><code>hourly_cost</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>USD</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/27_kubernetes_pod_autoscaling/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Kubernetes Pod Autoscaling&quot;,
+    &quot;description&quot;: &quot;Central Composite design to optimize HPA target CPU, scale-up window, and replica bounds for request latency and cost&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;target_cpu_pct&quot;,
+      &quot;levels&quot;: [
+        &quot;40&quot;,
+        &quot;80&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;scaleup_window&quot;,
+      &quot;levels&quot;: [
+        &quot;15&quot;,
+        &quot;120&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;s&quot;
+    },
+    {
+      &quot;name&quot;: &quot;max_replicas&quot;,
+      &quot;levels&quot;: [
+        &quot;5&quot;,
+        &quot;30&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;pods&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;min_replicas&quot;: &quot;2&quot;,
+    &quot;namespace&quot;: &quot;production&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;p99_latency_ms&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;name&quot;: &quot;hourly_cost&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;USD&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;central_composite&quot;,
+    &quot;test_script&quot;: &quot;use_cases/27_kubernetes_pod_autoscaling/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Central Composite Design produces <strong>22 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>target_cpu_pct</code></th><th><code>scaleup_window</code></th><th><code>max_replicas</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>60</td><td>67.5</td><td>17.5</td></tr>
+        <tr><td>2</td><td>80</td><td>15</td><td>30</td></tr>
+        <tr><td>3</td><td>40</td><td>120</td><td>5</td></tr>
+        <tr><td>4</td><td>60</td><td>163.351</td><td>17.5</td></tr>
+        <tr><td>5</td><td>60</td><td>67.5</td><td>17.5</td></tr>
+        <tr><td>6</td><td>23.4852</td><td>67.5</td><td>17.5</td></tr>
+        <tr><td>7</td><td>60</td><td>67.5</td><td>-5.32177</td></tr>
+        <tr><td>8</td><td>60</td><td>67.5</td><td>17.5</td></tr>
+        <tr><td>9</td><td>80</td><td>120</td><td>5</td></tr>
+        <tr><td>10</td><td>96.5148</td><td>67.5</td><td>17.5</td></tr>
+        <tr><td>11</td><td>60</td><td>67.5</td><td>17.5</td></tr>
+        <tr><td>12</td><td>60</td><td>-28.3514</td><td>17.5</td></tr>
+        <tr><td>13</td><td>60</td><td>67.5</td><td>17.5</td></tr>
+        <tr><td>14</td><td>40</td><td>15</td><td>30</td></tr>
+        <tr><td>15</td><td>60</td><td>67.5</td><td>17.5</td></tr>
+        <tr><td>16</td><td>80</td><td>15</td><td>5</td></tr>
+        <tr><td>17</td><td>60</td><td>67.5</td><td>40.3218</td></tr>
+        <tr><td>18</td><td>80</td><td>120</td><td>30</td></tr>
+        <tr><td>19</td><td>60</td><td>67.5</td><td>17.5</td></tr>
+        <tr><td>20</td><td>40</td><td>15</td><td>5</td></tr>
+        <tr><td>21</td><td>40</td><td>120</td><td>30</td></tr>
+        <tr><td>22</td><td>60</td><td>67.5</td><td>17.5</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/27_kubernetes_pod_autoscaling/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/27_kubernetes_pod_autoscaling/config.json \
+    <span class="flag">--output</span> use_cases/27_kubernetes_pod_autoscaling/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/27_kubernetes_pod_autoscaling/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/27_kubernetes_pod_autoscaling/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/27_kubernetes_pod_autoscaling/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/27_kubernetes_pod_autoscaling/config.json \
+    <span class="flag">--output</span> use_cases/27_kubernetes_pod_autoscaling/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>central_composite</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (p99_latency_ms &#x2193;, hourly_cost &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>22</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: p99_latency_ms</h3>
+    <p>Top factors: scaleup_window (49.4%), target_cpu_pct (26.1%), max_replicas (24.6%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/27_pareto_p99_latency_ms.png" alt="Pareto chart for p99_latency_ms">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/27_main_effects_p99_latency_ms.png" alt="Main effects plot for p99_latency_ms">
+      </div>
+    </div>
+
+    <h3>Response: hourly_cost</h3>
+    <p>Top factors: scaleup_window (39.3%), target_cpu_pct (32.2%), max_replicas (28.5%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/27_pareto_hourly_cost.png" alt="Pareto chart for hourly_cost">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/27_main_effects_hourly_cost.png" alt="Main effects plot for hourly_cost">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">hourly cost scaleup window vs max replicas</p>
+      <img src="../images/27_rsm_hourly_cost_scaleup_window_vs_max_replicas.png" alt="RSM surface: hourly cost scaleup window vs max replicas" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">hourly cost target cpu pct vs max replicas</p>
+      <img src="../images/27_rsm_hourly_cost_target_cpu_pct_vs_max_replicas.png" alt="RSM surface: hourly cost target cpu pct vs max replicas" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">hourly cost target cpu pct vs scaleup window</p>
+      <img src="../images/27_rsm_hourly_cost_target_cpu_pct_vs_scaleup_window.png" alt="RSM surface: hourly cost target cpu pct vs scaleup window" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">p99 latency ms scaleup window vs max replicas</p>
+      <img src="../images/27_rsm_p99_latency_ms_scaleup_window_vs_max_replicas.png" alt="RSM surface: p99 latency ms scaleup window vs max replicas" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">p99 latency ms target cpu pct vs max replicas</p>
+      <img src="../images/27_rsm_p99_latency_ms_target_cpu_pct_vs_max_replicas.png" alt="RSM surface: p99 latency ms target cpu pct vs max replicas" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">p99 latency ms target cpu pct vs scaleup window</p>
+      <img src="../images/27_rsm_p99_latency_ms_target_cpu_pct_vs_scaleup_window.png" alt="RSM surface: p99 latency ms target cpu pct vs scaleup window" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: p99_latency_ms ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+scaleup_window          85.6000       6.6653            49.4%
+target_cpu_pct          45.2000       6.6653            26.1%
+max_replicas            42.6000       6.6653            24.6%
+
+=== Summary Statistics: p99_latency_ms ===
+
+target_cpu_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  23.4852             1   120.7000     0.0000   120.7000   120.7000
+  40                  4   122.8750    33.6244    85.0000   166.9000
+  60                 12   130.6917    35.6060    94.1000   205.1000
+  80                  4   135.6000    22.4767   117.8000   166.4000
+  96.5148             1   165.9000     0.0000   165.9000   165.9000
+
+scaleup_window:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -28.3514            1   205.1000     0.0000   205.1000   205.1000
+  120                 4   127.2750    34.1455    85.0000   166.4000
+  15                  4   131.2000    23.8237   117.8000   166.9000
+  163.351             1   119.5000     0.0000   119.5000   119.5000
+  67.5               12   127.5250    29.3922    94.1000   192.7000
+
+max_replicas:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -5.32177            1   100.6000     0.0000   100.6000   100.6000
+  17.5               12   136.4000    35.4382    94.1000   205.1000
+  30                  4   143.2000    27.0793   119.5000   166.9000
+  40.3218             1   117.5000     0.0000   117.5000   117.5000
+  5                   4   115.2750    22.1494    85.0000   138.2000
+
+=== Main Effects: hourly_cost ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+scaleup_window           4.2342       0.4994            39.3%
+target_cpu_pct           3.4633       0.4994            32.2%
+max_replicas             3.0725       0.4994            28.5%
+
+=== Summary Statistics: hourly_cost ===
+
+target_cpu_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  23.4852             1     4.3300     0.0000     4.3300     4.3300
+  40                  4     4.6200     3.3656     0.7300     8.9500
+  60                 12     5.2233     2.4190     1.0300     9.8700
+  80                  4     3.8200     0.7619     2.9500     4.7200
+  96.5148             1     1.7600     0.0000     1.7600     1.7600
+
+scaleup_window:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -28.3514            1     1.0300     0.0000     1.0300     1.0300
+  120                 4     5.1100     2.6382     2.9500     8.9500
+  15                  4     3.3300     1.8060     0.7300     4.7200
+  163.351             1     4.5700     0.0000     4.5700     4.5700
+  67.5               12     5.2642     2.3184     1.7600     9.8700
+
+max_replicas:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -5.32177            1     6.5700     0.0000     6.5700     6.5700
+  17.5               12     4.6833     2.5449     1.0300     9.8700
+  30                  4     3.4975     1.8623     0.7300     4.7200
+  40.3218             1     6.0000     0.0000     6.0000     6.0000
+  5                   4     4.9425     2.7338     2.9500     8.9500</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: p99_latency_ms ===
+Direction: minimize
+
+Best observed run: #2
+  target_cpu_pct = 40
+  scaleup_window = 15
+  max_replicas = 5
+  Value: 85.0
+
+RSM Model (linear, R² = 0.1130, Adj R² = -0.0349):
+  Coefficients:
+    intercept                      +131.3091
+    target_cpu_pct                 +1.9946
+    scaleup_window                 -9.3056
+    max_replicas                   +8.2177
+
+RSM Model (quadratic, R² = 0.4718, Adj R² = 0.0757):
+  Coefficients:
+    intercept                      +145.2499
+    target_cpu_pct                 +1.9946
+    scaleup_window                 -9.3057
+    max_replicas                   +8.2177
+    target_cpu_pct*scaleup_window  -10.7625
+    target_cpu_pct*max_replicas    -2.7625
+    scaleup_window*max_replicas    -20.6375
+    target_cpu_pct^2               -3.8854
+    scaleup_window^2               -6.4355
+    max_replicas^2                 -10.5904
+
+  Curvature analysis:
+    max_replicas                   coef=-10.5904  concave (has a maximum)
+    scaleup_window                 coef=-6.4355  concave (has a maximum)
+    target_cpu_pct                 coef=-3.8854  concave (has a maximum)
+
+  Notable interactions:
+    scaleup_window*max_replicas    coef=-20.6375  (antagonistic)
+    target_cpu_pct*scaleup_window  coef=-10.7625  (antagonistic)
+    target_cpu_pct*max_replicas    coef=-2.7625  (antagonistic)
+
+  Predicted optimum (from quadratic model):
+    target_cpu_pct = 80
+    scaleup_window = 15
+    max_replicas = 30
+    Predicted value: 172.4941
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. max_replicas  (effect: 53.7, contribution: 50.3%)
+  2. scaleup_window  (effect: 34.1, contribution: 31.9%)
+  3. target_cpu_pct  (effect: 19.0, contribution: 17.8%)
+
+=== Optimization: hourly_cost ===
+Direction: minimize
+
+Best observed run: #7
+  target_cpu_pct = 60
+  scaleup_window = 67.5
+  max_replicas = 17.5
+  Value: 0.73
+
+RSM Model (linear, R² = 0.0635, Adj R² = -0.0925):
+  Coefficients:
+    intercept                      +4.6605
+    target_cpu_pct                 -0.2983
+    scaleup_window                 +0.5998
+    max_replicas                   -0.2247
+
+RSM Model (quadratic, R² = 0.4342, Adj R² = 0.0099):
+  Coefficients:
+    intercept                      +3.8466
+    target_cpu_pct                 -0.2983
+    scaleup_window                 +0.5998
+    max_replicas                   -0.2247
+    target_cpu_pct*scaleup_window  +0.3713
+    target_cpu_pct*max_replicas    +1.1487
+    scaleup_window*max_replicas    +1.0687
+    target_cpu_pct^2               -0.0201
+    scaleup_window^2               +0.2109
+    max_replicas^2                 +1.0299
+
+  Curvature analysis:
+    max_replicas                   coef=+1.0299  convex (has a minimum)
+    scaleup_window                 coef=+0.2109  convex (has a minimum)
+    target_cpu_pct                 coef=-0.0201  negligible curvature
+
+  Notable interactions:
+    target_cpu_pct*max_replicas    coef=+1.1487  (synergistic)
+    scaleup_window*max_replicas    coef=+1.0687  (synergistic)
+    target_cpu_pct*scaleup_window  coef=+0.3713  (synergistic)
+
+  Predicted optimum (from quadratic model):
+    target_cpu_pct = 80
+    scaleup_window = 120
+    max_replicas = 30
+    Predicted value: 7.7328
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. max_replicas  (effect: 6.3, contribution: 55.0%)
+  2. target_cpu_pct  (effect: 3.1, contribution: 26.7%)
+  3. scaleup_window  (effect: 2.1, contribution: 18.3%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="26-memory-channel-interleaving.html">&larr; Previous: Memory Channel &amp; Rank Interleaving</a>
+    <a href="28-microservice-circuit-breaker.html">Next: Microservice Circuit Breaker &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

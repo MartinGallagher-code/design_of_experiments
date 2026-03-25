@@ -1,0 +1,64 @@
+{
+    "metadata": {
+        "name": "SIMD Vectorization Tuning",
+        "description": "Full factorial design to optimize SIMD vectorization strategy for stencil computation kernels on AVX-512 capable processors"
+    },
+    "factors": [
+        {
+            "name": "simd_width",
+            "levels": ["256", "512"],
+            "type": "continuous",
+            "unit": "bits",
+            "description": "SIMD register width (AVX2 vs AVX-512)"
+        },
+        {
+            "name": "data_layout",
+            "levels": ["AoS", "SoA"],
+            "type": "categorical",
+            "unit": "",
+            "description": "Array of Structures vs Structure of Arrays"
+        },
+        {
+            "name": "unroll_factor",
+            "levels": ["1", "8"],
+            "type": "continuous",
+            "unit": "",
+            "description": "Loop unrolling factor"
+        },
+        {
+            "name": "alignment",
+            "levels": ["none", "64B"],
+            "type": "categorical",
+            "unit": "",
+            "description": "Data alignment strategy"
+        }
+    ],
+    "fixed_factors": {
+        "processor": "Xeon_8490H",
+        "kernel": "7pt_stencil",
+        "grid_size": "512x512x512",
+        "precision": "double"
+    },
+    "responses": [
+        {
+            "name": "gflops",
+            "optimize": "maximize",
+            "unit": "GFLOPS",
+            "description": "Sustained compute throughput"
+        },
+        {
+            "name": "vectorization_pct",
+            "optimize": "maximize",
+            "unit": "%",
+            "description": "Percentage of FLOPs executed in SIMD lanes"
+        }
+    ],
+    "runner": { "arg_style": "double-dash" },
+    "settings": {
+        "block_count": 1,
+        "test_script": "use_cases/21_vectorization_simd_tuning/sim.sh",
+        "operation": "full_factorial",
+        "processed_directory": "use_cases/21_vectorization_simd_tuning/results/analysis",
+        "out_directory": "use_cases/21_vectorization_simd_tuning/results"
+    }
+}

@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Index Selection Optimization — DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../quickstart.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F4CA;</div>
+    <div class="uc-badge" style="background:rgba(6,95,70,.12);color:#065f46;">Box-Behnken Design</div>
+    <h1>Index Selection Optimization</h1>
+    <p class="uc-subtitle">Box-Behnken design optimizing index fill factor, page size, and parallel workers for throughput</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>fill_factor</code></td><td>50</td><td>100</td><td>%</td></tr>
+            <tr><td><code>maintenance_work_mem_mb</code></td><td>64</td><td>2048</td><td>MB</td></tr>
+            <tr><td><code>parallel_workers</code></td><td>0</td><td>8</td><td>count</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> table_rows = 50000000, index_type = btree</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>build_time_s</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>s</td></tr>
+            <tr><td><code>query_speedup</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>x</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/43_index_selection_optimization/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  <span class="key">&quot;metadata&quot;</span>: {
+    <span class="key">&quot;name&quot;</span>: &quot;Index Selection Optimization&quot;,
+    <span class="key">&quot;description&quot;</span>: &quot;Box-Behnken design optimizing index fill factor, page size, and parallel workers for throughput&quot;
+  },
+  <span class="key">&quot;factors&quot;</span>: [
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;fill_factor&quot;,
+      <span class="key">&quot;levels&quot;</span>: [
+        &quot;50&quot;,
+        &quot;100&quot;
+      ],
+      <span class="key">&quot;type&quot;</span>: &quot;continuous&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;%&quot;
+    },
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;maintenance_work_mem_mb&quot;,
+      <span class="key">&quot;levels&quot;</span>: [
+        &quot;64&quot;,
+        &quot;2048&quot;
+      ],
+      <span class="key">&quot;type&quot;</span>: &quot;continuous&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;MB&quot;
+    },
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;parallel_workers&quot;,
+      <span class="key">&quot;levels&quot;</span>: [
+        &quot;0&quot;,
+        &quot;8&quot;
+      ],
+      <span class="key">&quot;type&quot;</span>: &quot;continuous&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;count&quot;
+    }
+  ],
+  <span class="key">&quot;fixed_factors&quot;</span>: {
+    &quot;table_rows&quot;: &quot;50000000&quot;,
+    &quot;index_type&quot;: &quot;btree&quot;
+  },
+  <span class="key">&quot;responses&quot;</span>: [
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;build_time_s&quot;,
+      <span class="key">&quot;optimize&quot;</span>: &quot;minimize&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;s&quot;
+    },
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;query_speedup&quot;,
+      <span class="key">&quot;optimize&quot;</span>: &quot;maximize&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;x&quot;
+    }
+  ],
+  <span class="key">&quot;settings&quot;</span>: {
+    <span class="key">&quot;operation&quot;</span>: &quot;box_behnken&quot;,
+    <span class="key">&quot;test_script&quot;</span>: &quot;use_cases/43_index_selection_optimization/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/43_index_selection_optimization/config.json</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/43_index_selection_optimization/config.json \
+    <span class="flag">--output</span> use_cases/43_index_selection_optimization/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/43_index_selection_optimization/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/43_index_selection_optimization/config.json</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/43_index_selection_optimization/config.json</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/43_index_selection_optimization/config.json \
+    <span class="flag">--output</span> use_cases/43_index_selection_optimization/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>box_behnken</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code></td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (build_time_s &#x2193;, query_speedup &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>15</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+    <h3>Pareto Charts</h3>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">pareto build time s</p>
+      <img src="../images/43_pareto_build_time_s.png" alt="pareto build time s" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">pareto query speedup</p>
+      <img src="../images/43_pareto_query_speedup.png" alt="pareto query speedup" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <h3>Main Effects</h3>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">main effects build time s</p>
+      <img src="../images/43_main_effects_build_time_s.png" alt="main effects build time s" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">main effects query speedup</p>
+      <img src="../images/43_main_effects_query_speedup.png" alt="main effects query speedup" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <h3>Response Surfaces</h3>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm build time s fill factor vs maintenance work mem mb</p>
+      <img src="../images/43_rsm_build_time_s_fill_factor_vs_maintenance_work_mem_mb.png" alt="rsm build time s fill factor vs maintenance work mem mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm build time s fill factor vs parallel workers</p>
+      <img src="../images/43_rsm_build_time_s_fill_factor_vs_parallel_workers.png" alt="rsm build time s fill factor vs parallel workers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm build time s maintenance work mem mb vs parallel workers</p>
+      <img src="../images/43_rsm_build_time_s_maintenance_work_mem_mb_vs_parallel_workers.png" alt="rsm build time s maintenance work mem mb vs parallel workers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm query speedup fill factor vs maintenance work mem mb</p>
+      <img src="../images/43_rsm_query_speedup_fill_factor_vs_maintenance_work_mem_mb.png" alt="rsm query speedup fill factor vs maintenance work mem mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm query speedup fill factor vs parallel workers</p>
+      <img src="../images/43_rsm_query_speedup_fill_factor_vs_parallel_workers.png" alt="rsm query speedup fill factor vs parallel workers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm query speedup maintenance work mem mb vs parallel workers</p>
+      <img src="../images/43_rsm_query_speedup_maintenance_work_mem_mb_vs_parallel_workers.png" alt="rsm query speedup maintenance work mem mb vs parallel workers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: build_time_s ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+parallel_workers        70.1429      14.7512            47.6%
+fill_factor             60.1786      14.7512            40.8%
+maintenance_work_mem_mb    17.0000      14.7512            11.5%
+
+=== Summary Statistics: build_time_s ===
+
+fill_factor:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4   173.0000    22.0151   142.0000   191.0000
+  50                  4   172.2500    69.6533    97.0000   261.0000
+  75                  7   232.4286    52.1755   156.0000   305.0000
+
+maintenance_work_mem_mb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1056                7   202.0000    75.6836    97.0000   305.0000
+  2048                4   190.7500    37.9682   144.0000   237.0000
+  64                  4   207.7500    46.1763   156.0000   261.0000
+
+parallel_workers:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4   194.7500    23.4716   173.0000   228.0000
+  4                   7   228.1429    59.3224   144.0000   305.0000
+  8                   4   158.0000    58.3724    97.0000   237.0000
+
+=== Main Effects: query_speedup ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+maintenance_work_mem_mb     9.4250       2.0367            43.5%
+parallel_workers         6.5143       2.0367            30.1%
+fill_factor              5.7036       2.0367            26.4%
+
+=== Summary Statistics: query_speedup ===
+
+fill_factor:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4    24.1750     5.1720    19.2000    31.3000
+  50                  4    27.1750    12.2669    10.5000    39.5000
+  75                  7    21.4714     6.5250    10.7000    28.5000
+
+maintenance_work_mem_mb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1056                7    24.1714     7.8051    10.7000    31.8000
+  2048                4    28.0250     8.5547    19.2000    39.5000
+  64                  4    18.6000     5.9335    10.5000    23.9000
+
+parallel_workers:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4    24.9750     1.3500    23.9000    26.9000
+  4                   7    20.8857    10.2045    10.5000    39.5000
+  8                   4    27.4000     6.4327    18.0000    31.8000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: build_time_s ===
+Direction: minimize
+
+Best observed run: #12
+  fill_factor = 50
+  maintenance_work_mem_mb = 64
+  parallel_workers = 4
+  Value: 97.0
+
+RSM Model (linear, R² = 0.1215, Adj R² = -0.1180):
+  Coefficients:
+    intercept                      +200.5333
+    fill_factor                    +0.1250
+    maintenance_work_mem_mb        +10.8750
+    parallel_workers               -24.0000
+
+RSM Model (quadratic, R² = 0.5824, Adj R² = -0.1692):
+  Coefficients:
+    intercept                      +245.6667
+    fill_factor                    +0.1250
+    maintenance_work_mem_mb        +10.8750
+    parallel_workers               -24.0000
+    fill_factor*maintenance_work_mem_mb -36.2500
+    fill_factor*parallel_workers   +28.0000
+    maintenance_work_mem_mb*parallel_workers -27.5000
+    fill_factor^2                  -39.9583
+    maintenance_work_mem_mb^2      -34.4583
+    parallel_workers^2             -10.2083
+
+  Curvature analysis:
+    fill_factor                    coef=-39.9583  concave (has a maximum)
+    maintenance_work_mem_mb        coef=-34.4583  concave (has a maximum)
+    parallel_workers               coef=-10.2083  concave (has a maximum)
+
+  Notable interactions:
+    fill_factor*maintenance_work_mem_mb coef=-36.2500  (antagonistic)
+    fill_factor*parallel_workers   coef=+28.0000  (synergistic)
+    maintenance_work_mem_mb*parallel_workers coef=-27.5000  (antagonistic)
+
+  Predicted optimum (from linear model):
+    fill_factor = 75
+    maintenance_work_mem_mb = 2048
+    parallel_workers = 0
+    Predicted value: 235.4083
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. parallel_workers  (effect: 48.0, contribution: 37.9%)
+  2. maintenance_work_mem_mb  (effect: 41.8, contribution: 33.0%)
+  3. fill_factor  (effect: 36.9, contribution: 29.1%)
+
+=== Optimization: query_speedup ===
+Direction: maximize
+
+Best observed run: #3
+  fill_factor = 50
+  maintenance_work_mem_mb = 1056
+  parallel_workers = 8
+  Value: 39.5
+
+RSM Model (linear, R² = 0.2796, Adj R² = 0.0832):
+  Coefficients:
+    intercept                      +23.7133
+    fill_factor                    -2.0375
+    maintenance_work_mem_mb        +0.4000
+    parallel_workers               +5.1125
+
+RSM Model (quadratic, R² = 0.7552, Adj R² = 0.3144):
+  Coefficients:
+    intercept                      +14.4000
+    fill_factor                    -2.0375
+    maintenance_work_mem_mb        +0.4000
+    parallel_workers               +5.1125
+    fill_factor*maintenance_work_mem_mb +1.3000
+    fill_factor*parallel_workers   -2.6750
+    maintenance_work_mem_mb*parallel_workers -3.3000
+    fill_factor^2                  +7.1125
+    maintenance_work_mem_mb^2      +5.1875
+    parallel_workers^2             +5.1625
+
+  Curvature analysis:
+    fill_factor                    coef=+7.1125  convex (has a minimum)
+    maintenance_work_mem_mb        coef=+5.1875  convex (has a minimum)
+    parallel_workers               coef=+5.1625  convex (has a minimum)
+
+  Notable interactions:
+    maintenance_work_mem_mb*parallel_workers coef=-3.3000  (antagonistic)
+    fill_factor*parallel_workers   coef=-2.6750  (antagonistic)
+    fill_factor*maintenance_work_mem_mb coef=+1.3000  (synergistic)
+
+  Predicted optimum (from quadratic model):
+    fill_factor = 50
+    maintenance_work_mem_mb = 1056
+    parallel_workers = 8
+    Predicted value: 36.5000
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. parallel_workers  (effect: 10.2, contribution: 43.8%)
+  2. fill_factor  (effect: 8.4, contribution: 36.0%)
+  3. maintenance_work_mem_mb  (effect: 4.7, contribution: 20.2%)</div></div>
+
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="query-engine-join-strategy.html">&larr; Query Engine Join Strategy</a>
+    <a href="data-replication-lag.html">Data Replication Lag &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

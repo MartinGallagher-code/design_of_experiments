@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>API Rate Limiter Tuning &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x2601;</div>
+    <div class="uc-badge" style="background:rgba(29,78,216,.12);color:#1d4ed8;">Fractional Factorial Design</div>
+    <h1>API Rate Limiter Tuning</h1>
+    <p class="uc-subtitle">Fractional factorial of 5 rate limiting parameters for throughput and fairness</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>requests_per_sec</code></td><td>100</td><td>1000</td><td>rps</td></tr>
+            <tr><td><code>burst_size</code></td><td>10</td><td>100</td><td>requests</td></tr>
+            <tr><td><code>window_type</code></td><td>sliding</td><td>fixed</td><td></td></tr>
+            <tr><td><code>penalty_duration</code></td><td>10</td><td>300</td><td>s</td></tr>
+            <tr><td><code>global_limit</code></td><td>5000</td><td>50000</td><td>rps</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> backend_capacity = 20000, cache_backend = redis</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>goodput_rps</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>rps</td></tr>
+            <tr><td><code>fairness_index</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>0-1</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/33_api_rate_limiter/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;API Rate Limiter Tuning&quot;,
+    &quot;description&quot;: &quot;Fractional factorial of 5 rate limiting parameters for throughput and fairness&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;requests_per_sec&quot;,
+      &quot;levels&quot;: [
+        &quot;100&quot;,
+        &quot;1000&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;rps&quot;
+    },
+    {
+      &quot;name&quot;: &quot;burst_size&quot;,
+      &quot;levels&quot;: [
+        &quot;10&quot;,
+        &quot;100&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;requests&quot;
+    },
+    {
+      &quot;name&quot;: &quot;window_type&quot;,
+      &quot;levels&quot;: [
+        &quot;sliding&quot;,
+        &quot;fixed&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    },
+    {
+      &quot;name&quot;: &quot;penalty_duration&quot;,
+      &quot;levels&quot;: [
+        &quot;10&quot;,
+        &quot;300&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;s&quot;
+    },
+    {
+      &quot;name&quot;: &quot;global_limit&quot;,
+      &quot;levels&quot;: [
+        &quot;5000&quot;,
+        &quot;50000&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;rps&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;backend_capacity&quot;: &quot;20000&quot;,
+    &quot;cache_backend&quot;: &quot;redis&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;goodput_rps&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;rps&quot;
+    },
+    {
+      &quot;name&quot;: &quot;fairness_index&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;0-1&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;fractional_factorial&quot;,
+    &quot;test_script&quot;: &quot;use_cases/33_api_rate_limiter/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Fractional Factorial Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>requests_per_sec</code></th><th><code>burst_size</code></th><th><code>window_type</code></th><th><code>penalty_duration</code></th><th><code>global_limit</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>100</td><td>100</td><td>fixed</td><td>10</td><td>5000</td></tr>
+        <tr><td>2</td><td>1000</td><td>10</td><td>sliding</td><td>10</td><td>5000</td></tr>
+        <tr><td>3</td><td>1000</td><td>100</td><td>sliding</td><td>300</td><td>5000</td></tr>
+        <tr><td>4</td><td>1000</td><td>100</td><td>fixed</td><td>300</td><td>50000</td></tr>
+        <tr><td>5</td><td>100</td><td>100</td><td>sliding</td><td>10</td><td>50000</td></tr>
+        <tr><td>6</td><td>1000</td><td>10</td><td>fixed</td><td>10</td><td>50000</td></tr>
+        <tr><td>7</td><td>100</td><td>10</td><td>sliding</td><td>300</td><td>50000</td></tr>
+        <tr><td>8</td><td>100</td><td>10</td><td>fixed</td><td>300</td><td>5000</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/33_api_rate_limiter/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/33_api_rate_limiter/config.json \
+    <span class="flag">--output</span> use_cases/33_api_rate_limiter/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/33_api_rate_limiter/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/33_api_rate_limiter/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/33_api_rate_limiter/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/33_api_rate_limiter/config.json \
+    <span class="flag">--output</span> use_cases/33_api_rate_limiter/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>fractional_factorial</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (4), <code>categorical</code> (1)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (goodput_rps &#x2191;, fairness_index &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>8</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: goodput_rps</h3>
+    <p>Top factors: burst_size (37.0%), penalty_duration (26.3%), requests_per_sec (25.4%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/33_pareto_goodput_rps.png" alt="Pareto chart for goodput_rps">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/33_main_effects_goodput_rps.png" alt="Main effects plot for goodput_rps">
+      </div>
+    </div>
+
+    <h3>Response: fairness_index</h3>
+    <p>Top factors: window_type (51.1%), penalty_duration (23.3%), burst_size (13.1%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/33_pareto_fairness_index.png" alt="Pareto chart for fairness_index">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/33_main_effects_fairness_index.png" alt="Main effects plot for fairness_index">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">fairness index burst size vs global limit</p>
+      <img src="../images/33_rsm_fairness_index_burst_size_vs_global_limit.png" alt="RSM surface: fairness index burst size vs global limit" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">fairness index burst size vs penalty duration</p>
+      <img src="../images/33_rsm_fairness_index_burst_size_vs_penalty_duration.png" alt="RSM surface: fairness index burst size vs penalty duration" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">fairness index penalty duration vs global limit</p>
+      <img src="../images/33_rsm_fairness_index_penalty_duration_vs_global_limit.png" alt="RSM surface: fairness index penalty duration vs global limit" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">fairness index requests per sec vs burst size</p>
+      <img src="../images/33_rsm_fairness_index_requests_per_sec_vs_burst_size.png" alt="RSM surface: fairness index requests per sec vs burst size" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">fairness index requests per sec vs global limit</p>
+      <img src="../images/33_rsm_fairness_index_requests_per_sec_vs_global_limit.png" alt="RSM surface: fairness index requests per sec vs global limit" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">fairness index requests per sec vs penalty duration</p>
+      <img src="../images/33_rsm_fairness_index_requests_per_sec_vs_penalty_duration.png" alt="RSM surface: fairness index requests per sec vs penalty duration" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">goodput rps burst size vs global limit</p>
+      <img src="../images/33_rsm_goodput_rps_burst_size_vs_global_limit.png" alt="RSM surface: goodput rps burst size vs global limit" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">goodput rps burst size vs penalty duration</p>
+      <img src="../images/33_rsm_goodput_rps_burst_size_vs_penalty_duration.png" alt="RSM surface: goodput rps burst size vs penalty duration" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">goodput rps penalty duration vs global limit</p>
+      <img src="../images/33_rsm_goodput_rps_penalty_duration_vs_global_limit.png" alt="RSM surface: goodput rps penalty duration vs global limit" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">goodput rps requests per sec vs burst size</p>
+      <img src="../images/33_rsm_goodput_rps_requests_per_sec_vs_burst_size.png" alt="RSM surface: goodput rps requests per sec vs burst size" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">goodput rps requests per sec vs global limit</p>
+      <img src="../images/33_rsm_goodput_rps_requests_per_sec_vs_global_limit.png" alt="RSM surface: goodput rps requests per sec vs global limit" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">goodput rps requests per sec vs penalty duration</p>
+      <img src="../images/33_rsm_goodput_rps_requests_per_sec_vs_penalty_duration.png" alt="RSM surface: goodput rps requests per sec vs penalty duration" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: goodput_rps ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+burst_size            4693.7500    1426.6277            37.0%
+penalty_duration     -3342.2500    1426.6277            26.3%
+requests_per_sec      3223.2500    1426.6277            25.4%
+window_type           1072.2500    1426.6277             8.4%
+global_limit           366.7500    1426.6277             2.9%
+
+=== Interaction Effects: goodput_rps ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+requests_per_sec     penalty_duration        4693.7500            19.6%
+burst_size           window_type             3430.7500            14.3%
+penalty_duration     global_limit           -3430.7500            14.3%
+requests_per_sec     burst_size             -3342.2500            14.0%
+burst_size           penalty_duration        3223.2500            13.5%
+window_type          global_limit           -3223.2500            13.5%
+requests_per_sec     global_limit           -1072.2500             4.5%
+burst_size           global_limit            -584.7500             2.4%
+window_type          penalty_duration         584.7500             2.4%
+requests_per_sec     window_type             -366.7500             1.5%
+
+=== Summary Statistics: goodput_rps ===
+
+requests_per_sec:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4  6833.5000  4991.5840  2112.0000 12994.0000
+  1000                4 10056.7500  2479.8201  7726.0000 13093.0000
+
+burst_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4  6098.2500  4065.0406  2112.0000 11036.0000
+  100                 4 10792.0000  2603.7597  8372.0000 13093.0000
+
+window_type:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  fixed               4  7909.0000  3157.2455  3519.0000 11036.0000
+  sliding             4  8981.2500  5220.8205  2112.0000 13093.0000
+
+penalty_duration:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4 10116.2500  2367.9128  7726.0000 12994.0000
+  300                 4  6774.0000  4993.7506  2112.0000 13093.0000
+
+global_limit:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  5000                4  8261.7500  3929.4493  3519.0000 13093.0000
+  50000               4  8628.5000  4739.3463  2112.0000 12994.0000
+
+=== Main Effects: fairness_index ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+window_type             -0.1615       0.0382            51.1%
+penalty_duration        -0.0735       0.0382            23.3%
+burst_size              -0.0415       0.0382            13.1%
+requests_per_sec         0.0270       0.0382             8.5%
+global_limit             0.0125       0.0382             4.0%
+
+=== Interaction Effects: fairness_index ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+requests_per_sec     global_limit               0.1615            28.2%
+requests_per_sec     burst_size                -0.0735            12.8%
+burst_size           global_limit               0.0670            11.7%
+window_type          penalty_duration          -0.0670            11.7%
+burst_size           window_type                0.0480             8.4%
+penalty_duration     global_limit              -0.0480             8.4%
+requests_per_sec     penalty_duration          -0.0415             7.2%
+burst_size           penalty_duration           0.0270             4.7%
+window_type          global_limit              -0.0270             4.7%
+requests_per_sec     window_type               -0.0125             2.2%
+
+=== Summary Statistics: fairness_index ===
+
+requests_per_sec:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4     0.8330     0.1102     0.6850     0.9490
+  1000                4     0.8600     0.1209     0.7060     0.9950
+
+burst_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4     0.8672     0.1378     0.6850     0.9950
+  100                 4     0.8257     0.0844     0.7060     0.8990
+
+window_type:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  fixed               4     0.9273     0.0566     0.8660     0.9950
+  sliding             4     0.7657     0.0816     0.6850     0.8400
+
+penalty_duration:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4     0.8832     0.0759     0.8320     0.9950
+  300                 4     0.8097     0.1338     0.6850     0.9490
+
+global_limit:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  5000                4     0.8402     0.1009     0.7060     0.9490
+  50000               4     0.8528     0.1303     0.6850     0.9950</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: goodput_rps ===
+Direction: maximize
+
+Best observed run: #4
+  requests_per_sec = 100
+  burst_size = 100
+  window_type = fixed
+  penalty_duration = 10
+  global_limit = 5000
+  Value: 13093.0
+
+RSM Model (linear, R² = 0.7839, Adj R² = 0.2436):
+  Coefficients:
+    intercept                      +8445.1250
+    requests_per_sec               -1363.6250
+    burst_size                     +1857.3750
+    window_type                    -1133.6250
+    penalty_duration               -398.3750
+    global_limit                   -2101.1250
+
+  Predicted optimum (from linear model):
+    requests_per_sec = 100
+    burst_size = 100
+    window_type = fixed
+    penalty_duration = 10
+    global_limit = 5000
+    Predicted value: 15299.2500
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. global_limit  (effect: -4202.2, contribution: 30.7%)
+  2. burst_size  (effect: 3714.8, contribution: 27.1%)
+  3. requests_per_sec  (effect: -2727.2, contribution: 19.9%)
+  4. window_type  (effect: -2267.2, contribution: 16.5%)
+  5. penalty_duration  (effect: -796.8, contribution: 5.8%)
+
+=== Optimization: fairness_index ===
+Direction: maximize
+
+Best observed run: #5
+  requests_per_sec = 100
+  burst_size = 100
+  window_type = sliding
+  penalty_duration = 10
+  global_limit = 50000
+  Value: 0.995
+
+RSM Model (linear, R² = 0.3572, Adj R² = -1.2499):
+  Coefficients:
+    intercept                      +0.8465
+    requests_per_sec               +0.0420
+    burst_size                     +0.0200
+    window_type                    +0.0083
+    penalty_duration               -0.0260
+    global_limit                   +0.0272
+
+  Predicted optimum (from linear model):
+    requests_per_sec = 1000
+    burst_size = 10
+    window_type = fixed
+    penalty_duration = 10
+    global_limit = 50000
+    Predicted value: 0.9135
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. requests_per_sec  (effect: 0.1, contribution: 34.0%)
+  2. global_limit  (effect: 0.1, contribution: 22.1%)
+  3. penalty_duration  (effect: -0.1, contribution: 21.1%)
+  4. burst_size  (effect: 0.0, contribution: 16.2%)
+  5. window_type  (effect: 0.0, contribution: 6.7%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="32-load-balancer-algorithm.html">&larr; Previous: Load Balancer Algorithm</a>
+    <a href="34-container-resource-limits.html">Next: Container Resource Limits &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CPU Cross-NUMA Bandwidth &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .caption { font-size:.72rem; color:var(--faint); margin-bottom:4px; }
+  </style>
+</head>
+<body>
+
+<img src="../logo-light.svg" alt="" class="bg-logo-light">
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><span class="dot"></span> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<section class="uc-hero-detail" style="background:linear-gradient(135deg, #6366f111, #6366f108);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-badge" style="background:#6366f118;color:#6366f1;">Full Factorial</div>
+    <h1>CPU Cross-NUMA Bandwidth</h1>
+    <p class="uc-subtitle">Characterize CPU-to-CPU memory bandwidth and latency across NUMA domains on a 4-socket HPC node.</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Levels</th><th>Type</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>numa_hop</code></td><td>local, near, far</td><td>categorical</td><td></td></tr>
+            <tr><td><code>transfer_mode</code></td><td>memcpy, streaming_store</td><td>categorical</td><td></td></tr>
+            <tr><td><code>thread_count</code></td><td>1, 14</td><td>continuous</td><td>threads</td></tr>
+            <tr><td><code>buffer_size</code></td><td>1048576, 268435456</td><td>continuous</td><td>bytes</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> sockets = 4, cores_per_socket = 28, numa_distance_near = 21, numa_distance_far = 31</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>bandwidth_GBs</code></td><td style="color:var(--green);font-weight:600;">&#x2191; maximize</td><td>GB/s</td></tr>
+            <tr><td><code>latency_ns</code></td><td style="color:var(--green);font-weight:600;">&#x2193; minimize</td><td>ns</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Full Factorial Design produces <strong>24 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>numa_hop</code></th><th><code>transfer_mode</code></th><th><code>thread_count</code></th><th><code>buffer_size</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>near</td><td>streaming_store</td><td>14</td><td>268435456</td></tr>
+        <tr><td>2</td><td>local</td><td>streaming_store</td><td>1</td><td>268435456</td></tr>
+        <tr><td>3</td><td>far</td><td>memcpy</td><td>14</td><td>1048576</td></tr>
+        <tr><td>4</td><td>far</td><td>streaming_store</td><td>14</td><td>268435456</td></tr>
+        <tr><td>5</td><td>near</td><td>streaming_store</td><td>1</td><td>268435456</td></tr>
+        <tr><td>6</td><td>near</td><td>memcpy</td><td>14</td><td>1048576</td></tr>
+        <tr><td>7</td><td>far</td><td>memcpy</td><td>1</td><td>268435456</td></tr>
+        <tr><td>8</td><td>near</td><td>memcpy</td><td>14</td><td>268435456</td></tr>
+        <tr><td>9</td><td>near</td><td>streaming_store</td><td>14</td><td>1048576</td></tr>
+        <tr><td>10</td><td>far</td><td>memcpy</td><td>1</td><td>1048576</td></tr>
+        <tr><td>11</td><td>local</td><td>memcpy</td><td>1</td><td>268435456</td></tr>
+        <tr><td>12</td><td>near</td><td>streaming_store</td><td>1</td><td>1048576</td></tr>
+        <tr><td>13</td><td>far</td><td>streaming_store</td><td>1</td><td>268435456</td></tr>
+        <tr><td>14</td><td>local</td><td>streaming_store</td><td>14</td><td>1048576</td></tr>
+        <tr><td>15</td><td>near</td><td>memcpy</td><td>1</td><td>268435456</td></tr>
+        <tr><td>16</td><td>local</td><td>memcpy</td><td>14</td><td>1048576</td></tr>
+        <tr><td>17</td><td>far</td><td>streaming_store</td><td>14</td><td>1048576</td></tr>
+        <tr><td>18</td><td>local</td><td>streaming_store</td><td>1</td><td>1048576</td></tr>
+        <tr><td>19</td><td>far</td><td>memcpy</td><td>14</td><td>268435456</td></tr>
+        <tr><td>20</td><td>local</td><td>streaming_store</td><td>14</td><td>268435456</td></tr>
+        <tr><td>21</td><td>near</td><td>memcpy</td><td>1</td><td>1048576</td></tr>
+        <tr><td>22</td><td>local</td><td>memcpy</td><td>1</td><td>1048576</td></tr>
+        <tr><td>23</td><td>local</td><td>memcpy</td><td>14</td><td>268435456</td></tr>
+        <tr><td>24</td><td>far</td><td>streaming_store</td><td>1</td><td>1048576</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="uc-section">
+    <h2>How to Run</h2>
+    <div class="code-block"><div class="code-header"><span>terminal</span></div><div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/17_cpu_cross_numa_bandwidth/config.json
+<span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/17_cpu_cross_numa_bandwidth/config.json <span class="flag">--output</span> results/run.sh <span class="flag">--seed</span> 42
+<span class="prompt">$ </span>bash results/run.sh
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/17_cpu_cross_numa_bandwidth/config.json
+<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/17_cpu_cross_numa_bandwidth/config.json
+<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/17_cpu_cross_numa_bandwidth/config.json <span class="flag">--output</span> report.html</div></div>
+  </section>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs.</p>
+
+    <h3>Response: bandwidth_GBs</h3>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/17_pareto_bandwidth_GBs.png" alt="Pareto chart for bandwidth_GBs">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/17_main_effects_bandwidth_GBs.png" alt="Main effects plot for bandwidth_GBs">
+      </div>
+    </div>
+
+    <h3>Response: latency_ns</h3>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/17_pareto_latency_ns.png" alt="Pareto chart for latency_ns">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/17_main_effects_latency_ns.png" alt="Main effects plot for latency_ns">
+      </div>
+    </div>
+
+    <h3>Response Surface Plots</h3>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">bandwidth_GBs: thread_count vs buffer_size</p>
+      <img src="../images/17_rsm_bandwidth_GBs_thread_count_vs_buffer_size.png" alt="RSM surface: bandwidth_GBs: thread_count vs buffer_size" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">latency_ns: thread_count vs buffer_size</p>
+      <img src="../images/17_rsm_latency_ns_thread_count_vs_buffer_size.png" alt="RSM surface: latency_ns: thread_count vs buffer_size" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: bandwidth_GBs ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+numa_hop                66.7375      20.9093            43.3%
+buffer_size            -59.2917      20.9093            38.5%
+thread_count           -16.8250      20.9093            10.9%
+transfer_mode           11.2250      20.9093             7.3%
+
+=== Interaction Effects: bandwidth_GBs ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+transfer_mode        buffer_size               53.1583            67.9%
+transfer_mode        thread_count              13.2583            16.9%
+thread_count         buffer_size               11.9083            15.2%
+
+=== Summary Statistics: bandwidth_GBs ===
+
+numa_hop:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  far                 8   162.7625    94.4747    19.8000   297.6000
+  local               8   112.4250   110.3910    15.8000   316.2000
+  near                8    96.0250   102.9568    30.8000   271.9000
+
+transfer_mode:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  memcpy             12   118.1250   111.6678    15.8000   316.2000
+  streaming_store    12   129.3500    96.9587    19.8000   297.6000
+
+thread_count:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                  12   132.1500    97.0430    29.9000   316.2000
+  14                 12   115.3250   111.2100    15.8000   297.6000
+
+buffer_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1048576            12   153.3833   112.8749    15.8000   316.2000
+  268435456          12    94.0917    85.3295    29.7000   297.6000
+
+=== Main Effects: latency_ns ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+numa_hop                58.3750      10.4980            78.9%
+buffer_size              8.4917      10.4980            11.5%
+thread_count            -3.8250      10.4980             5.2%
+transfer_mode           -3.2750      10.4980             4.4%
+
+=== Interaction Effects: latency_ns ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+transfer_mode        thread_count             -12.8250            40.2%
+thread_count         buffer_size              -10.3917            32.6%
+transfer_mode        buffer_size                8.6583            27.2%
+
+=== Summary Statistics: latency_ns ===
+
+numa_hop:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  far                 8   158.7500    42.0005    83.0000   202.0000
+  local               8   141.0125    57.9953    68.6000   212.3000
+  near                8   100.3750    38.9371    61.5000   180.2000
+
+transfer_mode:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  memcpy             12   135.0167    47.3819    65.8000   200.5000
+  streaming_store    12   131.7417    57.2674    61.5000   212.3000
+
+thread_count:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                  12   135.2917    53.3590    65.8000   212.3000
+  14                 12   131.4667    51.7232    61.5000   205.1000
+
+buffer_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1048576            12   129.1333    52.7718    61.5000   202.0000
+  268435456          12   137.6250    52.0217    65.8000   212.3000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: bandwidth_GBs ===
+Direction: maximize
+
+Best observed run: #14
+  numa_hop = local
+  transfer_mode = memcpy
+  thread_count = 14
+  buffer_size = 268435456
+  Value: 316.2
+
+RSM Model (linear, R&sup2; = 0.0488, Adj R&sup2; = -0.1514):
+  Coefficients:
+    intercept:  +123.7375
+    numa_hop:  -13.7938
+    transfer_mode:  +9.9542
+    thread_count:  -7.8542
+    buffer_size:  +14.2625
+  Predicted optimum:
+    numa_hop = far
+    transfer_mode = streaming_store
+    thread_count = 1
+    buffer_size = 268435456
+    Predicted value: 169.6021
+
+Factor importance:
+  1. buffer_size  (effect: 28.5, contribution: 31.1%)
+  2. numa_hop  (effect: 27.6, contribution: 30.1%)
+  3. transfer_mode  (effect: 19.9, contribution: 21.7%)
+  4. thread_count  (effect: -15.7, contribution: 17.1%)
+
+=== Optimization: latency_ns ===
+Direction: minimize
+
+Best observed run: #18
+  numa_hop = near
+  transfer_mode = streaming_store
+  thread_count = 1
+  buffer_size = 1048576
+  Value: 61.5
+
+RSM Model (linear, R&sup2; = 0.2038, Adj R&sup2; = 0.0362):
+  Coefficients:
+    intercept:  +133.3792
+    numa_hop:  -25.4563
+    transfer_mode:  +1.2792
+    thread_count:  -0.8292
+    buffer_size:  -9.0708
+  Predicted optimum:
+    numa_hop = far
+    transfer_mode = streaming_store
+    thread_count = 1
+    buffer_size = 1048576
+    Predicted value: 170.0146
+
+Factor importance:
+  1. numa_hop  (effect: 50.9, contribution: 69.5%)
+  2. buffer_size  (effect: -18.1, contribution: 24.8%)
+  3. transfer_mode  (effect: 2.6, contribution: 3.5%)
+  4. thread_count  (effect: -1.7, contribution: 2.3%)</div></div>
+  </section>
+
+  <div class="chapter-nav">
+    <a href="16-storage-tiering.html">&larr; Storage Tiering</a>
+    <a href="18-interconnect-topology-routing.html">Interconnect Topology &amp; Routing &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <span>doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

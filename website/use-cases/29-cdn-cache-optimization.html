@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CDN Cache Hit Optimization &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x2601;</div>
+    <div class="uc-badge" style="background:rgba(29,78,216,.12);color:#1d4ed8;">Full Factorial Design</div>
+    <h1>CDN Cache Hit Optimization</h1>
+    <p class="uc-subtitle">Full factorial with categorical and continuous factors for cache hit ratio and origin bandwidth</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>ttl_hours</code></td><td>1</td><td>24</td><td>h</td></tr>
+            <tr><td><code>cache_policy</code></td><td>lru</td><td>lfu</td><td></td></tr>
+            <tr><td><code>cache_size_gb</code></td><td>50</td><td>200</td><td>GB</td></tr>
+            <tr><td><code>prefetch</code></td><td>off</td><td>on</td><td></td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> origin_region = us-east-1, compression = brotli</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>hit_ratio</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+            <tr><td><code>origin_bandwidth</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>Gbps</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/29_cdn_cache_optimization/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;CDN Cache Hit Optimization&quot;,
+    &quot;description&quot;: &quot;Full factorial with categorical and continuous factors for cache hit ratio and origin bandwidth&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;ttl_hours&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;24&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;h&quot;
+    },
+    {
+      &quot;name&quot;: &quot;cache_policy&quot;,
+      &quot;levels&quot;: [
+        &quot;lru&quot;,
+        &quot;lfu&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    },
+    {
+      &quot;name&quot;: &quot;cache_size_gb&quot;,
+      &quot;levels&quot;: [
+        &quot;50&quot;,
+        &quot;200&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;GB&quot;
+    },
+    {
+      &quot;name&quot;: &quot;prefetch&quot;,
+      &quot;levels&quot;: [
+        &quot;off&quot;,
+        &quot;on&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;origin_region&quot;: &quot;us-east-1&quot;,
+    &quot;compression&quot;: &quot;brotli&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;hit_ratio&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;origin_bandwidth&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;Gbps&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;full_factorial&quot;,
+    &quot;test_script&quot;: &quot;use_cases/29_cdn_cache_optimization/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Full Factorial Design produces <strong>16 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>ttl_hours</code></th><th><code>cache_policy</code></th><th><code>cache_size_gb</code></th><th><code>prefetch</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>1</td><td>lfu</td><td>200</td><td>on</td></tr>
+        <tr><td>2</td><td>24</td><td>lru</td><td>50</td><td>on</td></tr>
+        <tr><td>3</td><td>1</td><td>lfu</td><td>50</td><td>on</td></tr>
+        <tr><td>4</td><td>1</td><td>lfu</td><td>200</td><td>off</td></tr>
+        <tr><td>5</td><td>24</td><td>lfu</td><td>200</td><td>off</td></tr>
+        <tr><td>6</td><td>24</td><td>lru</td><td>200</td><td>off</td></tr>
+        <tr><td>7</td><td>24</td><td>lfu</td><td>50</td><td>off</td></tr>
+        <tr><td>8</td><td>24</td><td>lru</td><td>50</td><td>off</td></tr>
+        <tr><td>9</td><td>1</td><td>lru</td><td>50</td><td>on</td></tr>
+        <tr><td>10</td><td>1</td><td>lru</td><td>200</td><td>off</td></tr>
+        <tr><td>11</td><td>24</td><td>lfu</td><td>50</td><td>on</td></tr>
+        <tr><td>12</td><td>24</td><td>lfu</td><td>200</td><td>on</td></tr>
+        <tr><td>13</td><td>1</td><td>lfu</td><td>50</td><td>off</td></tr>
+        <tr><td>14</td><td>24</td><td>lru</td><td>200</td><td>on</td></tr>
+        <tr><td>15</td><td>1</td><td>lru</td><td>50</td><td>off</td></tr>
+        <tr><td>16</td><td>1</td><td>lru</td><td>200</td><td>on</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/29_cdn_cache_optimization/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/29_cdn_cache_optimization/config.json \
+    <span class="flag">--output</span> use_cases/29_cdn_cache_optimization/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/29_cdn_cache_optimization/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/29_cdn_cache_optimization/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/29_cdn_cache_optimization/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/29_cdn_cache_optimization/config.json \
+    <span class="flag">--output</span> use_cases/29_cdn_cache_optimization/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>full_factorial</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (2), <code>categorical</code> (2)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (hit_ratio &#x2191;, origin_bandwidth &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>16</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: hit_ratio</h3>
+    <p>Top factors: cache_policy (39.5%), prefetch (26.1%), ttl_hours (20.8%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/29_pareto_hit_ratio.png" alt="Pareto chart for hit_ratio">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/29_main_effects_hit_ratio.png" alt="Main effects plot for hit_ratio">
+      </div>
+    </div>
+
+    <h3>Response: origin_bandwidth</h3>
+    <p>Top factors: cache_policy (44.8%), prefetch (27.1%), ttl_hours (17.8%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/29_pareto_origin_bandwidth.png" alt="Pareto chart for origin_bandwidth">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/29_main_effects_origin_bandwidth.png" alt="Main effects plot for origin_bandwidth">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">hit ratio ttl hours vs cache size gb</p>
+      <img src="../images/29_rsm_hit_ratio_ttl_hours_vs_cache_size_gb.png" alt="RSM surface: hit ratio ttl hours vs cache size gb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">origin bandwidth ttl hours vs cache size gb</p>
+      <img src="../images/29_rsm_origin_bandwidth_ttl_hours_vs_cache_size_gb.png" alt="RSM surface: origin bandwidth ttl hours vs cache size gb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: hit_ratio ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+cache_policy           -13.2375       3.6502            39.5%
+prefetch                 8.7625       3.6502            26.1%
+ttl_hours               -6.9875       3.6502            20.8%
+cache_size_gb            4.5625       3.6502            13.6%
+
+=== Interaction Effects: hit_ratio ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+cache_size_gb        prefetch                 -12.0875            49.5%
+cache_policy         prefetch                   6.8625            28.1%
+ttl_hours            cache_size_gb             -2.8375            11.6%
+ttl_hours            cache_policy              -1.3875             5.7%
+ttl_hours            prefetch                  -1.1375             4.7%
+cache_policy         cache_size_gb             -0.0875             0.4%
+
+=== Summary Statistics: hit_ratio ===
+
+ttl_hours:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   8    73.7250    16.0719    47.9000    99.0000
+  24                  8    66.7375    13.0624    53.3000    89.6000
+
+cache_policy:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  lfu                 8    76.8500    14.6523    55.8000    99.0000
+  lru                 8    63.6125    11.9168    47.9000    81.9000
+
+cache_size_gb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  200                 8    67.9500    15.3786    47.9000    89.6000
+  50                  8    72.5125    14.4373    53.3000    99.0000
+
+prefetch:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 8    65.8500    16.9272    47.9000    99.0000
+  on                  8    74.6125    11.2438    58.0000    89.6000
+
+=== Main Effects: origin_bandwidth ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+cache_policy             8.7650       2.0502            44.8%
+prefetch                -5.3050       2.0502            27.1%
+ttl_hours                3.4800       2.0502            17.8%
+cache_size_gb           -2.0050       2.0502            10.3%
+
+=== Interaction Effects: origin_bandwidth ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+cache_size_gb        prefetch                   5.4825            51.4%
+cache_policy         prefetch                  -2.1725            20.4%
+ttl_hours            cache_size_gb              1.4375            13.5%
+cache_policy         cache_size_gb             -0.9925             9.3%
+ttl_hours            cache_policy               0.5775             5.4%
+ttl_hours            prefetch                   0.0075             0.1%
+
+=== Summary Statistics: origin_bandwidth ===
+
+ttl_hours:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   8    13.4987     8.7475     0.9800    28.0800
+  24                  8    16.9788     7.7891     2.5700    25.1900
+
+cache_policy:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  lfu                 8    10.8562     7.7963     0.9800    23.2300
+  lru                 8    19.6212     6.2789     8.8900    28.0800
+
+cache_size_gb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  200                 8    16.2413     9.1943     2.5700    28.0800
+  50                  8    14.2363     7.5680     0.9800    25.1900
+
+prefetch:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 8    17.8912     8.8442     0.9800    28.0800
+  on                  8    12.5862     7.0574     2.5700    23.3300</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: hit_ratio ===
+Direction: maximize
+
+Best observed run: #12
+  ttl_hours = 24
+  cache_policy = lru
+  cache_size_gb = 200
+  prefetch = on
+  Value: 99.0
+
+RSM Model (linear, R² = 0.0214, Adj R² = -0.3345):
+  Coefficients:
+    intercept                      +70.2313
+    ttl_hours                      -0.1813
+    cache_policy                   -0.1312
+    cache_size_gb                  -1.1812
+    prefetch                       +1.6813
+
+RSM Model (quadratic, R² = 0.7683, Adj R² = -2.4750):
+  Coefficients:
+    intercept                      +14.0462
+    ttl_hours                      -0.1813
+    cache_policy                   -0.1312
+    cache_size_gb                  -1.1813
+    prefetch                       +1.6813
+    ttl_hours*cache_policy         +0.8813
+    ttl_hours*cache_size_gb        -2.3437
+    ttl_hours*prefetch             +6.1938
+    cache_policy*cache_size_gb     +6.9813
+    cache_policy*prefetch          +7.3938
+    cache_size_gb*prefetch         +1.1188
+    ttl_hours^2                    +14.0463
+    cache_policy^2                 +14.0463
+    cache_size_gb^2                +14.0463
+    prefetch^2                     +14.0463
+
+  Curvature analysis:
+    ttl_hours                      coef=+14.0463  convex (has a minimum)
+    cache_size_gb                  coef=+14.0463  convex (has a minimum)
+    prefetch                       coef=+14.0463  convex (has a minimum)
+    cache_policy                   coef=+14.0463  convex (has a minimum)
+
+  Notable interactions:
+    cache_policy*prefetch          coef=+7.3938  (synergistic)
+    cache_policy*cache_size_gb     coef=+6.9813  (synergistic)
+    ttl_hours*prefetch             coef=+6.1938  (synergistic)
+    ttl_hours*cache_size_gb        coef=-2.3437  (antagonistic)
+    cache_size_gb*prefetch         coef=+1.1188  (synergistic)
+    ttl_hours*cache_policy         coef=+0.8813  (synergistic)
+
+  Predicted optimum (from linear model):
+    ttl_hours = 1
+    cache_policy = lfu
+    cache_size_gb = 50
+    prefetch = on
+    Predicted value: 73.4063
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. prefetch  (effect: 3.4, contribution: 53.0%)
+  2. cache_size_gb  (effect: 2.4, contribution: 37.2%)
+  3. ttl_hours  (effect: -0.4, contribution: 5.7%)
+  4. cache_policy  (effect: -0.3, contribution: 4.1%)
+
+=== Optimization: origin_bandwidth ===
+Direction: minimize
+
+Best observed run: #12
+  ttl_hours = 24
+  cache_policy = lru
+  cache_size_gb = 200
+  prefetch = on
+  Value: 0.98
+
+RSM Model (linear, R² = 0.0241, Adj R² = -0.3307):
+  Coefficients:
+    intercept                      +15.2388
+    ttl_hours                      +0.1863
+    cache_policy                   -0.2250
+    cache_size_gb                  +0.8688
+    prefetch                       -0.8250
+
+RSM Model (quadratic, R² = 0.7874, Adj R² = -2.1886):
+  Coefficients:
+    intercept                      +3.0477
+    ttl_hours                      +0.1863
+    cache_policy                   -0.2250
+    cache_size_gb                  +0.8688
+    prefetch                       -0.8250
+    ttl_hours*cache_policy         -0.8525
+    ttl_hours*cache_size_gb        +1.8887
+    ttl_hours*prefetch             -4.1225
+    cache_policy*cache_size_gb     -3.4600
+    cache_policy*prefetch          -3.8387
+    cache_size_gb*prefetch         +0.3575
+    ttl_hours^2                    +3.0478
+    cache_policy^2                 +3.0478
+    cache_size_gb^2                +3.0478
+    prefetch^2                     +3.0478
+
+  Curvature analysis:
+    prefetch                       coef=+3.0478  convex (has a minimum)
+    cache_policy                   coef=+3.0478  convex (has a minimum)
+    cache_size_gb                  coef=+3.0478  convex (has a minimum)
+    ttl_hours                      coef=+3.0478  convex (has a minimum)
+
+  Notable interactions:
+    ttl_hours*prefetch             coef=-4.1225  (antagonistic)
+    cache_policy*prefetch          coef=-3.8387  (antagonistic)
+    cache_policy*cache_size_gb     coef=-3.4600  (antagonistic)
+    ttl_hours*cache_size_gb        coef=+1.8887  (synergistic)
+    ttl_hours*cache_policy         coef=-0.8525  (antagonistic)
+    cache_size_gb*prefetch         coef=+0.3575  (synergistic)
+
+  Predicted optimum (from linear model):
+    ttl_hours = 24
+    cache_policy = lfu
+    cache_size_gb = 200
+    prefetch = off
+    Predicted value: 17.3438
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. cache_size_gb  (effect: -1.7, contribution: 41.3%)
+  2. prefetch  (effect: -1.7, contribution: 39.2%)
+  3. cache_policy  (effect: -0.4, contribution: 10.7%)
+  4. ttl_hours  (effect: 0.4, contribution: 8.8%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="28-microservice-circuit-breaker.html">&larr; Previous: Microservice Circuit Breaker</a>
+    <a href="30-serverless-cold-start.html">Next: Serverless Cold Start &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

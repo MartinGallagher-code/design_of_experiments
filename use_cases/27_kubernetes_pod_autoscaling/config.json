@@ -1,0 +1,66 @@
+{
+    "metadata": {
+        "name": "Kubernetes Pod Autoscaling",
+        "description": "Central Composite design to optimize HPA target CPU, scale-up window, and replica bounds for request latency and cost"
+    },
+    "factors": [
+        {
+            "name": "target_cpu_pct",
+            "levels": [
+                "40",
+                "80"
+            ],
+            "type": "continuous",
+            "unit": "%",
+            "description": "HPA target CPU utilization"
+        },
+        {
+            "name": "scaleup_window",
+            "levels": [
+                "15",
+                "120"
+            ],
+            "type": "continuous",
+            "unit": "s",
+            "description": "Stabilization window for scale-up"
+        },
+        {
+            "name": "max_replicas",
+            "levels": [
+                "5",
+                "30"
+            ],
+            "type": "continuous",
+            "unit": "pods",
+            "description": "Maximum replica count"
+        }
+    ],
+    "fixed_factors": {
+        "min_replicas": "2",
+        "namespace": "production"
+    },
+    "responses": [
+        {
+            "name": "p99_latency_ms",
+            "optimize": "minimize",
+            "unit": "ms",
+            "description": "99th percentile request latency"
+        },
+        {
+            "name": "hourly_cost",
+            "optimize": "minimize",
+            "unit": "USD",
+            "description": "Hourly compute cost"
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "use_cases/27_kubernetes_pod_autoscaling/sim.sh",
+        "operation": "central_composite",
+        "processed_directory": "use_cases/27_kubernetes_pod_autoscaling/results/analysis",
+        "out_directory": "use_cases/27_kubernetes_pod_autoscaling/results"
+    }
+}

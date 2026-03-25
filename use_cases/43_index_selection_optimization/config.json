@@ -1,0 +1,66 @@
+{
+    "metadata": {
+        "name": "Index Selection Optimization",
+        "description": "Box-Behnken design optimizing index fill factor, page size, and parallel workers for throughput"
+    },
+    "factors": [
+        {
+            "name": "fill_factor",
+            "levels": [
+                "50",
+                "100"
+            ],
+            "type": "continuous",
+            "unit": "%",
+            "description": "Index page fill factor"
+        },
+        {
+            "name": "maintenance_work_mem_mb",
+            "levels": [
+                "64",
+                "2048"
+            ],
+            "type": "continuous",
+            "unit": "MB",
+            "description": "Memory for index operations"
+        },
+        {
+            "name": "parallel_workers",
+            "levels": [
+                "0",
+                "8"
+            ],
+            "type": "continuous",
+            "unit": "count",
+            "description": "Parallel index build workers"
+        }
+    ],
+    "fixed_factors": {
+        "table_rows": "50000000",
+        "index_type": "btree"
+    },
+    "responses": [
+        {
+            "name": "build_time_s",
+            "optimize": "minimize",
+            "unit": "s",
+            "description": "Index build time"
+        },
+        {
+            "name": "query_speedup",
+            "optimize": "maximize",
+            "unit": "x",
+            "description": "Query speedup over sequential scan"
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "use_cases/43_index_selection_optimization/sim.sh",
+        "operation": "box_behnken",
+        "processed_directory": "use_cases/43_index_selection_optimization/results/analysis",
+        "out_directory": "use_cases/43_index_selection_optimization/results"
+    }
+}

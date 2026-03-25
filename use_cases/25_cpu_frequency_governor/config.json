@@ -1,0 +1,58 @@
+{
+    "metadata": {
+        "name": "CPU Frequency Governor & P-State Tuning",
+        "description": "Box-Behnken design to optimize CPU frequency governor settings for mixed compute and memory-bound HPC workload phases"
+    },
+    "factors": [
+        {
+            "name": "governor",
+            "levels": ["performance", "schedutil"],
+            "type": "categorical",
+            "unit": "",
+            "description": "Linux CPU frequency governor"
+        },
+        {
+            "name": "min_freq_pct",
+            "levels": ["40", "80"],
+            "type": "continuous",
+            "unit": "%",
+            "description": "Minimum frequency as percentage of max turbo"
+        },
+        {
+            "name": "energy_perf_bias",
+            "levels": ["0", "15"],
+            "type": "continuous",
+            "unit": "",
+            "description": "Intel EPB hint (0=max performance, 15=max power saving)"
+        }
+    ],
+    "fixed_factors": {
+        "processor": "Xeon_8490H",
+        "cores": "56",
+        "max_turbo_freq": "3500MHz",
+        "workload": "mixed_compute_memory",
+        "tdp": "350W"
+    },
+    "responses": [
+        {
+            "name": "throughput_normalized",
+            "optimize": "maximize",
+            "unit": "%",
+            "description": "Application throughput normalized to max-frequency baseline"
+        },
+        {
+            "name": "energy_delay_product",
+            "optimize": "minimize",
+            "unit": "J*s",
+            "description": "Energy-delay product (lower is better)"
+        }
+    ],
+    "runner": { "arg_style": "double-dash" },
+    "settings": {
+        "block_count": 1,
+        "test_script": "use_cases/25_cpu_frequency_governor/sim.sh",
+        "operation": "full_factorial",
+        "processed_directory": "use_cases/25_cpu_frequency_governor/results/analysis",
+        "out_directory": "use_cases/25_cpu_frequency_governor/results"
+    }
+}

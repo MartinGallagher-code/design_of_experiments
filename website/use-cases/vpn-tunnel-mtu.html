@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VPN Tunnel MTU — DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../quickstart.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F310;</div>
+    <div class="uc-badge" style="background:rgba(67,56,202,.12);color:#4338ca;">Box-Behnken Design</div>
+    <h1>VPN Tunnel MTU</h1>
+    <p class="uc-subtitle">Box-Behnken design for MTU, fragmentation, and keepalive to optimize throughput and reconnect time</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>tunnel_mtu</code></td><td>1200</td><td>1500</td><td>bytes</td></tr>
+            <tr><td><code>fragment_size</code></td><td>0</td><td>1400</td><td>bytes</td></tr>
+            <tr><td><code>keepalive_interval</code></td><td>10</td><td>120</td><td>s</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> protocol = wireguard, encryption = chacha20</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>throughput_mbps</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>Mbps</td></tr>
+            <tr><td><code>reconnect_time_s</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>s</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/52_vpn_tunnel_mtu/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  <span class="key">&quot;metadata&quot;</span>: {
+    <span class="key">&quot;name&quot;</span>: &quot;VPN Tunnel MTU&quot;,
+    <span class="key">&quot;description&quot;</span>: &quot;Box-Behnken design for MTU, fragmentation, and keepalive to optimize throughput and reconnect time&quot;
+  },
+  <span class="key">&quot;factors&quot;</span>: [
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;tunnel_mtu&quot;,
+      <span class="key">&quot;levels&quot;</span>: [
+        &quot;1200&quot;,
+        &quot;1500&quot;
+      ],
+      <span class="key">&quot;type&quot;</span>: &quot;continuous&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;bytes&quot;
+    },
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;fragment_size&quot;,
+      <span class="key">&quot;levels&quot;</span>: [
+        &quot;0&quot;,
+        &quot;1400&quot;
+      ],
+      <span class="key">&quot;type&quot;</span>: &quot;continuous&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;bytes&quot;
+    },
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;keepalive_interval&quot;,
+      <span class="key">&quot;levels&quot;</span>: [
+        &quot;10&quot;,
+        &quot;120&quot;
+      ],
+      <span class="key">&quot;type&quot;</span>: &quot;continuous&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;s&quot;
+    }
+  ],
+  <span class="key">&quot;fixed_factors&quot;</span>: {
+    &quot;protocol&quot;: &quot;wireguard&quot;,
+    &quot;encryption&quot;: &quot;chacha20&quot;
+  },
+  <span class="key">&quot;responses&quot;</span>: [
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;throughput_mbps&quot;,
+      <span class="key">&quot;optimize&quot;</span>: &quot;maximize&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;Mbps&quot;
+    },
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;reconnect_time_s&quot;,
+      <span class="key">&quot;optimize&quot;</span>: &quot;minimize&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;s&quot;
+    }
+  ],
+  <span class="key">&quot;settings&quot;</span>: {
+    <span class="key">&quot;operation&quot;</span>: &quot;box_behnken&quot;,
+    <span class="key">&quot;test_script&quot;</span>: &quot;use_cases/52_vpn_tunnel_mtu/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/52_vpn_tunnel_mtu/config.json</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/52_vpn_tunnel_mtu/config.json \
+    <span class="flag">--output</span> use_cases/52_vpn_tunnel_mtu/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/52_vpn_tunnel_mtu/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/52_vpn_tunnel_mtu/config.json</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/52_vpn_tunnel_mtu/config.json</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/52_vpn_tunnel_mtu/config.json \
+    <span class="flag">--output</span> use_cases/52_vpn_tunnel_mtu/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>box_behnken</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code></td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (throughput_mbps &#x2191;, reconnect_time_s &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>15</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+    <h3>Pareto Charts</h3>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">pareto reconnect time s</p>
+      <img src="../images/52_pareto_reconnect_time_s.png" alt="pareto reconnect time s" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">pareto throughput mbps</p>
+      <img src="../images/52_pareto_throughput_mbps.png" alt="pareto throughput mbps" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <h3>Main Effects</h3>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">main effects reconnect time s</p>
+      <img src="../images/52_main_effects_reconnect_time_s.png" alt="main effects reconnect time s" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">main effects throughput mbps</p>
+      <img src="../images/52_main_effects_throughput_mbps.png" alt="main effects throughput mbps" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <h3>Response Surfaces</h3>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm reconnect time s fragment size vs keepalive interval</p>
+      <img src="../images/52_rsm_reconnect_time_s_fragment_size_vs_keepalive_interval.png" alt="rsm reconnect time s fragment size vs keepalive interval" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm reconnect time s tunnel mtu vs fragment size</p>
+      <img src="../images/52_rsm_reconnect_time_s_tunnel_mtu_vs_fragment_size.png" alt="rsm reconnect time s tunnel mtu vs fragment size" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm reconnect time s tunnel mtu vs keepalive interval</p>
+      <img src="../images/52_rsm_reconnect_time_s_tunnel_mtu_vs_keepalive_interval.png" alt="rsm reconnect time s tunnel mtu vs keepalive interval" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm throughput mbps fragment size vs keepalive interval</p>
+      <img src="../images/52_rsm_throughput_mbps_fragment_size_vs_keepalive_interval.png" alt="rsm throughput mbps fragment size vs keepalive interval" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm throughput mbps tunnel mtu vs fragment size</p>
+      <img src="../images/52_rsm_throughput_mbps_tunnel_mtu_vs_fragment_size.png" alt="rsm throughput mbps tunnel mtu vs fragment size" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm throughput mbps tunnel mtu vs keepalive interval</p>
+      <img src="../images/52_rsm_throughput_mbps_tunnel_mtu_vs_keepalive_interval.png" alt="rsm throughput mbps tunnel mtu vs keepalive interval" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: throughput_mbps ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+keepalive_interval      75.7143      18.5135            65.4%
+tunnel_mtu              27.7500      18.5135            24.0%
+fragment_size           12.2500      18.5135            10.6%
+
+=== Summary Statistics: throughput_mbps ===
+
+tunnel_mtu:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1200                4   823.2500    38.8276   786.0000   871.0000
+  1350                7   840.2857    84.1541   695.0000   913.0000
+  1500                4   851.0000    88.2912   739.0000   927.0000
+
+fragment_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4   843.0000   100.3760   695.0000   916.0000
+  1400                4   830.7500    65.2451   752.0000   911.0000
+  700                 7   840.5714    69.0769   739.0000   927.0000
+
+keepalive_interval:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4   793.0000    98.7691   695.0000   927.0000
+  120                 4   831.5000    82.3994   739.0000   911.0000
+  65                  7   868.7143    35.2974   822.0000   916.0000
+
+=== Main Effects: reconnect_time_s ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+tunnel_mtu               6.1750       1.0999            81.2%
+fragment_size            0.8571       1.0999            11.3%
+keepalive_interval       0.5750       1.0999             7.6%
+
+=== Summary Statistics: reconnect_time_s ===
+
+tunnel_mtu:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1200                4    10.8250     4.6486     5.5000    16.0000
+  1350                7    10.5571     3.3654     7.7000    15.7000
+  1500                4     4.6500     2.2605     2.7000     7.4000
+
+fragment_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4     9.0500     4.4852     2.7000    13.1000
+  1400                4     9.6000     3.3793     7.4000    14.6000
+  700                 7     8.7429     5.1247     2.9000    16.0000
+
+keepalive_interval:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4     8.8000     4.2919     5.5000    14.6000
+  120                 4     9.3750     5.5060     2.9000    16.0000
+  65                  7     9.0143     4.2263     2.7000    15.7000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: throughput_mbps ===
+Direction: maximize
+
+Best observed run: #4
+  tunnel_mtu = 1350
+  fragment_size = 700
+  keepalive_interval = 65
+  Value: 927.0
+
+RSM Model (linear, R² = 0.0169, Adj R² = -0.2512):
+  Coefficients:
+    intercept                      +838.6000
+    tunnel_mtu                     +4.1250
+    fragment_size                  +9.6250
+    keepalive_interval             -6.5000
+
+RSM Model (quadratic, R² = 0.8797, Adj R² = 0.6632):
+  Coefficients:
+    intercept                      +891.6667
+    tunnel_mtu                     +4.1250
+    fragment_size                  +9.6250
+    keepalive_interval             -6.5000
+    tunnel_mtu*fragment_size       -86.5000
+    tunnel_mtu*keepalive_interval  -71.2500
+    fragment_size*keepalive_interval +14.2500
+    tunnel_mtu^2                   -40.0833
+    fragment_size^2                -24.5833
+    keepalive_interval^2           -34.8333
+
+  Curvature analysis:
+    tunnel_mtu                     coef=-40.0833  concave (has a maximum)
+    keepalive_interval             coef=-34.8333  concave (has a maximum)
+    fragment_size                  coef=-24.5833  concave (has a maximum)
+
+  Notable interactions:
+    tunnel_mtu*fragment_size       coef=-86.5000  (antagonistic)
+    tunnel_mtu*keepalive_interval  coef=-71.2500  (antagonistic)
+    fragment_size*keepalive_interval coef=+14.2500  (synergistic)
+
+  Predicted optimum (from quadratic model):
+    tunnel_mtu = 1200
+    fragment_size = 1400
+    keepalive_interval = 65
+    Predicted value: 919.0000
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. tunnel_mtu  (effect: 40.0, contribution: 37.9%)
+  2. keepalive_interval  (effect: 36.7, contribution: 34.8%)
+  3. fragment_size  (effect: 28.9, contribution: 27.3%)
+
+=== Optimization: reconnect_time_s ===
+Direction: minimize
+
+Best observed run: #1
+  tunnel_mtu = 1500
+  fragment_size = 0
+  keepalive_interval = 65
+  Value: 2.7
+
+RSM Model (linear, R² = 0.2804, Adj R² = 0.0841):
+  Coefficients:
+    intercept                      +9.0533
+    tunnel_mtu                     -2.2625
+    fragment_size                  +1.1250
+    keepalive_interval             -1.5875
+
+RSM Model (quadratic, R² = 0.6156, Adj R² = -0.0762):
+  Coefficients:
+    intercept                      +8.0667
+    tunnel_mtu                     -2.2625
+    fragment_size                  +1.1250
+    keepalive_interval             -1.5875
+    tunnel_mtu*fragment_size       +3.7750
+    tunnel_mtu*keepalive_interval  -1.5000
+    fragment_size*keepalive_interval +1.5750
+    tunnel_mtu^2                   +1.2417
+    fragment_size^2                -0.3333
+    keepalive_interval^2           +0.9417
+
+  Curvature analysis:
+    tunnel_mtu                     coef=+1.2417  convex (has a minimum)
+    keepalive_interval             coef=+0.9417  convex (has a minimum)
+    fragment_size                  coef=-0.3333  concave (has a maximum)
+
+  Notable interactions:
+    tunnel_mtu*fragment_size       coef=+3.7750  (synergistic)
+    fragment_size*keepalive_interval coef=+1.5750  (synergistic)
+    tunnel_mtu*keepalive_interval  coef=-1.5000  (antagonistic)
+
+  Predicted optimum (from linear model):
+    tunnel_mtu = 1200
+    fragment_size = 700
+    keepalive_interval = 10
+    Predicted value: 12.9033
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. tunnel_mtu  (effect: 4.5, contribution: 45.5%)
+  2. keepalive_interval  (effect: 3.2, contribution: 31.9%)
+  3. fragment_size  (effect: 2.2, contribution: 22.6%)</div></div>
+
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="bgp-route-convergence.html">&larr; BGP Route Convergence</a>
+    <a href="ddos-mitigation-threshold.html">DDoS Mitigation Threshold &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

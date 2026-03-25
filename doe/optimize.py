@@ -58,26 +58,89 @@ def recommend(
         print(f"  Value: {responses[best_run.run_id]}")
         print()
 
-        # 2. RSM prediction
-        rsm_model = fit_rsm(
-            valid_runs,
-            responses,
-            matrix.factor_names,
-            cfg.factors,
+        # 2. RSM prediction — linear
+        rsm_linear = fit_rsm(
+            valid_runs, responses, matrix.factor_names, cfg.factors,
             model_type="linear",
         )
-        rsm_model.response_name = resp.name
+        rsm_linear.response_name = resp.name
 
-        print(f"RSM Model (linear, R² = {rsm_model.r_squared:.2f}):")
+        print(f"RSM Model (linear, R² = {rsm_linear.r_squared:.4f}, Adj R² = {rsm_linear.adj_r_squared:.4f}):")
         print("  Coefficients:")
-        for name, coef in rsm_model.coefficients.items():
+        for name, coef in rsm_linear.coefficients.items():
             sign = "+" if coef >= 0 else ""
-            print(f"    {name}:  {sign}{coef:.4f}")
+            print(f"    {name:30s} {sign}{coef:.4f}")
+        print()
 
-        print("  Predicted optimum:")
-        for fname, val in rsm_model.predicted_optimum.items():
+        # 3. RSM prediction — quadratic (if enough data points)
+        n_factors = len(matrix.factor_names)
+        n_quad_terms = 1 + n_factors + n_factors * (n_factors - 1) // 2 + n_factors
+        rsm_quad = None
+        if len(valid_runs) >= n_quad_terms + 1:
+            try:
+                rsm_quad = fit_rsm(
+                    valid_runs, responses, matrix.factor_names, cfg.factors,
+                    model_type="quadratic",
+                )
+                rsm_quad.response_name = resp.name
+
+                print(f"RSM Model (quadratic, R² = {rsm_quad.r_squared:.4f}, Adj R² = {rsm_quad.adj_r_squared:.4f}):")
+                print("  Coefficients:")
+                for name, coef in rsm_quad.coefficients.items():
+                    sign = "+" if coef >= 0 else ""
+                    print(f"    {name:30s} {sign}{coef:.4f}")
+                print()
+
+                # Curvature analysis
+                quad_terms = {k: v for k, v in rsm_quad.coefficients.items() if "^2" in k}
+                if quad_terms:
+                    print("  Curvature analysis:")
+                    for term, coef in sorted(quad_terms.items(), key=lambda x: abs(x[1]), reverse=True):
+                        factor = term.replace("^2", "")
+                        if abs(coef) < 0.1:
+                            shape = "negligible curvature"
+                        elif coef < 0:
+                            shape = "concave (has a maximum)"
+                        else:
+                            shape = "convex (has a minimum)"
+                        print(f"    {factor:30s} coef={coef:+.4f}  {shape}")
+                    print()
+
+                # Interaction analysis
+                ix_terms = {k: v for k, v in rsm_quad.coefficients.items() if "*" in k}
+                if ix_terms:
+                    sig_ix = {k: v for k, v in ix_terms.items() if abs(v) > 0.3}
+                    if sig_ix:
+                        print("  Notable interactions:")
+                        for term, coef in sorted(sig_ix.items(), key=lambda x: abs(x[1]), reverse=True):
+                            synergy = "synergistic" if coef > 0 else "antagonistic"
+                            print(f"    {term:30s} coef={coef:+.4f}  ({synergy})")
+                        print()
+
+            except Exception:
+                pass  # quadratic fit failed (e.g. singular matrix)
+
+        # Pick best model for optimum prediction
+        best_model = rsm_quad if (rsm_quad and rsm_quad.adj_r_squared > rsm_linear.adj_r_squared) else rsm_linear
+        model_label = "quadratic" if best_model is rsm_quad else "linear"
+
+        print(f"  Predicted optimum (from {model_label} model):")
+        for fname, val in best_model.predicted_optimum.items():
             print(f"    {fname} = {val}")
-        print(f"    Predicted value: {rsm_model.predicted_value:.4f}")
+        print(f"    Predicted value: {best_model.predicted_value:.4f}")
+        print()
+
+        # Model quality assessment
+        r2 = best_model.r_squared
+        if r2 > 0.9:
+            quality = "Excellent fit — surface predictions are reliable."
+        elif r2 > 0.7:
+            quality = "Good fit — general trends are captured, some noise remains."
+        elif r2 > 0.5:
+            quality = "Moderate fit — use predictions directionally, not precisely."
+        else:
+            quality = "Weak fit — consider adding center points or using a different design."
+        print(f"  Model quality: {quality}")
         print()
 
         # 3. Factor importance ranking

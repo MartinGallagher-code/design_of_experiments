@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DNS Resolver Caching &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F310;</div>
+    <div class="uc-badge" style="background:rgba(124,58,237,.12);color:#7c3aed;">Central Composite Design</div>
+    <h1>DNS Resolver Caching</h1>
+    <p class="uc-subtitle">Central Composite design for DNS cache size, TTL override, and prefetch threshold for resolution time</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>cache_size</code></td><td>10000</td><td>500000</td><td>entries</td></tr>
+            <tr><td><code>min_ttl_s</code></td><td>30</td><td>3600</td><td>s</td></tr>
+            <tr><td><code>prefetch_pct</code></td><td>0</td><td>90</td><td>%</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> resolver = unbound, dnssec = on</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>avg_resolution_ms</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>ms</td></tr>
+            <tr><td><code>cache_hit_rate</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/50_dns_resolver_caching/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;DNS Resolver Caching&quot;,
+    &quot;description&quot;: &quot;Central Composite design for DNS cache size, TTL override, and prefetch threshold for resolution time&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;cache_size&quot;,
+      &quot;levels&quot;: [
+        &quot;10000&quot;,
+        &quot;500000&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;entries&quot;
+    },
+    {
+      &quot;name&quot;: &quot;min_ttl_s&quot;,
+      &quot;levels&quot;: [
+        &quot;30&quot;,
+        &quot;3600&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;s&quot;
+    },
+    {
+      &quot;name&quot;: &quot;prefetch_pct&quot;,
+      &quot;levels&quot;: [
+        &quot;0&quot;,
+        &quot;90&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;resolver&quot;: &quot;unbound&quot;,
+    &quot;dnssec&quot;: &quot;on&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;avg_resolution_ms&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;name&quot;: &quot;cache_hit_rate&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;central_composite&quot;,
+    &quot;test_script&quot;: &quot;use_cases/50_dns_resolver_caching/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Central Composite Design produces <strong>22 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>cache_size</code></th><th><code>min_ttl_s</code></th><th><code>prefetch_pct</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>255000</td><td>1815</td><td>45</td></tr>
+        <tr><td>2</td><td>500000</td><td>30</td><td>90</td></tr>
+        <tr><td>3</td><td>10000</td><td>3600</td><td>0</td></tr>
+        <tr><td>4</td><td>255000</td><td>5073.95</td><td>45</td></tr>
+        <tr><td>5</td><td>255000</td><td>1815</td><td>45</td></tr>
+        <tr><td>6</td><td>-192307</td><td>1815</td><td>45</td></tr>
+        <tr><td>7</td><td>255000</td><td>1815</td><td>-37.1584</td></tr>
+        <tr><td>8</td><td>255000</td><td>1815</td><td>45</td></tr>
+        <tr><td>9</td><td>500000</td><td>3600</td><td>0</td></tr>
+        <tr><td>10</td><td>702307</td><td>1815</td><td>45</td></tr>
+        <tr><td>11</td><td>255000</td><td>1815</td><td>45</td></tr>
+        <tr><td>12</td><td>255000</td><td>-1443.95</td><td>45</td></tr>
+        <tr><td>13</td><td>255000</td><td>1815</td><td>45</td></tr>
+        <tr><td>14</td><td>10000</td><td>30</td><td>90</td></tr>
+        <tr><td>15</td><td>255000</td><td>1815</td><td>45</td></tr>
+        <tr><td>16</td><td>500000</td><td>30</td><td>0</td></tr>
+        <tr><td>17</td><td>255000</td><td>1815</td><td>127.158</td></tr>
+        <tr><td>18</td><td>500000</td><td>3600</td><td>90</td></tr>
+        <tr><td>19</td><td>255000</td><td>1815</td><td>45</td></tr>
+        <tr><td>20</td><td>10000</td><td>30</td><td>0</td></tr>
+        <tr><td>21</td><td>10000</td><td>3600</td><td>90</td></tr>
+        <tr><td>22</td><td>255000</td><td>1815</td><td>45</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/50_dns_resolver_caching/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/50_dns_resolver_caching/config.json \
+    <span class="flag">--output</span> use_cases/50_dns_resolver_caching/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/50_dns_resolver_caching/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/50_dns_resolver_caching/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/50_dns_resolver_caching/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/50_dns_resolver_caching/config.json \
+    <span class="flag">--output</span> use_cases/50_dns_resolver_caching/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>central_composite</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (avg_resolution_ms &#x2193;, cache_hit_rate &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>22</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: avg_resolution_ms</h3>
+    <p>Top factors: min_ttl_s (38.1%), prefetch_pct (37.9%), cache_size (24.0%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/50_pareto_avg_resolution_ms.png" alt="Pareto chart for avg_resolution_ms">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/50_main_effects_avg_resolution_ms.png" alt="Main effects plot for avg_resolution_ms">
+      </div>
+    </div>
+
+    <h3>Response: cache_hit_rate</h3>
+    <p>Top factors: min_ttl_s (38.8%), prefetch_pct (36.4%), cache_size (24.8%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/50_pareto_cache_hit_rate.png" alt="Pareto chart for cache_hit_rate">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/50_main_effects_cache_hit_rate.png" alt="Main effects plot for cache_hit_rate">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">avg resolution ms cache size vs min ttl s</p>
+      <img src="../images/50_rsm_avg_resolution_ms_cache_size_vs_min_ttl_s.png" alt="RSM surface: avg resolution ms cache size vs min ttl s" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">avg resolution ms cache size vs prefetch pct</p>
+      <img src="../images/50_rsm_avg_resolution_ms_cache_size_vs_prefetch_pct.png" alt="RSM surface: avg resolution ms cache size vs prefetch pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">avg resolution ms min ttl s vs prefetch pct</p>
+      <img src="../images/50_rsm_avg_resolution_ms_min_ttl_s_vs_prefetch_pct.png" alt="RSM surface: avg resolution ms min ttl s vs prefetch pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cache hit rate cache size vs min ttl s</p>
+      <img src="../images/50_rsm_cache_hit_rate_cache_size_vs_min_ttl_s.png" alt="RSM surface: cache hit rate cache size vs min ttl s" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cache hit rate cache size vs prefetch pct</p>
+      <img src="../images/50_rsm_cache_hit_rate_cache_size_vs_prefetch_pct.png" alt="RSM surface: cache hit rate cache size vs prefetch pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cache hit rate min ttl s vs prefetch pct</p>
+      <img src="../images/50_rsm_cache_hit_rate_min_ttl_s_vs_prefetch_pct.png" alt="RSM surface: cache hit rate min ttl s vs prefetch pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: avg_resolution_ms ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+min_ttl_s               22.1000       2.7633            38.1%
+prefetch_pct            21.9750       2.7633            37.9%
+cache_size              13.9500       2.7633            24.0%
+
+=== Summary Statistics: avg_resolution_ms ===
+
+cache_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -192307             1    32.3000     0.0000    32.3000    32.3000
+  10000               4    28.6750    12.8285    20.3000    47.8000
+  255000             12    28.6500    12.0713    11.5000    54.7000
+  500000              4    35.6500    19.3402    20.4000    60.9000
+  702307              1    42.6000     0.0000    42.6000    42.6000
+
+min_ttl_s:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -1443.95            1    42.2000     0.0000    42.2000    42.2000
+  1815               12    29.7000    11.8355    11.5000    54.7000
+  30                  4    26.9750     9.2385    20.6000    40.7000
+  3600                4    37.3500    20.3454    20.3000    60.9000
+  5073.95             1    20.1000     0.0000    20.1000    20.1000
+
+prefetch_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -37.1584            1    24.5000     0.0000    24.5000    24.5000
+  0                   4    21.1750     1.4886    20.3000    23.4000
+  127.158             1    24.5000     0.0000    24.5000    24.5000
+  45                 12    30.8083    12.5062    11.5000    54.7000
+  90                  4    43.1500    15.7129    23.2000    60.9000
+
+=== Main Effects: cache_hit_rate ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+min_ttl_s               29.3000       3.3890            38.8%
+prefetch_pct            27.5000       3.3890            36.4%
+cache_size              18.7000       3.3890            24.8%
+
+=== Summary Statistics: cache_hit_rate ===
+
+cache_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -192307             1    68.1000     0.0000    68.1000    68.1000
+  10000               4    67.3000    17.3203    42.0000    81.3000
+  255000             12    67.8583    15.3543    36.7000    95.3000
+  500000              4    62.4000    21.8565    35.0000    81.0000
+  702307              1    49.4000     0.0000    49.4000    49.4000
+
+min_ttl_s:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -1443.95            1    49.8000     0.0000    49.8000    49.8000
+  1815               12    66.9083    14.9872    36.7000    95.3000
+  30                  4    69.8750    10.5759    54.6000    79.0000
+  3600                4    59.8250    24.7896    35.0000    81.3000
+  5073.95             1    79.1000     0.0000    79.1000    79.1000
+
+prefetch_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -37.1584            1    71.4000     0.0000    71.4000    71.4000
+  0                   4    78.6000     3.8061    73.1000    81.3000
+  127.158             1    70.3000     0.0000    70.3000    70.3000
+  45                 12    65.8417    16.1436    36.7000    95.3000
+  90                  4    51.1000    16.5847    35.0000    72.8000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: avg_resolution_ms ===
+Direction: minimize
+
+Best observed run: #18
+  cache_size = 255000
+  min_ttl_s = 1815
+  prefetch_pct = 45
+  Value: 11.5
+
+RSM Model (linear, R² = 0.0062, Adj R² = -0.1595):
+  Coefficients:
+    intercept                      +30.7273
+    cache_size                     +0.2280
+    min_ttl_s                      -0.1119
+    prefetch_pct                   +1.1909
+
+RSM Model (quadratic, R² = 0.3429, Adj R² = -0.1499):
+  Coefficients:
+    intercept                      +33.1444
+    cache_size                     +0.2280
+    min_ttl_s                      -0.1119
+    prefetch_pct                   +1.1909
+    cache_size*min_ttl_s           +1.1375
+    cache_size*prefetch_pct        +0.2625
+    min_ttl_s*prefetch_pct         +3.0375
+    cache_size^2                   -3.6035
+    min_ttl_s^2                    +4.3314
+    prefetch_pct^2                 -4.3536
+
+  Curvature analysis:
+    prefetch_pct                   coef=-4.3536  concave (has a maximum)
+    min_ttl_s                      coef=+4.3314  convex (has a minimum)
+    cache_size                     coef=-3.6035  concave (has a maximum)
+
+  Notable interactions:
+    min_ttl_s*prefetch_pct         coef=+3.0375  (synergistic)
+    cache_size*min_ttl_s           coef=+1.1375  (synergistic)
+
+  Predicted optimum (from quadratic model):
+    cache_size = 255000
+    min_ttl_s = -1443.95
+    prefetch_pct = 45
+    Predicted value: 47.7869
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. min_ttl_s  (effect: 38.8, contribution: 60.8%)
+  2. prefetch_pct  (effect: 14.7, contribution: 23.1%)
+  3. cache_size  (effect: 10.3, contribution: 16.1%)
+
+=== Optimization: cache_hit_rate ===
+Direction: maximize
+
+Best observed run: #18
+  cache_size = 255000
+  min_ttl_s = 1815
+  prefetch_pct = 45
+  Value: 95.3
+
+RSM Model (linear, R² = 0.0024, Adj R² = -0.1639):
+  Coefficients:
+    intercept                      +65.9364
+    cache_size                     -0.6519
+    min_ttl_s                      -0.5918
+    prefetch_pct                   -0.2928
+
+RSM Model (quadratic, R² = 0.2911, Adj R² = -0.2406):
+  Coefficients:
+    intercept                      +62.8982
+    cache_size                     -0.6519
+    min_ttl_s                      -0.5918
+    prefetch_pct                   -0.2928
+    cache_size*min_ttl_s           -1.4625
+    cache_size*prefetch_pct        -0.4375
+    min_ttl_s*prefetch_pct         -2.4875
+    cache_size^2                   +4.1341
+    min_ttl_s^2                    -4.8059
+    prefetch_pct^2                 +5.2291
+
+  Curvature analysis:
+    prefetch_pct                   coef=+5.2291  convex (has a minimum)
+    min_ttl_s                      coef=-4.8059  concave (has a maximum)
+    cache_size                     coef=+4.1341  convex (has a minimum)
+
+  Notable interactions:
+    min_ttl_s*prefetch_pct         coef=-2.4875  (antagonistic)
+    cache_size*min_ttl_s           coef=-1.4625  (antagonistic)
+    cache_size*prefetch_pct        coef=-0.4375  (antagonistic)
+
+  Predicted optimum (from linear model):
+    cache_size = 10000
+    min_ttl_s = 30
+    prefetch_pct = 0
+    Predicted value: 67.4728
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. min_ttl_s  (effect: 40.7, contribution: 56.4%)
+  2. prefetch_pct  (effect: 20.2, contribution: 28.0%)
+  3. cache_size  (effect: 11.2, contribution: 15.6%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="49-firewall-rule-ordering.html">&larr; Previous: Firewall Rule Ordering</a>
+    <a href="51-bgp-route-convergence.html">Next: BGP Route Convergence &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

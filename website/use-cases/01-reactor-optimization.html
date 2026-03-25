@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chemical Reactor Optimization — DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<img src="../logo-light.svg" alt="" class="bg-logo-light">
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><span class="dot"></span> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x2697;</div>
+    <div class="uc-badge" style="background:rgba(146,64,14,.12);color:#92400e;">Box-Behnken Design</div>
+    <h1>Chemical Reactor Optimization</h1>
+    <p class="uc-subtitle">Optimize yield, purity, and cost simultaneously using a design that avoids extreme corner conditions.</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Scenario -->
+  <section class="uc-section">
+    <h2>The Scenario</h2>
+    <p>You are optimizing a batch chemical reactor. You control three continuous process parameters and want to maximize product yield and purity while minimizing production cost. Running the reactor at all extreme settings simultaneously is risky, so you need a design that avoids corner points.</p>
+
+    <div class="callout info">
+      <span class="callout-icon">&#x2139;</span>
+      <div class="callout-body">
+        <h4>Why Box-Behnken?</h4>
+        <p>With 3 continuous factors, Box-Behnken gives you 15 runs (vs. 18 for CCD), and every run has at most two factors at their extremes &mdash; the third stays at center. This avoids the dangerous corner condition of max temperature + max pressure + max catalyst simultaneously.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>temperature</code></td><td>150</td><td>200</td><td>&deg;C</td></tr>
+            <tr><td><code>pressure</code></td><td>2</td><td>6</td><td>bar</td></tr>
+            <tr><td><code>catalyst</code></td><td>0.5</td><td>2.0</td><td>g/L</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> reaction_time = 60 min, stirring_speed = 300 rpm</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>yield</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+            <tr><td><code>purity</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+            <tr><td><code>cost</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>USD</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/01_reactor_optimization/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  <span class="key">"metadata"</span>: {
+    <span class="key">"name"</span>: <span class="string">"Chemical Reactor Optimization"</span>,
+    <span class="key">"description"</span>: <span class="string">"Box-Behnken design to optimize yield and purity"</span>
+  },
+  <span class="key">"factors"</span>: [
+    {<span class="key">"name"</span>: <span class="string">"temperature"</span>, <span class="key">"levels"</span>: [<span class="string">"150"</span>, <span class="string">"200"</span>], <span class="key">"type"</span>: <span class="string">"continuous"</span>, <span class="key">"unit"</span>: <span class="string">"&deg;C"</span>},
+    {<span class="key">"name"</span>: <span class="string">"pressure"</span>,    <span class="key">"levels"</span>: [<span class="string">"2"</span>, <span class="string">"6"</span>],       <span class="key">"type"</span>: <span class="string">"continuous"</span>, <span class="key">"unit"</span>: <span class="string">"bar"</span>},
+    {<span class="key">"name"</span>: <span class="string">"catalyst"</span>,    <span class="key">"levels"</span>: [<span class="string">"0.5"</span>, <span class="string">"2.0"</span>], <span class="key">"type"</span>: <span class="string">"continuous"</span>, <span class="key">"unit"</span>: <span class="string">"g/L"</span>}
+  ],
+  <span class="key">"fixed_factors"</span>: {<span class="key">"reaction_time"</span>: <span class="string">"60"</span>, <span class="key">"stirring_speed"</span>: <span class="string">"300"</span>},
+  <span class="key">"responses"</span>: [
+    {<span class="key">"name"</span>: <span class="string">"yield"</span>,  <span class="key">"optimize"</span>: <span class="string">"maximize"</span>, <span class="key">"unit"</span>: <span class="string">"%"</span>},
+    {<span class="key">"name"</span>: <span class="string">"purity"</span>, <span class="key">"optimize"</span>: <span class="string">"maximize"</span>, <span class="key">"unit"</span>: <span class="string">"%"</span>},
+    {<span class="key">"name"</span>: <span class="string">"cost"</span>,   <span class="key">"optimize"</span>: <span class="string">"minimize"</span>, <span class="key">"unit"</span>: <span class="string">"USD"</span>}
+  ],
+  <span class="key">"settings"</span>: {
+    <span class="key">"operation"</span>: <span class="string">"box_behnken"</span>,
+    <span class="key">"test_script"</span>: <span class="string">"use_cases/01_reactor_optimization/sim.sh"</span>
+  }
+}</div>
+    </div>
+  </section>
+
+
+
+
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Box-Behnken Design produces <strong>15 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>temperature</code></th><th><code>pressure</code></th><th><code>catalyst</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>175</td><td>2</td><td>0.5</td></tr>
+        <tr><td>2</td><td>175</td><td>4</td><td>1.25</td></tr>
+        <tr><td>3</td><td>200</td><td>4</td><td>2</td></tr>
+        <tr><td>4</td><td>200</td><td>4</td><td>0.5</td></tr>
+        <tr><td>5</td><td>175</td><td>4</td><td>1.25</td></tr>
+        <tr><td>6</td><td>175</td><td>4</td><td>1.25</td></tr>
+        <tr><td>7</td><td>150</td><td>4</td><td>2</td></tr>
+        <tr><td>8</td><td>200</td><td>2</td><td>1.25</td></tr>
+        <tr><td>9</td><td>175</td><td>2</td><td>2</td></tr>
+        <tr><td>10</td><td>200</td><td>6</td><td>1.25</td></tr>
+        <tr><td>11</td><td>150</td><td>4</td><td>0.5</td></tr>
+        <tr><td>12</td><td>175</td><td>6</td><td>2</td></tr>
+        <tr><td>13</td><td>150</td><td>2</td><td>1.25</td></tr>
+        <tr><td>14</td><td>150</td><td>6</td><td>1.25</td></tr>
+        <tr><td>15</td><td>175</td><td>6</td><td>0.5</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/01_reactor_optimization/config.json
+
+<span class="output">Plan      : Chemical Reactor Optimization
+Operation : box_behnken
+Factors   : temperature, pressure, catalyst
+Base runs : 15
+Blocks    : 1
+Total runs: 15
+Responses : yield [maximize] (%), purity [maximize] (%), cost [minimize] (USD)
+Fixed     : reaction_time=60, stirring_speed=300</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/01_reactor_optimization/config.json \
+    <span class="flag">--output</span> use_cases/01_reactor_optimization/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/01_reactor_optimization/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/01_reactor_optimization/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/01_reactor_optimization/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/01_reactor_optimization/config.json \
+    <span class="flag">--output</span> use_cases/01_reactor_optimization/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interpretation -->
+  <section class="uc-section">
+    <h2>Interpreting the Results</h2>
+
+    <h3>Key Findings</h3>
+    <ul>
+      <li><strong>Yield:</strong> Temperature and catalyst are the dominant factors (~42% and ~32% contribution). Pressure has a moderate effect (~27%).</li>
+      <li><strong>Purity:</strong> Catalyst concentration is the key driver (~44%), followed by pressure (~47%). Temperature has minimal impact (~9%).</li>
+      <li><strong>Cost:</strong> All three factors contribute roughly equally, with pressure and catalyst slightly ahead.</li>
+    </ul>
+
+    <h3>Trade-offs</h3>
+    <div class="callout warning">
+      <span class="callout-icon">&#x26A0;</span>
+      <div class="callout-body">
+        <h4>Multi-Objective Conflict</h4>
+        <p>Higher temperature increases yield but also increases cost. Higher catalyst improves purity but adds cost. There is no single setting that maximizes yield AND purity while minimizing cost &mdash; the experimenter must decide which response matters most, or find a compromise.</p>
+      </div>
+    </div>
+
+    <h3>Next Steps</h3>
+    <ol>
+      <li>Fit a quadratic RSM model to each response</li>
+      <li>Construct a desirability function that weights the three responses</li>
+      <li>Run confirmation experiments at the predicted optimum</li>
+      <li>Narrow the factor ranges and run another Box-Behnken for fine-tuning</li>
+    </ol>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>box_behnken</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>3 (yield &#x2191;, purity &#x2191;, cost &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>15</td></tr>
+        <tr><td>Key feature</td><td>Multi-response RSM, avoids corner points</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: yield</h3>
+    <p>Pressure (46.5%) and catalyst (42.8%) dominate yield, with temperature playing a minor role.</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/01_pareto_yield.png" alt="Pareto chart for yield">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/01_main_effects_yield.png" alt="Main effects plot for yield">
+      </div>
+    </div>
+
+    <h3>Response: purity</h3>
+    <p>Temperature (40.7%) and catalyst (32.2%) dominate purity, making them the key levers for product quality.</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/01_pareto_purity.png" alt="Pareto chart for purity">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/01_main_effects_purity.png" alt="Main effects plot for purity">
+      </div>
+    </div>
+
+    <h3>Response: cost</h3>
+    <p>Pressure (41.9%) and catalyst (40.9%) dominate cost, suggesting these factors must be balanced against yield gains.</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/01_pareto_cost.png" alt="Pareto chart for cost">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/01_main_effects_cost.png" alt="Main effects plot for cost">
+      </div>
+    </div>
+
+      <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+    <div class="callout info" style="margin-top:24px;">
+      <span class="callout-icon">&#x1F4CA;</span>
+      <div class="callout-body">
+        <h4>How to Read These Surfaces</h4>
+        <p style="margin-bottom:10px;">Each plot shows predicted response (vertical axis) across two factors while other factors are held at center. Red dots are actual experimental observations.</p>
+        <ul style="font-size:.82rem;line-height:1.6;margin:0 0 0 16px;">
+          <li><strong>Flat surface</strong> — these two factors have little effect on the response.</li>
+          <li><strong>Tilted plane</strong> — strong linear effect; moving along one axis consistently changes the response.</li>
+          <li><strong>Curved/domed surface</strong> — quadratic curvature; there is an optimum somewhere in the middle.</li>
+          <li><strong>Saddle shape</strong> — significant interaction; the best setting of one factor depends on the other.</li>
+          <li><strong>Red dots far from surface</strong> — poor model fit in that region; be cautious about predictions there.</li>
+        </ul>
+        <p style="margin-top:12px;font-size:.82rem;"><strong>yield (%)</strong> — R² = 0.693, Adj R² = 0.140<br>Moderate fit — surface shows general trends but some noise remains.<br>Curvature detected in catalyst, pressure — look for a peak or valley in the surface.<br>Strongest linear driver: <code>temperature</code> (decreases yield).<br>Notable interaction: <code>temperature</code> × <code>pressure</code> — the effect of one depends on the level of the other. Look for a twisted surface.</p>
+        <p style="margin-top:12px;font-size:.82rem;"><strong>purity (%)</strong> — R² = 0.843, Adj R² = 0.561<br>Moderate fit — surface shows general trends but some noise remains.<br>Curvature detected in pressure, temperature — look for a peak or valley in the surface.<br>Strongest linear driver: <code>pressure</code> (increases purity).<br>Notable interaction: <code>temperature</code> × <code>catalyst</code> — the effect of one depends on the level of the other. Look for a twisted surface.</p>
+        <p style="margin-top:12px;font-size:.82rem;"><strong>cost (USD)</strong> — R² = 0.642, Adj R² = -0.002<br>Moderate fit — surface shows general trends but some noise remains.<br>Curvature detected in catalyst, temperature — look for a peak or valley in the surface.<br>Strongest linear driver: <code>temperature</code> (decreases cost).<br>Notable interaction: <code>pressure</code> × <code>catalyst</code> — the effect of one depends on the level of the other. Look for a twisted surface.</p>
+      </div>
+    </div>
+
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cost: pressure vs catalyst</p>
+      <img src="../images/01_rsm_cost_pressure_vs_catalyst.png" alt="RSM surface: cost — pressure vs catalyst" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cost: temperature vs catalyst</p>
+      <img src="../images/01_rsm_cost_temperature_vs_catalyst.png" alt="RSM surface: cost — temperature vs catalyst" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cost: temperature vs pressure</p>
+      <img src="../images/01_rsm_cost_temperature_vs_pressure.png" alt="RSM surface: cost — temperature vs pressure" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">purity: pressure vs catalyst</p>
+      <img src="../images/01_rsm_purity_pressure_vs_catalyst.png" alt="RSM surface: purity — pressure vs catalyst" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">purity: temperature vs catalyst</p>
+      <img src="../images/01_rsm_purity_temperature_vs_catalyst.png" alt="RSM surface: purity — temperature vs catalyst" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">purity: temperature vs pressure</p>
+      <img src="../images/01_rsm_purity_temperature_vs_pressure.png" alt="RSM surface: purity — temperature vs pressure" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">yield: pressure vs catalyst</p>
+      <img src="../images/01_rsm_yield_pressure_vs_catalyst.png" alt="RSM surface: yield — pressure vs catalyst" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">yield: temperature vs catalyst</p>
+      <img src="../images/01_rsm_yield_temperature_vs_catalyst.png" alt="RSM surface: yield — temperature vs catalyst" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">yield: temperature vs pressure</p>
+      <img src="../images/01_rsm_yield_temperature_vs_pressure.png" alt="RSM surface: yield — temperature vs pressure" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+  </section>
+
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: yield ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+temperature              9.1475       2.0585            40.5%
+catalyst                 7.4375       2.0585            33.0%
+pressure                 5.9764       2.0585            26.5%
+
+=== Summary Statistics: yield ===
+
+temperature:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  150                 4    64.6450     5.1577    60.6600    71.6600
+  175                 7    65.5600     9.3573    52.9300    78.5200
+  200                 4    73.7925     4.7382    67.5500    77.8400
+
+pressure:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2                   4    68.4550     7.2435    60.8300    77.8400
+  4                   7    69.3414     9.1916    52.9300    78.5200
+  6                   4    63.3650     6.5765    55.4200    69.8300
+
+catalyst:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.5                 4    70.9900     1.4384    69.7700    72.7000
+  1.25                7    67.7857     9.2044    52.9300    78.5200
+  2                   4    63.5525     9.3752    55.4200    77.0800
+
+=== Main Effects: purity ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+catalyst                 6.3261       1.3850            43.8%
+pressure                 4.1586       1.3850            28.8%
+temperature              3.9521       1.3850            27.4%
+
+=== Summary Statistics: purity ===
+
+temperature:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  150                 4    90.0375     3.3817    85.3000    92.5500
+  175                 7    87.3429     6.2959    78.9100    97.6500
+  200                 4    91.2950     5.3626    85.4600    97.9900
+
+pressure:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2                   4    89.5800     4.5572    83.0000    92.7400
+  4                   7    90.4586     3.9188    85.4600    97.6500
+  6                   4    86.3000     8.2292    78.9100    97.9900
+
+catalyst:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.5                 4    87.1000     3.4632    83.0000    90.0300
+  1.25                7    92.1486     4.7238    85.3000    97.9900
+  2                   4    85.8225     6.0253    78.9100    92.3900
+
+=== Main Effects: cost ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+temperature             15.4050       2.8932            54.4%
+pressure                 9.1025       2.8932            32.1%
+catalyst                 3.8125       2.8932            13.5%
+
+=== Summary Statistics: cost ===
+
+temperature:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  150                 4    44.4625     7.4242    36.6400    53.1400
+  175                 7    48.4843    10.9213    34.0500    65.5200
+  200                 4    59.8675    10.8260    47.7600    73.4600
+
+pressure:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2                   4    53.1675     6.8669    45.5900    62.2200
+  4                   7    52.5400    13.7655    34.0500    73.4600
+  6                   4    44.0650     9.2419    36.4300    55.4300
+
+catalyst:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.5                 4    52.7475     3.8037    47.8100    56.0300
+  1.25                7    49.9971    11.8208    34.0500    65.5200
+  2                   4    48.9350    16.7759    36.4300    73.4600</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: yield ===
+Direction: maximize
+
+Best observed run: #3
+  temperature = 175
+  pressure = 6
+  catalyst = 0.5
+  Value: 78.52
+
+RSM Model (linear, R² = 0.06):
+  Coefficients:
+    intercept:  +67.5113
+    temperature:  -0.4100
+    pressure:  +2.1775
+    catalyst:  +1.3750
+  Predicted optimum:
+    temperature = 175
+    pressure = 6
+    catalyst = 2
+    Predicted value: 71.0638
+
+Factor importance:
+  1. temperature  (effect: 9.9, contribution: 48.8%)
+  2. pressure  (effect: 7.6, contribution: 37.6%)
+  3. catalyst  (effect: 2.8, contribution: 13.6%)
+
+=== Optimization: purity ===
+Direction: maximize
+
+Best observed run: #9
+  temperature = 175
+  pressure = 4
+  catalyst = 1.25
+  Value: 97.99
+
+RSM Model (linear, R² = 0.16):
+  Coefficients:
+    intercept:  +89.1153
+    temperature:  +1.0962
+    pressure:  +2.2000
+    catalyst:  +1.3638
+  Predicted optimum:
+    temperature = 175
+    pressure = 6
+    catalyst = 2
+    Predicted value: 92.6791
+
+Factor importance:
+  1. pressure  (effect: 6.9, contribution: 48.6%)
+  2. temperature  (effect: 4.6, contribution: 32.2%)
+  3. catalyst  (effect: 2.7, contribution: 19.2%)
+
+=== Optimization: cost ===
+Direction: minimize
+
+Best observed run: #13
+  temperature = 200
+  pressure = 2
+  catalyst = 1.25
+  Value: 34.05
+
+RSM Model (linear, R² = 0.01):
+  Coefficients:
+    intercept:  +50.4473
+    temperature:  -0.4200
+    pressure:  +1.4512
+    catalyst:  +0.0688
+  Predicted optimum:
+    temperature = 150
+    pressure = 6
+    catalyst = 1.25
+    Predicted value: 52.3186
+
+Factor importance:
+  1. temperature  (effect: 9.4, contribution: 52.0%)
+  2. pressure  (effect: 7.4, contribution: 41.0%)
+  3. catalyst  (effect: 1.3, contribution: 7.1%)</div></div>
+
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="index.html">&larr; All Use Cases</a>
+    <a href="02-webapp-ab-testing.html">Next: Web App A/B Testing &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

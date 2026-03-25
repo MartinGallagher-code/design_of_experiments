@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ML Hyperparameter Screening — DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<img src="../logo-light.svg" alt="" class="bg-logo-light">
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><span class="dot"></span> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F9E0;</div>
+    <div class="uc-badge" style="background:rgba(139,92,246,.12);color:var(--purple);">Fractional Factorial Design</div>
+    <h1>ML Hyperparameter Screening</h1>
+    <p class="uc-subtitle">Screen 5 hyperparameters in 16 runs instead of 32 &mdash; saving expensive GPU time.</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <section class="uc-section">
+    <h2>The Scenario</h2>
+    <p>You are training a deep learning model and need to screen 5 hyperparameters to find which ones matter most. A full factorial would require 2<sup>5</sup> = 32 runs, and each training run takes significant GPU time. A fractional factorial cuts this in half.</p>
+    <div class="callout info">
+      <span class="callout-icon">&#x2139;</span>
+      <div class="callout-body">
+        <h4>Why Fractional Factorial?</h4>
+        <p>Resolution III fractional factorial uses only 16 runs. You're <em>screening</em> &mdash; you just need to know which hyperparameters have the largest effects. Some main effects are aliased with 2-factor interactions, but follow-up experiments can resolve ambiguities.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Type</th></tr></thead>
+          <tbody>
+            <tr><td><code>learning_rate</code></td><td>0.001</td><td>0.1</td><td>continuous</td></tr>
+            <tr><td><code>batch_size</code></td><td>32</td><td>256</td><td>continuous</td></tr>
+            <tr><td><code>dropout</code></td><td>0.1</td><td>0.5</td><td>continuous</td></tr>
+            <tr><td><code>hidden_layers</code></td><td>2</td><td>6</td><td>continuous</td></tr>
+            <tr><td><code>optimizer</code></td><td>sgd</td><td>adam</td><td>categorical</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> epochs = 50, dataset = cifar10</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>accuracy</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+            <tr><td><code>training_time</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>sec</td></tr>
+          </tbody>
+        </table>
+        <div class="callout success" style="margin-top:16px;">
+          <span class="callout-icon">&#x2714;</span>
+          <div class="callout-body">
+            <h4>Conflicting objectives</h4>
+            <p>Look for factors that improve accuracy without hurting training time &mdash; those are the "free wins."</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Fractional Factorial Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>learning_rate</code></th><th><code>batch_size</code></th><th><code>dropout</code></th><th><code>hidden_layers</code></th><th><code>optimizer</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>0.001</td><td>256</td><td>0.5</td><td>2</td><td>sgd</td></tr>
+        <tr><td>2</td><td>0.1</td><td>32</td><td>0.1</td><td>2</td><td>sgd</td></tr>
+        <tr><td>3</td><td>0.1</td><td>256</td><td>0.1</td><td>6</td><td>sgd</td></tr>
+        <tr><td>4</td><td>0.1</td><td>256</td><td>0.5</td><td>6</td><td>adam</td></tr>
+        <tr><td>5</td><td>0.001</td><td>256</td><td>0.1</td><td>2</td><td>adam</td></tr>
+        <tr><td>6</td><td>0.1</td><td>32</td><td>0.5</td><td>2</td><td>adam</td></tr>
+        <tr><td>7</td><td>0.001</td><td>32</td><td>0.1</td><td>6</td><td>adam</td></tr>
+        <tr><td>8</td><td>0.001</td><td>32</td><td>0.5</td><td>6</td><td>sgd</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+    <div class="code-block">
+      <div class="code-header"><span>Complete workflow</span><button class="code-copy">Copy</button></div>
+      <div class="code-body"><span class="comment"># Preview (notice: 16 runs instead of 32)</span>
+<span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/03_ml_hyperparameter_screening/config.json
+
+<span class="comment"># Generate with positional arg style</span>
+<span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/03_ml_hyperparameter_screening/config.json \
+    <span class="flag">--output</span> results/run.sh <span class="flag">--seed</span> 7
+
+<span class="comment"># Run the simulated training</span>
+<span class="prompt">$ </span>bash results/run.sh
+
+<span class="comment"># Analyze both responses</span>
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/03_ml_hyperparameter_screening/config.json
+
+<span class="comment"># Optimize and report</span>
+<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/03_ml_hyperparameter_screening/config.json
+<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/03_ml_hyperparameter_screening/config.json \
+    <span class="flag">--output</span> results/report.html</div>
+    </div>
+
+    <div class="callout warning">
+      <span class="callout-icon">&#x26A0;</span>
+      <div class="callout-body">
+        <h4>Positional argument style</h4>
+        <p>This use case uses <code>positional</code> args: factors are passed in order without flag names. The runner script calls <code>sim.sh 0.001 32 0.1 2 sgd --out run_1.json</code>. Useful when your training script expects ordered arguments.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>fractional_factorial</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (4) + <code>categorical</code> (1)</td></tr>
+        <tr><td>Arg style</td><td><code>positional</code></td></tr>
+        <tr><td>Run reduction</td><td>16 runs instead of 32 (50% savings)</td></tr>
+        <tr><td>Multi-response</td><td>accuracy &#x2191;, training_time &#x2193;</td></tr>
+        <tr><td><code>--seed</code></td><td>7 (reproducible run order)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: accuracy</h3>
+    <p>The Pareto chart identifies which hyperparameters contribute most to model accuracy.</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/03_pareto_accuracy.png" alt="Pareto chart for accuracy">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/03_main_effects_accuracy.png" alt="Main effects plot for accuracy">
+      </div>
+    </div>
+
+    <h3>Response: training_time</h3>
+    <p>Training time is driven by a different set of hyperparameters, revealing trade-offs with accuracy.</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/03_pareto_training_time.png" alt="Pareto chart for training time">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/03_main_effects_training_time.png" alt="Main effects plot for training time">
+      </div>
+    </div>
+
+      <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+    <div class="callout info" style="margin-top:24px;">
+      <span class="callout-icon">&#x1F4CA;</span>
+      <div class="callout-body">
+        <h4>How to Read These Surfaces</h4>
+        <p style="margin-bottom:10px;">Each plot shows predicted response (vertical axis) across two factors while other factors are held at center. Red dots are actual experimental observations.</p>
+        <ul style="font-size:.82rem;line-height:1.6;margin:0 0 0 16px;">
+          <li><strong>Flat surface</strong> — these two factors have little effect on the response.</li>
+          <li><strong>Tilted plane</strong> — strong linear effect; moving along one axis consistently changes the response.</li>
+          <li><strong>Curved/domed surface</strong> — quadratic curvature; there is an optimum somewhere in the middle.</li>
+          <li><strong>Saddle shape</strong> — significant interaction; the best setting of one factor depends on the other.</li>
+          <li><strong>Red dots far from surface</strong> — poor model fit in that region; be cautious about predictions there.</li>
+        </ul>
+        <p style="margin-top:12px;font-size:.82rem;"><strong>accuracy (%)</strong> — R² = 1.000, Adj R² = 1.000<br>The model fits well — the surface shape is reliable.<br>Curvature detected in learning_rate, batch_size — look for a peak or valley in the surface.<br>Strongest linear driver: <code>batch_size</code> (decreases accuracy).<br>Notable interaction: <code>learning_rate</code> × <code>hidden_layers</code> — the effect of one depends on the level of the other. Look for a twisted surface.</p>
+        <p style="margin-top:12px;font-size:.82rem;"><strong>training_time (sec)</strong> — R² = 1.000, Adj R² = 1.000<br>The model fits well — the surface shape is reliable.<br>Curvature detected in learning_rate, batch_size — look for a peak or valley in the surface.<br>Strongest linear driver: <code>batch_size</code> (increases training_time).<br>Notable interaction: <code>learning_rate</code> × <code>hidden_layers</code> — the effect of one depends on the level of the other. Look for a twisted surface.</p>
+      </div>
+    </div>
+
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">accuracy: batch size vs dropout</p>
+      <img src="../images/03_rsm_accuracy_batch_size_vs_dropout.png" alt="RSM surface: accuracy — batch size vs dropout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">accuracy: batch size vs hidden layers</p>
+      <img src="../images/03_rsm_accuracy_batch_size_vs_hidden_layers.png" alt="RSM surface: accuracy — batch size vs hidden layers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">accuracy: dropout vs hidden layers</p>
+      <img src="../images/03_rsm_accuracy_dropout_vs_hidden_layers.png" alt="RSM surface: accuracy — dropout vs hidden layers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">accuracy: learning rate vs batch size</p>
+      <img src="../images/03_rsm_accuracy_learning_rate_vs_batch_size.png" alt="RSM surface: accuracy — learning rate vs batch size" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">accuracy: learning rate vs dropout</p>
+      <img src="../images/03_rsm_accuracy_learning_rate_vs_dropout.png" alt="RSM surface: accuracy — learning rate vs dropout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">accuracy: learning rate vs hidden layers</p>
+      <img src="../images/03_rsm_accuracy_learning_rate_vs_hidden_layers.png" alt="RSM surface: accuracy — learning rate vs hidden layers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">training: time batch size vs dropout</p>
+      <img src="../images/03_rsm_training_time_batch_size_vs_dropout.png" alt="RSM surface: training — time batch size vs dropout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">training: time batch size vs hidden layers</p>
+      <img src="../images/03_rsm_training_time_batch_size_vs_hidden_layers.png" alt="RSM surface: training — time batch size vs hidden layers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">training: time dropout vs hidden layers</p>
+      <img src="../images/03_rsm_training_time_dropout_vs_hidden_layers.png" alt="RSM surface: training — time dropout vs hidden layers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">training: time learning rate vs batch size</p>
+      <img src="../images/03_rsm_training_time_learning_rate_vs_batch_size.png" alt="RSM surface: training — time learning rate vs batch size" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">training: time learning rate vs dropout</p>
+      <img src="../images/03_rsm_training_time_learning_rate_vs_dropout.png" alt="RSM surface: training — time learning rate vs dropout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">training: time learning rate vs hidden layers</p>
+      <img src="../images/03_rsm_training_time_learning_rate_vs_hidden_layers.png" alt="RSM surface: training — time learning rate vs hidden layers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+  </section>
+
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: accuracy ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+optimizer               -7.8675       3.0940            33.5%
+hidden_layers            7.2775       3.0940            31.0%
+learning_rate           -6.9425       3.0940            29.6%
+dropout                  0.7725       3.0940             3.3%
+batch_size              -0.6125       3.0940             2.6%
+
+=== Interaction Effects: accuracy ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+batch_size           optimizer                  9.9875            18.3%
+dropout              hidden_layers              9.9875            18.3%
+learning_rate        dropout                    7.8675            14.4%
+learning_rate        batch_size                -7.2775            13.3%
+batch_size           hidden_layers              6.9425            12.7%
+dropout              optimizer                  6.9425            12.7%
+batch_size           dropout                   -2.0625             3.8%
+hidden_layers        optimizer                 -2.0625             3.8%
+learning_rate        optimizer                 -0.7725             1.4%
+learning_rate        hidden_layers              0.6125             1.1%
+
+=== Summary Statistics: accuracy ===
+
+learning_rate:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.001               4    70.7525     7.2472    59.9100    74.9300
+  0.1                 4    63.8100     9.6972    57.4100    78.1000
+
+batch_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  256                 4    67.5875    10.4395    57.4100    78.1000
+  32                  4    66.9750     8.3340    58.1600    74.5000
+
+dropout:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.1                 4    66.8950     8.7327    57.4100    74.9300
+  0.5                 4    67.6675    10.1010    58.1600    78.1000
+
+hidden_layers:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2                   4    63.6425     7.6527    58.1600    74.9300
+  6                   4    70.9200     9.2096    57.4100    78.1000
+
+optimizer:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  adam                4    71.2150     8.9006    58.1600    78.1000
+  sgd                 4    63.3475     7.6291    57.4100    74.5000
+
+=== Main Effects: training_time ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+optimizer               19.3500       7.2462            33.6%
+hidden_layers          -14.7000       7.2462            25.5%
+learning_rate           14.2000       7.2462            24.7%
+dropout                 -9.2500       7.2462            16.1%
+batch_size              -0.1000       7.2462             0.2%
+
+=== Interaction Effects: training_time ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+batch_size           optimizer                -24.0500            18.9%
+dropout              hidden_layers            -24.0500            18.9%
+learning_rate        dropout                  -19.3500            15.2%
+learning_rate        batch_size                14.7000            11.5%
+batch_size           hidden_layers            -14.2000            11.1%
+dropout              optimizer                -14.2000            11.1%
+learning_rate        optimizer                  9.2500             7.3%
+batch_size           dropout                    3.7500             2.9%
+hidden_layers        optimizer                  3.7500             2.9%
+learning_rate        hidden_layers              0.1000             0.1%
+
+=== Summary Statistics: training_time ===
+
+learning_rate:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.001               4    98.6000    15.6327    86.1000   121.2000
+  0.1                 4   112.8000    24.5218    77.3000   133.7000
+
+batch_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  256                 4   105.7500    26.1586    77.3000   133.7000
+  32                  4   105.6500    17.2003    86.1000   120.5000
+
+dropout:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.1                 4   110.3250    20.2307    90.8000   133.7000
+  0.5                 4   101.0750    22.6672    77.3000   121.2000
+
+hidden_layers:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2                   4   113.0500    14.8460    90.8000   121.2000
+  6                   4    98.3500    24.8126    77.3000   133.7000
+
+optimizer:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  adam                4    96.0250    17.6872    77.3000   119.7000
+  sgd                 4   115.3750    20.4371    86.1000   133.7000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: accuracy ===
+Direction: maximize
+
+Best observed run: #4
+  learning_rate = 0.001
+  batch_size = 32
+  dropout = 0.5
+  hidden_layers = 6
+  optimizer = sgd
+  Value: 78.1
+
+RSM Model (linear, R² = 0.76):
+  Coefficients:
+    intercept:  +67.2812
+    learning_rate:  -4.2637
+    batch_size:  +0.4462
+    dropout:  -3.0338
+    hidden_layers:  +4.7863
+    optimizer:  +0.4937
+  Predicted optimum:
+    learning_rate = 0.001
+    batch_size = 32
+    dropout = 0.1
+    hidden_layers = 6
+    optimizer = adam
+    Predicted value: 78.4250
+
+Factor importance:
+  1. hidden_layers  (effect: 9.6, contribution: 36.8%)
+  2. learning_rate  (effect: -8.5, contribution: 32.7%)
+  3. dropout  (effect: -6.1, contribution: 23.3%)
+  4. optimizer  (effect: 1.0, contribution: 3.8%)
+  5. batch_size  (effect: -0.9, contribution: 3.4%)
+
+=== Optimization: training_time ===
+Direction: minimize
+
+Best observed run: #4
+  learning_rate = 0.001
+  batch_size = 32
+  dropout = 0.5
+  hidden_layers = 6
+  optimizer = sgd
+  Value: 77.3
+
+RSM Model (linear, R² = 0.73):
+  Coefficients:
+    intercept:  +105.7000
+    learning_rate:  +10.4750
+    batch_size:  -1.0500
+    dropout:  +7.4750
+    hidden_layers:  -9.4750
+    optimizer:  -3.4500
+  Predicted optimum:
+    learning_rate = 0.1
+    batch_size = 32
+    dropout = 0.5
+    hidden_layers = 2
+    optimizer = adam
+    Predicted value: 137.6250
+
+Factor importance:
+  1. learning_rate  (effect: 21.0, contribution: 32.8%)
+  2. hidden_layers  (effect: -19.0, contribution: 29.7%)
+  3. dropout  (effect: 15.0, contribution: 23.4%)
+  4. optimizer  (effect: -6.9, contribution: 10.8%)
+  5. batch_size  (effect: 2.1, contribution: 3.3%)</div></div>
+
+  </section>
+
+  <div class="chapter-nav">
+    <a href="02-webapp-ab-testing.html">&larr; Web App A/B Testing</a>
+    <a href="04-database-tuning.html">Next: Database Tuning &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

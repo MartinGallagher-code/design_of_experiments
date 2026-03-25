@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stream Processing Windowing — DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../quickstart.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F4CA;</div>
+    <div class="uc-badge" style="background:rgba(6,95,70,.12);color:#065f46;">Box-Behnken Design</div>
+    <h1>Stream Processing Windowing</h1>
+    <p class="uc-subtitle">Box-Behnken design to tune Flink window size, watermark delay, and parallelism for latency and accuracy</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>window_size_s</code></td><td>5</td><td>120</td><td>s</td></tr>
+            <tr><td><code>watermark_delay_s</code></td><td>1</td><td>30</td><td>s</td></tr>
+            <tr><td><code>parallelism</code></td><td>4</td><td>32</td><td>slots</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> checkpoint_interval_ms = 10000, state_backend = rocksdb</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>end_to_end_latency_ms</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>ms</td></tr>
+            <tr><td><code>result_accuracy</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/39_stream_processing_windowing/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  <span class="key">&quot;metadata&quot;</span>: {
+    <span class="key">&quot;name&quot;</span>: &quot;Stream Processing Windowing&quot;,
+    <span class="key">&quot;description&quot;</span>: &quot;Box-Behnken design to tune Flink window size, watermark delay, and parallelism for latency and accuracy&quot;
+  },
+  <span class="key">&quot;factors&quot;</span>: [
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;window_size_s&quot;,
+      <span class="key">&quot;levels&quot;</span>: [
+        &quot;5&quot;,
+        &quot;120&quot;
+      ],
+      <span class="key">&quot;type&quot;</span>: &quot;continuous&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;s&quot;
+    },
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;watermark_delay_s&quot;,
+      <span class="key">&quot;levels&quot;</span>: [
+        &quot;1&quot;,
+        &quot;30&quot;
+      ],
+      <span class="key">&quot;type&quot;</span>: &quot;continuous&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;s&quot;
+    },
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;parallelism&quot;,
+      <span class="key">&quot;levels&quot;</span>: [
+        &quot;4&quot;,
+        &quot;32&quot;
+      ],
+      <span class="key">&quot;type&quot;</span>: &quot;continuous&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;slots&quot;
+    }
+  ],
+  <span class="key">&quot;fixed_factors&quot;</span>: {
+    &quot;checkpoint_interval_ms&quot;: &quot;10000&quot;,
+    &quot;state_backend&quot;: &quot;rocksdb&quot;
+  },
+  <span class="key">&quot;responses&quot;</span>: [
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;end_to_end_latency_ms&quot;,
+      <span class="key">&quot;optimize&quot;</span>: &quot;minimize&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;ms&quot;
+    },
+    {
+      <span class="key">&quot;name&quot;</span>: &quot;result_accuracy&quot;,
+      <span class="key">&quot;optimize&quot;</span>: &quot;maximize&quot;,
+      <span class="key">&quot;unit&quot;</span>: &quot;%&quot;
+    }
+  ],
+  <span class="key">&quot;settings&quot;</span>: {
+    <span class="key">&quot;operation&quot;</span>: &quot;box_behnken&quot;,
+    <span class="key">&quot;test_script&quot;</span>: &quot;use_cases/39_stream_processing_windowing/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/39_stream_processing_windowing/config.json</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/39_stream_processing_windowing/config.json \
+    <span class="flag">--output</span> use_cases/39_stream_processing_windowing/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/39_stream_processing_windowing/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/39_stream_processing_windowing/config.json</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/39_stream_processing_windowing/config.json</div>
+        </div>
+      </div>
+    </div>
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/39_stream_processing_windowing/config.json \
+    <span class="flag">--output</span> use_cases/39_stream_processing_windowing/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>box_behnken</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code></td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (end_to_end_latency_ms &#x2193;, result_accuracy &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>15</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+    <h3>Pareto Charts</h3>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">pareto end to end latency ms</p>
+      <img src="../images/39_pareto_end_to_end_latency_ms.png" alt="pareto end to end latency ms" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">pareto result accuracy</p>
+      <img src="../images/39_pareto_result_accuracy.png" alt="pareto result accuracy" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <h3>Main Effects</h3>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">main effects end to end latency ms</p>
+      <img src="../images/39_main_effects_end_to_end_latency_ms.png" alt="main effects end to end latency ms" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">main effects result accuracy</p>
+      <img src="../images/39_main_effects_result_accuracy.png" alt="main effects result accuracy" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <h3>Response Surfaces</h3>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm end to end latency ms watermark delay s vs parallelism</p>
+      <img src="../images/39_rsm_end_to_end_latency_ms_watermark_delay_s_vs_parallelism.png" alt="rsm end to end latency ms watermark delay s vs parallelism" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm end to end latency ms window size s vs parallelism</p>
+      <img src="../images/39_rsm_end_to_end_latency_ms_window_size_s_vs_parallelism.png" alt="rsm end to end latency ms window size s vs parallelism" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm end to end latency ms window size s vs watermark delay s</p>
+      <img src="../images/39_rsm_end_to_end_latency_ms_window_size_s_vs_watermark_delay_s.png" alt="rsm end to end latency ms window size s vs watermark delay s" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm result accuracy watermark delay s vs parallelism</p>
+      <img src="../images/39_rsm_result_accuracy_watermark_delay_s_vs_parallelism.png" alt="rsm result accuracy watermark delay s vs parallelism" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm result accuracy window size s vs parallelism</p>
+      <img src="../images/39_rsm_result_accuracy_window_size_s_vs_parallelism.png" alt="rsm result accuracy window size s vs parallelism" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rsm result accuracy window size s vs watermark delay s</p>
+      <img src="../images/39_rsm_result_accuracy_window_size_s_vs_watermark_delay_s.png" alt="rsm result accuracy window size s vs watermark delay s" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: end_to_end_latency_ms ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+watermark_delay_s      317.7143      80.3772            45.7%
+parallelism            196.4643      80.3772            28.3%
+window_size_s          180.5000      80.3772            26.0%
+
+=== Summary Statistics: end_to_end_latency_ms ===
+
+window_size_s:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  120                 4   592.7500   205.3962   473.0000   900.0000
+  5                   4   412.2500   516.2237   126.0000  1186.0000
+  62.5                7   585.7143   237.9319   366.0000  1065.0000
+
+watermark_delay_s:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4   614.2500   441.5294   126.0000  1065.0000
+  15.5                7   399.2857   177.0760   167.0000   647.0000
+  30                  4   717.0000   315.0556   510.0000  1186.0000
+
+parallelism:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  18                  7   602.7143   350.0470   126.0000  1186.0000
+  32                  4   569.0000   371.6782   170.0000  1065.0000
+  4                   4   406.2500   186.7697   167.0000   604.0000
+
+=== Main Effects: result_accuracy ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+parallelism              5.7429       1.2116            41.2%
+watermark_delay_s        4.5893       1.2116            32.9%
+window_size_s            3.6000       1.2116            25.8%
+
+=== Summary Statistics: result_accuracy ===
+
+window_size_s:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  120                 4    91.4500     3.9417    85.9000    95.2000
+  5                   4    87.8500     7.2712    80.9000    97.9000
+  62.5                7    91.3143     3.3359    86.1000    95.3000
+
+watermark_delay_s:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    91.4500     3.8388    87.8000    95.2000
+  15.5                7    88.3857     4.6125    80.9000    93.5000
+  30                  4    92.9750     5.0684    86.1000    97.9000
+
+parallelism:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  18                  7    92.6429     3.3411    87.8000    97.9000
+  32                  4    90.0750     5.4896    84.8000    95.3000
+  4                   4    86.9000     4.6989    80.9000    92.1000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: end_to_end_latency_ms ===
+Direction: minimize
+
+Best observed run: #7
+  window_size_s = 120
+  watermark_delay_s = 15.5
+  parallelism = 32
+  Value: 126.0
+
+RSM Model (linear, R² = 0.1950, Adj R² = -0.0246):
+  Coefficients:
+    intercept                      +541.3333
+    window_size_s                  -125.7500
+    watermark_delay_s              +103.0000
+    parallelism                    -81.5000
+
+RSM Model (quadratic, R² = 0.8477, Adj R² = 0.5735):
+  Coefficients:
+    intercept                      +856.3333
+    window_size_s                  -125.7500
+    watermark_delay_s              +103.0000
+    parallelism                    -81.5000
+    window_size_s*watermark_delay_s -129.2500
+    window_size_s*parallelism      +89.2500
+    watermark_delay_s*parallelism  -0.2500
+    window_size_s^2                -156.5417
+    watermark_delay_s^2            +7.9583
+    parallelism^2                  -442.0417
+
+  Curvature analysis:
+    parallelism                    coef=-442.0417  concave (has a maximum)
+    window_size_s                  coef=-156.5417  concave (has a maximum)
+    watermark_delay_s              coef=+7.9583  convex (has a minimum)
+
+  Notable interactions:
+    window_size_s*watermark_delay_s coef=-129.2500  (antagonistic)
+    window_size_s*parallelism      coef=+89.2500  (synergistic)
+
+  Predicted optimum (from quadratic model):
+    window_size_s = 5
+    watermark_delay_s = 30
+    parallelism = 18
+    Predicted value: 1065.7500
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. parallelism  (effect: 512.9, contribution: 52.9%)
+  2. window_size_s  (effect: 251.5, contribution: 25.9%)
+  3. watermark_delay_s  (effect: 206.0, contribution: 21.2%)
+
+=== Optimization: result_accuracy ===
+Direction: maximize
+
+Best observed run: #10
+  window_size_s = 5
+  watermark_delay_s = 30
+  parallelism = 18
+  Value: 97.9
+
+RSM Model (linear, R² = 0.1108, Adj R² = -0.1318):
+  Coefficients:
+    intercept                      +90.4267
+    window_size_s                  -2.0375
+    watermark_delay_s              -0.0500
+    parallelism                    -0.3375
+
+RSM Model (quadratic, R² = 0.7343, Adj R² = 0.2560):
+  Coefficients:
+    intercept                      +91.8667
+    window_size_s                  -2.0375
+    watermark_delay_s              -0.0500
+    parallelism                    -0.3375
+    window_size_s*watermark_delay_s -0.9750
+    window_size_s*parallelism      +4.3500
+    watermark_delay_s*parallelism  +1.0750
+    window_size_s^2                +0.1917
+    watermark_delay_s^2            +1.9667
+    parallelism^2                  -4.8583
+
+  Curvature analysis:
+    parallelism                    coef=-4.8583  concave (has a maximum)
+    watermark_delay_s              coef=+1.9667  convex (has a minimum)
+    window_size_s                  coef=+0.1917  convex (has a minimum)
+
+  Notable interactions:
+    window_size_s*parallelism      coef=+4.3500  (synergistic)
+    watermark_delay_s*parallelism  coef=+1.0750  (synergistic)
+    window_size_s*watermark_delay_s coef=-0.9750  (antagonistic)
+
+  Predicted optimum (from quadratic model):
+    window_size_s = 5
+    watermark_delay_s = 30
+    parallelism = 18
+    Predicted value: 96.9875
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. parallelism  (effect: 5.4, contribution: 45.4%)
+  2. window_size_s  (effect: 4.1, contribution: 34.6%)
+  3. watermark_delay_s  (effect: 2.3, contribution: 20.0%)</div></div>
+
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="data-lake-partitioning.html">&larr; Data Lake Partitioning</a>
+    <a href="etl-batch-size-tuning.html">ETL Batch Size Tuning &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

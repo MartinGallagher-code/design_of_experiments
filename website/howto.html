@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quick Start &amp; Reference — DOE Helper Tool</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<img src="logo-light.svg" alt="" class="bg-logo-light">
+
+<!-- ═══════════════ NAVIGATION ═══════════════ -->
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo"><span class="dot"></span> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="howto.html" class="active">Quick Start</a></li>
+      <li><a href="use-cases/index.html">Use Cases</a></li>
+      <li><a href="book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<section class="howto-hero">
+  <h1>Quick Start &amp; Reference</h1>
+  <p>Everything you need to install, configure, run, and analyze experiments with the DOE Helper Tool.</p>
+</section>
+
+<!-- ═══════════════ INSTALLATION ═══════════════ -->
+<section class="howto-section" id="installation">
+  <div class="container-narrow">
+    <h2><span class="step-badge">1</span> Installation & Setup</h2>
+    <p>Get up and running in under two minutes.</p>
+
+    <div class="callout info">
+      <span class="callout-icon">&#x2139;</span>
+      <div class="callout-body">
+        <h4>System Requirements</h4>
+        <p>Python 3.10 or higher. Works on Linux, macOS, and Windows. Full-factorial designs use only the standard library &mdash; no external packages needed.</p>
+      </div>
+    </div>
+
+    <div class="code-block">
+      <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+      <div class="code-body"><span class="comment"># Clone the repository</span>
+<span class="prompt">$ </span>git clone &lt;repo-url&gt;
+<span class="prompt">$ </span>cd design_of_experiments
+
+<span class="comment"># Install dependencies</span>
+<span class="prompt">$ </span>pip install -r requirements.txt
+
+<span class="comment"># Or install as an editable package (recommended)</span>
+<span class="prompt">$ </span>pip install -e .
+
+<span class="comment"># Verify installation</span>
+<span class="prompt">$ </span>python doe.py <span class="flag">--help</span></div>
+    </div>
+
+    <h3>Dependencies</h3>
+    <table class="book-content" style="margin-top: 12px;">
+      <thead>
+        <tr><th>Package</th><th>Version</th><th>Purpose</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>pyDOE3</code></td><td>&ge;1.0</td><td>PB, fractional, LHS, CCD, Box-Behnken designs</td></tr>
+        <tr><td><code>numpy</code></td><td>&ge;1.26</td><td>Array operations, RSM least-squares</td></tr>
+        <tr><td><code>pandas</code></td><td>&ge;2.0</td><td>Data manipulation</td></tr>
+        <tr><td><code>matplotlib</code></td><td>&ge;3.7</td><td>Pareto charts, effects plots</td></tr>
+        <tr><td><code>scipy</code></td><td>&ge;1.11</td><td>Confidence intervals (t-distribution)</td></tr>
+        <tr><td><code>Jinja2</code></td><td>&ge;3.1</td><td>Runner script template rendering</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════ CONFIG ═══════════════ -->
+<section class="howto-section" id="configuration">
+  <div class="container-narrow">
+    <h2><span class="step-badge">2</span> Writing a Configuration File</h2>
+    <p>Everything starts with a JSON config file. It defines your factors, responses, design type, and execution settings.</p>
+
+    <div class="code-block">
+      <div class="code-header"><span>config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  <span class="key">"metadata"</span>: {
+    <span class="key">"name"</span>: <span class="string">"My Experiment"</span>,
+    <span class="key">"description"</span>: <span class="string">"Testing 3 factors at 2 levels"</span>
+  },
+  <span class="key">"factors"</span>: [
+    {<span class="key">"name"</span>: <span class="string">"temperature"</span>, <span class="key">"levels"</span>: [<span class="string">"150"</span>, <span class="string">"200"</span>], <span class="key">"type"</span>: <span class="string">"continuous"</span>, <span class="key">"unit"</span>: <span class="string">"&deg;C"</span>},
+    {<span class="key">"name"</span>: <span class="string">"pressure"</span>,    <span class="key">"levels"</span>: [<span class="string">"2"</span>, <span class="string">"6"</span>],       <span class="key">"type"</span>: <span class="string">"continuous"</span>, <span class="key">"unit"</span>: <span class="string">"bar"</span>},
+    {<span class="key">"name"</span>: <span class="string">"catalyst"</span>,    <span class="key">"levels"</span>: [<span class="string">"A"</span>, <span class="string">"B"</span>],       <span class="key">"type"</span>: <span class="string">"categorical"</span>}
+  ],
+  <span class="key">"fixed_factors"</span>: {
+    <span class="key">"duration"</span>: <span class="string">"60"</span>
+  },
+  <span class="key">"responses"</span>: [
+    {<span class="key">"name"</span>: <span class="string">"yield"</span>,  <span class="key">"optimize"</span>: <span class="string">"maximize"</span>, <span class="key">"unit"</span>: <span class="string">"%"</span>},
+    {<span class="key">"name"</span>: <span class="string">"cost"</span>,   <span class="key">"optimize"</span>: <span class="string">"minimize"</span>, <span class="key">"unit"</span>: <span class="string">"USD"</span>}
+  ],
+  <span class="key">"runner"</span>: {
+    <span class="key">"arg_style"</span>: <span class="string">"double-dash"</span>,
+    <span class="key">"result_file"</span>: <span class="string">"json"</span>
+  },
+  <span class="key">"settings"</span>: {
+    <span class="key">"operation"</span>: <span class="string">"full_factorial"</span>,
+    <span class="key">"test_script"</span>: <span class="string">"test.sh"</span>,
+    <span class="key">"out_directory"</span>: <span class="string">"results"</span>,
+    <span class="key">"block_count"</span>: <span class="number">1</span>
+  }
+}</div>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion-item">
+        <div class="accordion-header">Factor Types Explained <span class="arrow">&#9660;</span></div>
+        <div class="accordion-body">
+          <p><strong>Categorical</strong> &mdash; Discrete, unordered levels (e.g., "A", "B", "dark", "light"). Cannot be interpolated.</p>
+          <p><strong>Continuous</strong> &mdash; Numeric values that can be interpolated (e.g., temperature 150&ndash;200). Required for CCD and Box-Behnken star/center points.</p>
+          <p><strong>Ordinal</strong> &mdash; Ordered categorical levels (e.g., "low", "medium", "high"). Treated as categorical in most designs.</p>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <div class="accordion-header">Argument Styles <span class="arrow">&#9660;</span></div>
+        <div class="accordion-body">
+          <p><strong>double-dash</strong> (default): <code>--temperature 150 --pressure 2 --catalyst A</code></p>
+          <p><strong>env</strong>: <code>TEMPERATURE=150 PRESSURE=2 CATALYST=A ./test.sh</code></p>
+          <p><strong>positional</strong>: <code>./test.sh 150 2 A</code></p>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <div class="accordion-header">Choosing a Design Type <span class="arrow">&#9660;</span></div>
+        <div class="accordion-body">
+          <table>
+            <thead><tr><th>Goal</th><th>Design</th><th>Why</th></tr></thead>
+            <tbody>
+              <tr><td>Test everything</td><td>Full Factorial</td><td>All combinations, all interactions</td></tr>
+              <tr><td>Reduce runs (2-level)</td><td>Fractional Factorial</td><td>Half the runs, some aliasing</td></tr>
+              <tr><td>Screen many factors</td><td>Plackett-Burman</td><td>N+1 runs for N factors</td></tr>
+              <tr><td>Continuous space filling</td><td>Latin Hypercube</td><td>Even coverage, configurable N</td></tr>
+              <tr><td>Find the optimum</td><td>Central Composite</td><td>Quadratic model, star points</td></tr>
+              <tr><td>Avoid corner points</td><td>Box-Behnken</td><td>Safe RSM, no extreme combos</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <h3 id="config-factors">The <code>factors</code> Section</h3>
+    <p>Required. Array of factor objects, each with:</p>
+    <table>
+      <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>name</code></td><td>Yes</td><td>Unique factor name</td></tr>
+        <tr><td><code>levels</code></td><td>Yes</td><td>Array of at least 2 level values (strings)</td></tr>
+        <tr><td><code>type</code></td><td>No</td><td><code>categorical</code> (default), <code>continuous</code>, or <code>ordinal</code></td></tr>
+        <tr><td><code>unit</code></td><td>No</td><td>Unit of measurement (for display)</td></tr>
+        <tr><td><code>description</code></td><td>No</td><td>Human-readable description</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="config-responses">The <code>responses</code> Section</h3>
+    <p>Optional (defaults to a single response named "response"). Each response has:</p>
+    <table>
+      <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>name</code></td><td>Yes</td><td>Must match keys in result JSON files</td></tr>
+        <tr><td><code>optimize</code></td><td>No</td><td><code>maximize</code> (default) or <code>minimize</code></td></tr>
+        <tr><td><code>unit</code></td><td>No</td><td>Unit of measurement</td></tr>
+        <tr><td><code>description</code></td><td>No</td><td>Human-readable description</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="config-settings">The <code>settings</code> Section</h3>
+    <table>
+      <thead><tr><th>Field</th><th>Default</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td><code>operation</code></td><td><code>full_factorial</code></td><td>Design type (6 supported)</td></tr>
+        <tr><td><code>test_script</code></td><td>&mdash;</td><td>Path to test script</td></tr>
+        <tr><td><code>block_count</code></td><td>1</td><td>Number of blocks (replicates)</td></tr>
+        <tr><td><code>out_directory</code></td><td><code>results</code></td><td>Directory for per-run JSON results</td></tr>
+        <tr><td><code>processed_directory</code></td><td>&mdash;</td><td>Directory for analysis outputs</td></tr>
+        <tr><td><code>lhs_samples</code></td><td>0 (auto)</td><td>LHS sample count; 0 = max(10, 2&times;factors)</td></tr>
+      </tbody>
+    </table>
+
+    <h3 id="validation-rules">Validation Rules</h3>
+    <ul>
+      <li>At least one factor with at least 2 levels</li>
+      <li>Fractional factorial and Plackett-Burman require exactly 2 levels per factor</li>
+      <li>Box-Behnken requires 3+ factors with 2 numeric levels each</li>
+      <li>CCD requires 2 numeric levels per factor</li>
+      <li>Factor names must be unique</li>
+      <li>Response names must be unique</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ═══════════════ CLI REFERENCE ═══════════════ -->
+<section class="howto-section" id="cli-reference">
+  <div class="container-narrow">
+    <h2><span class="step-badge">3</span> CLI Command Reference</h2>
+    <p>Every command the tool supports, with all flags and annotated examples.</p>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="tab-generate">generate</button>
+      <button class="tab-btn" data-tab="tab-analyze">analyze</button>
+      <button class="tab-btn" data-tab="tab-optimize">optimize</button>
+      <button class="tab-btn" data-tab="tab-report">report</button>
+      <button class="tab-btn" data-tab="tab-info">info</button>
+    </div>
+
+    <div id="tab-generate" class="tab-panel active">
+      <h3>Generate a Design & Runner Script</h3>
+      <div class="code-block">
+        <div class="code-header"><span>Usage</span></div>
+        <div class="code-body">python doe.py generate <span class="flag">--config</span> FILE [<span class="flag">--output</span> FILE] [<span class="flag">--format</span> sh|py] [<span class="flag">--seed</span> N] [<span class="flag">--dry-run</span>]</div>
+      </div>
+      <table>
+        <thead><tr><th>Flag</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--config</code></td><td><em>required</em></td><td>Path to JSON config file</td></tr>
+          <tr><td><code>--output</code></td><td><code>run_experiments.sh</code></td><td>Output script path</td></tr>
+          <tr><td><code>--format</code></td><td><code>sh</code></td><td>Script format: <code>sh</code> (Bash) or <code>py</code> (Python)</td></tr>
+          <tr><td><code>--seed</code></td><td>random</td><td>Seed for reproducible run order</td></tr>
+          <tr><td><code>--dry-run</code></td><td>off</td><td>Print design matrix without writing files</td></tr>
+        </tbody>
+      </table>
+      <div class="callout success" style="margin-top:16px">
+        <span class="callout-icon">&#x2714;</span>
+        <div class="callout-body">
+          <h4>Pro Tip</h4>
+          <p>Always use <code>--dry-run</code> first to preview your design matrix before committing to a full run. Use <code>--seed</code> for reproducible experiments.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-analyze" class="tab-panel">
+      <h3>Analyze Experiment Results</h3>
+      <div class="code-block">
+        <div class="code-header"><span>Usage</span></div>
+        <div class="code-body">python doe.py analyze <span class="flag">--config</span> FILE [<span class="flag">--results-dir</span> DIR] [<span class="flag">--no-plots</span>] [<span class="flag">--csv</span> DIR]</div>
+      </div>
+      <table>
+        <thead><tr><th>Flag</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--config</code></td><td>Path to JSON config file (required)</td></tr>
+          <tr><td><code>--results-dir</code></td><td>Override <code>out_directory</code> from config</td></tr>
+          <tr><td><code>--no-plots</code></td><td>Skip generating Pareto charts and effects plots (headless mode)</td></tr>
+          <tr><td><code>--csv</code></td><td>Export main effects and summary stats to CSV files</td></tr>
+        </tbody>
+      </table>
+      <h4 style="margin-top: 20px;">What It Computes</h4>
+      <ul>
+        <li><strong>Main effects</strong> &mdash; For 2-level factors: mean(high) &minus; mean(low). For 3+ levels: max(means) &minus; min(means).</li>
+        <li><strong>Interaction effects</strong> &mdash; Two-factor interactions for all pairs of 2-level factors.</li>
+        <li><strong>95% Confidence intervals</strong> &mdash; Using the t-distribution on effect estimates.</li>
+        <li><strong>Summary statistics</strong> &mdash; Per-factor, per-level: count, mean, std, min, max.</li>
+        <li><strong>Pareto chart</strong> &mdash; Ranked bar chart with cumulative contribution line.</li>
+        <li><strong>Main effects plot</strong> &mdash; Grid of line plots showing mean response at each factor level.</li>
+      </ul>
+    </div>
+
+    <div id="tab-optimize" class="tab-panel">
+      <h3>Get Optimization Recommendations</h3>
+      <div class="code-block">
+        <div class="code-header"><span>Usage</span></div>
+        <div class="code-body">python doe.py optimize <span class="flag">--config</span> FILE [<span class="flag">--results-dir</span> DIR] [<span class="flag">--response</span> NAME]</div>
+      </div>
+      <table>
+        <thead><tr><th>Flag</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--config</code></td><td>Path to JSON config file (required)</td></tr>
+          <tr><td><code>--results-dir</code></td><td>Override <code>out_directory</code> from config</td></tr>
+          <tr><td><code>--response</code></td><td>Optimize for a single response (default: all responses)</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top: 16px;">The optimizer reports the best observed run, fits a linear RSM model, and ranks factors by importance. Use <code>--response</code> to focus on a specific metric.</p>
+    </div>
+
+    <div id="tab-report" class="tab-panel">
+      <h3>Generate an Interactive HTML Report</h3>
+      <div class="code-block">
+        <div class="code-header"><span>Usage</span></div>
+        <div class="code-body">python doe.py report <span class="flag">--config</span> FILE [<span class="flag">--results-dir</span> DIR] [<span class="flag">--output</span> FILE]</div>
+      </div>
+      <p style="margin-top: 16px;">Generates a self-contained HTML file with:</p>
+      <ul>
+        <li>Design summary (factors, levels, operation type)</li>
+        <li>Main effects and interaction tables for each response</li>
+        <li>Pareto charts and main effects plots (base64 embedded)</li>
+        <li>Full design matrix as an interactive table</li>
+        <li>Collapsible sections for easy navigation</li>
+      </ul>
+      <div class="callout info" style="margin-top:16px">
+        <span class="callout-icon">&#x2139;</span>
+        <div class="callout-body">
+          <h4>Self-Contained</h4>
+          <p>The HTML report has zero external dependencies. All plots are base64-encoded directly in the file. Share it via email, Slack, or drop it in a wiki &mdash; it just works.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-info" class="tab-panel">
+      <h3>Display Design Summary</h3>
+      <div class="code-block">
+        <div class="code-header"><span>Usage</span></div>
+        <div class="code-body">python doe.py info <span class="flag">--config</span> FILE</div>
+      </div>
+      <p style="margin-top: 16px;">Prints the experiment plan summary without writing any files: operation type, number of factors, base runs, total runs with blocking, response definitions, and fixed factors. Use this to quickly verify your config before running anything.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ TEST SCRIPT ═══════════════ -->
+<section class="howto-section" id="test-script">
+  <div class="container-narrow">
+    <h2><span class="step-badge">4</span> Writing a Test Script</h2>
+    <p>Your test script is the bridge between the DOE tool and your actual experiment. It must follow a simple protocol.</p>
+
+    <div class="callout warning">
+      <span class="callout-icon">&#x26A0;</span>
+      <div class="callout-body">
+        <h4>The Protocol</h4>
+        <p>Your script must: (1) accept factor values via the configured arg_style, (2) accept <code>--out &lt;path&gt;</code> for the output file, and (3) write a JSON file with keys matching your response names.</p>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="tab-bash-script">Bash Script</button>
+      <button class="tab-btn" data-tab="tab-python-script">Python Script</button>
+    </div>
+
+    <div id="tab-bash-script" class="tab-panel active">
+      <div class="code-block">
+        <div class="code-header"><span>test.sh (double-dash style)</span><button class="code-copy">Copy</button></div>
+        <div class="code-body"><span class="comment">#!/bin/bash</span>
+<span class="comment"># Parse arguments</span>
+<span class="keyword">while</span> [[ $# -gt <span class="number">0</span> ]]; <span class="keyword">do</span>
+  <span class="keyword">case</span> $<span class="number">1</span> <span class="keyword">in</span>
+    <span class="flag">--temperature</span>) TEMP=$<span class="number">2</span>; shift <span class="number">2</span>;;
+    <span class="flag">--pressure</span>)    PRES=$<span class="number">2</span>; shift <span class="number">2</span>;;
+    <span class="flag">--catalyst</span>)    CAT=$<span class="number">2</span>;  shift <span class="number">2</span>;;
+    <span class="flag">--out</span>)         OUT=$<span class="number">2</span>;  shift <span class="number">2</span>;;
+    *) shift;;
+  <span class="keyword">esac</span>
+<span class="keyword">done</span>
+
+<span class="comment"># Run your experiment here...</span>
+YIELD=$(<span class="comment">your_experiment</span> $TEMP $PRES $CAT)
+COST=$(<span class="comment">calculate_cost</span> $TEMP $PRES $CAT)
+
+<span class="comment"># Write results as JSON</span>
+echo <span class="string">"{\"yield\": $YIELD, \"cost\": $COST}"</span> > <span class="string">"$OUT"</span></div>
+      </div>
+    </div>
+
+    <div id="tab-python-script" class="tab-panel">
+      <div class="code-block">
+        <div class="code-header"><span>test.py (double-dash style)</span><button class="code-copy">Copy</button></div>
+        <div class="code-body"><span class="keyword">import</span> argparse, json
+
+parser = argparse.ArgumentParser()
+parser.add_argument(<span class="string">"--temperature"</span>, required=<span class="keyword">True</span>)
+parser.add_argument(<span class="string">"--pressure"</span>,    required=<span class="keyword">True</span>)
+parser.add_argument(<span class="string">"--catalyst"</span>,    required=<span class="keyword">True</span>)
+parser.add_argument(<span class="string">"--out"</span>,         required=<span class="keyword">True</span>)
+args = parser.parse_args()
+
+<span class="comment"># Run your experiment here...</span>
+result = {
+    <span class="string">"yield"</span>: run_experiment(args.temperature, args.pressure, args.catalyst),
+    <span class="string">"cost"</span>:  calculate_cost(args.temperature, args.pressure, args.catalyst),
+}
+
+<span class="keyword">with</span> open(args.out, <span class="string">"w"</span>) <span class="keyword">as</span> f:
+    json.dump(result, f)</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ ADVANCED TIPS ═══════════════ -->
+<section class="howto-section" id="advanced">
+  <div class="container-narrow">
+    <h2><span class="step-badge">5</span> Advanced Tips & Patterns</h2>
+
+    <div class="accordion">
+      <div class="accordion-item">
+        <div class="accordion-header">Use blocking for multi-day experiments <span class="arrow">&#9660;</span></div>
+        <div class="accordion-body">
+          <p>If your experiments span multiple days, sessions, or batches, use <code>"block_count": 2</code> (or more) in your config. Each block is an independent replicate with its own randomized order. This lets you detect and account for day-to-day variation.</p>
+          <div class="code-block">
+            <div class="code-header"><span>config.json excerpt</span></div>
+            <div class="code-body"><span class="key">"settings"</span>: {
+  <span class="key">"operation"</span>: <span class="string">"plackett_burman"</span>,
+  <span class="key">"block_count"</span>: <span class="number">2</span>,   <span class="comment">// base runs x 2 = total</span>
+  ...
+}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header">Export to CSV for custom analysis in R or pandas <span class="arrow">&#9660;</span></div>
+        <div class="accordion-body">
+          <p>The <code>--csv</code> flag on the analyze command exports structured data files:</p>
+          <ul>
+            <li><code>main_effects_{response}.csv</code> &mdash; Factor, effect magnitude, std error, % contribution, CI bounds</li>
+            <li><code>summary_stats_{response}.csv</code> &mdash; Per-factor, per-level statistics (N, mean, std, min, max)</li>
+          </ul>
+          <div class="code-block">
+            <div class="code-header"><span>Terminal</span></div>
+            <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> config.json <span class="flag">--csv</span> results/csv/
+<span class="prompt">$ </span>ls results/csv/
+main_effects_yield.csv  summary_stats_yield.csv
+main_effects_cost.csv   summary_stats_cost.csv</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header">Run headless in CI/CD pipelines <span class="arrow">&#9660;</span></div>
+        <div class="accordion-body">
+          <p>Use <code>--no-plots</code> to skip matplotlib chart generation. This avoids display issues in SSH sessions and CI environments while still computing all statistical results.</p>
+          <div class="code-block">
+            <div class="code-header"><span>GitHub Actions example</span></div>
+            <div class="code-body"><span class="keyword">- name:</span> <span class="string">Run DOE analysis</span>
+  <span class="keyword">run:</span> |
+    python doe.py generate <span class="flag">--config</span> config.json <span class="flag">--seed</span> 42
+    bash run_experiments.sh
+    python doe.py analyze <span class="flag">--config</span> config.json <span class="flag">--no-plots</span> <span class="flag">--csv</span> results/csv/</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header">The screening-to-optimization pipeline <span class="arrow">&#9660;</span></div>
+        <div class="accordion-body">
+          <p>The most efficient experimental strategy uses two (or three) stages:</p>
+          <ol>
+            <li><strong>Screen</strong> with Plackett-Burman (N+1 runs): identify the 2&ndash;3 factors that matter most out of many candidates.</li>
+            <li><strong>Optimize</strong> with Box-Behnken or CCD (15&ndash;20 runs): fit a quadratic model to the important factors and find the true optimum.</li>
+            <li><strong>Confirm</strong> with 3&ndash;5 runs at the predicted optimum to validate.</li>
+          </ol>
+          <p>Total: ~25 runs to fully optimize, compared to hundreds with grid search.</p>
+        </div>
+      </div>
+
+      <div class="accordion-item">
+        <div class="accordion-header">Reproducible experiments with --seed <span class="arrow">&#9660;</span></div>
+        <div class="accordion-body">
+          <p>The <code>--seed</code> flag controls run-order randomization. The same seed always produces the same run order, making your experiments reproducible. The design matrix itself (which factor combinations are tested) is always deterministic &mdash; the seed only affects the order within each block.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ TUTORIALS ═══════════════ -->
+<section class="howto-section" id="tutorials">
+  <div class="container-narrow">
+    <h2><span class="step-badge">6</span> Complete Tutorials</h2>
+    <p>End-to-end walkthroughs of real experimental workflows.</p>
+
+    <h3>Tutorial 1: Database Performance Tuning</h3>
+    <p>A Plackett-Burman design with 6 PostgreSQL configuration parameters, 2 blocks for replication, and CSV export for downstream analysis in R.</p>
+
+    <div class="code-block">
+      <div class="code-header"><span>Complete workflow</span><button class="code-copy">Copy</button></div>
+      <div class="code-body"><span class="comment"># Step 1: Preview</span>
+<span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/04_database_performance_tuning/config.json
+
+<span class="comment"># Step 2: Generate</span>
+<span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/04_database_performance_tuning/config.json \
+    <span class="flag">--output</span> results/run.sh <span class="flag">--seed</span> 42
+
+<span class="comment"># Step 3: Execute</span>
+<span class="prompt">$ </span>bash results/run.sh
+
+<span class="comment"># Step 4: Analyze (headless + CSV)</span>
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/04_database_performance_tuning/config.json \
+    <span class="flag">--no-plots</span> <span class="flag">--csv</span> results/csv/
+
+<span class="comment"># Step 5: Optimize</span>
+<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/04_database_performance_tuning/config.json
+
+<span class="comment"># Step 6: Report</span>
+<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/04_database_performance_tuning/config.json \
+    <span class="flag">--output</span> results/report.html</div>
+    </div>
+
+    <h3>Tutorial 2: Chemical Reactor Optimization</h3>
+    <p>A Box-Behnken design with 3 continuous factors and 3 responses (yield, purity, cost). Demonstrates multi-response analysis, RSM, and the trade-offs inherent in multi-objective optimization.</p>
+
+    <div class="code-block">
+      <div class="code-header"><span>Complete workflow</span><button class="code-copy">Copy</button></div>
+      <div class="code-body"><span class="comment"># Preview the Box-Behnken design (15 runs)</span>
+<span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/01_reactor_optimization/config.json
+
+<span class="comment"># Generate, run, and analyze</span>
+<span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/01_reactor_optimization/config.json \
+    <span class="flag">--output</span> results/run.sh <span class="flag">--seed</span> 42
+<span class="prompt">$ </span>bash results/run.sh
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/01_reactor_optimization/config.json
+
+<span class="comment"># Get optimization recommendations</span>
+<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/01_reactor_optimization/config.json
+
+<span class="comment"># Generate interactive HTML report</span>
+<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/01_reactor_optimization/config.json \
+    <span class="flag">--output</span> results/report.html</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ FOOTER ═══════════════ -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>

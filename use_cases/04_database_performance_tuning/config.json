@@ -1,0 +1,32 @@
+{
+    "metadata": {
+        "name": "Database Performance Tuning",
+        "description": "Plackett-Burman screening of 6 PostgreSQL parameters with 2 replicate blocks"
+    },
+    "factors": [
+        {"name": "shared_buffers",     "levels": ["256", "1024"],       "type": "continuous", "unit": "MB",  "description": "Shared memory buffer pool"},
+        {"name": "work_mem",           "levels": ["4", "64"],           "type": "continuous", "unit": "MB",  "description": "Per-operation working memory"},
+        {"name": "max_connections",    "levels": ["50", "200"],         "type": "continuous", "unit": "",     "description": "Maximum client connections"},
+        {"name": "effective_cache",    "levels": ["512", "4096"],       "type": "continuous", "unit": "MB",  "description": "OS disk cache estimate"},
+        {"name": "wal_level",          "levels": ["minimal", "replica"],"type": "categorical",               "description": "Write-ahead log level"},
+        {"name": "checkpoint_timeout", "levels": ["60", "900"],         "type": "continuous", "unit": "sec", "description": "Checkpoint interval"}
+    ],
+    "fixed_factors": {
+        "pg_version": "16",
+        "storage": "nvme"
+    },
+    "responses": [
+        {"name": "throughput",  "optimize": "maximize", "unit": "tps",  "description": "Transactions per second (pgbench)"},
+        {"name": "p99_latency", "optimize": "minimize", "unit": "ms",   "description": "99th percentile query latency"}
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 2,
+        "test_script": "use_cases/04_database_performance_tuning/sim.sh",
+        "operation": "plackett_burman",
+        "processed_directory": "use_cases/04_database_performance_tuning/results/analysis",
+        "out_directory": "use_cases/04_database_performance_tuning/results"
+    }
+}

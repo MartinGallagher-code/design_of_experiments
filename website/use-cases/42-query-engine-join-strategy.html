@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Query Engine Join Strategy &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F4CA;</div>
+    <div class="uc-badge" style="background:rgba(5,150,105,.12);color:#059669;">Plackett-Burman Design</div>
+    <h1>Query Engine Join Strategy</h1>
+    <p class="uc-subtitle">Plackett-Burman screening of 6 query engine parameters for join performance and memory pressure</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>join_algorithm</code></td><td>hash</td><td>sort_merge</td><td></td></tr>
+            <tr><td><code>hash_table_mb</code></td><td>256</td><td>4096</td><td>MB</td></tr>
+            <tr><td><code>sort_buffer_mb</code></td><td>64</td><td>512</td><td>MB</td></tr>
+            <tr><td><code>broadcast_threshold_mb</code></td><td>10</td><td>256</td><td>MB</td></tr>
+            <tr><td><code>adaptive_execution</code></td><td>off</td><td>on</td><td></td></tr>
+            <tr><td><code>partitions</code></td><td>50</td><td>400</td><td>count</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> engine = spark_sql, data_size_gb = 100</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>query_time_s</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>s</td></tr>
+            <tr><td><code>peak_memory_gb</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>GB</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/42_query_engine_join_strategy/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Query Engine Join Strategy&quot;,
+    &quot;description&quot;: &quot;Plackett-Burman screening of 6 query engine parameters for join performance and memory pressure&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;join_algorithm&quot;,
+      &quot;levels&quot;: [
+        &quot;hash&quot;,
+        &quot;sort_merge&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    },
+    {
+      &quot;name&quot;: &quot;hash_table_mb&quot;,
+      &quot;levels&quot;: [
+        &quot;256&quot;,
+        &quot;4096&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;MB&quot;
+    },
+    {
+      &quot;name&quot;: &quot;sort_buffer_mb&quot;,
+      &quot;levels&quot;: [
+        &quot;64&quot;,
+        &quot;512&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;MB&quot;
+    },
+    {
+      &quot;name&quot;: &quot;broadcast_threshold_mb&quot;,
+      &quot;levels&quot;: [
+        &quot;10&quot;,
+        &quot;256&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;MB&quot;
+    },
+    {
+      &quot;name&quot;: &quot;adaptive_execution&quot;,
+      &quot;levels&quot;: [
+        &quot;off&quot;,
+        &quot;on&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    },
+    {
+      &quot;name&quot;: &quot;partitions&quot;,
+      &quot;levels&quot;: [
+        &quot;50&quot;,
+        &quot;400&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;count&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;engine&quot;: &quot;spark_sql&quot;,
+    &quot;data_size_gb&quot;: &quot;100&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;query_time_s&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;s&quot;
+    },
+    {
+      &quot;name&quot;: &quot;peak_memory_gb&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;GB&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;plackett_burman&quot;,
+    &quot;test_script&quot;: &quot;use_cases/42_query_engine_join_strategy/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Plackett-Burman Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>join_algorithm</code></th><th><code>hash_table_mb</code></th><th><code>sort_buffer_mb</code></th><th><code>broadcast_threshold_mb</code></th><th><code>adaptive_execution</code></th><th><code>partitions</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>sort_merge</td><td>4096</td><td>512</td><td>10</td><td>off</td><td>50</td></tr>
+        <tr><td>2</td><td>hash</td><td>256</td><td>512</td><td>256</td><td>off</td><td>50</td></tr>
+        <tr><td>3</td><td>hash</td><td>4096</td><td>64</td><td>256</td><td>off</td><td>400</td></tr>
+        <tr><td>4</td><td>sort_merge</td><td>4096</td><td>512</td><td>256</td><td>on</td><td>400</td></tr>
+        <tr><td>5</td><td>hash</td><td>4096</td><td>64</td><td>10</td><td>on</td><td>50</td></tr>
+        <tr><td>6</td><td>sort_merge</td><td>256</td><td>64</td><td>256</td><td>on</td><td>50</td></tr>
+        <tr><td>7</td><td>hash</td><td>256</td><td>512</td><td>10</td><td>on</td><td>400</td></tr>
+        <tr><td>8</td><td>sort_merge</td><td>256</td><td>64</td><td>10</td><td>off</td><td>400</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/42_query_engine_join_strategy/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/42_query_engine_join_strategy/config.json \
+    <span class="flag">--output</span> use_cases/42_query_engine_join_strategy/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/42_query_engine_join_strategy/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/42_query_engine_join_strategy/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/42_query_engine_join_strategy/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/42_query_engine_join_strategy/config.json \
+    <span class="flag">--output</span> use_cases/42_query_engine_join_strategy/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>plackett_burman</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (4), <code>categorical</code> (2)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (query_time_s &#x2193;, peak_memory_gb &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>8</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: query_time_s</h3>
+    <p>Top factors: adaptive_execution (46.4%), hash_table_mb (16.2%), broadcast_threshold_mb (15.7%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/42_pareto_query_time_s.png" alt="Pareto chart for query_time_s">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/42_main_effects_query_time_s.png" alt="Main effects plot for query_time_s">
+      </div>
+    </div>
+
+    <h3>Response: peak_memory_gb</h3>
+    <p>Top factors: join_algorithm (33.4%), adaptive_execution (29.3%), sort_buffer_mb (14.8%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/42_pareto_peak_memory_gb.png" alt="Pareto chart for peak_memory_gb">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/42_main_effects_peak_memory_gb.png" alt="Main effects plot for peak_memory_gb">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">peak memory gb broadcast threshold mb vs partitions</p>
+      <img src="../images/42_rsm_peak_memory_gb_broadcast_threshold_mb_vs_partitions.png" alt="RSM surface: peak memory gb broadcast threshold mb vs partitions" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">peak memory gb hash table mb vs broadcast threshold mb</p>
+      <img src="../images/42_rsm_peak_memory_gb_hash_table_mb_vs_broadcast_threshold_mb.png" alt="RSM surface: peak memory gb hash table mb vs broadcast threshold mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">peak memory gb hash table mb vs partitions</p>
+      <img src="../images/42_rsm_peak_memory_gb_hash_table_mb_vs_partitions.png" alt="RSM surface: peak memory gb hash table mb vs partitions" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">peak memory gb hash table mb vs sort buffer mb</p>
+      <img src="../images/42_rsm_peak_memory_gb_hash_table_mb_vs_sort_buffer_mb.png" alt="RSM surface: peak memory gb hash table mb vs sort buffer mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">peak memory gb sort buffer mb vs broadcast threshold mb</p>
+      <img src="../images/42_rsm_peak_memory_gb_sort_buffer_mb_vs_broadcast_threshold_mb.png" alt="RSM surface: peak memory gb sort buffer mb vs broadcast threshold mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">peak memory gb sort buffer mb vs partitions</p>
+      <img src="../images/42_rsm_peak_memory_gb_sort_buffer_mb_vs_partitions.png" alt="RSM surface: peak memory gb sort buffer mb vs partitions" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">query time s broadcast threshold mb vs partitions</p>
+      <img src="../images/42_rsm_query_time_s_broadcast_threshold_mb_vs_partitions.png" alt="RSM surface: query time s broadcast threshold mb vs partitions" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">query time s hash table mb vs broadcast threshold mb</p>
+      <img src="../images/42_rsm_query_time_s_hash_table_mb_vs_broadcast_threshold_mb.png" alt="RSM surface: query time s hash table mb vs broadcast threshold mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">query time s hash table mb vs partitions</p>
+      <img src="../images/42_rsm_query_time_s_hash_table_mb_vs_partitions.png" alt="RSM surface: query time s hash table mb vs partitions" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">query time s hash table mb vs sort buffer mb</p>
+      <img src="../images/42_rsm_query_time_s_hash_table_mb_vs_sort_buffer_mb.png" alt="RSM surface: query time s hash table mb vs sort buffer mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">query time s sort buffer mb vs broadcast threshold mb</p>
+      <img src="../images/42_rsm_query_time_s_sort_buffer_mb_vs_broadcast_threshold_mb.png" alt="RSM surface: query time s sort buffer mb vs broadcast threshold mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">query time s sort buffer mb vs partitions</p>
+      <img src="../images/42_rsm_query_time_s_sort_buffer_mb_vs_partitions.png" alt="RSM surface: query time s sort buffer mb vs partitions" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: query_time_s ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+adaptive_execution      20.1250       4.7346            46.4%
+hash_table_mb            7.0250       4.7346            16.2%
+broadcast_threshold_mb     6.8250       4.7346            15.7%
+join_algorithm           6.3250       4.7346            14.6%
+partitions               2.0750       4.7346             4.8%
+sort_buffer_mb           0.9750       4.7346             2.2%
+
+=== Interaction Effects: query_time_s ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+join_algorithm       broadcast_threshold_mb      20.1250            17.7%
+sort_buffer_mb       partitions                20.1250            17.7%
+join_algorithm       partitions                -9.0250             7.9%
+hash_table_mb        adaptive_execution         9.0250             7.9%
+sort_buffer_mb       broadcast_threshold_mb      -9.0250             7.9%
+join_algorithm       sort_buffer_mb            -7.0250             6.2%
+broadcast_threshold_mb partitions                -7.0250             6.2%
+join_algorithm       adaptive_execution         6.8250             6.0%
+hash_table_mb        partitions                -6.8250             6.0%
+hash_table_mb        sort_buffer_mb            -6.3250             5.6%
+broadcast_threshold_mb adaptive_execution         6.3250             5.6%
+hash_table_mb        broadcast_threshold_mb      -2.0750             1.8%
+sort_buffer_mb       adaptive_execution         2.0750             1.8%
+join_algorithm       hash_table_mb             -0.9750             0.9%
+adaptive_execution   partitions                 0.9750             0.9%
+
+=== Summary Statistics: query_time_s ===
+
+join_algorithm:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  hash                4    42.7000    11.0167    34.5000    58.9000
+  sort_merge          4    49.0250    16.4439    35.1000    69.0000
+
+hash_table_mb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  256                 4    42.3500     9.2324    36.0000    56.0000
+  4096                4    49.3750    17.3292    34.5000    69.0000
+
+sort_buffer_mb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  512                 4    45.3750    15.8666    35.1000    69.0000
+  64                  4    46.3500    12.8863    34.5000    58.9000
+
+broadcast_threshold_mb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4    42.4500    11.1542    35.1000    58.9000
+  256                 4    49.2750    16.2163    34.5000    69.0000
+
+adaptive_execution:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4    35.8000     1.3491    34.5000    37.6000
+  on                  4    55.9250    12.1082    39.8000    69.0000
+
+partitions:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  400                 4    44.8250    16.2703    34.5000    69.0000
+  50                  4    46.9000    12.2820    35.1000    58.9000
+
+=== Main Effects: peak_memory_gb ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+join_algorithm          -9.8750       2.7310            33.4%
+adaptive_execution      -8.6750       2.7310            29.3%
+sort_buffer_mb          -4.3750       2.7310            14.8%
+partitions               3.0750       2.7310            10.4%
+hash_table_mb           -2.4750       2.7310             8.4%
+broadcast_threshold_mb    -1.1250       2.7310             3.8%
+
+=== Interaction Effects: peak_memory_gb ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+hash_table_mb        sort_buffer_mb             9.8750            16.5%
+broadcast_threshold_mb adaptive_execution        -9.8750            16.5%
+join_algorithm       broadcast_threshold_mb      -8.6750            14.5%
+sort_buffer_mb       partitions                -8.6750            14.5%
+join_algorithm       hash_table_mb              4.3750             7.3%
+adaptive_execution   partitions                -4.3750             7.3%
+hash_table_mb        broadcast_threshold_mb      -3.0750             5.1%
+sort_buffer_mb       adaptive_execution         3.0750             5.1%
+join_algorithm       sort_buffer_mb             2.4750             4.1%
+broadcast_threshold_mb partitions                 2.4750             4.1%
+join_algorithm       adaptive_execution        -1.1250             1.9%
+hash_table_mb        partitions                 1.1250             1.9%
+join_algorithm       partitions                -0.2750             0.5%
+hash_table_mb        adaptive_execution         0.2750             0.5%
+sort_buffer_mb       broadcast_threshold_mb      -0.2750             0.5%
+
+=== Summary Statistics: peak_memory_gb ===
+
+join_algorithm:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  hash                4    17.0250     6.1954    11.5000    25.9000
+  sort_merge          4     7.1500     5.9858     1.8000    14.4000
+
+hash_table_mb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  256                 4    13.3250     9.7804     2.7000    25.9000
+  4096                4    10.8500     6.2836     1.8000    15.7000
+
+sort_buffer_mb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  512                 4    14.2750     9.8541     1.8000    25.9000
+  64                  4     9.9000     5.4185     2.7000    15.7000
+
+broadcast_threshold_mb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4    12.6500     2.4906     9.7000    15.0000
+  256                 4    11.5250    11.4968     1.8000    25.9000
+
+adaptive_execution:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4    16.4250     6.8222     9.7000    25.9000
+  on                  4     7.7500     6.5200     1.8000    15.0000
+
+partitions:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  400                 4    10.5500     6.4190     1.8000    15.7000
+  50                  4    13.6250     9.5768     2.7000    25.9000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: query_time_s ===
+Direction: minimize
+
+Best observed run: #4
+  join_algorithm = hash
+  hash_table_mb = 4096
+  sort_buffer_mb = 64
+  broadcast_threshold_mb = 256
+  adaptive_execution = off
+  partitions = 400
+  Value: 34.5
+
+RSM Model (linear, R² = 0.8509, Adj R² = -0.0439):
+  Coefficients:
+    intercept                      +45.8625
+    join_algorithm                 +3.1625
+    hash_table_mb                  +3.7375
+    sort_buffer_mb                 -0.2625
+    broadcast_threshold_mb         +3.9625
+    adaptive_execution             +9.5125
+    partitions                     -1.8125
+
+  Predicted optimum (from linear model):
+    join_algorithm = sort_merge
+    hash_table_mb = 4096
+    sort_buffer_mb = 512
+    broadcast_threshold_mb = 256
+    adaptive_execution = on
+    partitions = 400
+    Predicted value: 64.1625
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. adaptive_execution  (effect: 19.0, contribution: 42.4%)
+  2. broadcast_threshold_mb  (effect: 7.9, contribution: 17.7%)
+  3. hash_table_mb  (effect: 7.5, contribution: 16.6%)
+  4. join_algorithm  (effect: 6.3, contribution: 14.1%)
+  5. partitions  (effect: 3.6, contribution: 8.1%)
+  6. sort_buffer_mb  (effect: 0.5, contribution: 1.2%)
+
+=== Optimization: peak_memory_gb ===
+Direction: minimize
+
+Best observed run: #8
+  join_algorithm = sort_merge
+  hash_table_mb = 4096
+  sort_buffer_mb = 512
+  broadcast_threshold_mb = 256
+  adaptive_execution = on
+  partitions = 400
+  Value: 1.8
+
+RSM Model (linear, R² = 0.9618, Adj R² = 0.7325):
+  Coefficients:
+    intercept                      +12.0875
+    join_algorithm                 -4.9375
+    hash_table_mb                  -2.4125
+    sort_buffer_mb                 +1.0125
+    broadcast_threshold_mb         -3.2875
+    adaptive_execution             -1.6125
+    partitions                     +2.3625
+
+  Predicted optimum (from linear model):
+    join_algorithm = hash
+    hash_table_mb = 256
+    sort_buffer_mb = 512
+    broadcast_threshold_mb = 10
+    adaptive_execution = on
+    partitions = 400
+    Predicted value: 24.4875
+
+  Model quality: Excellent fit — surface predictions are reliable.
+
+Factor importance:
+  1. join_algorithm  (effect: -9.9, contribution: 31.6%)
+  2. broadcast_threshold_mb  (effect: -6.6, contribution: 21.0%)
+  3. hash_table_mb  (effect: -4.8, contribution: 15.4%)
+  4. partitions  (effect: -4.7, contribution: 15.1%)
+  5. adaptive_execution  (effect: -3.2, contribution: 10.3%)
+  6. sort_buffer_mb  (effect: -2.0, contribution: 6.5%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="41-columnar-compression.html">&larr; Previous: Columnar Compression</a>
+    <a href="43-index-selection-optimization.html">Next: Index Selection Optimization &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

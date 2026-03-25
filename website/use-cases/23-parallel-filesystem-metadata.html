@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parallel Filesystem Metadata Performance &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .caption { font-size:.72rem; color:var(--faint); margin-bottom:4px; }
+  </style>
+</head>
+<body>
+
+<img src="../logo-light.svg" alt="" class="bg-logo-light">
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><span class="dot"></span> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<section class="uc-hero-detail" style="background:linear-gradient(135deg, #0891b211, #0891b208);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-badge" style="background:#0891b218;color:#0891b2;">Fractional Factorial</div>
+    <h1>Parallel Filesystem Metadata Performance</h1>
+    <p class="uc-subtitle">Optimize Lustre MDS performance for metadata-intensive HPC workflows with millions of small files.</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Levels</th><th>Type</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td>mdt_count</td><td>1 &ndash; 4</td><td>continuous</td><td>&mdash;</td></tr>
+            <tr><td>dir_stripe</td><td>off / on</td><td>categorical</td><td>&mdash;</td></tr>
+            <tr><td>client_cache</td><td>off / on</td><td>categorical</td><td>&mdash;</td></tr>
+            <tr><td>commit_on_share</td><td>0 / 1</td><td>categorical</td><td>&mdash;</td></tr>
+            <tr><td>mds_threads</td><td>64 &ndash; 512</td><td>continuous</td><td>&mdash;</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> filesystem = Lustre 2.15, clients = 256, files_per_dir = 100000, file_size = 4KB</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td>creates_per_sec</td><td style="color:var(--green);font-weight:600;">&#x2191; maximize</td><td>ops/s</td></tr>
+            <tr><td>stat_per_sec</td><td style="color:var(--green);font-weight:600;">&#x2191; maximize</td><td>ops/s</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Fractional Factorial Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>mdt_count</code></th><th><code>dir_stripe</code></th><th><code>client_cache</code></th><th><code>commit_on_share</code></th><th><code>mds_threads</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>1</td><td>on</td><td>on</td><td>0</td><td>64</td></tr>
+        <tr><td>2</td><td>4</td><td>off</td><td>off</td><td>0</td><td>64</td></tr>
+        <tr><td>3</td><td>4</td><td>on</td><td>off</td><td>1</td><td>64</td></tr>
+        <tr><td>4</td><td>4</td><td>on</td><td>on</td><td>1</td><td>512</td></tr>
+        <tr><td>5</td><td>1</td><td>on</td><td>off</td><td>0</td><td>512</td></tr>
+        <tr><td>6</td><td>4</td><td>off</td><td>on</td><td>0</td><td>512</td></tr>
+        <tr><td>7</td><td>1</td><td>off</td><td>off</td><td>1</td><td>512</td></tr>
+        <tr><td>8</td><td>1</td><td>off</td><td>on</td><td>1</td><td>64</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="uc-section">
+    <h2>How to Run</h2>
+    <div class="code-block"><div class="code-header"><span>terminal</span></div><div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/23_parallel_filesystem_metadata/config.json
+<span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/23_parallel_filesystem_metadata/config.json <span class="flag">--output</span> results/run.sh <span class="flag">--seed</span> 42
+<span class="prompt">$ </span>bash results/run.sh
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/23_parallel_filesystem_metadata/config.json
+<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/23_parallel_filesystem_metadata/config.json
+<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/23_parallel_filesystem_metadata/config.json <span class="flag">--output</span> report.html</div></div>
+  </section>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs.</p>
+
+    <h3>Response: creates_per_sec</h3>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/23_pareto_creates_per_sec.png" alt="Pareto chart for creates_per_sec">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/23_main_effects_creates_per_sec.png" alt="Main effects plot for creates_per_sec">
+      </div>
+    </div>
+
+    <h3>Response: stat_per_sec</h3>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/23_pareto_stat_per_sec.png" alt="Pareto chart for stat_per_sec">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/23_main_effects_stat_per_sec.png" alt="Main effects plot for stat_per_sec">
+      </div>
+    </div>
+
+    <h3>Response Surface Plots</h3>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">creates_per_sec: mdt_count vs mds_threads</p>
+      <img src="../images/23_rsm_creates_per_sec_mdt_count_vs_mds_threads.png" alt="RSM surface: creates_per_sec: mdt_count vs mds_threads" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">stat_per_sec: mdt_count vs mds_threads</p>
+      <img src="../images/23_rsm_stat_per_sec_mdt_count_vs_mds_threads.png" alt="RSM surface: stat_per_sec: mdt_count vs mds_threads" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: creates_per_sec ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+mdt_count            -79266.8750   27100.5311            27.5%
+commit_on_share      65130.9250   27100.5311            22.6%
+client_cache         64384.0750   27100.5311            22.3%
+mds_threads          -49695.2750   27100.5311            17.2%
+dir_stripe           -30027.9750   27100.5311            10.4%
+
+=== Summary Statistics: creates_per_sec ===
+
+mdt_count:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4 184830.9000 62379.6783 105398.4000 249574.6000
+  4                   4 105564.0250 75029.8258 40375.1000 205855.9000
+
+dir_stripe:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4 160211.4500 88325.5478 56673.6000 249574.6000
+  on                  4 130183.4750 72849.1735 40375.1000 205855.9000
+
+client_cache:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4 113005.4250 95144.5304 40375.1000 249574.6000
+  on                  4 177389.5000 43514.3990 119351.5000 215246.1000
+
+commit_on_share:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4 112632.0000 46252.7925 56673.6000 169104.5000
+  1                   4 177762.9250 93499.6164 40375.1000 249574.6000
+
+mds_threads:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  512                 4 170045.1000 69177.0474 105398.4000 249574.6000
+  64                  4 120349.8250 85309.1234 40375.1000 215246.1000
+
+=== Main Effects: stat_per_sec ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+mdt_count            -185465.3500   51540.4068            35.9%
+commit_on_share      144938.5500   51540.4068            28.1%
+client_cache         106830.1500   51540.4068            20.7%
+dir_stripe           -51126.3000   51540.4068             9.9%
+mds_threads          -27756.6000   51540.4068             5.4%
+
+=== Summary Statistics: stat_per_sec ===
+
+mdt_count:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4 477992.7750 127599.8862 308208.9000 583347.3000
+  4                   4 292527.4250 101848.2092 210750.3000 439149.3000
+
+dir_stripe:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4 410823.2500 192964.5362 210750.3000 583347.3000
+  on                  4 359696.9500 102997.4502 239717.8000 451711.8000
+
+client_cache:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4 331845.0250 163107.0938 210750.3000 568703.1000
+  on                  4 438675.1750 123991.9676 280492.3000 583347.3000
+
+commit_on_share:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4 312790.8250 101284.2449 210750.3000 451711.8000
+  1                   4 457729.3750 159132.3315 239717.8000 583347.3000
+
+mds_threads:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  512                 4 399138.4000 132536.9516 280492.3000 568703.1000
+  64                  4 371381.8000 177501.3331 210750.3000 583347.3000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: creates_per_sec ===
+Direction: maximize
+
+Best observed run: #4
+  mdt_count = 4
+  dir_stripe = on
+  client_cache = on
+  commit_on_share = 1
+  mds_threads = 512
+  Value: 249574.6
+
+Factor importance:
+  1. mdt_count  (effect: 129495.6, contribution: 54.3%)
+  2. client_cache  (effect: 49695.3, contribution: 20.9%)
+  3. commit_on_share  (effect: 30028.0, contribution: 12.6%)
+  4. dir_stripe  (effect: 14902.2, contribution: 6.3%)
+  5. mds_threads  (effect: 14155.3, contribution: 5.9%)
+
+=== Optimization: stat_per_sec ===
+Direction: maximize
+
+Best observed run: #6
+  mdt_count = 4
+  dir_stripe = on
+  client_cache = off
+  commit_on_share = 1
+  mds_threads = 64
+  Value: 583347.3
+
+Factor importance:
+  1. mdt_count  (effect: 250935.5, contribution: 55.7%)
+  2. dir_stripe  (effect: 79468.4, contribution: 17.6%)
+  3. commit_on_share  (effect: 51126.3, contribution: 11.3%)
+  4. mds_threads  (effect: 41360.0, contribution: 9.2%)
+  5. client_cache  (effect: 27756.6, contribution: 6.2%)</div></div>
+  </section>
+
+  <div class="chapter-nav">
+    <a href="22-prefetch-strategy.html">&larr; Hardware Prefetch Tuning</a>
+    <a href="24-gpu-comm-overlap.html">GPU Compute-Comm Overlap &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <span>doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Load Balancer Algorithm &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x2601;</div>
+    <div class="uc-badge" style="background:rgba(29,78,216,.12);color:#1d4ed8;">Full Factorial Design</div>
+    <h1>Load Balancer Algorithm</h1>
+    <p class="uc-subtitle">Full factorial of balancing algorithm, health check interval, and connection draining for availability</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>algorithm</code></td><td>round_robin</td><td>ip_hash</td><td></td></tr>
+            <tr><td><code>health_interval</code></td><td>5</td><td>30</td><td>s</td></tr>
+            <tr><td><code>drain_timeout</code></td><td>10</td><td>60</td><td>s</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> backend_count = 4, protocol = http2</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>availability</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+            <tr><td><code>imbalance_pct</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/32_load_balancer_algorithm/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Load Balancer Algorithm&quot;,
+    &quot;description&quot;: &quot;Full factorial of balancing algorithm, health check interval, and connection draining for availability&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;algorithm&quot;,
+      &quot;levels&quot;: [
+        &quot;round_robin&quot;,
+        &quot;least_conn&quot;,
+        &quot;ip_hash&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    },
+    {
+      &quot;name&quot;: &quot;health_interval&quot;,
+      &quot;levels&quot;: [
+        &quot;5&quot;,
+        &quot;30&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;s&quot;
+    },
+    {
+      &quot;name&quot;: &quot;drain_timeout&quot;,
+      &quot;levels&quot;: [
+        &quot;10&quot;,
+        &quot;60&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;s&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;backend_count&quot;: &quot;4&quot;,
+    &quot;protocol&quot;: &quot;http2&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;availability&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;imbalance_pct&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;full_factorial&quot;,
+    &quot;test_script&quot;: &quot;use_cases/32_load_balancer_algorithm/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Full Factorial Design produces <strong>12 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>algorithm</code></th><th><code>health_interval</code></th><th><code>drain_timeout</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>least_conn</td><td>30</td><td>60</td></tr>
+        <tr><td>2</td><td>least_conn</td><td>5</td><td>60</td></tr>
+        <tr><td>3</td><td>round_robin</td><td>30</td><td>10</td></tr>
+        <tr><td>4</td><td>ip_hash</td><td>5</td><td>10</td></tr>
+        <tr><td>5</td><td>ip_hash</td><td>5</td><td>60</td></tr>
+        <tr><td>6</td><td>least_conn</td><td>30</td><td>10</td></tr>
+        <tr><td>7</td><td>ip_hash</td><td>30</td><td>60</td></tr>
+        <tr><td>8</td><td>round_robin</td><td>30</td><td>60</td></tr>
+        <tr><td>9</td><td>least_conn</td><td>5</td><td>10</td></tr>
+        <tr><td>10</td><td>round_robin</td><td>5</td><td>10</td></tr>
+        <tr><td>11</td><td>round_robin</td><td>5</td><td>60</td></tr>
+        <tr><td>12</td><td>ip_hash</td><td>30</td><td>10</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/32_load_balancer_algorithm/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/32_load_balancer_algorithm/config.json \
+    <span class="flag">--output</span> use_cases/32_load_balancer_algorithm/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/32_load_balancer_algorithm/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/32_load_balancer_algorithm/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/32_load_balancer_algorithm/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/32_load_balancer_algorithm/config.json \
+    <span class="flag">--output</span> use_cases/32_load_balancer_algorithm/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>full_factorial</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (2), <code>categorical</code> (1)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (availability &#x2191;, imbalance_pct &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>12</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: availability</h3>
+    <p>Top factors: health_interval (48.9%), algorithm (28.7%), drain_timeout (22.4%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/32_pareto_availability.png" alt="Pareto chart for availability">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/32_main_effects_availability.png" alt="Main effects plot for availability">
+      </div>
+    </div>
+
+    <h3>Response: imbalance_pct</h3>
+    <p>Top factors: health_interval (50.2%), drain_timeout (25.0%), algorithm (24.9%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/32_pareto_imbalance_pct.png" alt="Pareto chart for imbalance_pct">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/32_main_effects_imbalance_pct.png" alt="Main effects plot for imbalance_pct">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">availability health interval vs drain timeout</p>
+      <img src="../images/32_rsm_availability_health_interval_vs_drain_timeout.png" alt="RSM surface: availability health interval vs drain timeout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">imbalance pct health interval vs drain timeout</p>
+      <img src="../images/32_rsm_imbalance_pct_health_interval_vs_drain_timeout.png" alt="RSM surface: imbalance pct health interval vs drain timeout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: availability ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+health_interval          0.2293       0.0770            48.9%
+algorithm                0.1343       0.0770            28.7%
+drain_timeout           -0.1050       0.0770            22.4%
+
+=== Interaction Effects: availability ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+health_interval      drain_timeout              0.0173           100.0%
+
+=== Summary Statistics: availability ===
+
+algorithm:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  ip_hash             4    99.5902     0.2412    99.2990    99.7900
+  least_conn          4    99.4560     0.3861    99.0850    99.9630
+  round_robin         4    99.5872     0.1954    99.3800    99.8470
+
+health_interval:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  30                  6    99.4298     0.2522    99.0850    99.7900
+  5                   6    99.6592     0.2479    99.2990    99.9630
+
+drain_timeout:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  6    99.5970     0.3420    99.0850    99.9630
+  60                  6    99.4920     0.1819    99.2410    99.7870
+
+=== Main Effects: imbalance_pct ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+health_interval         -3.9833       1.1645            50.2%
+drain_timeout            1.9833       1.1645            25.0%
+algorithm                1.9750       1.1645            24.9%
+
+=== Interaction Effects: imbalance_pct ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+health_interval      drain_timeout              0.4833           100.0%
+
+=== Summary Statistics: imbalance_pct ===
+
+algorithm:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  ip_hash             4     7.1000     2.8925     4.3000    10.2000
+  least_conn          4     8.3750     5.3194     1.9000    14.2000
+  round_robin         4     6.4000     4.5085     0.1000    10.4000
+
+health_interval:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  30                  6     9.2833     3.3024     5.0000    14.2000
+  5                   6     5.3000     3.9207     0.1000    10.2000
+
+drain_timeout:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  6     6.3000     5.2368     0.1000    14.2000
+  60                  6     8.2833     2.4523     4.3000    10.8000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: availability ===
+Direction: maximize
+
+Best observed run: #2
+  algorithm = round_robin
+  health_interval = 30
+  drain_timeout = 60
+  Value: 99.963
+
+RSM Model (linear, R² = 0.0616, Adj R² = -0.2904):
+  Coefficients:
+    intercept                      +99.5445
+    algorithm                      +0.0082
+    health_interval                +0.0630
+    drain_timeout                  -0.0018
+
+RSM Model (quadratic, R² = 0.1036, Adj R² = -3.9300):
+  Coefficients:
+    intercept                      +33.1872
+    algorithm                      +0.0082
+    health_interval                +0.0630
+    drain_timeout                  -0.0018
+    algorithm*health_interval      +0.0482
+    algorithm*drain_timeout        -0.0390
+    health_interval*drain_timeout  +0.0060
+    algorithm^2                    -0.0255
+    health_interval^2              +33.1872
+    drain_timeout^2                +33.1872
+
+  Curvature analysis:
+    health_interval                coef=+33.1872  convex (has a minimum)
+    drain_timeout                  coef=+33.1872  convex (has a minimum)
+    algorithm                      coef=-0.0255  negligible curvature
+
+  Predicted optimum (from linear model):
+    algorithm = round_robin
+    health_interval = 30
+    drain_timeout = 10
+    Predicted value: 99.6176
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. health_interval  (effect: -0.1, contribution: 77.1%)
+  2. algorithm  (effect: 0.0, contribution: 20.7%)
+  3. drain_timeout  (effect: -0.0, contribution: 2.2%)
+
+=== Optimization: imbalance_pct ===
+Direction: minimize
+
+Best observed run: #9
+  algorithm = least_conn
+  health_interval = 5
+  drain_timeout = 10
+  Value: 0.1
+
+RSM Model (linear, R² = 0.0234, Adj R² = -0.3428):
+  Coefficients:
+    intercept                      +7.2917
+    algorithm                      -0.1625
+    health_interval                -0.4750
+    drain_timeout                  +0.3250
+
+RSM Model (quadratic, R² = 0.0916, Adj R² = -3.9961):
+  Coefficients:
+    intercept                      +2.3333
+    algorithm                      -0.1625
+    health_interval                -0.4750
+    drain_timeout                  +0.3250
+    algorithm*health_interval      -1.0125
+    algorithm*drain_timeout        +0.5125
+    health_interval*drain_timeout  -0.3417
+    algorithm^2                    +0.4375
+    health_interval^2              +2.3333
+    drain_timeout^2                +2.3333
+
+  Curvature analysis:
+    drain_timeout                  coef=+2.3333  convex (has a minimum)
+    health_interval                coef=+2.3333  convex (has a minimum)
+    algorithm                      coef=+0.4375  convex (has a minimum)
+
+  Notable interactions:
+    algorithm*health_interval      coef=-1.0125  (antagonistic)
+    algorithm*drain_timeout        coef=+0.5125  (synergistic)
+    health_interval*drain_timeout  coef=-0.3417  (antagonistic)
+
+  Predicted optimum (from linear model):
+    algorithm = ip_hash
+    health_interval = 5
+    drain_timeout = 60
+    Predicted value: 8.2542
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. health_interval  (effect: 1.0, contribution: 43.2%)
+  2. drain_timeout  (effect: 0.6, contribution: 29.5%)
+  3. algorithm  (effect: 0.6, contribution: 27.3%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="31-database-connection-pooling.html">&larr; Previous: Database Connection Pooling</a>
+    <a href="33-api-rate-limiter.html">Next: API Rate Limiter Tuning &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

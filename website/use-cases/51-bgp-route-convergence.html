@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BGP Route Convergence &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F310;</div>
+    <div class="uc-badge" style="background:rgba(124,58,237,.12);color:#7c3aed;">Fractional Factorial Design</div>
+    <h1>BGP Route Convergence</h1>
+    <p class="uc-subtitle">Fractional factorial of 5 BGP timer and dampening parameters for convergence speed</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>keepalive_s</code></td><td>10</td><td>60</td><td>s</td></tr>
+            <tr><td><code>hold_time_s</code></td><td>30</td><td>180</td><td>s</td></tr>
+            <tr><td><code>mrai_s</code></td><td>5</td><td>30</td><td>s</td></tr>
+            <tr><td><code>dampening</code></td><td>off</td><td>on</td><td></td></tr>
+            <tr><td><code>bfd</code></td><td>off</td><td>on</td><td></td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> as_count = 50, topology = partial_mesh</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>convergence_time_s</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>s</td></tr>
+            <tr><td><code>route_stability</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/51_bgp_route_convergence/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;BGP Route Convergence&quot;,
+    &quot;description&quot;: &quot;Fractional factorial of 5 BGP timer and dampening parameters for convergence speed&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;keepalive_s&quot;,
+      &quot;levels&quot;: [
+        &quot;10&quot;,
+        &quot;60&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;s&quot;
+    },
+    {
+      &quot;name&quot;: &quot;hold_time_s&quot;,
+      &quot;levels&quot;: [
+        &quot;30&quot;,
+        &quot;180&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;s&quot;
+    },
+    {
+      &quot;name&quot;: &quot;mrai_s&quot;,
+      &quot;levels&quot;: [
+        &quot;5&quot;,
+        &quot;30&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;s&quot;
+    },
+    {
+      &quot;name&quot;: &quot;dampening&quot;,
+      &quot;levels&quot;: [
+        &quot;off&quot;,
+        &quot;on&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    },
+    {
+      &quot;name&quot;: &quot;bfd&quot;,
+      &quot;levels&quot;: [
+        &quot;off&quot;,
+        &quot;on&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;as_count&quot;: &quot;50&quot;,
+    &quot;topology&quot;: &quot;partial_mesh&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;convergence_time_s&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;s&quot;
+    },
+    {
+      &quot;name&quot;: &quot;route_stability&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;fractional_factorial&quot;,
+    &quot;test_script&quot;: &quot;use_cases/51_bgp_route_convergence/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Fractional Factorial Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>keepalive_s</code></th><th><code>hold_time_s</code></th><th><code>mrai_s</code></th><th><code>dampening</code></th><th><code>bfd</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>10</td><td>180</td><td>30</td><td>off</td><td>off</td></tr>
+        <tr><td>2</td><td>60</td><td>30</td><td>5</td><td>off</td><td>off</td></tr>
+        <tr><td>3</td><td>60</td><td>180</td><td>5</td><td>on</td><td>off</td></tr>
+        <tr><td>4</td><td>60</td><td>180</td><td>30</td><td>on</td><td>on</td></tr>
+        <tr><td>5</td><td>10</td><td>180</td><td>5</td><td>off</td><td>on</td></tr>
+        <tr><td>6</td><td>60</td><td>30</td><td>30</td><td>off</td><td>on</td></tr>
+        <tr><td>7</td><td>10</td><td>30</td><td>5</td><td>on</td><td>on</td></tr>
+        <tr><td>8</td><td>10</td><td>30</td><td>30</td><td>on</td><td>off</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/51_bgp_route_convergence/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/51_bgp_route_convergence/config.json \
+    <span class="flag">--output</span> use_cases/51_bgp_route_convergence/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/51_bgp_route_convergence/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/51_bgp_route_convergence/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/51_bgp_route_convergence/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/51_bgp_route_convergence/config.json \
+    <span class="flag">--output</span> use_cases/51_bgp_route_convergence/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>fractional_factorial</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (3), <code>categorical</code> (2)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (convergence_time_s &#x2193;, route_stability &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>8</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: convergence_time_s</h3>
+    <p>Top factors: hold_time_s (24.8%), keepalive_s (22.1%), bfd (22.0%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/51_pareto_convergence_time_s.png" alt="Pareto chart for convergence_time_s">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/51_main_effects_convergence_time_s.png" alt="Main effects plot for convergence_time_s">
+      </div>
+    </div>
+
+    <h3>Response: route_stability</h3>
+    <p>Top factors: mrai_s (36.8%), hold_time_s (25.9%), dampening (25.1%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/51_pareto_route_stability.png" alt="Pareto chart for route_stability">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/51_main_effects_route_stability.png" alt="Main effects plot for route_stability">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">convergence time s hold time s vs mrai s</p>
+      <img src="../images/51_rsm_convergence_time_s_hold_time_s_vs_mrai_s.png" alt="RSM surface: convergence time s hold time s vs mrai s" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">convergence time s keepalive s vs hold time s</p>
+      <img src="../images/51_rsm_convergence_time_s_keepalive_s_vs_hold_time_s.png" alt="RSM surface: convergence time s keepalive s vs hold time s" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">convergence time s keepalive s vs mrai s</p>
+      <img src="../images/51_rsm_convergence_time_s_keepalive_s_vs_mrai_s.png" alt="RSM surface: convergence time s keepalive s vs mrai s" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">route stability hold time s vs mrai s</p>
+      <img src="../images/51_rsm_route_stability_hold_time_s_vs_mrai_s.png" alt="RSM surface: route stability hold time s vs mrai s" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">route stability keepalive s vs hold time s</p>
+      <img src="../images/51_rsm_route_stability_keepalive_s_vs_hold_time_s.png" alt="RSM surface: route stability keepalive s vs hold time s" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">route stability keepalive s vs mrai s</p>
+      <img src="../images/51_rsm_route_stability_keepalive_s_vs_mrai_s.png" alt="RSM surface: route stability keepalive s vs mrai s" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: convergence_time_s ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+hold_time_s             26.3750      11.4450            24.8%
+keepalive_s            -23.5250      11.4450            22.1%
+bfd                     23.4250      11.4450            22.0%
+dampening              -23.1250      11.4450            21.7%
+mrai_s                  -9.9750      11.4450             9.4%
+
+=== Interaction Effects: convergence_time_s ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+keepalive_s          dampening                -26.3750            11.5%
+hold_time_s          bfd                       25.3750            11.1%
+mrai_s               dampening                 25.3750            11.1%
+hold_time_s          mrai_s                   -24.3250            10.6%
+dampening            bfd                      -24.3250            10.6%
+hold_time_s          dampening                 23.5250            10.3%
+mrai_s               bfd                       23.5250            10.3%
+keepalive_s          mrai_s                   -23.4250            10.2%
+keepalive_s          hold_time_s               23.1250            10.1%
+keepalive_s          bfd                        9.9750             4.3%
+
+=== Summary Statistics: convergence_time_s ===
+
+keepalive_s:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4    56.1250     8.0118    48.3000    65.0000
+  60                  4    32.6000    44.8550    -0.3000    98.9000
+
+hold_time_s:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  180                 4    31.1750    28.2013    -0.3000    60.7000
+  30                  4    57.5500    34.4388    15.8000    98.9000
+
+mrai_s:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  30                  4    49.3500    40.5082    -0.3000    98.9000
+  5                   4    39.3750    27.1635    15.8000    65.0000
+
+dampening:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4    55.9250    34.3405    15.8000    98.9000
+  on                  4    32.8000    30.1550    -0.3000    65.0000
+
+bfd:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4    32.6500    19.3622    15.8000    50.5000
+  on                  4    56.0750    41.2842    -0.3000    98.9000
+
+=== Main Effects: route_stability ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+mrai_s                  -7.5500       2.8504            36.8%
+hold_time_s             -5.3000       2.8504            25.9%
+dampening                5.1500       2.8504            25.1%
+bfd                      1.6000       2.8504             7.8%
+keepalive_s              0.9000       2.8504             4.4%
+
+=== Interaction Effects: route_stability ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+hold_time_s          bfd                      -10.5500            23.6%
+mrai_s               dampening                -10.5500            23.6%
+keepalive_s          bfd                        7.5500            16.9%
+keepalive_s          dampening                  5.3000            11.9%
+keepalive_s          hold_time_s               -5.1500            11.5%
+keepalive_s          mrai_s                    -1.6000             3.6%
+hold_time_s          mrai_s                     1.1000             2.5%
+dampening            bfd                        1.1000             2.5%
+hold_time_s          dampening                 -0.9000             2.0%
+mrai_s               bfd                       -0.9000             2.0%
+
+=== Summary Statistics: route_stability ===
+
+keepalive_s:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4    83.4750     6.4479    75.7000    91.1000
+  60                  4    84.3750    10.4666    77.9000   100.0000
+
+hold_time_s:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  180                 4    86.5750     9.2924    79.2000   100.0000
+  30                  4    81.2750     6.8256    75.7000    91.1000
+
+mrai_s:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  30                  4    87.7000     9.8944    77.9000   100.0000
+  5                   4    80.1500     3.9703    75.7000    85.3000
+
+dampening:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4    81.3500     3.0881    77.9000    85.3000
+  on                  4    86.5000    11.1556    75.7000   100.0000
+
+bfd:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4    83.1250     5.4218    79.2000    91.1000
+  on                  4    84.7250    10.9801    75.7000   100.0000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: convergence_time_s ===
+Direction: minimize
+
+Best observed run: #7
+  keepalive_s = 10
+  hold_time_s = 180
+  mrai_s = 5
+  dampening = off
+  bfd = on
+  Value: -0.3
+
+RSM Model (linear, R² = 0.5532, Adj R² = -0.5639):
+  Coefficients:
+    intercept                      +44.3625
+    keepalive_s                    -8.6125
+    hold_time_s                    -13.2375
+    mrai_s                         +0.5375
+    dampening                      +15.7375
+    bfd                            -3.1375
+
+  Predicted optimum (from linear model):
+    keepalive_s = 10
+    hold_time_s = 30
+    mrai_s = 30
+    dampening = on
+    bfd = off
+    Predicted value: 85.6250
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
+
+Factor importance:
+  1. dampening  (effect: 31.5, contribution: 38.1%)
+  2. hold_time_s  (effect: 26.5, contribution: 32.1%)
+  3. keepalive_s  (effect: -17.2, contribution: 20.9%)
+  4. bfd  (effect: -6.3, contribution: 7.6%)
+  5. mrai_s  (effect: -1.1, contribution: 1.3%)
+
+=== Optimization: route_stability ===
+Direction: maximize
+
+Best observed run: #7
+  keepalive_s = 10
+  hold_time_s = 180
+  mrai_s = 5
+  dampening = off
+  bfd = on
+  Value: 100.0
+
+RSM Model (linear, R² = 0.7043, Adj R² = -0.0351):
+  Coefficients:
+    intercept                      +83.9250
+    keepalive_s                    +0.0750
+    hold_time_s                    +2.9500
+    mrai_s                         -1.6750
+    dampening                      -4.1000
+    bfd                            +3.4250
+
+  Predicted optimum (from linear model):
+    keepalive_s = 10
+    hold_time_s = 180
+    mrai_s = 5
+    dampening = off
+    bfd = on
+    Predicted value: 96.0000
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. dampening  (effect: -8.2, contribution: 33.5%)
+  2. bfd  (effect: 6.8, contribution: 28.0%)
+  3. hold_time_s  (effect: -5.9, contribution: 24.1%)
+  4. mrai_s  (effect: 3.3, contribution: 13.7%)
+  5. keepalive_s  (effect: 0.2, contribution: 0.6%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="50-dns-resolver-caching.html">&larr; Previous: DNS Resolver Caching</a>
+    <a href="52-vpn-tunnel-mtu.html">Next: VPN Tunnel MTU &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

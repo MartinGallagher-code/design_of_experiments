@@ -1,0 +1,66 @@
+{
+    "metadata": {
+        "name": "Database Connection Pooling",
+        "description": "Box-Behnken design to optimize connection pool size, idle timeout, and max lifetime for throughput"
+    },
+    "factors": [
+        {
+            "name": "pool_size",
+            "levels": [
+                "5",
+                "50"
+            ],
+            "type": "continuous",
+            "unit": "conns",
+            "description": "Maximum pool connections"
+        },
+        {
+            "name": "idle_timeout",
+            "levels": [
+                "30",
+                "300"
+            ],
+            "type": "continuous",
+            "unit": "s",
+            "description": "Idle connection timeout"
+        },
+        {
+            "name": "max_lifetime",
+            "levels": [
+                "300",
+                "3600"
+            ],
+            "type": "continuous",
+            "unit": "s",
+            "description": "Connection max lifetime"
+        }
+    ],
+    "fixed_factors": {
+        "db_engine": "postgresql",
+        "ssl": "true"
+    },
+    "responses": [
+        {
+            "name": "throughput_qps",
+            "optimize": "maximize",
+            "unit": "qps",
+            "description": "Queries per second"
+        },
+        {
+            "name": "p95_latency_ms",
+            "optimize": "minimize",
+            "unit": "ms",
+            "description": "95th percentile query latency"
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "use_cases/31_database_connection_pooling/sim.sh",
+        "operation": "box_behnken",
+        "processed_directory": "use_cases/31_database_connection_pooling/results/analysis",
+        "out_directory": "use_cases/31_database_connection_pooling/results"
+    }
+}

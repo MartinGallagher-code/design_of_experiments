@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Database Performance Tuning — DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<img src="../logo-light.svg" alt="" class="bg-logo-light">
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><span class="dot"></span> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F5C4;</div>
+    <div class="uc-badge" style="background:rgba(22,101,52,.12);color:#166534;">Plackett-Burman Design</div>
+    <h1>Database Performance Tuning</h1>
+    <p class="uc-subtitle">Screen 6 PostgreSQL configuration knobs in just 16 runs with replicate blocking.</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <section class="uc-section">
+    <h2>The Scenario</h2>
+    <p>You are tuning a PostgreSQL database for an OLTP workload. There are 6 configuration parameters to investigate, but running benchmarks is time-consuming. A full factorial would require 64 runs &mdash; way too many. Plackett-Burman gives you the answer in 8 base runs, replicated across 2 blocks for 16 total.</p>
+    <div class="callout info">
+      <span class="callout-icon">&#x2139;</span>
+      <div class="callout-body">
+        <h4>Why Plackett-Burman with Blocking?</h4>
+        <p>PB gives 8 runs for 6 factors (N+1 rounded to multiple of 4). With <code>block_count: 2</code>, you get 16 total runs and can assess run-to-run variability. If the same factors dominate in both blocks, the finding is robust.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>shared_buffers</code></td><td>256</td><td>1024</td><td>MB</td></tr>
+            <tr><td><code>work_mem</code></td><td>4</td><td>64</td><td>MB</td></tr>
+            <tr><td><code>max_connections</code></td><td>50</td><td>200</td><td>&mdash;</td></tr>
+            <tr><td><code>effective_cache</code></td><td>512</td><td>4096</td><td>MB</td></tr>
+            <tr><td><code>wal_level</code></td><td>minimal</td><td>replica</td><td>&mdash;</td></tr>
+            <tr><td><code>checkpoint_timeout</code></td><td>60</td><td>900</td><td>sec</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> pg_version = 16, storage = nvme</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>throughput</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>tps</td></tr>
+            <tr><td><code>p99_latency</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>ms</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+
+
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Plackett-Burman Design produces <strong>16 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>Block</th><th><code>shared_buffers</code></th><th><code>work_mem</code></th><th><code>max_connections</code></th><th><code>effective_cache</code></th><th><code>wal_level</code></th><th><code>checkpoint_timeout</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>1</td><td>1024</td><td>64</td><td>200</td><td>512</td><td>minimal</td><td>60</td></tr>
+        <tr><td>2</td><td>1</td><td>256</td><td>4</td><td>200</td><td>4096</td><td>minimal</td><td>60</td></tr>
+        <tr><td>3</td><td>1</td><td>256</td><td>64</td><td>50</td><td>4096</td><td>minimal</td><td>900</td></tr>
+        <tr><td>4</td><td>1</td><td>1024</td><td>64</td><td>200</td><td>4096</td><td>replica</td><td>900</td></tr>
+        <tr><td>5</td><td>1</td><td>256</td><td>64</td><td>50</td><td>512</td><td>replica</td><td>60</td></tr>
+        <tr><td>6</td><td>1</td><td>1024</td><td>4</td><td>50</td><td>4096</td><td>replica</td><td>60</td></tr>
+        <tr><td>7</td><td>1</td><td>256</td><td>4</td><td>200</td><td>512</td><td>replica</td><td>900</td></tr>
+        <tr><td>8</td><td>1</td><td>1024</td><td>4</td><td>50</td><td>512</td><td>minimal</td><td>900</td></tr>
+        <tr><td>9</td><td>2</td><td>1024</td><td>64</td><td>200</td><td>512</td><td>minimal</td><td>60</td></tr>
+        <tr><td>10</td><td>2</td><td>1024</td><td>64</td><td>200</td><td>4096</td><td>replica</td><td>900</td></tr>
+        <tr><td>11</td><td>2</td><td>256</td><td>64</td><td>50</td><td>512</td><td>replica</td><td>60</td></tr>
+        <tr><td>12</td><td>2</td><td>256</td><td>4</td><td>200</td><td>512</td><td>replica</td><td>900</td></tr>
+        <tr><td>13</td><td>2</td><td>256</td><td>4</td><td>200</td><td>4096</td><td>minimal</td><td>60</td></tr>
+        <tr><td>14</td><td>2</td><td>256</td><td>64</td><td>50</td><td>4096</td><td>minimal</td><td>900</td></tr>
+        <tr><td>15</td><td>2</td><td>1024</td><td>4</td><td>50</td><td>4096</td><td>replica</td><td>60</td></tr>
+        <tr><td>16</td><td>2</td><td>1024</td><td>4</td><td>50</td><td>512</td><td>minimal</td><td>900</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+    <div class="code-block">
+      <div class="code-header"><span>Complete workflow</span><button class="code-copy">Copy</button></div>
+      <div class="code-body"><span class="comment"># Preview: 8 base x 2 blocks = 16 total runs</span>
+<span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/04_database_performance_tuning/config.json
+
+<span class="comment"># Generate and execute</span>
+<span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/04_database_performance_tuning/config.json \
+    <span class="flag">--output</span> results/run.sh <span class="flag">--seed</span> 42
+<span class="prompt">$ </span>bash results/run.sh
+
+<span class="comment"># Analyze headless (no display needed)</span>
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/04_database_performance_tuning/config.json <span class="flag">--no-plots</span>
+
+<span class="comment"># Export to CSV for R / pandas / Excel</span>
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/04_database_performance_tuning/config.json \
+    <span class="flag">--csv</span> results/csv/
+
+<span class="comment"># Optimize and report</span>
+<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/04_database_performance_tuning/config.json
+<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/04_database_performance_tuning/config.json \
+    <span class="flag">--output</span> results/report.html</div>
+    </div>
+  </section>
+
+  <section class="uc-section">
+    <h2>Interpreting the Results</h2>
+
+    <h3>Typical PostgreSQL Findings</h3>
+    <ul>
+      <li><strong>shared_buffers</strong> and <strong>effective_cache</strong> usually have the largest throughput effects</li>
+      <li><strong>max_connections</strong> often drives latency (more connections = more contention)</li>
+      <li><strong>wal_level</strong> affects write throughput but not reads</li>
+    </ul>
+
+    <h3>Blocking Analysis</h3>
+    <div class="callout success">
+      <span class="callout-icon">&#x2714;</span>
+      <div class="callout-body">
+        <h4>Replicate Consistency</h4>
+        <p>If the same factors dominate in both blocks &rarr; robust finding. If results differ between blocks &rarr; environmental noise may be significant, consider more replicates.</p>
+      </div>
+    </div>
+
+    <h3>Next Steps</h3>
+    <ol>
+      <li>Drop unimportant factors (fix them at convenient values)</li>
+      <li>Run a full factorial or CCD on the 2&ndash;3 important factors</li>
+      <li>Fine-tune for your specific workload</li>
+    </ol>
+  </section>
+
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>plackett_burman</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (5) + <code>categorical</code> (1)</td></tr>
+        <tr><td>Blocking</td><td><code>block_count: 2</code> (16 total = 8 &times; 2)</td></tr>
+        <tr><td><code>--no-plots</code></td><td>Headless analysis for CI/SSH</td></tr>
+        <tr><td><code>--csv</code></td><td>Export 4 CSV files for downstream analysis</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code> (default)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: throughput</h3>
+    <p>The Pareto chart shows which database configuration parameters have the greatest impact on throughput.</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/04_pareto_throughput.png" alt="Pareto chart for throughput">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/04_main_effects_throughput.png" alt="Main effects plot for throughput">
+      </div>
+    </div>
+
+    <h3>Response: p99_latency</h3>
+    <p>P99 latency is sensitive to a different mix of parameters, highlighting the need to balance throughput and tail latency.</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/04_pareto_p99_latency.png" alt="Pareto chart for p99 latency">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/04_main_effects_p99_latency.png" alt="Main effects plot for p99 latency">
+      </div>
+    </div>
+
+      <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+    <div class="callout info" style="margin-top:24px;">
+      <span class="callout-icon">&#x1F4CA;</span>
+      <div class="callout-body">
+        <h4>How to Read These Surfaces</h4>
+        <p style="margin-bottom:10px;">Each plot shows predicted response (vertical axis) across two factors while other factors are held at center. Red dots are actual experimental observations.</p>
+        <ul style="font-size:.82rem;line-height:1.6;margin:0 0 0 16px;">
+          <li><strong>Flat surface</strong> — these two factors have little effect on the response.</li>
+          <li><strong>Tilted plane</strong> — strong linear effect; moving along one axis consistently changes the response.</li>
+          <li><strong>Curved/domed surface</strong> — quadratic curvature; there is an optimum somewhere in the middle.</li>
+          <li><strong>Saddle shape</strong> — significant interaction; the best setting of one factor depends on the other.</li>
+          <li><strong>Red dots far from surface</strong> — poor model fit in that region; be cautious about predictions there.</li>
+        </ul>
+        <p style="margin-top:12px;font-size:.82rem;"><strong>throughput (tps)</strong> — R² = 0.184, Adj R² = 0.184<br>Weak fit — interpret the surface shape with caution.<br>Curvature detected in shared_buffers, work_mem — look for a peak or valley in the surface.<br>Strongest linear driver: <code>shared_buffers</code> (decreases throughput).<br>Notable interaction: <code>effective_cache</code> × <code>wal_level</code> — the effect of one depends on the level of the other. Look for a twisted surface.</p>
+        <p style="margin-top:12px;font-size:.82rem;"><strong>p99_latency (ms)</strong> — R² = 0.378, Adj R² = 0.378<br>Weak fit — interpret the surface shape with caution.<br>Curvature detected in work_mem, max_connections — look for a peak or valley in the surface.<br>Strongest linear driver: <code>checkpoint_timeout</code> (decreases p99_latency).<br>Notable interaction: <code>max_connections</code> × <code>wal_level</code> — the effect of one depends on the level of the other. Look for a twisted surface.</p>
+      </div>
+    </div>
+
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">p99: latency effective cache vs checkpoint timeout</p>
+      <img src="../images/04_rsm_p99_latency_effective_cache_vs_checkpoint_timeout.png" alt="RSM surface: p99 — latency effective cache vs checkpoint timeout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">p99: latency max connections vs checkpoint timeout</p>
+      <img src="../images/04_rsm_p99_latency_max_connections_vs_checkpoint_timeout.png" alt="RSM surface: p99 — latency max connections vs checkpoint timeout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">p99: latency max connections vs effective cache</p>
+      <img src="../images/04_rsm_p99_latency_max_connections_vs_effective_cache.png" alt="RSM surface: p99 — latency max connections vs effective cache" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">p99: latency shared buffers vs checkpoint timeout</p>
+      <img src="../images/04_rsm_p99_latency_shared_buffers_vs_checkpoint_timeout.png" alt="RSM surface: p99 — latency shared buffers vs checkpoint timeout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">p99: latency shared buffers vs effective cache</p>
+      <img src="../images/04_rsm_p99_latency_shared_buffers_vs_effective_cache.png" alt="RSM surface: p99 — latency shared buffers vs effective cache" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">p99: latency shared buffers vs max connections</p>
+      <img src="../images/04_rsm_p99_latency_shared_buffers_vs_max_connections.png" alt="RSM surface: p99 — latency shared buffers vs max connections" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">p99: latency shared buffers vs work mem</p>
+      <img src="../images/04_rsm_p99_latency_shared_buffers_vs_work_mem.png" alt="RSM surface: p99 — latency shared buffers vs work mem" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">p99: latency work mem vs checkpoint timeout</p>
+      <img src="../images/04_rsm_p99_latency_work_mem_vs_checkpoint_timeout.png" alt="RSM surface: p99 — latency work mem vs checkpoint timeout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">p99: latency work mem vs effective cache</p>
+      <img src="../images/04_rsm_p99_latency_work_mem_vs_effective_cache.png" alt="RSM surface: p99 — latency work mem vs effective cache" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">p99: latency work mem vs max connections</p>
+      <img src="../images/04_rsm_p99_latency_work_mem_vs_max_connections.png" alt="RSM surface: p99 — latency work mem vs max connections" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput: effective cache vs checkpoint timeout</p>
+      <img src="../images/04_rsm_throughput_effective_cache_vs_checkpoint_timeout.png" alt="RSM surface: throughput — effective cache vs checkpoint timeout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput: max connections vs checkpoint timeout</p>
+      <img src="../images/04_rsm_throughput_max_connections_vs_checkpoint_timeout.png" alt="RSM surface: throughput — max connections vs checkpoint timeout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput: max connections vs effective cache</p>
+      <img src="../images/04_rsm_throughput_max_connections_vs_effective_cache.png" alt="RSM surface: throughput — max connections vs effective cache" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput: shared buffers vs checkpoint timeout</p>
+      <img src="../images/04_rsm_throughput_shared_buffers_vs_checkpoint_timeout.png" alt="RSM surface: throughput — shared buffers vs checkpoint timeout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput: shared buffers vs effective cache</p>
+      <img src="../images/04_rsm_throughput_shared_buffers_vs_effective_cache.png" alt="RSM surface: throughput — shared buffers vs effective cache" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput: shared buffers vs max connections</p>
+      <img src="../images/04_rsm_throughput_shared_buffers_vs_max_connections.png" alt="RSM surface: throughput — shared buffers vs max connections" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput: shared buffers vs work mem</p>
+      <img src="../images/04_rsm_throughput_shared_buffers_vs_work_mem.png" alt="RSM surface: throughput — shared buffers vs work mem" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput: work mem vs checkpoint timeout</p>
+      <img src="../images/04_rsm_throughput_work_mem_vs_checkpoint_timeout.png" alt="RSM surface: throughput — work mem vs checkpoint timeout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput: work mem vs effective cache</p>
+      <img src="../images/04_rsm_throughput_work_mem_vs_effective_cache.png" alt="RSM surface: throughput — work mem vs effective cache" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput: work mem vs max connections</p>
+      <img src="../images/04_rsm_throughput_work_mem_vs_max_connections.png" alt="RSM surface: throughput — work mem vs max connections" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+  </section>
+
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: throughput ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+effective_cache      -1413.5000     294.0442            35.6%
+max_connections      -1230.5000     294.0442            31.0%
+wal_level             -603.2500     294.0442            15.2%
+shared_buffers         394.7500     294.0442            10.0%
+work_mem               271.7500     294.0442             6.9%
+checkpoint_timeout     -51.2500     294.0442             1.3%
+
+=== Interaction Effects: throughput ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+shared_buffers       wal_level              -1413.5000            15.7%
+work_mem             checkpoint_timeout      1413.5000            15.7%
+shared_buffers       work_mem               -1230.5000            13.7%
+wal_level            checkpoint_timeout      1230.5000            13.7%
+shared_buffers       effective_cache         -603.2500             6.7%
+max_connections      checkpoint_timeout       603.2500             6.7%
+work_mem             max_connections          394.7500             4.4%
+effective_cache      wal_level                394.7500             4.4%
+shared_buffers       checkpoint_timeout       351.5000             3.9%
+work_mem             wal_level               -351.5000             3.9%
+max_connections      effective_cache         -351.5000             3.9%
+shared_buffers       max_connections          271.7500             3.0%
+effective_cache      checkpoint_timeout      -271.7500             3.0%
+work_mem             effective_cache           51.2500             0.6%
+max_connections      wal_level                 51.2500             0.6%
+
+=== Summary Statistics: throughput ===
+
+shared_buffers:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1024                8  4834.6250  1034.5819  2904.0000  5971.0000
+  256                 8  5229.3750  1343.5052  3016.0000  6654.0000
+
+work_mem:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  4                   8  4896.1250  1347.2024  2904.0000  6654.0000
+  64                  8  5167.8750  1052.2628  3016.0000  6099.0000
+
+max_connections:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  200                 8  5647.2500   842.9372  3920.0000  6654.0000
+  50                  8  4416.7500  1178.4099  2904.0000  6099.0000
+
+effective_cache:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  4096                8  5738.7500   791.8100  4142.0000  6654.0000
+  512                 8  4325.2500  1093.5004  2904.0000  5781.0000
+
+wal_level:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  minimal             8  5333.6250  1274.1940  2904.0000  6654.0000
+  replica             8  4730.3750  1064.3736  3016.0000  5971.0000
+
+checkpoint_timeout:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  60                  8  5057.6250  1232.4647  3016.0000  6654.0000
+  900                 8  5006.3750  1201.6407  2904.0000  6099.0000
+
+=== Main Effects: p99_latency ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+effective_cache          5.2825       1.0780            47.6%
+checkpoint_timeout      -2.2000       1.0780            19.8%
+max_connections          2.1100       1.0780            19.0%
+work_mem                -1.1600       1.0780            10.4%
+wal_level               -0.2525       1.0780             2.3%
+shared_buffers           0.1025       1.0780             0.9%
+
+=== Interaction Effects: p99_latency ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+shared_buffers       wal_level                  5.2825            17.2%
+work_mem             checkpoint_timeout        -5.2825            17.2%
+shared_buffers       checkpoint_timeout        -2.8550             9.3%
+work_mem             wal_level                  2.8550             9.3%
+max_connections      effective_cache            2.8550             9.3%
+work_mem             effective_cache            2.2000             7.1%
+max_connections      wal_level                  2.2000             7.1%
+shared_buffers       work_mem                   2.1100             6.9%
+wal_level            checkpoint_timeout        -2.1100             6.9%
+shared_buffers       max_connections           -1.1600             3.8%
+effective_cache      checkpoint_timeout         1.1600             3.8%
+shared_buffers       effective_cache           -0.2525             0.8%
+max_connections      checkpoint_timeout         0.2525             0.8%
+work_mem             max_connections            0.1025             0.3%
+effective_cache      wal_level                  0.1025             0.3%
+
+=== Summary Statistics: p99_latency ===
+
+shared_buffers:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1024                8    12.1450     4.2941     7.1000    21.1100
+  256                 8    12.2475     4.6257     7.5000    20.6700
+
+work_mem:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  4                   8    12.7763     4.1295     7.9700    21.1100
+  64                  8    11.6163     4.6926     7.1000    20.6700
+
+max_connections:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  200                 8    11.1412     2.8838     7.1000    15.5500
+  50                  8    13.2513     5.3835     7.5000    21.1100
+
+effective_cache:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  4096                8     9.5550     2.2131     7.1000    12.6600
+  512                 8    14.8375     4.3588     7.9700    21.1100
+
+wal_level:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  minimal             8    12.3225     4.1826     7.5000    21.1100
+  replica             8    12.0700     4.7236     7.1000    20.6700
+
+checkpoint_timeout:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  60                  8    13.2963     3.4572     8.7100    20.6700
+  900                 8    11.0962     5.0124     7.1000    21.1100</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: throughput ===
+Direction: maximize
+
+Best observed run: #4
+  shared_buffers = 1024
+  work_mem = 4
+  max_connections = 50
+  effective_cache = 4096
+  wal_level = replica
+  checkpoint_timeout = 60
+  Value: 6654.0
+
+RSM Model (linear, R² = 0.69):
+  Coefficients:
+    intercept:  +5032.0000
+    shared_buffers:  -529.1250
+    work_mem:  -160.6250
+    max_connections:  -28.0000
+    effective_cache:  -341.2500
+    wal_level:  -5.6250
+    checkpoint_timeout:  -686.8750
+  Predicted optimum:
+    shared_buffers = 256
+    work_mem = 64
+    max_connections = 50
+    effective_cache = 512
+    wal_level = replica
+    checkpoint_timeout = 60
+    Predicted value: 6451.0000
+
+Factor importance:
+  1. checkpoint_timeout  (effect: -1373.8, contribution: 39.2%)
+  2. shared_buffers  (effect: 1058.2, contribution: 30.2%)
+  3. effective_cache  (effect: 682.5, contribution: 19.5%)
+  4. work_mem  (effect: -321.2, contribution: 9.2%)
+  5. max_connections  (effect: 56.0, contribution: 1.6%)
+  6. wal_level  (effect: -11.2, contribution: 0.3%)
+
+=== Optimization: p99_latency ===
+Direction: minimize
+
+Best observed run: #14
+  shared_buffers = 256
+  work_mem = 4
+  max_connections = 200
+  effective_cache = 4096
+  wal_level = minimal
+  checkpoint_timeout = 60
+  Value: 7.1
+
+RSM Model (linear, R² = 0.77):
+  Coefficients:
+    intercept:  +12.1963
+    shared_buffers:  +1.7000
+    work_mem:  +0.9225
+    max_connections:  -0.3212
+    effective_cache:  +2.1300
+    wal_level:  +0.6612
+    checkpoint_timeout:  +2.1337
+  Predicted optimum:
+    shared_buffers = 1024
+    work_mem = 64
+    max_connections = 200
+    effective_cache = 4096
+    wal_level = replica
+    checkpoint_timeout = 900
+    Predicted value: 19.4225
+
+Factor importance:
+  1. checkpoint_timeout  (effect: 4.3, contribution: 27.1%)
+  2. effective_cache  (effect: -4.3, contribution: 27.1%)
+  3. shared_buffers  (effect: -3.4, contribution: 21.6%)
+  4. work_mem  (effect: 1.8, contribution: 11.7%)
+  5. wal_level  (effect: 1.3, contribution: 8.4%)
+  6. max_connections  (effect: 0.6, contribution: 4.1%)</div></div>
+
+  </section>
+
+  <div class="chapter-nav">
+    <a href="03-ml-hyperparameters.html">&larr; ML Hyperparameters</a>
+    <a href="05-material-formulation.html">Next: Material Formulation &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

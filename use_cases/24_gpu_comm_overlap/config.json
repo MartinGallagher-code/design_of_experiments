@@ -1,0 +1,64 @@
+{
+    "metadata": {
+        "name": "GPU Compute-Communication Overlap",
+        "description": "Full factorial design to maximize GPU computation and inter-node communication overlap in distributed stencil codes"
+    },
+    "factors": [
+        {
+            "name": "num_streams",
+            "levels": ["1", "4"],
+            "type": "continuous",
+            "unit": "",
+            "description": "Number of CUDA streams for pipelining"
+        },
+        {
+            "name": "gdrdma",
+            "levels": ["off", "on"],
+            "type": "categorical",
+            "unit": "",
+            "description": "GPUDirect RDMA for direct NIC-to-GPU transfers"
+        },
+        {
+            "name": "chunk_count",
+            "levels": ["1", "8"],
+            "type": "continuous",
+            "unit": "",
+            "description": "Number of halo exchange chunks for pipelining"
+        },
+        {
+            "name": "kernel_fusion",
+            "levels": ["off", "on"],
+            "type": "categorical",
+            "unit": "",
+            "description": "Fuse interior compute with boundary pack kernels"
+        }
+    ],
+    "fixed_factors": {
+        "gpus": "64",
+        "gpu_model": "H100_SXM",
+        "interconnect": "NDR_InfiniBand",
+        "problem_size": "2048^3"
+    },
+    "responses": [
+        {
+            "name": "overlap_efficiency",
+            "optimize": "maximize",
+            "unit": "%",
+            "description": "Percentage of communication hidden behind computation"
+        },
+        {
+            "name": "step_time_ms",
+            "optimize": "minimize",
+            "unit": "ms",
+            "description": "Wall-clock time per simulation step"
+        }
+    ],
+    "runner": { "arg_style": "double-dash" },
+    "settings": {
+        "block_count": 1,
+        "test_script": "use_cases/24_gpu_comm_overlap/sim.sh",
+        "operation": "full_factorial",
+        "processed_directory": "use_cases/24_gpu_comm_overlap/results/analysis",
+        "out_directory": "use_cases/24_gpu_comm_overlap/results"
+    }
+}

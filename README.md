@@ -1,5 +1,7 @@
 # Design of Experiments (DOE) Helper Tool
 
+Created and developed by **Martin J. Gallagher**.
+
 A Python CLI tool that automates the creation and analysis of experimental designs. It generates reproducible design matrices, creates executable runner scripts, and analyzes results using classical DOE techniques.
 
 ## Features
@@ -293,4 +295,4 @@ pytest tests/ --cov=doe --cov-report=term-missing
 
 ## License
 
-MIT
+This project is licensed under the GNU General Public License v3.0 — see [LICENSE](LICENSE) for details.

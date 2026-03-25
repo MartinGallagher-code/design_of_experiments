@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Columnar Compression &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F4CA;</div>
+    <div class="uc-badge" style="background:rgba(5,150,105,.12);color:#059669;">Full Factorial Design</div>
+    <h1>Columnar Compression</h1>
+    <p class="uc-subtitle">Full factorial of compression codec, dictionary encoding, page size, and row group size for ratio vs speed</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>codec</code></td><td>snappy</td><td>zstd</td><td></td></tr>
+            <tr><td><code>dictionary</code></td><td>off</td><td>on</td><td></td></tr>
+            <tr><td><code>page_size_kb</code></td><td>64</td><td>1024</td><td>KB</td></tr>
+            <tr><td><code>row_group_mb</code></td><td>32</td><td>256</td><td>MB</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> format = parquet, data_type = mixed_analytics</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>compression_ratio</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>x</td></tr>
+            <tr><td><code>read_speed_mbps</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>MB/s</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/41_columnar_compression/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Columnar Compression&quot;,
+    &quot;description&quot;: &quot;Full factorial of compression codec, dictionary encoding, page size, and row group size for ratio vs speed&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;codec&quot;,
+      &quot;levels&quot;: [
+        &quot;snappy&quot;,
+        &quot;zstd&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    },
+    {
+      &quot;name&quot;: &quot;dictionary&quot;,
+      &quot;levels&quot;: [
+        &quot;off&quot;,
+        &quot;on&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    },
+    {
+      &quot;name&quot;: &quot;page_size_kb&quot;,
+      &quot;levels&quot;: [
+        &quot;64&quot;,
+        &quot;1024&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;KB&quot;
+    },
+    {
+      &quot;name&quot;: &quot;row_group_mb&quot;,
+      &quot;levels&quot;: [
+        &quot;32&quot;,
+        &quot;256&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;MB&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;format&quot;: &quot;parquet&quot;,
+    &quot;data_type&quot;: &quot;mixed_analytics&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;compression_ratio&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;x&quot;
+    },
+    {
+      &quot;name&quot;: &quot;read_speed_mbps&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;MB/s&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;full_factorial&quot;,
+    &quot;test_script&quot;: &quot;use_cases/41_columnar_compression/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Full Factorial Design produces <strong>16 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>codec</code></th><th><code>dictionary</code></th><th><code>page_size_kb</code></th><th><code>row_group_mb</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>snappy</td><td>on</td><td>1024</td><td>256</td></tr>
+        <tr><td>2</td><td>zstd</td><td>off</td><td>64</td><td>256</td></tr>
+        <tr><td>3</td><td>snappy</td><td>on</td><td>64</td><td>256</td></tr>
+        <tr><td>4</td><td>snappy</td><td>on</td><td>1024</td><td>32</td></tr>
+        <tr><td>5</td><td>zstd</td><td>on</td><td>1024</td><td>32</td></tr>
+        <tr><td>6</td><td>zstd</td><td>off</td><td>1024</td><td>32</td></tr>
+        <tr><td>7</td><td>zstd</td><td>on</td><td>64</td><td>32</td></tr>
+        <tr><td>8</td><td>zstd</td><td>off</td><td>64</td><td>32</td></tr>
+        <tr><td>9</td><td>snappy</td><td>off</td><td>64</td><td>256</td></tr>
+        <tr><td>10</td><td>snappy</td><td>off</td><td>1024</td><td>32</td></tr>
+        <tr><td>11</td><td>zstd</td><td>on</td><td>64</td><td>256</td></tr>
+        <tr><td>12</td><td>zstd</td><td>on</td><td>1024</td><td>256</td></tr>
+        <tr><td>13</td><td>snappy</td><td>on</td><td>64</td><td>32</td></tr>
+        <tr><td>14</td><td>zstd</td><td>off</td><td>1024</td><td>256</td></tr>
+        <tr><td>15</td><td>snappy</td><td>off</td><td>64</td><td>32</td></tr>
+        <tr><td>16</td><td>snappy</td><td>off</td><td>1024</td><td>256</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/41_columnar_compression/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/41_columnar_compression/config.json \
+    <span class="flag">--output</span> use_cases/41_columnar_compression/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/41_columnar_compression/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/41_columnar_compression/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/41_columnar_compression/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/41_columnar_compression/config.json \
+    <span class="flag">--output</span> use_cases/41_columnar_compression/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>full_factorial</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (2), <code>categorical</code> (2)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (compression_ratio &#x2191;, read_speed_mbps &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>16</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: compression_ratio</h3>
+    <p>Top factors: codec (37.2%), dictionary (29.8%), row_group_mb (28.8%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/41_pareto_compression_ratio.png" alt="Pareto chart for compression_ratio">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/41_main_effects_compression_ratio.png" alt="Main effects plot for compression_ratio">
+      </div>
+    </div>
+
+    <h3>Response: read_speed_mbps</h3>
+    <p>Top factors: page_size_kb (37.6%), row_group_mb (33.2%), codec (21.3%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/41_pareto_read_speed_mbps.png" alt="Pareto chart for read_speed_mbps">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/41_main_effects_read_speed_mbps.png" alt="Main effects plot for read_speed_mbps">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">compression ratio page size kb vs row group mb</p>
+      <img src="../images/41_rsm_compression_ratio_page_size_kb_vs_row_group_mb.png" alt="RSM surface: compression ratio page size kb vs row group mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">read speed mbps page size kb vs row group mb</p>
+      <img src="../images/41_rsm_read_speed_mbps_page_size_kb_vs_row_group_mb.png" alt="RSM surface: read speed mbps page size kb vs row group mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: compression_ratio ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+codec                   -0.9638       0.5386            37.2%
+dictionary              -0.7737       0.5386            29.8%
+row_group_mb            -0.7462       0.5386            28.8%
+page_size_kb            -0.1087       0.5386             4.2%
+
+=== Interaction Effects: compression_ratio ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+codec                page_size_kb              -2.0212            38.9%
+dictionary           page_size_kb              -1.6912            32.6%
+dictionary           row_group_mb               1.0013            19.3%
+codec                row_group_mb              -0.1937             3.7%
+codec                dictionary                -0.1762             3.4%
+page_size_kb         row_group_mb               0.1063             2.0%
+
+=== Summary Statistics: compression_ratio ===
+
+codec:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  snappy              8     4.9363     2.5310     1.7700     8.7000
+  zstd                8     3.9725     1.7343     1.6700     7.5200
+
+dictionary:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 8     4.8412     2.6888     1.7700     8.7000
+  on                  8     4.0675     1.5404     1.6700     6.7300
+
+page_size_kb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1024                8     4.5088     1.8917     1.7700     7.5200
+  64                  8     4.4000     2.5217     1.6700     8.7000
+
+row_group_mb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  256                 8     4.8275     2.3073     1.6700     8.7000
+  32                  8     4.0812     2.0743     1.7700     7.6100
+
+=== Main Effects: read_speed_mbps ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+page_size_kb           148.6250      65.8871            37.6%
+row_group_mb          -131.1250      65.8871            33.2%
+codec                  -84.1250      65.8871            21.3%
+dictionary              31.1250      65.8871             7.9%
+
+=== Interaction Effects: read_speed_mbps ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+page_size_kb         row_group_mb            -123.3750            30.9%
+codec                row_group_mb              93.3750            23.4%
+dictionary           row_group_mb              88.6250            22.2%
+codec                page_size_kb             -76.8750            19.3%
+dictionary           page_size_kb              14.8750             3.7%
+codec                dictionary                 1.6250             0.4%
+
+=== Summary Statistics: read_speed_mbps ===
+
+codec:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  snappy              8   837.0000   283.4860   531.0000  1323.0000
+  zstd                8   752.8750   253.8298   478.0000  1137.0000
+
+dictionary:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 8   779.3750   226.9770   478.0000  1098.0000
+  on                  8   810.5000   311.0719   483.0000  1323.0000
+
+page_size_kb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1024                8   720.6250   258.9191   478.0000  1137.0000
+  64                  8   869.2500   263.0137   483.0000  1323.0000
+
+row_group_mb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  256                 8   860.5000   279.6651   547.0000  1323.0000
+  32                  8   729.3750   246.5771   478.0000  1137.0000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: compression_ratio ===
+Direction: maximize
+
+Best observed run: #12
+  codec = snappy
+  dictionary = on
+  page_size_kb = 64
+  row_group_mb = 32
+  Value: 8.7
+
+RSM Model (linear, R² = 0.3299, Adj R² = 0.0863):
+  Coefficients:
+    intercept                      +4.4544
+    codec                          -0.8606
+    dictionary                     -0.7531
+    page_size_kb                   -0.3319
+    row_group_mb                   +0.1319
+
+RSM Model (quadratic, R² = 0.6371, Adj R² = -4.4434):
+  Coefficients:
+    intercept                      +0.8909
+    codec                          -0.8606
+    dictionary                     -0.7531
+    page_size_kb                   -0.3319
+    row_group_mb                   +0.1319
+    codec*dictionary               +0.5969
+    codec*page_size_kb             +0.7456
+    codec*row_group_mb             +0.3169
+    dictionary*page_size_kb        -0.3319
+    dictionary*row_group_mb        -0.4006
+    page_size_kb*row_group_mb      +0.2306
+    codec^2                        +0.8909
+    dictionary^2                   +0.8909
+    page_size_kb^2                 +0.8909
+    row_group_mb^2                 +0.8909
+
+  Curvature analysis:
+    dictionary                     coef=+0.8909  convex (has a minimum)
+    page_size_kb                   coef=+0.8909  convex (has a minimum)
+    row_group_mb                   coef=+0.8909  convex (has a minimum)
+    codec                          coef=+0.8909  convex (has a minimum)
+
+  Notable interactions:
+    codec*page_size_kb             coef=+0.7456  (synergistic)
+    codec*dictionary               coef=+0.5969  (synergistic)
+    dictionary*row_group_mb        coef=-0.4006  (antagonistic)
+    dictionary*page_size_kb        coef=-0.3319  (antagonistic)
+    codec*row_group_mb             coef=+0.3169  (synergistic)
+
+  Predicted optimum (from linear model):
+    codec = snappy
+    dictionary = off
+    page_size_kb = 64
+    row_group_mb = 256
+    Predicted value: 6.5319
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. codec  (effect: -1.7, contribution: 41.4%)
+  2. dictionary  (effect: -1.5, contribution: 36.3%)
+  3. page_size_kb  (effect: 0.7, contribution: 16.0%)
+  4. row_group_mb  (effect: -0.3, contribution: 6.3%)
+
+=== Optimization: read_speed_mbps ===
+Direction: maximize
+
+Best observed run: #1
+  codec = zstd
+  dictionary = off
+  page_size_kb = 1024
+  row_group_mb = 32
+  Value: 1323.0
+
+RSM Model (linear, R² = 0.1612, Adj R² = -0.1438):
+  Coefficients:
+    intercept                      +794.9375
+    codec                          +35.0625
+    dictionary                     +19.8125
+    page_size_kb                   +91.5625
+    row_group_mb                   +22.1875
+
+RSM Model (quadratic, R² = 0.8186, Adj R² = -1.7205):
+  Coefficients:
+    intercept                      +158.9875
+    codec                          +35.0625
+    dictionary                     +19.8125
+    page_size_kb                   +91.5625
+    row_group_mb                   +22.1875
+    codec*dictionary               -133.8125
+    codec*page_size_kb             +83.4375
+    codec*row_group_mb             -42.4375
+    dictionary*page_size_kb        -61.5625
+    dictionary*row_group_mb        +95.0625
+    page_size_kb*row_group_mb      +57.5625
+    codec^2                        +158.9875
+    dictionary^2                   +158.9875
+    page_size_kb^2                 +158.9875
+    row_group_mb^2                 +158.9875
+
+  Curvature analysis:
+    codec                          coef=+158.9875  convex (has a minimum)
+    dictionary                     coef=+158.9875  convex (has a minimum)
+    page_size_kb                   coef=+158.9875  convex (has a minimum)
+    row_group_mb                   coef=+158.9875  convex (has a minimum)
+
+  Notable interactions:
+    codec*dictionary               coef=-133.8125  (antagonistic)
+    dictionary*row_group_mb        coef=+95.0625  (synergistic)
+    codec*page_size_kb             coef=+83.4375  (synergistic)
+    dictionary*page_size_kb        coef=-61.5625  (antagonistic)
+    page_size_kb*row_group_mb      coef=+57.5625  (synergistic)
+    codec*row_group_mb             coef=-42.4375  (antagonistic)
+
+  Predicted optimum (from linear model):
+    codec = zstd
+    dictionary = on
+    page_size_kb = 1024
+    row_group_mb = 256
+    Predicted value: 963.5625
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. page_size_kb  (effect: -183.1, contribution: 54.3%)
+  2. codec  (effect: 70.1, contribution: 20.8%)
+  3. row_group_mb  (effect: -44.4, contribution: 13.2%)
+  4. dictionary  (effect: 39.6, contribution: 11.7%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="40-etl-batch-size-tuning.html">&larr; Previous: ETL Batch Size Tuning</a>
+    <a href="42-query-engine-join-strategy.html">Next: Query Engine Join Strategy &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

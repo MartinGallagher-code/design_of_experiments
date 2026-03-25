@@ -1,0 +1,57 @@
+{
+    "metadata": {
+        "name": "Checkpoint/Restart I/O Optimization",
+        "description": "Box-Behnken design to optimize checkpoint write throughput while minimizing application disruption on burst-buffer-equipped HPC systems"
+    },
+    "factors": [
+        {
+            "name": "checkpoint_interval",
+            "levels": ["5", "30"],
+            "type": "continuous",
+            "unit": "minutes",
+            "description": "Time between checkpoint writes"
+        },
+        {
+            "name": "stripe_count",
+            "levels": ["4", "64"],
+            "type": "continuous",
+            "unit": "",
+            "description": "Lustre stripe count for checkpoint files"
+        },
+        {
+            "name": "bb_capacity_pct",
+            "levels": ["25", "100"],
+            "type": "continuous",
+            "unit": "%",
+            "description": "Percentage of burst buffer capacity allocated to checkpoints"
+        }
+    ],
+    "fixed_factors": {
+        "nodes": "1024",
+        "checkpoint_size_per_node": "16GB",
+        "filesystem": "lustre",
+        "burst_buffer": "DataWarp"
+    },
+    "responses": [
+        {
+            "name": "write_throughput_GBs",
+            "optimize": "maximize",
+            "unit": "GB/s",
+            "description": "Aggregate checkpoint write throughput"
+        },
+        {
+            "name": "app_disruption_sec",
+            "optimize": "minimize",
+            "unit": "seconds",
+            "description": "Wall-clock time application is stalled during checkpoint"
+        }
+    ],
+    "runner": { "arg_style": "double-dash" },
+    "settings": {
+        "block_count": 1,
+        "test_script": "use_cases/19_checkpoint_restart/sim.sh",
+        "operation": "box_behnken",
+        "processed_directory": "use_cases/19_checkpoint_restart/results/analysis",
+        "out_directory": "use_cases/19_checkpoint_restart/results"
+    }
+}

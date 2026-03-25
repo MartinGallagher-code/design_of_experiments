@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SIMD Vectorization Tuning &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .caption { font-size:.72rem; color:var(--faint); margin-bottom:4px; }
+  </style>
+</head>
+<body>
+
+<img src="../logo-light.svg" alt="" class="bg-logo-light">
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><span class="dot"></span> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<section class="uc-hero-detail" style="background:linear-gradient(135deg, #6366f111, #6366f108);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-badge" style="background:#6366f118;color:#6366f1;">Full Factorial</div>
+    <h1>SIMD Vectorization Tuning</h1>
+    <p class="uc-subtitle">Optimize SIMD vectorization strategy for stencil computation kernels on AVX-512 capable processors.</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Levels</th><th>Type</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>simd_width</code></td><td>256, 512</td><td>continuous</td><td>bits</td></tr>
+            <tr><td><code>data_layout</code></td><td>AoS, SoA</td><td>categorical</td><td></td></tr>
+            <tr><td><code>unroll_factor</code></td><td>1, 8</td><td>continuous</td><td></td></tr>
+            <tr><td><code>alignment</code></td><td>none, 64B</td><td>categorical</td><td></td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> processor = Xeon 8490H, kernel = 7pt stencil, grid_size = 512^3, precision = double</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>gflops</code></td><td style="color:var(--green);font-weight:600;">&#x2191; maximize</td><td>GFLOPS</td></tr>
+            <tr><td><code>vectorization_pct</code></td><td style="color:var(--green);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Full Factorial Design produces <strong>16 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>simd_width</code></th><th><code>data_layout</code></th><th><code>unroll_factor</code></th><th><code>alignment</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>256</td><td>SoA</td><td>8</td><td>64B</td></tr>
+        <tr><td>2</td><td>512</td><td>AoS</td><td>1</td><td>64B</td></tr>
+        <tr><td>3</td><td>256</td><td>SoA</td><td>1</td><td>64B</td></tr>
+        <tr><td>4</td><td>256</td><td>SoA</td><td>8</td><td>none</td></tr>
+        <tr><td>5</td><td>512</td><td>SoA</td><td>8</td><td>none</td></tr>
+        <tr><td>6</td><td>512</td><td>AoS</td><td>8</td><td>none</td></tr>
+        <tr><td>7</td><td>512</td><td>SoA</td><td>1</td><td>none</td></tr>
+        <tr><td>8</td><td>512</td><td>AoS</td><td>1</td><td>none</td></tr>
+        <tr><td>9</td><td>256</td><td>AoS</td><td>1</td><td>64B</td></tr>
+        <tr><td>10</td><td>256</td><td>AoS</td><td>8</td><td>none</td></tr>
+        <tr><td>11</td><td>512</td><td>SoA</td><td>1</td><td>64B</td></tr>
+        <tr><td>12</td><td>512</td><td>SoA</td><td>8</td><td>64B</td></tr>
+        <tr><td>13</td><td>256</td><td>SoA</td><td>1</td><td>none</td></tr>
+        <tr><td>14</td><td>512</td><td>AoS</td><td>8</td><td>64B</td></tr>
+        <tr><td>15</td><td>256</td><td>AoS</td><td>1</td><td>none</td></tr>
+        <tr><td>16</td><td>256</td><td>AoS</td><td>8</td><td>64B</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="uc-section">
+    <h2>How to Run</h2>
+    <div class="code-block"><div class="code-header"><span>terminal</span></div><div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/21_vectorization_simd_tuning/config.json
+<span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/21_vectorization_simd_tuning/config.json <span class="flag">--output</span> results/run.sh <span class="flag">--seed</span> 42
+<span class="prompt">$ </span>bash results/run.sh
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/21_vectorization_simd_tuning/config.json
+<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/21_vectorization_simd_tuning/config.json
+<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/21_vectorization_simd_tuning/config.json <span class="flag">--output</span> report.html</div></div>
+  </section>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs.</p>
+
+    <h3>Response: gflops</h3>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/21_pareto_gflops.png" alt="Pareto chart for gflops">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/21_main_effects_gflops.png" alt="Main effects plot for gflops">
+      </div>
+    </div>
+
+    <h3>Response: vectorization_pct</h3>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/21_pareto_vectorization_pct.png" alt="Pareto chart for vectorization_pct">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/21_main_effects_vectorization_pct.png" alt="Main effects plot for vectorization_pct">
+      </div>
+    </div>
+
+    <h3>Response Surface Plots</h3>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">gflops: simd_width vs unroll_factor</p>
+      <img src="../images/21_rsm_gflops_simd_width_vs_unroll_factor.png" alt="RSM surface: gflops: simd_width vs unroll_factor" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">vectorization_pct: simd_width vs unroll_factor</p>
+      <img src="../images/21_rsm_vectorization_pct_simd_width_vs_unroll_factor.png" alt="RSM surface: vectorization_pct: simd_width vs unroll_factor" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: gflops ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+unroll_factor           14.7963       7.5223            45.2%
+simd_width              -7.6963       7.5223            23.5%
+data_layout              7.0412       7.5223            21.5%
+alignment                3.1913       7.5223             9.8%
+
+=== Interaction Effects: gflops ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+data_layout          unroll_factor            -36.2237            31.7%
+data_layout          alignment                 25.0362            21.9%
+unroll_factor        alignment                -17.3137            15.1%
+simd_width           alignment                 16.3437            14.3%
+simd_width           data_layout               11.9137            10.4%
+simd_width           unroll_factor              7.5287             6.6%
+
+=== Summary Statistics: gflops ===
+
+simd_width:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  256                 8   131.2812    31.1534    94.3000   184.0100
+  512                 8   123.5850    30.5890    81.6200   164.1000
+
+data_layout:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  AoS                 8   123.9125    33.2096    81.6200   184.0100
+  SoA                 8   130.9537    28.4404    94.3000   170.7400
+
+unroll_factor:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   8   120.0350    31.9931    81.6200   170.7400
+  8                   8   134.8313    28.1320    94.3000   184.0100
+
+alignment:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  64B                 8   125.8375    29.2249    90.2200   184.0100
+  none                8   129.0288    32.8657    81.6200   170.7400
+
+=== Main Effects: vectorization_pct ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+simd_width              -8.3662       3.0185            39.1%
+data_layout              5.0787       3.0185            23.7%
+alignment               -4.9513       3.0185            23.1%
+unroll_factor            3.0037       3.0185            14.0%
+
+=== Interaction Effects: vectorization_pct ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+simd_width           alignment                  9.4938            21.9%
+data_layout          alignment                  9.2537            21.4%
+unroll_factor        alignment                 -8.1863            18.9%
+data_layout          unroll_factor             -7.2062            16.6%
+simd_width           unroll_factor              4.6737            10.8%
+simd_width           data_layout                4.4737            10.3%
+
+=== Summary Statistics: vectorization_pct ===
+
+simd_width:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  256                 8    84.0050    13.0520    64.5300   100.0000
+  512                 8    75.6388    10.1015    60.2600    91.0000
+
+data_layout:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  AoS                 8    77.2825    12.5333    60.2600   100.0000
+  SoA                 8    82.3612    11.8562    64.5300    97.0100
+
+unroll_factor:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   8    78.3200    13.2411    60.2600    97.0100
+  8                   8    81.3238    11.4851    64.5300   100.0000
+
+alignment:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  64B                 8    82.2975    11.5988    67.7500   100.0000
+  none                8    77.3462    12.8004    60.2600    97.0100</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: gflops ===
+Direction: maximize
+
+Best observed run: #12
+  simd_width = 256
+  data_layout = AoS
+  unroll_factor = 1
+  alignment = none
+  Value: 184.01
+
+Factor importance:
+  1. unroll_factor  (effect: -23.9, contribution: 50.7%)
+  2. alignment  (effect: 14.9, contribution: 31.8%)
+  3. simd_width  (effect: 7.3, contribution: 15.6%)
+  4. data_layout  (effect: -0.9, contribution: 1.9%)
+
+=== Optimization: vectorization_pct ===
+Direction: maximize
+
+Best observed run: #12
+  simd_width = 256
+  data_layout = AoS
+  unroll_factor = 1
+  alignment = none
+  Value: 100.0
+
+Factor importance:
+  1. alignment  (effect: 10.1, contribution: 49.0%)
+  2. simd_width  (effect: 7.1, contribution: 34.2%)
+  3. data_layout  (effect: -3.0, contribution: 14.4%)
+  4. unroll_factor  (effect: -0.5, contribution: 2.4%)</div></div>
+  </section>
+
+  <div class="chapter-nav">
+    <a href="20-power-performance-tradeoff.html">&larr; Power Capping &amp; Performance</a>
+    <a href="22-prefetch-strategy.html">Hardware Prefetch Tuning &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <span>doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

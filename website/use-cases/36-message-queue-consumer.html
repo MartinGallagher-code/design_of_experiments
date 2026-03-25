@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Message Queue Consumer Tuning &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x2601;</div>
+    <div class="uc-badge" style="background:rgba(29,78,216,.12);color:#1d4ed8;">Latin Hypercube Design</div>
+    <h1>Message Queue Consumer Tuning</h1>
+    <p class="uc-subtitle">Latin Hypercube exploration of 4 Kafka consumer parameters for throughput and lag</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>fetch_min_bytes</code></td><td>1</td><td>1048576</td><td>bytes</td></tr>
+            <tr><td><code>max_poll_records</code></td><td>100</td><td>5000</td><td>records</td></tr>
+            <tr><td><code>num_consumers</code></td><td>1</td><td>12</td><td>count</td></tr>
+            <tr><td><code>session_timeout</code></td><td>6000</td><td>45000</td><td>ms</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> partitions = 12, replication_factor = 3</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>throughput_mbps</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>MB/s</td></tr>
+            <tr><td><code>consumer_lag</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>records</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/36_message_queue_consumer/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Message Queue Consumer Tuning&quot;,
+    &quot;description&quot;: &quot;Latin Hypercube exploration of 4 Kafka consumer parameters for throughput and lag&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;fetch_min_bytes&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;1048576&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;bytes&quot;
+    },
+    {
+      &quot;name&quot;: &quot;max_poll_records&quot;,
+      &quot;levels&quot;: [
+        &quot;100&quot;,
+        &quot;5000&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;records&quot;
+    },
+    {
+      &quot;name&quot;: &quot;num_consumers&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;12&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;count&quot;
+    },
+    {
+      &quot;name&quot;: &quot;session_timeout&quot;,
+      &quot;levels&quot;: [
+        &quot;6000&quot;,
+        &quot;45000&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;ms&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;partitions&quot;: &quot;12&quot;,
+    &quot;replication_factor&quot;: &quot;3&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;throughput_mbps&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;MB/s&quot;
+    },
+    {
+      &quot;name&quot;: &quot;consumer_lag&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;records&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;latin_hypercube&quot;,
+    &quot;test_script&quot;: &quot;use_cases/36_message_queue_consumer/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Latin Hypercube Design produces <strong>10 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>fetch_min_bytes</code></th><th><code>max_poll_records</code></th><th><code>num_consumers</code></th><th><code>session_timeout</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>666061</td><td>3674.08</td><td>4.27289</td><td>7839.07</td></tr>
+        <tr><td>2</td><td>38058.6</td><td>1238.57</td><td>5.40417</td><td>22478.4</td></tr>
+        <tr><td>3</td><td>859166</td><td>347.827</td><td>11.3565</td><td>12668.1</td></tr>
+        <tr><td>4</td><td>111501</td><td>1012.05</td><td>1.58425</td><td>18915.9</td></tr>
+        <tr><td>5</td><td>391881</td><td>3310.5</td><td>6.66066</td><td>16368.7</td></tr>
+        <tr><td>6</td><td>763987</td><td>4409.6</td><td>8.37666</td><td>26199.9</td></tr>
+        <tr><td>7</td><td>560321</td><td>4520.58</td><td>10.6996</td><td>39825.5</td></tr>
+        <tr><td>8</td><td>274056</td><td>2582.32</td><td>4.48972</td><td>35402.6</td></tr>
+        <tr><td>9</td><td>515774</td><td>2549.76</td><td>8.87981</td><td>32658.1</td></tr>
+        <tr><td>10</td><td>988745</td><td>1635.37</td><td>2.44064</td><td>44635.8</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/36_message_queue_consumer/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/36_message_queue_consumer/config.json \
+    <span class="flag">--output</span> use_cases/36_message_queue_consumer/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/36_message_queue_consumer/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/36_message_queue_consumer/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/36_message_queue_consumer/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/36_message_queue_consumer/config.json \
+    <span class="flag">--output</span> use_cases/36_message_queue_consumer/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>latin_hypercube</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 4)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (throughput_mbps &#x2191;, consumer_lag &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>10</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: throughput_mbps</h3>
+    <p>Top factors: fetch_min_bytes (25.0%), max_poll_records (25.0%), num_consumers (25.0%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/36_pareto_throughput_mbps.png" alt="Pareto chart for throughput_mbps">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/36_main_effects_throughput_mbps.png" alt="Main effects plot for throughput_mbps">
+      </div>
+    </div>
+
+    <h3>Response: consumer_lag</h3>
+    <p>Top factors: fetch_min_bytes (25.0%), max_poll_records (25.0%), num_consumers (25.0%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/36_pareto_consumer_lag.png" alt="Pareto chart for consumer_lag">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/36_main_effects_consumer_lag.png" alt="Main effects plot for consumer_lag">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">consumer lag fetch min bytes vs max poll records</p>
+      <img src="../images/36_rsm_consumer_lag_fetch_min_bytes_vs_max_poll_records.png" alt="RSM surface: consumer lag fetch min bytes vs max poll records" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">consumer lag fetch min bytes vs num consumers</p>
+      <img src="../images/36_rsm_consumer_lag_fetch_min_bytes_vs_num_consumers.png" alt="RSM surface: consumer lag fetch min bytes vs num consumers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">consumer lag fetch min bytes vs session timeout</p>
+      <img src="../images/36_rsm_consumer_lag_fetch_min_bytes_vs_session_timeout.png" alt="RSM surface: consumer lag fetch min bytes vs session timeout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">consumer lag max poll records vs num consumers</p>
+      <img src="../images/36_rsm_consumer_lag_max_poll_records_vs_num_consumers.png" alt="RSM surface: consumer lag max poll records vs num consumers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">consumer lag max poll records vs session timeout</p>
+      <img src="../images/36_rsm_consumer_lag_max_poll_records_vs_session_timeout.png" alt="RSM surface: consumer lag max poll records vs session timeout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">consumer lag num consumers vs session timeout</p>
+      <img src="../images/36_rsm_consumer_lag_num_consumers_vs_session_timeout.png" alt="RSM surface: consumer lag num consumers vs session timeout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput mbps fetch min bytes vs max poll records</p>
+      <img src="../images/36_rsm_throughput_mbps_fetch_min_bytes_vs_max_poll_records.png" alt="RSM surface: throughput mbps fetch min bytes vs max poll records" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput mbps fetch min bytes vs num consumers</p>
+      <img src="../images/36_rsm_throughput_mbps_fetch_min_bytes_vs_num_consumers.png" alt="RSM surface: throughput mbps fetch min bytes vs num consumers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput mbps fetch min bytes vs session timeout</p>
+      <img src="../images/36_rsm_throughput_mbps_fetch_min_bytes_vs_session_timeout.png" alt="RSM surface: throughput mbps fetch min bytes vs session timeout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput mbps max poll records vs num consumers</p>
+      <img src="../images/36_rsm_throughput_mbps_max_poll_records_vs_num_consumers.png" alt="RSM surface: throughput mbps max poll records vs num consumers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput mbps max poll records vs session timeout</p>
+      <img src="../images/36_rsm_throughput_mbps_max_poll_records_vs_session_timeout.png" alt="RSM surface: throughput mbps max poll records vs session timeout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput mbps num consumers vs session timeout</p>
+      <img src="../images/36_rsm_throughput_mbps_num_consumers_vs_session_timeout.png" alt="RSM surface: throughput mbps num consumers vs session timeout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: throughput_mbps ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+fetch_min_bytes         56.6000       6.2761            25.0%
+max_poll_records        56.6000       6.2761            25.0%
+num_consumers           56.6000       6.2761            25.0%
+session_timeout         56.6000       6.2761            25.0%
+
+=== Summary Statistics: throughput_mbps ===
+
+fetch_min_bytes:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1.03801e+06         1    92.5000     0.0000    92.5000    92.5000
+  101697              1   127.7000     0.0000   127.7000   127.7000
+  195095              1   119.3000     0.0000   119.3000   119.3000
+  295691              1   127.6000     0.0000   127.6000   127.6000
+  418630              1    83.6000     0.0000    83.6000    83.6000
+  470358              1   108.2000     0.0000   108.2000   108.2000
+  568108              1   140.2000     0.0000   140.2000   140.2000
+  662206              1   126.3000     0.0000   126.3000   126.3000
+  773795              1   112.5000     0.0000   112.5000   112.5000
+  842921              1    83.7000     0.0000    83.7000    83.7000
+
+max_poll_records:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1519.26             1    92.5000     0.0000    92.5000    92.5000
+  1591.38             1   119.3000     0.0000   119.3000   119.3000
+  2520.55             1    83.7000     0.0000    83.7000    83.7000
+  2692.22             1   112.5000     0.0000   112.5000   112.5000
+  3259.72             1   127.7000     0.0000   127.7000   127.7000
+  3908.08             1   108.2000     0.0000   108.2000   108.2000
+  4189.99             1   126.3000     0.0000   126.3000   126.3000
+  4624.71             1   140.2000     0.0000   140.2000   140.2000
+  587.051             1   127.6000     0.0000   127.6000   127.6000
+  939.592             1    83.6000     0.0000    83.6000    83.6000
+
+num_consumers:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1.90994             1   108.2000     0.0000   108.2000   108.2000
+  10.5822             1   127.6000     0.0000   127.6000   127.6000
+  11.6079             1   126.3000     0.0000   126.3000   126.3000
+  2.49913             1   112.5000     0.0000   112.5000   112.5000
+  3.84826             1    83.6000     0.0000    83.6000    83.6000
+  4.93576             1   140.2000     0.0000   140.2000   140.2000
+  5.46875             1    92.5000     0.0000    92.5000    92.5000
+  7.58633             1    83.7000     0.0000    83.7000    83.7000
+  8.06782             1   127.7000     0.0000   127.7000   127.7000
+  9.1881              1   119.3000     0.0000   119.3000   119.3000
+
+session_timeout:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  12201.2             1    92.5000     0.0000    92.5000    92.5000
+  14975.7             1   127.6000     0.0000   127.6000   127.6000
+  17738.7             1   108.2000     0.0000   108.2000   108.2000
+  24241.9             1   126.3000     0.0000   126.3000   126.3000
+  28807.4             1   140.2000     0.0000   140.2000   140.2000
+  29746.4             1   112.5000     0.0000   112.5000   112.5000
+  33941.4             1   119.3000     0.0000   119.3000   119.3000
+  38186.4             1    83.6000     0.0000    83.6000    83.6000
+  41459.6             1   127.7000     0.0000   127.7000   127.7000
+  6138.55             1    83.7000     0.0000    83.7000    83.7000
+
+=== Main Effects: consumer_lag ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+fetch_min_bytes      26945.0000    2891.6283            25.0%
+max_poll_records     26945.0000    2891.6283            25.0%
+num_consumers        26945.0000    2891.6283            25.0%
+session_timeout      26945.0000    2891.6283            25.0%
+
+=== Summary Statistics: consumer_lag ===
+
+fetch_min_bytes:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1.03801e+06         1 59790.0000     0.0000 59790.0000 59790.0000
+  101697              1 44250.0000     0.0000 44250.0000 44250.0000
+  195095              1 49398.0000     0.0000 49398.0000 49398.0000
+  295691              1 44350.0000     0.0000 44350.0000 44350.0000
+  418630              1 67998.0000     0.0000 67998.0000 67998.0000
+  470358              1 47997.0000     0.0000 47997.0000 47997.0000
+  568108              1 41053.0000     0.0000 41053.0000 41053.0000
+  662206              1 53445.0000     0.0000 53445.0000 53445.0000
+  773795              1 53359.0000     0.0000 53359.0000 53359.0000
+  842921              1 65248.0000     0.0000 65248.0000 65248.0000
+
+max_poll_records:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1519.26             1 59790.0000     0.0000 59790.0000 59790.0000
+  1591.38             1 49398.0000     0.0000 49398.0000 49398.0000
+  2520.55             1 65248.0000     0.0000 65248.0000 65248.0000
+  2692.22             1 53359.0000     0.0000 53359.0000 53359.0000
+  3259.72             1 44250.0000     0.0000 44250.0000 44250.0000
+  3908.08             1 47997.0000     0.0000 47997.0000 47997.0000
+  4189.99             1 53445.0000     0.0000 53445.0000 53445.0000
+  4624.71             1 41053.0000     0.0000 41053.0000 41053.0000
+  587.051             1 44350.0000     0.0000 44350.0000 44350.0000
+  939.592             1 67998.0000     0.0000 67998.0000 67998.0000
+
+num_consumers:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1.90994             1 47997.0000     0.0000 47997.0000 47997.0000
+  10.5822             1 44350.0000     0.0000 44350.0000 44350.0000
+  11.6079             1 53445.0000     0.0000 53445.0000 53445.0000
+  2.49913             1 53359.0000     0.0000 53359.0000 53359.0000
+  3.84826             1 67998.0000     0.0000 67998.0000 67998.0000
+  4.93576             1 41053.0000     0.0000 41053.0000 41053.0000
+  5.46875             1 59790.0000     0.0000 59790.0000 59790.0000
+  7.58633             1 65248.0000     0.0000 65248.0000 65248.0000
+  8.06782             1 44250.0000     0.0000 44250.0000 44250.0000
+  9.1881              1 49398.0000     0.0000 49398.0000 49398.0000
+
+session_timeout:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  12201.2             1 59790.0000     0.0000 59790.0000 59790.0000
+  14975.7             1 44350.0000     0.0000 44350.0000 44350.0000
+  17738.7             1 47997.0000     0.0000 47997.0000 47997.0000
+  24241.9             1 53445.0000     0.0000 53445.0000 53445.0000
+  28807.4             1 41053.0000     0.0000 41053.0000 41053.0000
+  29746.4             1 53359.0000     0.0000 53359.0000 53359.0000
+  33941.4             1 49398.0000     0.0000 49398.0000 49398.0000
+  38186.4             1 67998.0000     0.0000 67998.0000 67998.0000
+  41459.6             1 44250.0000     0.0000 44250.0000 44250.0000
+  6138.55             1 65248.0000     0.0000 65248.0000 65248.0000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: throughput_mbps ===
+Direction: maximize
+
+Best observed run: #8
+  fetch_min_bytes = 645723
+  max_poll_records = 160.807
+  num_consumers = 1.78861
+  session_timeout = 34329.7
+  Value: 140.2
+
+RSM Model (linear, R² = 0.2262, Adj R² = -0.3928):
+  Coefficients:
+    intercept                      +111.9293
+    fetch_min_bytes                -5.4819
+    max_poll_records               -14.6975
+    num_consumers                  -0.1896
+    session_timeout                -3.0942
+
+  Predicted optimum (from linear model):
+    fetch_min_bytes = 225769
+    max_poll_records = 768.017
+    num_consumers = 9.23883
+    session_timeout = 33232.2
+    Predicted value: 124.4194
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. fetch_min_bytes  (effect: 56.6, contribution: 25.0%)
+  2. max_poll_records  (effect: 56.6, contribution: 25.0%)
+  3. num_consumers  (effect: 56.6, contribution: 25.0%)
+  4. session_timeout  (effect: 56.6, contribution: 25.0%)
+
+=== Optimization: consumer_lag ===
+Direction: minimize
+
+Best observed run: #8
+  fetch_min_bytes = 645723
+  max_poll_records = 160.807
+  num_consumers = 1.78861
+  session_timeout = 34329.7
+  Value: 41053.0
+
+RSM Model (linear, R² = 0.2500, Adj R² = -0.3500):
+  Coefficients:
+    intercept                      +52749.0471
+    fetch_min_bytes                +1200.9438
+    max_poll_records               +7417.2885
+    num_consumers                  +739.8636
+    session_timeout                +4805.2178
+
+  Predicted optimum (from linear model):
+    fetch_min_bytes = 819659
+    max_poll_records = 4983.12
+    num_consumers = 8.65246
+    session_timeout = 27929.4
+    Predicted value: 61680.0203
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. fetch_min_bytes  (effect: 26945.0, contribution: 25.0%)
+  2. max_poll_records  (effect: 26945.0, contribution: 25.0%)
+  3. num_consumers  (effect: 26945.0, contribution: 25.0%)
+  4. session_timeout  (effect: 26945.0, contribution: 25.0%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="35-service-mesh-sidecar.html">&larr; Previous: Service Mesh Sidecar</a>
+    <a href="37-spark-shuffle-optimization.html">Next: Spark Shuffle Optimization &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

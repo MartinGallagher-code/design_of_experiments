@@ -1,0 +1,66 @@
+{
+    "metadata": {
+        "name": "InfiniBand Network Tuning",
+        "description": "Box-Behnken design to optimize InfiniBand HDR network throughput and tail latency"
+    },
+    "factors": [
+        {
+            "name": "mtu",
+            "levels": [
+                "2048",
+                "4096"
+            ],
+            "type": "continuous",
+            "unit": "bytes",
+            "description": "Maximum transmission unit"
+        },
+        {
+            "name": "queue_depth",
+            "levels": [
+                "64",
+                "512"
+            ],
+            "type": "continuous",
+            "unit": "",
+            "description": "Send/receive queue depth"
+        },
+        {
+            "name": "rdma_cm",
+            "levels": [
+                "0",
+                "1"
+            ],
+            "type": "continuous",
+            "unit": "",
+            "description": "RDMA connection manager (0=off, 1=on)"
+        }
+    ],
+    "fixed_factors": {
+        "ib_speed": "HDR",
+        "ports": "1"
+    },
+    "responses": [
+        {
+            "name": "msg_rate",
+            "optimize": "maximize",
+            "unit": "Mmsg/s",
+            "description": "Message rate in millions of messages per second"
+        },
+        {
+            "name": "p99_lat",
+            "optimize": "minimize",
+            "unit": "us",
+            "description": "99th percentile latency"
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "use_cases/11_infiniband_network/sim.sh",
+        "operation": "box_behnken",
+        "processed_directory": "use_cases/11_infiniband_network/results/analysis",
+        "out_directory": "use_cases/11_infiniband_network/results"
+    }
+}

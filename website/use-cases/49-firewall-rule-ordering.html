@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firewall Rule Ordering &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F310;</div>
+    <div class="uc-badge" style="background:rgba(124,58,237,.12);color:#7c3aed;">Plackett-Burman Design</div>
+    <h1>Firewall Rule Ordering</h1>
+    <p class="uc-subtitle">Plackett-Burman screening of 6 iptables/nftables parameters for packet processing throughput</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>rule_count</code></td><td>100</td><td>5000</td><td>rules</td></tr>
+            <tr><td><code>conntrack_max</code></td><td>65536</td><td>1048576</td><td>entries</td></tr>
+            <tr><td><code>rule_ordering</code></td><td>frequency</td><td>sequential</td><td></td></tr>
+            <tr><td><code>hashlimit_burst</code></td><td>5</td><td>100</td><td>packets</td></tr>
+            <tr><td><code>nf_tables</code></td><td>iptables</td><td>nftables</td><td></td></tr>
+            <tr><td><code>batch_verdict</code></td><td>off</td><td>on</td><td></td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> interface = eth0, protocol_mix = 80_tcp_20_udp</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>throughput_mpps</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>Mpps</td></tr>
+            <tr><td><code>latency_us</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>us</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/49_firewall_rule_ordering/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Firewall Rule Ordering&quot;,
+    &quot;description&quot;: &quot;Plackett-Burman screening of 6 iptables/nftables parameters for packet processing throughput&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;rule_count&quot;,
+      &quot;levels&quot;: [
+        &quot;100&quot;,
+        &quot;5000&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;rules&quot;
+    },
+    {
+      &quot;name&quot;: &quot;conntrack_max&quot;,
+      &quot;levels&quot;: [
+        &quot;65536&quot;,
+        &quot;1048576&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;entries&quot;
+    },
+    {
+      &quot;name&quot;: &quot;rule_ordering&quot;,
+      &quot;levels&quot;: [
+        &quot;frequency&quot;,
+        &quot;sequential&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    },
+    {
+      &quot;name&quot;: &quot;hashlimit_burst&quot;,
+      &quot;levels&quot;: [
+        &quot;5&quot;,
+        &quot;100&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;packets&quot;
+    },
+    {
+      &quot;name&quot;: &quot;nf_tables&quot;,
+      &quot;levels&quot;: [
+        &quot;iptables&quot;,
+        &quot;nftables&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    },
+    {
+      &quot;name&quot;: &quot;batch_verdict&quot;,
+      &quot;levels&quot;: [
+        &quot;off&quot;,
+        &quot;on&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;interface&quot;: &quot;eth0&quot;,
+    &quot;protocol_mix&quot;: &quot;80_tcp_20_udp&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;throughput_mpps&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;Mpps&quot;
+    },
+    {
+      &quot;name&quot;: &quot;latency_us&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;us&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;plackett_burman&quot;,
+    &quot;test_script&quot;: &quot;use_cases/49_firewall_rule_ordering/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Plackett-Burman Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>rule_count</code></th><th><code>conntrack_max</code></th><th><code>rule_ordering</code></th><th><code>hashlimit_burst</code></th><th><code>nf_tables</code></th><th><code>batch_verdict</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>5000</td><td>1048576</td><td>sequential</td><td>5</td><td>iptables</td><td>off</td></tr>
+        <tr><td>2</td><td>100</td><td>65536</td><td>sequential</td><td>100</td><td>iptables</td><td>off</td></tr>
+        <tr><td>3</td><td>100</td><td>1048576</td><td>frequency</td><td>100</td><td>iptables</td><td>on</td></tr>
+        <tr><td>4</td><td>5000</td><td>1048576</td><td>sequential</td><td>100</td><td>nftables</td><td>on</td></tr>
+        <tr><td>5</td><td>100</td><td>1048576</td><td>frequency</td><td>5</td><td>nftables</td><td>off</td></tr>
+        <tr><td>6</td><td>5000</td><td>65536</td><td>frequency</td><td>100</td><td>nftables</td><td>off</td></tr>
+        <tr><td>7</td><td>100</td><td>65536</td><td>sequential</td><td>5</td><td>nftables</td><td>on</td></tr>
+        <tr><td>8</td><td>5000</td><td>65536</td><td>frequency</td><td>5</td><td>iptables</td><td>on</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/49_firewall_rule_ordering/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/49_firewall_rule_ordering/config.json \
+    <span class="flag">--output</span> use_cases/49_firewall_rule_ordering/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/49_firewall_rule_ordering/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/49_firewall_rule_ordering/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/49_firewall_rule_ordering/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/49_firewall_rule_ordering/config.json \
+    <span class="flag">--output</span> use_cases/49_firewall_rule_ordering/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>plackett_burman</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (3), <code>categorical</code> (3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (throughput_mpps &#x2191;, latency_us &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>8</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: throughput_mpps</h3>
+    <p>Top factors: hashlimit_burst (24.4%), rule_ordering (23.9%), conntrack_max (18.7%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/49_pareto_throughput_mpps.png" alt="Pareto chart for throughput_mpps">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/49_main_effects_throughput_mpps.png" alt="Main effects plot for throughput_mpps">
+      </div>
+    </div>
+
+    <h3>Response: latency_us</h3>
+    <p>Top factors: rule_ordering (25.5%), hashlimit_burst (24.4%), rule_count (16.1%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/49_pareto_latency_us.png" alt="Pareto chart for latency_us">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/49_main_effects_latency_us.png" alt="Main effects plot for latency_us">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">latency us conntrack max vs hashlimit burst</p>
+      <img src="../images/49_rsm_latency_us_conntrack_max_vs_hashlimit_burst.png" alt="RSM surface: latency us conntrack max vs hashlimit burst" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">latency us rule count vs conntrack max</p>
+      <img src="../images/49_rsm_latency_us_rule_count_vs_conntrack_max.png" alt="RSM surface: latency us rule count vs conntrack max" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">latency us rule count vs hashlimit burst</p>
+      <img src="../images/49_rsm_latency_us_rule_count_vs_hashlimit_burst.png" alt="RSM surface: latency us rule count vs hashlimit burst" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput mpps conntrack max vs hashlimit burst</p>
+      <img src="../images/49_rsm_throughput_mpps_conntrack_max_vs_hashlimit_burst.png" alt="RSM surface: throughput mpps conntrack max vs hashlimit burst" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput mpps rule count vs conntrack max</p>
+      <img src="../images/49_rsm_throughput_mpps_rule_count_vs_conntrack_max.png" alt="RSM surface: throughput mpps rule count vs conntrack max" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput mpps rule count vs hashlimit burst</p>
+      <img src="../images/49_rsm_throughput_mpps_rule_count_vs_hashlimit_burst.png" alt="RSM surface: throughput mpps rule count vs hashlimit burst" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: throughput_mpps ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+hashlimit_burst         -1.2075       0.4322            24.4%
+rule_ordering            1.1825       0.4322            23.9%
+conntrack_max           -0.9225       0.4322            18.7%
+rule_count               0.7925       0.4322            16.0%
+nf_tables               -0.4525       0.4322             9.2%
+batch_verdict           -0.3825       0.4322             7.7%
+
+=== Interaction Effects: throughput_mpps ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+rule_count           nf_tables                  1.2075            10.0%
+conntrack_max        batch_verdict             -1.2075            10.0%
+rule_count           conntrack_max             -1.1825             9.8%
+nf_tables            batch_verdict              1.1825             9.8%
+rule_count           rule_ordering              0.9225             7.6%
+hashlimit_burst      batch_verdict             -0.9225             7.6%
+conntrack_max        rule_ordering             -0.7925             6.6%
+hashlimit_burst      nf_tables                 -0.7925             6.6%
+rule_count           batch_verdict              0.7375             6.1%
+conntrack_max        nf_tables                 -0.7375             6.1%
+rule_ordering        hashlimit_burst           -0.7375             6.1%
+rule_count           hashlimit_burst            0.4525             3.7%
+rule_ordering        batch_verdict             -0.4525             3.7%
+conntrack_max        hashlimit_burst           -0.3825             3.2%
+rule_ordering        nf_tables                 -0.3825             3.2%
+
+=== Summary Statistics: throughput_mpps ===
+
+rule_count:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4     2.1300     1.1658     0.8700     3.6500
+  5000                4     2.9225     1.3073     1.6700     4.5300
+
+conntrack_max:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1048576             4     2.9875     1.2467     1.7300     4.5300
+  65536               4     2.0650     1.1685     0.8700     3.6500
+
+rule_ordering:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  frequency           4     1.9350     0.2844     1.6700     2.2700
+  sequential          4     3.1175     1.5728     0.8700     4.5300
+
+hashlimit_burst:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4     3.1300     1.1681     2.0700     4.5300
+  5                   4     1.9225     1.0725     0.8700     3.4200
+
+nf_tables:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  iptables            4     2.7525     0.9409     1.6700     3.6500
+  nftables            4     2.3000     1.5701     0.8700     4.5300
+
+batch_verdict:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4     2.7175     0.9587     1.7300     3.6500
+  on                  4     2.3350     1.5717     0.8700     4.5300
+
+=== Main Effects: latency_us ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+rule_ordering          -11.7250       4.0069            25.5%
+hashlimit_burst         11.2250       4.0069            24.4%
+rule_count              -7.4250       4.0069            16.1%
+batch_verdict            6.0750       4.0069            13.2%
+conntrack_max            4.8250       4.0069            10.5%
+nf_tables                4.7750       4.0069            10.4%
+
+=== Interaction Effects: latency_us ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+rule_count           conntrack_max             11.7250            10.4%
+nf_tables            batch_verdict            -11.7250            10.4%
+rule_count           nf_tables                -11.2250             9.9%
+conntrack_max        batch_verdict             11.2250             9.9%
+conntrack_max        rule_ordering              7.4250             6.6%
+hashlimit_burst      nf_tables                  7.4250             6.6%
+rule_count           batch_verdict             -6.9250             6.1%
+conntrack_max        nf_tables                  6.9250             6.1%
+rule_ordering        hashlimit_burst            6.9250             6.1%
+conntrack_max        hashlimit_burst            6.0750             5.4%
+rule_ordering        nf_tables                  6.0750             5.4%
+rule_count           rule_ordering             -4.8250             4.3%
+hashlimit_burst      batch_verdict              4.8250             4.3%
+rule_count           hashlimit_burst           -4.7750             4.2%
+rule_ordering        batch_verdict              4.7750             4.2%
+
+=== Summary Statistics: latency_us ===
+
+rule_count:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4    19.7500    12.5514     1.8000    30.8000
+  5000                4    12.3250    10.2669     0.4000    23.4000
+
+conntrack_max:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1048576             4    13.6250    11.5162     0.4000    24.7000
+  65536               4    18.4500    12.3108     1.8000    30.8000
+
+rule_ordering:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  frequency           4    21.9000     2.9967    17.8000    24.7000
+  sequential          4    10.1750    14.1092     0.4000    30.8000
+
+hashlimit_burst:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4    10.4250    10.8997     0.4000    21.7000
+  5                   4    21.6500     9.8436     7.7000    30.8000
+
+nf_tables:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  iptables            4    13.6500    10.5781     1.8000    23.4000
+  nftables            4    18.4250    13.1378     0.4000    30.8000
+
+batch_verdict:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4    13.0000    10.2219     1.8000    24.7000
+  on                  4    19.0750    13.0617     0.4000    30.8000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: throughput_mpps ===
+Direction: maximize
+
+Best observed run: #5
+  rule_count = 5000
+  conntrack_max = 65536
+  rule_ordering = frequency
+  hashlimit_burst = 100
+  nf_tables = nftables
+  batch_verdict = off
+  Value: 4.53
+
+RSM Model (linear, R² = 0.9762, Adj R² = 0.8337):
+  Coefficients:
+    intercept                      +2.5263
+    rule_count                     +0.4462
+    conntrack_max                  +0.2413
+    rule_ordering                  -0.3688
+    hashlimit_burst                +0.4112
+    nf_tables                      +0.5913
+    batch_verdict                  -0.6038
+
+  Predicted optimum (from linear model):
+    rule_count = 5000
+    conntrack_max = 65536
+    rule_ordering = frequency
+    hashlimit_burst = 100
+    nf_tables = nftables
+    batch_verdict = off
+    Predicted value: 4.7062
+
+  Model quality: Excellent fit — surface predictions are reliable.
+
+Factor importance:
+  1. batch_verdict  (effect: -1.2, contribution: 22.7%)
+  2. nf_tables  (effect: 1.2, contribution: 22.2%)
+  3. rule_count  (effect: 0.9, contribution: 16.8%)
+  4. hashlimit_burst  (effect: -0.8, contribution: 15.4%)
+  5. rule_ordering  (effect: -0.7, contribution: 13.8%)
+  6. conntrack_max  (effect: -0.5, contribution: 9.1%)
+
+=== Optimization: latency_us ===
+Direction: minimize
+
+Best observed run: #5
+  rule_count = 5000
+  conntrack_max = 65536
+  rule_ordering = frequency
+  hashlimit_burst = 100
+  nf_tables = nftables
+  batch_verdict = off
+  Value: 0.4
+
+RSM Model (linear, R² = 0.8994, Adj R² = 0.2958):
+  Coefficients:
+    intercept                      +16.0375
+    rule_count                     -2.7375
+    conntrack_max                  -2.0625
+    rule_ordering                  +3.4625
+    hashlimit_burst                -3.3875
+    nf_tables                      -5.8625
+    batch_verdict                  +5.6125
+
+  Predicted optimum (from linear model):
+    rule_count = 100
+    conntrack_max = 65536
+    rule_ordering = sequential
+    hashlimit_burst = 5
+    nf_tables = nftables
+    batch_verdict = on
+    Predicted value: 27.4375
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. nf_tables  (effect: -11.7, contribution: 25.4%)
+  2. batch_verdict  (effect: 11.2, contribution: 24.3%)
+  3. rule_ordering  (effect: 6.9, contribution: 15.0%)
+  4. hashlimit_burst  (effect: 6.8, contribution: 14.6%)
+  5. rule_count  (effect: -5.5, contribution: 11.8%)
+  6. conntrack_max  (effect: 4.1, contribution: 8.9%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="48-tls-handshake-optimization.html">&larr; Previous: TLS Handshake Optimization</a>
+    <a href="50-dns-resolver-caching.html">Next: DNS Resolver Caching &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

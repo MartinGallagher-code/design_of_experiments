@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Burst Buffer / Storage Tiering &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .caption { font-size:.72rem; color:var(--faint); margin-bottom:4px; }
+  </style>
+</head>
+<body>
+
+<img src="../logo-light.svg" alt="" class="bg-logo-light">
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><span class="dot"></span> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<section class="uc-hero-detail" style="background:linear-gradient(135deg, #0891b211, #0891b208);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-badge" style="background:#0891b218;color:#0891b2;">Fractional Factorial</div>
+    <h1>Burst Buffer / Storage Tiering</h1>
+    <p class="uc-subtitle">Optimize burst buffer, staging, and caching policies for HPC I/O workloads.</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Levels</th><th>Type</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>burst_buffer</code></td><td>off, on</td><td>categorical</td><td></td></tr>
+            <tr><td><code>stage_in</code></td><td>sync, async</td><td>categorical</td><td></td></tr>
+            <tr><td><code>cache_size</code></td><td>64, 512</td><td>continuous</td><td>GB</td></tr>
+            <tr><td><code>write_policy</code></td><td>write_back, write_through</td><td>categorical</td><td></td></tr>
+            <tr><td><code>prefetch</code></td><td>off, on</td><td>categorical</td><td></td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> none</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>io_throughput</code></td><td style="color:var(--green);font-weight:600;">&#x2191; maximize</td><td>GB/s</td></tr>
+            <tr><td><code>stage_time</code></td><td style="color:var(--green);font-weight:600;">&#x2191; maximize</td><td>sec</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Fractional Factorial Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>burst_buffer</code></th><th><code>stage_in</code></th><th><code>cache_size</code></th><th><code>write_policy</code></th><th><code>prefetch</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>off</td><td>async</td><td>512</td><td>write_back</td><td>off</td></tr>
+        <tr><td>2</td><td>on</td><td>sync</td><td>64</td><td>write_back</td><td>off</td></tr>
+        <tr><td>3</td><td>on</td><td>async</td><td>64</td><td>write_through</td><td>off</td></tr>
+        <tr><td>4</td><td>on</td><td>async</td><td>512</td><td>write_through</td><td>on</td></tr>
+        <tr><td>5</td><td>off</td><td>async</td><td>64</td><td>write_back</td><td>on</td></tr>
+        <tr><td>6</td><td>on</td><td>sync</td><td>512</td><td>write_back</td><td>on</td></tr>
+        <tr><td>7</td><td>off</td><td>sync</td><td>64</td><td>write_through</td><td>on</td></tr>
+        <tr><td>8</td><td>off</td><td>sync</td><td>512</td><td>write_through</td><td>off</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="uc-section">
+    <h2>How to Run</h2>
+    <div class="code-block"><div class="code-header"><span>terminal</span></div><div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/16_storage_tiering/config.json
+<span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/16_storage_tiering/config.json <span class="flag">--output</span> results/run.sh <span class="flag">--seed</span> 42
+<span class="prompt">$ </span>bash results/run.sh
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/16_storage_tiering/config.json
+<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/16_storage_tiering/config.json
+<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/16_storage_tiering/config.json <span class="flag">--output</span> report.html</div></div>
+  </section>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs.</p>
+
+    <h3>Response: io_throughput</h3>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/16_pareto_io_throughput.png" alt="Pareto chart for io_throughput">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/16_main_effects_io_throughput.png" alt="Main effects plot for io_throughput">
+      </div>
+    </div>
+
+    <h3>Response: stage_time</h3>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/16_pareto_stage_time.png" alt="Pareto chart for stage_time">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/16_main_effects_stage_time.png" alt="Main effects plot for stage_time">
+      </div>
+    </div>
+
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: io_throughput ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+burst_buffer            28.2275       5.9476            50.6%
+stage_in                 8.1625       5.9476            14.6%
+prefetch                 6.9125       5.9476            12.4%
+cache_size              -6.6025       5.9476            11.8%
+write_policy             5.8975       5.9476            10.6%
+
+=== Interaction Effects: io_throughput ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+stage_in             write_policy             -28.2275            32.6%
+cache_size           prefetch                 -28.2275            32.6%
+burst_buffer         write_policy              -8.1625             9.4%
+burst_buffer         cache_size                -6.9125             8.0%
+burst_buffer         prefetch                   6.6025             7.6%
+burst_buffer         stage_in                  -5.8975             6.8%
+stage_in             prefetch                   0.7875             0.9%
+cache_size           write_policy               0.7875             0.9%
+stage_in             cache_size                 0.5225             0.6%
+write_policy         prefetch                   0.5225             0.6%
+
+=== Summary Statistics: io_throughput ===
+
+burst_buffer:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4    29.0000     8.1547    21.4700    36.8400
+  on                  4    57.2275     7.9132    49.4700    65.2500
+
+stage_in:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  async               4    39.0325    20.4352    21.4700    62.7200
+  sync                4    47.1950    14.0817    35.2200    65.2500
+
+cache_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  512                 4    46.4150    20.9706    22.4700    65.2500
+  64                  4    39.8125    13.8377    21.4700    51.4700
+
+write_policy:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  write_back          4    40.1650    21.7537    21.4700    65.2500
+  write_through       4    46.0625    12.8023    35.2200    62.7200
+
+prefetch:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4    39.6575    13.5514    22.4700    51.4700
+  on                  4    46.5700    21.0907    21.4700    65.2500
+
+=== Main Effects: stage_time ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+stage_in               -42.1750       9.8030            45.7%
+burst_buffer           -18.0250       9.8030            19.5%
+prefetch               -15.0750       9.8030            16.3%
+write_policy            -8.8750       9.8030             9.6%
+cache_size               8.1250       9.8030             8.8%
+
+=== Interaction Effects: stage_time ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+burst_buffer         write_policy              42.1750            28.3%
+stage_in             write_policy              18.0250            12.1%
+cache_size           prefetch                  18.0250            12.1%
+burst_buffer         cache_size                15.0750            10.1%
+stage_in             prefetch                  13.3250             8.9%
+cache_size           write_policy              13.3250             8.9%
+burst_buffer         stage_in                   8.8750             5.9%
+burst_buffer         prefetch                  -8.1250             5.4%
+stage_in             cache_size                 6.1250             4.1%
+write_policy         prefetch                   6.1250             4.1%
+
+=== Summary Statistics: stage_time ===
+
+burst_buffer:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4    71.3750    31.7947    39.6000   110.1000
+  on                  4    53.3500    23.7975    28.7000    85.2000
+
+stage_in:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  async               4    83.4500    22.6139    54.8000   110.1000
+  sync                4    41.2750     9.8293    28.7000    52.1000
+
+cache_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  512                 4    58.3000    36.1540    28.7000   110.1000
+  64                  4    66.4250    21.0405    44.7000    85.2000
+
+write_policy:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  write_back          4    66.8000    36.9708    28.7000   110.1000
+  write_through       4    57.9250    19.3514    39.6000    85.2000
+
+prefetch:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4    69.9000    33.6812    39.6000   110.1000
+  on                  4    54.8250    22.5367    28.7000    83.7000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: io_throughput ===
+Direction: maximize
+
+Best observed run: #4
+  burst_buffer = off
+  stage_in = sync
+  cache_size = 512
+  write_policy = write_through
+  prefetch = off
+  Value: 65.25
+
+RSM Model (linear, R² = 0.57):
+  Coefficients:
+    intercept:  +43.1137
+    burst_buffer:  +6.6063
+    stage_in:  +7.3638
+    cache_size:  +6.6138
+    write_policy:  -0.0112
+    prefetch:  -0.2388
+  Predicted optimum:
+    burst_buffer = on
+    stage_in = sync
+    cache_size = 512
+    write_policy = write_back
+    prefetch = on
+    Predicted value: 63.4700
+
+Factor importance:
+  1. stage_in  (effect: 14.7, contribution: 35.3%)
+  2. cache_size  (effect: -13.2, contribution: 31.7%)
+  3. burst_buffer  (effect: 13.2, contribution: 31.7%)
+  4. prefetch  (effect: -0.5, contribution: 1.1%)
+  5. write_policy  (effect: -0.0, contribution: 0.1%)
+
+=== Optimization: stage_time ===
+Direction: maximize
+
+Best observed run: #8
+  burst_buffer = off
+  stage_in = sync
+  cache_size = 64
+  write_policy = write_through
+  prefetch = on
+  Value: 110.1
+
+RSM Model (linear, R² = 0.35):
+  Coefficients:
+    intercept:  +62.3625
+    burst_buffer:  -6.2875
+    stage_in:  -2.7875
+    cache_size:  +0.7375
+    write_policy:  +3.5375
+    prefetch:  +13.1875
+  Predicted optimum:
+    burst_buffer = off
+    stage_in = sync
+    cache_size = 64
+    write_policy = write_through
+    prefetch = on
+    Predicted value: 81.8500
+
+Factor importance:
+  1. prefetch  (effect: 26.4, contribution: 49.7%)
+  2. burst_buffer  (effect: -12.6, contribution: 23.7%)
+  3. write_policy  (effect: 7.1, contribution: 13.3%)
+  4. stage_in  (effect: -5.6, contribution: 10.5%)
+  5. cache_size  (effect: -1.5, contribution: 2.8%)</div></div>
+  </section>
+
+  <div class="chapter-nav">
+    <a href="15-distributed-training.html">&larr; Distributed Deep Learning</a>
+    <a href="17-cpu-cross-numa-bandwidth.html">CPU Cross-NUMA Bandwidth &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <span>doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

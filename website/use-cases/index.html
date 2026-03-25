@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Use Cases — DOE Helper Tool</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    /* ── Search + Filters ── */
+    .uc-toolbar {
+      max-width: 1000px; margin: 0 auto; padding: 0 24px;
+    }
+    .uc-search {
+      width: 100%; padding: 10px 16px 10px 40px;
+      border: 1px solid var(--border); border-radius: 8px;
+      font: 400 .88rem var(--sans); color: var(--ink);
+      background: var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23999' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='7' cy='7' r='5'/%3E%3Cline x1='11' y1='11' x2='15' y2='15'/%3E%3C/svg%3E") 14px center no-repeat;
+      transition: border-color .15s;
+    }
+    .uc-search:focus { outline: none; border-color: var(--accent); }
+    .uc-search::placeholder { color: var(--faint); }
+
+    .uc-filters {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px;
+    }
+    .uc-filter-group {
+      display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+    }
+    .uc-filter-label {
+      font: 600 .6rem var(--mono); text-transform: uppercase;
+      letter-spacing: .08em; color: var(--faint); margin-right: 2px;
+    }
+    .uc-pill {
+      padding: 4px 12px; border-radius: 20px; font: 500 .72rem var(--sans);
+      border: 1px solid var(--border); background: var(--white); color: var(--muted);
+      cursor: pointer; transition: all .15s; user-select: none;
+    }
+    .uc-pill:hover { border-color: #bbb; color: var(--fg); }
+    .uc-pill.active { background: var(--ink); color: var(--white); border-color: var(--ink); }
+    .uc-pill[data-cat="general"].active { background: var(--accent); border-color: var(--accent); }
+    .uc-pill[data-cat="hpc"].active { background: var(--teal); border-color: var(--teal); }
+    .uc-pill[data-cat="supercomputing"].active { background: #7c3aed; border-color: #7c3aed; }
+    .uc-pill[data-cat="cloud"].active { background: #d97706; border-color: #d97706; }
+    .uc-pill[data-cat="data"].active { background: #059669; border-color: #059669; }
+    .uc-pill[data-cat="networking"].active { background: #2563eb; border-color: #2563eb; }
+
+    .uc-divider {
+      width: 1px; height: 18px; background: var(--border); margin: 0 6px;
+    }
+
+    /* ── Grid ── */
+    .uc-grid {
+      max-width: 1000px; margin: 28px auto 0; padding: 0 24px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px;
+    }
+
+    .uc-card {
+      display: flex; flex-direction: column;
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 18px 20px; text-decoration: none; color: inherit;
+      transition: border-color .15s, box-shadow .15s, transform .12s;
+      background: var(--white); position: relative; overflow: hidden;
+    }
+    .uc-card:hover {
+      border-color: #ccc; box-shadow: 0 4px 20px rgba(0,0,0,.06);
+      transform: translateY(-2px);
+    }
+    .uc-card.hidden { display: none; }
+
+    .uc-card-header {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 10px;
+    }
+    .uc-card-num {
+      font: 700 .6rem var(--mono); width: 24px; height: 24px;
+      border-radius: 6px; display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; color: #fff;
+    }
+    .uc-card-num.cat-general { background: var(--accent); }
+    .uc-card-num.cat-hpc { background: var(--teal); }
+    .uc-card-num.cat-supercomputing { background: #7c3aed; }
+    .uc-card-num.cat-cloud { background: #d97706; }
+    .uc-card-num.cat-data { background: #059669; }
+    .uc-card-num.cat-networking { background: #2563eb; }
+
+    .uc-card-title {
+      font-size: .9rem; font-weight: 600; color: var(--ink); line-height: 1.3;
+    }
+
+    .uc-card-desc {
+      font-size: .8rem; color: var(--muted); line-height: 1.5; flex: 1;
+      margin-bottom: 12px;
+    }
+
+    .uc-card-footer {
+      display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+    }
+    .uc-tag {
+      font: 500 .62rem var(--mono); padding: 2px 8px; border-radius: 4px;
+      letter-spacing: .02em;
+    }
+    .uc-tag-design { background: var(--accent-light); color: var(--accent); }
+    .uc-tag-factors { background: var(--bg); color: var(--faint); }
+
+    /* ── Category section headers inside grid ── */
+    .uc-section-header {
+      grid-column: 1 / -1;
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0 2px; margin-top: 8px;
+    }
+    .uc-section-header:first-child { margin-top: 0; }
+    .uc-section-dot {
+      width: 8px; height: 8px; border-radius: 3px;
+    }
+    .uc-section-dot.cat-general { background: var(--accent); }
+    .uc-section-dot.cat-hpc { background: var(--teal); }
+    .uc-section-dot.cat-supercomputing { background: #7c3aed; }
+    .uc-section-dot.cat-cloud { background: #d97706; }
+    .uc-section-dot.cat-data { background: #059669; }
+    .uc-section-dot.cat-networking { background: #2563eb; }
+    .uc-section-label {
+      font: 600 .65rem var(--mono); text-transform: uppercase;
+      letter-spacing: .1em; color: var(--faint);
+    }
+    .uc-section-line {
+      flex: 1; height: 1px; background: var(--border);
+    }
+    .uc-section-count {
+      font: 500 .62rem var(--mono); color: var(--faint);
+      background: var(--bg); padding: 2px 8px; border-radius: 10px;
+    }
+
+    /* ── Empty state ── */
+    .uc-empty {
+      grid-column: 1 / -1; text-align: center; padding: 48px 24px;
+      color: var(--faint); font-size: .88rem; display: none;
+    }
+    .uc-empty.visible { display: block; }
+
+    /* ── Stats bar ── */
+    .uc-stats {
+      max-width: 1000px; margin: 18px auto 0; padding: 0 24px;
+      font: 500 .7rem var(--mono); color: var(--faint);
+      display: flex; gap: 16px;
+    }
+
+    @media (max-width: 600px) {
+      .uc-grid { grid-template-columns: 1fr; }
+      .uc-divider { display: none; }
+      .uc-filters { gap: 4px; }
+    }
+  </style>
+</head>
+<body>
+
+<img src="../logo-light.svg" alt="" class="bg-logo-light">
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><span class="dot"></span> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html" class="active">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<section class="howto-hero" style="padding-bottom:32px;">
+  <h1>Use Cases</h1>
+  <p>56 runnable examples with configs, simulators, analysis, and charts.</p>
+</section>
+
+<div class="uc-toolbar">
+  <input type="text" class="uc-search" placeholder="Search use cases..." id="uc-search" autocomplete="off">
+  <div class="uc-filters">
+    <span class="uc-filter-label">Domain</span>
+    <button class="uc-pill active" data-cat="all">All</button>
+    <button class="uc-pill" data-cat="general">General</button>
+    <button class="uc-pill" data-cat="hpc">HPC</button>
+    <button class="uc-pill" data-cat="supercomputing">Supercomputing</button>
+    <button class="uc-pill" data-cat="cloud">Cloud</button>
+    <button class="uc-pill" data-cat="data">Data Eng</button>
+    <button class="uc-pill" data-cat="networking">Networking</button>
+    <span class="uc-divider"></span>
+    <span class="uc-filter-label">Design</span>
+    <button class="uc-pill" data-design="all">All</button>
+    <button class="uc-pill" data-design="full-factorial">Full Factorial</button>
+    <button class="uc-pill" data-design="fractional-factorial">Fractional Factorial</button>
+    <button class="uc-pill" data-design="box-behnken">Box-Behnken</button>
+    <button class="uc-pill" data-design="central-composite">Central Composite</button>
+    <button class="uc-pill" data-design="plackett-burman">Plackett-Burman</button>
+    <button class="uc-pill" data-design="latin-hypercube">Latin Hypercube</button>
+  </div>
+</div>
+
+<div class="uc-stats" id="uc-stats">
+  <span id="uc-showing">Showing 56 of 56</span>
+</div>
+
+<div class="uc-grid" id="uc-grid">
+
+  <!-- ═══ General ═══ -->
+  <div class="uc-section-header" data-cat="general">
+    <span class="uc-section-dot cat-general"></span>
+    <span class="uc-section-label">General</span>
+    <span class="uc-section-line"></span>
+    <span class="uc-section-count" data-count-cat="general">6 use cases</span>
+  </div>
+
+  <a href="01-reactor-optimization.html" class="uc-card" data-cat="general" data-design="box-behnken"
+     data-search="chemical reactor box-behnken multi-response optimization">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-general">01</span>
+      <span class="uc-card-title">Chemical Reactor</span>
+    </div>
+    <div class="uc-card-desc">Multi-response optimization of temperature, pressure, and catalyst loading for yield and selectivity.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Box-Behnken</span>
+      <span class="uc-tag uc-tag-factors">3 factors</span>
+      <span class="uc-tag uc-tag-factors">15 runs</span>
+    </div>
+  </a>
+
+  <a href="02-webapp-ab-testing.html" class="uc-card" data-cat="general" data-design="full-factorial"
+     data-search="web app ab testing full factorial categorical factors">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-general">02</span>
+      <span class="uc-card-title">Web App A/B Testing</span>
+    </div>
+    <div class="uc-card-desc">Full factorial with categorical factors to optimize conversion rate and session duration.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Full Factorial</span>
+      <span class="uc-tag uc-tag-factors">3 factors</span>
+      <span class="uc-tag uc-tag-factors">12 runs</span>
+    </div>
+  </a>
+
+  <a href="03-ml-hyperparameters.html" class="uc-card" data-cat="general" data-design="fractional-factorial"
+     data-search="ml hyperparameter screening fractional factorial machine learning">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-general">03</span>
+      <span class="uc-card-title">ML Hyperparameters</span>
+    </div>
+    <div class="uc-card-desc">Fractional factorial screening of 5 hyperparameters with 50% run reduction for model tuning.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Fractional Factorial</span>
+      <span class="uc-tag uc-tag-factors">5 factors</span>
+      <span class="uc-tag uc-tag-factors">16 runs</span>
+    </div>
+  </a>
+
+  <a href="04-database-tuning.html" class="uc-card" data-cat="general" data-design="plackett-burman"
+     data-search="database tuning plackett-burman replicate blocking postgresql">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-general">04</span>
+      <span class="uc-card-title">Database Tuning</span>
+    </div>
+    <div class="uc-card-desc">Plackett-Burman screening of 6 database config knobs with replicate blocking for throughput.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Plackett-Burman</span>
+      <span class="uc-tag uc-tag-factors">6 factors</span>
+      <span class="uc-tag uc-tag-factors">16 runs</span>
+    </div>
+  </a>
+
+  <a href="05-material-formulation.html" class="uc-card" data-cat="general" data-design="latin-hypercube"
+     data-search="material formulation latin hypercube space-filling sampling">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-general">05</span>
+      <span class="uc-card-title">Material Formulation</span>
+    </div>
+    <div class="uc-card-desc">Latin Hypercube space-filling design for exploring 4-factor material composition space.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Latin Hypercube</span>
+      <span class="uc-tag uc-tag-factors">4 factors</span>
+      <span class="uc-tag uc-tag-factors">20 runs</span>
+    </div>
+  </a>
+
+  <a href="06-distillation-column.html" class="uc-card" data-cat="general" data-design="central-composite"
+     data-search="distillation column central composite full pipeline demo">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-general">06</span>
+      <span class="uc-card-title">Distillation Column</span>
+    </div>
+    <div class="uc-card-desc">Full pipeline demo with Central Composite design — from config to RSM contour plots.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Central Composite</span>
+      <span class="uc-tag uc-tag-factors">3 factors</span>
+      <span class="uc-tag uc-tag-factors">22 runs</span>
+    </div>
+  </a>
+
+  <!-- ═══ HPC Benchmarking ═══ -->
+  <div class="uc-section-header" data-cat="hpc">
+    <span class="uc-section-dot cat-hpc"></span>
+    <span class="uc-section-label">HPC Benchmarking</span>
+    <span class="uc-section-line"></span>
+    <span class="uc-section-count" data-count-cat="hpc">10 use cases</span>
+  </div>
+
+  <a href="07-mpi-collective-tuning.html" class="uc-card" data-cat="hpc" data-design="plackett-burman"
+     data-search="mpi collective tuning allreduce latency bandwidth plackett-burman">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-hpc">07</span>
+      <span class="uc-card-title">MPI Collective Tuning</span>
+    </div>
+    <div class="uc-card-desc">Screen 6 MPI tuning knobs for allreduce latency and bandwidth with Plackett-Burman.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Plackett-Burman</span>
+      <span class="uc-tag uc-tag-factors">6 factors</span>
+      <span class="uc-tag uc-tag-factors">16 runs</span>
+    </div>
+  </a>
+
+  <a href="08-gpu-kernel-optimization.html" class="uc-card" data-cat="hpc" data-design="full-factorial"
+     data-search="gpu kernel optimization gflops occupancy full factorial cuda">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-hpc">08</span>
+      <span class="uc-card-title">GPU Kernel Optimization</span>
+    </div>
+    <div class="uc-card-desc">Full factorial exploration of block size, grid, and shared memory for GFLOPS and occupancy.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Full Factorial</span>
+      <span class="uc-tag uc-tag-factors">4 factors</span>
+      <span class="uc-tag uc-tag-factors">16 runs</span>
+    </div>
+  </a>
+
+  <a href="09-parallel-io-tuning.html" class="uc-card" data-cat="hpc" data-design="fractional-factorial"
+     data-search="parallel io tuning lustre write read bandwidth fractional factorial">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-hpc">09</span>
+      <span class="uc-card-title">Parallel I/O Tuning</span>
+    </div>
+    <div class="uc-card-desc">Fractional factorial of 5 Lustre filesystem parameters for write and read bandwidth.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Fractional Factorial</span>
+      <span class="uc-tag uc-tag-factors">5 factors</span>
+      <span class="uc-tag uc-tag-factors">16 runs</span>
+    </div>
+  </a>
+
+  <a href="10-numa-memory-placement.html" class="uc-card" data-cat="hpc" data-design="full-factorial"
+     data-search="numa memory placement stream triad latency full factorial">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-hpc">10</span>
+      <span class="uc-card-title">NUMA Memory Placement</span>
+    </div>
+    <div class="uc-card-desc">Full factorial of NUMA binding policies for STREAM triad bandwidth and memory latency.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Full Factorial</span>
+      <span class="uc-tag uc-tag-factors">3 factors</span>
+      <span class="uc-tag uc-tag-factors">8 runs</span>
+    </div>
+  </a>
+
+  <a href="11-infiniband-network.html" class="uc-card" data-cat="hpc" data-design="box-behnken"
+     data-search="infiniband network message rate tail latency box-behnken">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-hpc">11</span>
+      <span class="uc-card-title">InfiniBand Network</span>
+    </div>
+    <div class="uc-card-desc">Box-Behnken design for IB transport parameters targeting message rate and tail latency.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Box-Behnken</span>
+      <span class="uc-tag uc-tag-factors">3 factors</span>
+      <span class="uc-tag uc-tag-factors">15 runs</span>
+    </div>
+  </a>
+
+  <a href="12-job-scheduler-packing.html" class="uc-card" data-cat="hpc" data-design="central-composite"
+     data-search="job scheduler packing throughput efficiency central composite slurm">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-hpc">12</span>
+      <span class="uc-card-title">Job Scheduler Packing</span>
+    </div>
+    <div class="uc-card-desc">Central Composite design to optimize scheduler packing for throughput and utilization.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Central Composite</span>
+      <span class="uc-tag uc-tag-factors">3 factors</span>
+      <span class="uc-tag uc-tag-factors">20 runs</span>
+    </div>
+  </a>
+
+  <a href="13-compiler-flags.html" class="uc-card" data-cat="hpc" data-design="plackett-burman"
+     data-search="compiler flags gcc plackett-burman screening optimization">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-hpc">13</span>
+      <span class="uc-card-title">Compiler Flags</span>
+    </div>
+    <div class="uc-card-desc">Screen 7 GCC compiler flags in only 8 runs using Plackett-Burman screening design.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Plackett-Burman</span>
+      <span class="uc-tag uc-tag-factors">7 factors</span>
+      <span class="uc-tag uc-tag-factors">8 runs</span>
+    </div>
+  </a>
+
+  <a href="14-cache-blocking.html" class="uc-card" data-cat="hpc" data-design="latin-hypercube"
+     data-search="cache blocking strategy dgemm tile sizes latin hypercube">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-hpc">14</span>
+      <span class="uc-card-title">Cache Blocking Strategy</span>
+    </div>
+    <div class="uc-card-desc">Latin Hypercube exploration of DGEMM tile sizes across L1/L2/L3 cache hierarchies.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Latin Hypercube</span>
+      <span class="uc-tag uc-tag-factors">4 factors</span>
+      <span class="uc-tag uc-tag-factors">25 runs</span>
+    </div>
+  </a>
+
+  <a href="15-distributed-training.html" class="uc-card" data-cat="hpc" data-design="box-behnken"
+     data-search="distributed training gpu scaling efficiency box-behnken deep learning">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-hpc">15</span>
+      <span class="uc-card-title">Distributed Training</span>
+    </div>
+    <div class="uc-card-desc">Box-Behnken design for GPU scaling parameters — batch size, gradient compression, overlap.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Box-Behnken</span>
+      <span class="uc-tag uc-tag-factors">3 factors</span>
+      <span class="uc-tag uc-tag-factors">15 runs</span>
+    </div>
+  </a>
+
+  <a href="16-storage-tiering.html" class="uc-card" data-cat="hpc" data-design="fractional-factorial"
+     data-search="storage tiering burst buffer staging fractional factorial">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-hpc">16</span>
+      <span class="uc-card-title">Storage Tiering</span>
+    </div>
+    <div class="uc-card-desc">Fractional factorial of burst buffer and data staging parameters for I/O throughput.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Fractional Factorial</span>
+      <span class="uc-tag uc-tag-factors">5 factors</span>
+      <span class="uc-tag uc-tag-factors">16 runs</span>
+    </div>
+  </a>
+
+  <!-- ═══ Supercomputing Performance Engineering ═══ -->
+  <div class="uc-section-header" data-cat="supercomputing">
+    <span class="uc-section-dot cat-supercomputing"></span>
+    <span class="uc-section-label">Supercomputing Performance Engineering</span>
+    <span class="uc-section-line"></span>
+    <span class="uc-section-count" data-count-cat="supercomputing">10 use cases</span>
+  </div>
+
+  <a href="17-cpu-cross-numa-bandwidth.html" class="uc-card" data-cat="supercomputing" data-design="full-factorial"
+     data-search="cpu cross-numa bandwidth latency full factorial">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-supercomputing">17</span>
+      <span class="uc-card-title">CPU Cross-NUMA Bandwidth</span>
+    </div>
+    <div class="uc-card-desc">Full factorial of CPU-to-CPU cross-NUMA data movement parameters for bandwidth and latency.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Full Factorial</span>
+      <span class="uc-tag uc-tag-factors">4 factors</span>
+      <span class="uc-tag uc-tag-factors">24 runs</span>
+    </div>
+  </a>
+
+  <a href="18-interconnect-topology-routing.html" class="uc-card" data-cat="supercomputing" data-design="plackett-burman"
+     data-search="interconnect topology routing dragonfly adaptive plackett-burman">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-supercomputing">18</span>
+      <span class="uc-card-title">Interconnect Topology &amp; Routing</span>
+    </div>
+    <div class="uc-card-desc">Plackett-Burman screening of dragonfly adaptive routing parameters across 5 factors.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Plackett-Burman</span>
+      <span class="uc-tag uc-tag-factors">5 factors</span>
+      <span class="uc-tag uc-tag-factors">12 runs</span>
+    </div>
+  </a>
+
+  <a href="19-checkpoint-restart.html" class="uc-card" data-cat="supercomputing" data-design="box-behnken"
+     data-search="checkpoint restart io burst buffer throughput disruption box-behnken">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-supercomputing">19</span>
+      <span class="uc-card-title">Checkpoint/Restart I/O</span>
+    </div>
+    <div class="uc-card-desc">Box-Behnken design for burst buffer checkpoint throughput and application disruption.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Box-Behnken</span>
+      <span class="uc-tag uc-tag-factors">3 factors</span>
+      <span class="uc-tag uc-tag-factors">15 runs</span>
+    </div>
+  </a>
+
+  <a href="20-power-performance-tradeoff.html" class="uc-card" data-cat="supercomputing" data-design="central-composite"
+     data-search="power capping performance gflops efficiency pareto central composite">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-supercomputing">20</span>
+      <span class="uc-card-title">Power Capping &amp; Performance</span>
+    </div>
+    <div class="uc-card-desc">Central Composite design exploring GFLOPS and energy efficiency Pareto trade-offs.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Central Composite</span>
+      <span class="uc-tag uc-tag-factors">3 factors</span>
+      <span class="uc-tag uc-tag-factors">20 runs</span>
+    </div>
+  </a>
+
+  <a href="21-vectorization-simd-tuning.html" class="uc-card" data-cat="supercomputing" data-design="full-factorial"
+     data-search="simd vectorization tuning avx-512 stencil kernel full factorial">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-supercomputing">21</span>
+      <span class="uc-card-title">SIMD Vectorization Tuning</span>
+    </div>
+    <div class="uc-card-desc">Full factorial of AVX-512 stencil kernel optimization across 4 vectorization parameters.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Full Factorial</span>
+      <span class="uc-tag uc-tag-factors">4 factors</span>
+      <span class="uc-tag uc-tag-factors">16 runs</span>
+    </div>
+  </a>
+
+  <a href="22-prefetch-strategy.html" class="uc-card" data-cat="supercomputing" data-design="plackett-burman"
+     data-search="hardware software prefetch tuning cfd plackett-burman">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-supercomputing">22</span>
+      <span class="uc-card-title">Hardware &amp; Software Prefetch</span>
+    </div>
+    <div class="uc-card-desc">Plackett-Burman screening of 6 prefetch parameters tuned for a CFD solver workload.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Plackett-Burman</span>
+      <span class="uc-tag uc-tag-factors">6 factors</span>
+      <span class="uc-tag uc-tag-factors">12 runs</span>
+    </div>
+  </a>
+
+  <a href="23-parallel-filesystem-metadata.html" class="uc-card" data-cat="supercomputing" data-design="fractional-factorial"
+     data-search="parallel filesystem metadata lustre mds small-file fractional factorial">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-supercomputing">23</span>
+      <span class="uc-card-title">Parallel Filesystem Metadata</span>
+    </div>
+    <div class="uc-card-desc">Fractional factorial of Lustre MDS parameters for small-file metadata operation throughput.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Fractional Factorial</span>
+      <span class="uc-tag uc-tag-factors">5 factors</span>
+      <span class="uc-tag uc-tag-factors">16 runs</span>
+    </div>
+  </a>
+
+  <a href="24-gpu-comm-overlap.html" class="uc-card" data-cat="supercomputing" data-design="full-factorial"
+     data-search="gpu compute communication overlap cuda stream pipelining gdr full factorial">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-supercomputing">24</span>
+      <span class="uc-card-title">GPU Compute-Comm Overlap</span>
+    </div>
+    <div class="uc-card-desc">Full factorial of CUDA stream pipelining and GPUDirect RDMA for compute-comm overlap.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Full Factorial</span>
+      <span class="uc-tag uc-tag-factors">4 factors</span>
+      <span class="uc-tag uc-tag-factors">16 runs</span>
+    </div>
+  </a>
+
+  <a href="25-cpu-frequency-governor.html" class="uc-card" data-cat="supercomputing" data-design="full-factorial"
+     data-search="cpu frequency governor p-state energy-delay full factorial">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-supercomputing">25</span>
+      <span class="uc-card-title">CPU Frequency Governor</span>
+    </div>
+    <div class="uc-card-desc">Full factorial of P-state and governor settings for energy-delay product optimization.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Full Factorial</span>
+      <span class="uc-tag uc-tag-factors">3 factors</span>
+      <span class="uc-tag uc-tag-factors">8 runs</span>
+    </div>
+  </a>
+
+  <a href="26-memory-channel-interleaving.html" class="uc-card" data-cat="supercomputing" data-design="full-factorial"
+     data-search="memory channel interleaving snc ddr5 rank tuning full factorial">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-supercomputing">26</span>
+      <span class="uc-card-title">Memory Channel Interleaving</span>
+    </div>
+    <div class="uc-card-desc">Full factorial of SNC mode and DDR5 channel/rank interleaving for memory bandwidth.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Full Factorial</span>
+      <span class="uc-tag uc-tag-factors">4 factors</span>
+      <span class="uc-tag uc-tag-factors">16 runs</span>
+    </div>
+  </a>
+
+  <!-- ═══ Cloud & Microservices ═══ -->
+  <div class="uc-section-header" data-cat="cloud">
+    <span class="uc-section-dot cat-cloud"></span>
+    <span class="uc-section-label">Cloud &amp; Microservices</span>
+    <span class="uc-section-line"></span>
+    <span class="uc-section-count" data-count-cat="cloud">10 use cases</span>
+  </div>
+
+  <a href="27-kubernetes-pod-autoscaling.html" class="uc-card" data-cat="cloud" data-design="central-composite"
+     data-search="kubernetes pod autoscaling hpa cpu replicas latency central composite">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-cloud">27</span>
+      <span class="uc-card-title">Kubernetes Pod Autoscaling</span>
+    </div>
+    <div class="uc-card-desc">Central Composite design to optimize HPA target CPU, scale-up window, and replica bounds.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Central Composite</span>
+      <span class="uc-tag uc-tag-factors">3 factors</span>
+      <span class="uc-tag uc-tag-factors">22 runs</span>
+    </div>
+  </a>
+
+  <a href="28-microservice-circuit-breaker.html" class="uc-card" data-cat="cloud" data-design="box-behnken"
+     data-search="microservice circuit breaker timeout failure threshold error rate recovery">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-cloud">28</span>
+      <span class="uc-card-title">Microservice Circuit Breaker</span>
+    </div>
+    <div class="uc-card-desc">Box-Behnken design to tune circuit breaker thresholds for error rate and recovery time.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Box-Behnken</span>
+      <span class="uc-tag uc-tag-factors">3 factors</span>
+      <span class="uc-tag uc-tag-factors">15 runs</span>
+    </div>
+  </a>
+
+  <a href="29-cdn-cache-optimization.html" class="uc-card" data-cat="cloud" data-design="full-factorial"
+     data-search="cdn cache hit optimization ttl lru lfu prefetch full factorial">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-cloud">29</span>
+      <span class="uc-card-title">CDN Cache Hit Optimization</span>
+    </div>
+    <div class="uc-card-desc">Full factorial with categorical and continuous factors for cache hit ratio and origin bandwidth.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Full Factorial</span>
+      <span class="uc-tag uc-tag-factors">4 factors</span>
+      <span class="uc-tag uc-tag-factors">16 runs</span>
+    </div>
+  </a>
+
+  <a href="30-serverless-cold-start.html" class="uc-card" data-cat="cloud" data-design="plackett-burman"
+     data-search="serverless lambda cold start memory runtime vpc provisioned concurrency plackett-burman">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-cloud">30</span>
+      <span class="uc-card-title">Serverless Cold Start</span>
+    </div>
+    <div class="uc-card-desc">Plackett-Burman screening of 6 Lambda config knobs affecting cold start latency and cost.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Plackett-Burman</span>
+      <span class="uc-tag uc-tag-factors">6 factors</span>
+      <span class="uc-tag uc-tag-factors">8 runs</span>
+    </div>
+  </a>
+
+  <a href="31-database-connection-pooling.html" class="uc-card" data-cat="cloud" data-design="box-behnken"
+     data-search="database connection pool size idle timeout max lifetime throughput qps latency">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-cloud">31</span>
+      <span class="uc-card-title">Database Connection Pooling</span>
+    </div>
+    <div class="uc-card-desc">Box-Behnken design to optimize connection pool size, idle timeout, and max lifetime for throughput.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Box-Behnken</span>
+      <span class="uc-tag uc-tag-factors">3 factors</span>
+      <span class="uc-tag uc-tag-factors">15 runs</span>
+    </div>
+  </a>
+
+  <a href="32-load-balancer-algorithm.html" class="uc-card" data-cat="cloud" data-design="full-factorial"
+     data-search="load balancer algorithm round robin least connections ip hash health check availability">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-cloud">32</span>
+      <span class="uc-card-title">Load Balancer Algorithm</span>
+    </div>
+    <div class="uc-card-desc">Full factorial of balancing algorithm, health check interval, and connection draining.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Full Factorial</span>
+      <span class="uc-tag uc-tag-factors">3 factors</span>
+      <span class="uc-tag uc-tag-factors">12 runs</span>
+    </div>
+  </a>
+
+  <a href="33-api-rate-limiter.html" class="uc-card" data-cat="cloud" data-design="fractional-factorial"
+     data-search="api rate limiter token bucket sliding window throughput fairness fractional factorial">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-cloud">33</span>
+      <span class="uc-card-title">API Rate Limiter Tuning</span>
+    </div>
+    <div class="uc-card-desc">Fractional factorial of 5 rate limiting parameters for throughput and fairness.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Fractional Factorial</span>
+      <span class="uc-tag uc-tag-factors">5 factors</span>
+      <span class="uc-tag uc-tag-factors">8 runs</span>
+    </div>
+  </a>
+
+  <a href="34-container-resource-limits.html" class="uc-card" data-cat="cloud" data-design="central-composite"
+     data-search="container resource limits cpu memory request limit oom utilization kubernetes">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-cloud">34</span>
+      <span class="uc-card-title">Container Resource Limits</span>
+    </div>
+    <div class="uc-card-desc">Central Composite design optimizing CPU/memory requests and limits for utilization and stability.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Central Composite</span>
+      <span class="uc-tag uc-tag-factors">3 factors</span>
+      <span class="uc-tag uc-tag-factors">22 runs</span>
+    </div>
+  </a>
+
+  <a href="35-service-mesh-sidecar.html" class="uc-card" data-cat="cloud" data-design="plackett-burman"
+     data-search="service mesh sidecar envoy istio proxy latency overhead tracing plackett-burman">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-cloud">35</span>
+      <span class="uc-card-title">Service Mesh Sidecar</span>
+    </div>
+    <div class="uc-card-desc">Plackett-Burman screening of 6 Envoy sidecar parameters for latency overhead and resource usage.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Plackett-Burman</span>
+      <span class="uc-tag uc-tag-factors">6 factors</span>
+      <span class="uc-tag uc-tag-factors">8 runs</span>
+    </div>
+  </a>
+
+  <a href="36-message-queue-consumer.html" class="uc-card" data-cat="cloud" data-design="latin-hypercube"
+     data-search="message queue kafka consumer throughput lag fetch poll session latin hypercube">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-cloud">36</span>
+      <span class="uc-card-title">Message Queue Consumer</span>
+    </div>
+    <div class="uc-card-desc">Latin Hypercube exploration of 4 Kafka consumer parameters for throughput and lag.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Latin Hypercube</span>
+      <span class="uc-tag uc-tag-factors">4 factors</span>
+      <span class="uc-tag uc-tag-factors">10 runs</span>
+    </div>
+  </a>
+
+  <!-- ═══ Data Engineering & Analytics ═══ -->
+  <div class="uc-section-header" data-cat="data">
+    <span class="uc-section-dot cat-data"></span>
+    <span class="uc-section-label">Data Engineering &amp; Analytics</span>
+    <span class="uc-section-line"></span>
+    <span class="uc-section-count" data-count-cat="data">10 use cases</span>
+  </div>
+
+  <a href="37-spark-shuffle-optimization.html" class="uc-card" data-cat="data" data-design="full-factorial"
+     data-search="spark shuffle optimization partitions buffer compression job time spill">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-data">37</span>
+      <span class="uc-card-title">Spark Shuffle Optimization</span>
+    </div>
+    <div class="uc-card-desc">Full factorial to optimize Spark shuffle partitions, buffer size, and compression for job time.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Full Factorial</span>
+      <span class="uc-tag uc-tag-factors">3 factors</span>
+      <span class="uc-tag uc-tag-factors">8 runs</span>
+    </div>
+  </a>
+
+  <a href="38-data-lake-partitioning.html" class="uc-card" data-cat="data" data-design="full-factorial"
+     data-search="data lake partitioning parquet orc z-order compaction query speed storage cost">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-data">38</span>
+      <span class="uc-card-title">Data Lake Partitioning</span>
+    </div>
+    <div class="uc-card-desc">Full factorial of partitioning strategy, file format, and compaction for query speed and storage cost.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Full Factorial</span>
+      <span class="uc-tag uc-tag-factors">4 factors</span>
+      <span class="uc-tag uc-tag-factors">24 runs</span>
+    </div>
+  </a>
+
+  <a href="39-stream-processing-windowing.html" class="uc-card" data-cat="data" data-design="box-behnken"
+     data-search="stream processing flink window watermark parallelism latency accuracy">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-data">39</span>
+      <span class="uc-card-title">Stream Processing Windowing</span>
+    </div>
+    <div class="uc-card-desc">Box-Behnken design to tune Flink window size, watermark delay, and parallelism.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Box-Behnken</span>
+      <span class="uc-tag uc-tag-factors">3 factors</span>
+      <span class="uc-tag uc-tag-factors">15 runs</span>
+    </div>
+  </a>
+
+  <a href="40-etl-batch-size-tuning.html" class="uc-card" data-cat="data" data-design="fractional-factorial"
+     data-search="etl batch size tuning writer threads commit interval vectorized throughput memory">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-data">40</span>
+      <span class="uc-card-title">ETL Batch Size Tuning</span>
+    </div>
+    <div class="uc-card-desc">Fractional factorial of 5 ETL pipeline parameters for throughput and resource efficiency.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Fractional Factorial</span>
+      <span class="uc-tag uc-tag-factors">5 factors</span>
+      <span class="uc-tag uc-tag-factors">8 runs</span>
+    </div>
+  </a>
+
+  <a href="41-columnar-compression.html" class="uc-card" data-cat="data" data-design="full-factorial"
+     data-search="columnar compression parquet snappy zstd dictionary encoding page size row group">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-data">41</span>
+      <span class="uc-card-title">Columnar Compression</span>
+    </div>
+    <div class="uc-card-desc">Full factorial of compression codec, dictionary encoding, page size, and row group size.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Full Factorial</span>
+      <span class="uc-tag uc-tag-factors">4 factors</span>
+      <span class="uc-tag uc-tag-factors">16 runs</span>
+    </div>
+  </a>
+
+  <a href="42-query-engine-join-strategy.html" class="uc-card" data-cat="data" data-design="plackett-burman"
+     data-search="query engine join strategy hash sort merge broadcast adaptive spark sql">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-data">42</span>
+      <span class="uc-card-title">Query Engine Join Strategy</span>
+    </div>
+    <div class="uc-card-desc">Plackett-Burman screening of 6 query engine parameters for join performance and memory.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Plackett-Burman</span>
+      <span class="uc-tag uc-tag-factors">6 factors</span>
+      <span class="uc-tag uc-tag-factors">8 runs</span>
+    </div>
+  </a>
+
+  <a href="43-index-selection-optimization.html" class="uc-card" data-cat="data" data-design="box-behnken"
+     data-search="index selection optimization fill factor maintenance memory parallel workers build time query speedup">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-data">43</span>
+      <span class="uc-card-title">Index Selection Optimization</span>
+    </div>
+    <div class="uc-card-desc">Box-Behnken design optimizing index fill factor, memory, and parallel workers for throughput.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Box-Behnken</span>
+      <span class="uc-tag uc-tag-factors">3 factors</span>
+      <span class="uc-tag uc-tag-factors">15 runs</span>
+    </div>
+  </a>
+
+  <a href="44-data-replication-lag.html" class="uc-card" data-cat="data" data-design="fractional-factorial"
+     data-search="data replication lag mysql binlog parallel workers sync failover fractional factorial">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-data">44</span>
+      <span class="uc-card-title">Data Replication Lag</span>
+    </div>
+    <div class="uc-card-desc">Fractional factorial of 5 replication parameters for lag and failover readiness.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Fractional Factorial</span>
+      <span class="uc-tag uc-tag-factors">5 factors</span>
+      <span class="uc-tag uc-tag-factors">8 runs</span>
+    </div>
+  </a>
+
+  <a href="45-time-series-downsampling.html" class="uc-card" data-cat="data" data-design="central-composite"
+     data-search="time series downsampling retention aggregation timescaledb query storage">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-data">45</span>
+      <span class="uc-card-title">Time-Series Downsampling</span>
+    </div>
+    <div class="uc-card-desc">Central Composite design for downsampling interval, retention policy, and aggregation.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Central Composite</span>
+      <span class="uc-tag uc-tag-factors">3 factors</span>
+      <span class="uc-tag uc-tag-factors">22 runs</span>
+    </div>
+  </a>
+
+  <a href="46-feature-store-freshness.html" class="uc-card" data-cat="data" data-design="latin-hypercube"
+     data-search="feature store freshness materialization cache ttl serving latency ml latin hypercube">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-data">46</span>
+      <span class="uc-card-title">Feature Store Freshness</span>
+    </div>
+    <div class="uc-card-desc">Latin Hypercube of 4 feature store parameters for serving latency and feature freshness.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Latin Hypercube</span>
+      <span class="uc-tag uc-tag-factors">4 factors</span>
+      <span class="uc-tag uc-tag-factors">10 runs</span>
+    </div>
+  </a>
+
+  <!-- ═══ Networking & Protocol Tuning ═══ -->
+  <div class="uc-section-header" data-cat="networking">
+    <span class="uc-section-dot cat-networking"></span>
+    <span class="uc-section-label">Networking &amp; Protocol Tuning</span>
+    <span class="uc-section-line"></span>
+    <span class="uc-section-count" data-count-cat="networking">10 use cases</span>
+  </div>
+
+  <a href="47-tcp-congestion-control.html" class="uc-card" data-cat="networking" data-design="full-factorial"
+     data-search="tcp congestion control cubic bbr initial window ecn retransmit throughput">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-networking">47</span>
+      <span class="uc-card-title">TCP Congestion Control</span>
+    </div>
+    <div class="uc-card-desc">Full factorial of congestion algorithm, initial window, buffer sizes, and ECN for throughput.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Full Factorial</span>
+      <span class="uc-tag uc-tag-factors">4 factors</span>
+      <span class="uc-tag uc-tag-factors">16 runs</span>
+    </div>
+  </a>
+
+  <a href="48-tls-handshake-optimization.html" class="uc-card" data-cat="networking" data-design="box-behnken"
+     data-search="tls handshake session cache ticket ocsp stapling resumption latency">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-networking">48</span>
+      <span class="uc-card-title">TLS Handshake Optimization</span>
+    </div>
+    <div class="uc-card-desc">Box-Behnken design for TLS session cache, ticket timeout, and OCSP stapling workers.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Box-Behnken</span>
+      <span class="uc-tag uc-tag-factors">3 factors</span>
+      <span class="uc-tag uc-tag-factors">15 runs</span>
+    </div>
+  </a>
+
+  <a href="49-firewall-rule-ordering.html" class="uc-card" data-cat="networking" data-design="plackett-burman"
+     data-search="firewall rule ordering iptables nftables conntrack packet throughput latency">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-networking">49</span>
+      <span class="uc-card-title">Firewall Rule Ordering</span>
+    </div>
+    <div class="uc-card-desc">Plackett-Burman screening of 6 iptables/nftables parameters for packet processing throughput.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Plackett-Burman</span>
+      <span class="uc-tag uc-tag-factors">6 factors</span>
+      <span class="uc-tag uc-tag-factors">8 runs</span>
+    </div>
+  </a>
+
+  <a href="50-dns-resolver-caching.html" class="uc-card" data-cat="networking" data-design="central-composite"
+     data-search="dns resolver caching ttl prefetch unbound resolution time hit rate">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-networking">50</span>
+      <span class="uc-card-title">DNS Resolver Caching</span>
+    </div>
+    <div class="uc-card-desc">Central Composite design for DNS cache size, TTL override, and prefetch threshold.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Central Composite</span>
+      <span class="uc-tag uc-tag-factors">3 factors</span>
+      <span class="uc-tag uc-tag-factors">22 runs</span>
+    </div>
+  </a>
+
+  <a href="51-bgp-route-convergence.html" class="uc-card" data-cat="networking" data-design="fractional-factorial"
+     data-search="bgp route convergence keepalive hold time mrai dampening bfd stability">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-networking">51</span>
+      <span class="uc-card-title">BGP Route Convergence</span>
+    </div>
+    <div class="uc-card-desc">Fractional factorial of 5 BGP timer and dampening parameters for convergence speed.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Fractional Factorial</span>
+      <span class="uc-tag uc-tag-factors">5 factors</span>
+      <span class="uc-tag uc-tag-factors">8 runs</span>
+    </div>
+  </a>
+
+  <a href="52-vpn-tunnel-mtu.html" class="uc-card" data-cat="networking" data-design="box-behnken"
+     data-search="vpn tunnel mtu wireguard fragment keepalive throughput reconnect">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-networking">52</span>
+      <span class="uc-card-title">VPN Tunnel MTU</span>
+    </div>
+    <div class="uc-card-desc">Box-Behnken design for MTU, fragmentation, and keepalive to optimize throughput.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Box-Behnken</span>
+      <span class="uc-tag uc-tag-factors">3 factors</span>
+      <span class="uc-tag uc-tag-factors">15 runs</span>
+    </div>
+  </a>
+
+  <a href="53-ddos-mitigation-threshold.html" class="uc-card" data-cat="networking" data-design="plackett-burman"
+     data-search="ddos mitigation threshold syn flood rate limit connection challenge detection false positive">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-networking">53</span>
+      <span class="uc-card-title">DDoS Mitigation Threshold</span>
+    </div>
+    <div class="uc-card-desc">Plackett-Burman screening of 6 anti-DDoS parameters for detection accuracy and clean traffic.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Plackett-Burman</span>
+      <span class="uc-tag uc-tag-factors">6 factors</span>
+      <span class="uc-tag uc-tag-factors">8 runs</span>
+    </div>
+  </a>
+
+  <a href="54-http2-stream-multiplexing.html" class="uc-card" data-cat="networking" data-design="full-factorial"
+     data-search="http2 stream multiplexing concurrent window size header table priority page load ttfb">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-networking">54</span>
+      <span class="uc-card-title">HTTP/2 Stream Multiplexing</span>
+    </div>
+    <div class="uc-card-desc">Full factorial of max concurrent streams, window size, header table, and priority scheduling.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Full Factorial</span>
+      <span class="uc-tag uc-tag-factors">4 factors</span>
+      <span class="uc-tag uc-tag-factors">16 runs</span>
+    </div>
+  </a>
+
+  <a href="55-network-buffer-sizing.html" class="uc-card" data-cat="networking" data-design="latin-hypercube"
+     data-search="network buffer sizing napi txqueuelen tcp wmem backlog throughput softirq">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-networking">55</span>
+      <span class="uc-card-title">Network Buffer Sizing</span>
+    </div>
+    <div class="uc-card-desc">Latin Hypercube of 4 kernel network buffer parameters for throughput and CPU overhead.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Latin Hypercube</span>
+      <span class="uc-tag uc-tag-factors">4 factors</span>
+      <span class="uc-tag uc-tag-factors">10 runs</span>
+    </div>
+  </a>
+
+  <a href="56-wifi-channel-power.html" class="uc-card" data-cat="networking" data-design="fractional-factorial"
+     data-search="wifi channel power width beamforming mimo spatial streams throughput coverage">
+    <div class="uc-card-header">
+      <span class="uc-card-num cat-networking">56</span>
+      <span class="uc-card-title">WiFi Channel &amp; Power</span>
+    </div>
+    <div class="uc-card-desc">Fractional factorial of 5 WiFi AP parameters for throughput and coverage radius.</div>
+    <div class="uc-card-footer">
+      <span class="uc-tag uc-tag-design">Fractional Factorial</span>
+      <span class="uc-tag uc-tag-factors">5 factors</span>
+      <span class="uc-tag uc-tag-factors">8 runs</span>
+    </div>
+  </a>
+
+  <div class="uc-empty" id="uc-empty">No use cases match your filters.</div>
+</div>
+
+<div style="height:60px;"></div>
+
+<footer class="footer">
+  <span>doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span>
+</footer>
+
+<script src="../js/main.js"></script>
+<script>
+(function() {
+  const search = document.getElementById('uc-search');
+  const grid = document.getElementById('uc-grid');
+  const cards = Array.from(grid.querySelectorAll('.uc-card'));
+  const headers = Array.from(grid.querySelectorAll('.uc-section-header'));
+  const empty = document.getElementById('uc-empty');
+  const showing = document.getElementById('uc-showing');
+  const catPills = Array.from(document.querySelectorAll('.uc-pill[data-cat]'));
+  const designPills = Array.from(document.querySelectorAll('.uc-pill[data-design]'));
+
+  let activeCat = 'all';
+  let activeDesign = 'all';
+
+  function setActive(pills, value, attr) {
+    pills.forEach(p => {
+      p.classList.toggle('active', p.getAttribute(attr) === value);
+    });
+  }
+
+  function filter() {
+    const q = search.value.toLowerCase().trim();
+    let visible = 0;
+    const catCounts = { general: 0, hpc: 0, supercomputing: 0, cloud: 0, data: 0, networking: 0 };
+
+    cards.forEach(card => {
+      const cat = card.dataset.cat;
+      const design = card.dataset.design;
+      const text = (card.dataset.search + ' ' + card.textContent).toLowerCase();
+
+      const matchCat = activeCat === 'all' || cat === activeCat;
+      const matchDesign = activeDesign === 'all' || design === activeDesign;
+      const matchSearch = !q || text.includes(q);
+
+      const show = matchCat && matchDesign && matchSearch;
+      card.classList.toggle('hidden', !show);
+      if (show) {
+        visible++;
+        catCounts[cat]++;
+      }
+    });
+
+    // Show/hide section headers based on visible cards in that category
+    headers.forEach(h => {
+      const cat = h.dataset.cat;
+      const hasVisible = catCounts[cat] > 0;
+      h.classList.toggle('hidden', !hasVisible);
+      h.style.display = hasVisible ? '' : 'none';
+      const countEl = h.querySelector('.uc-section-count');
+      if (countEl) countEl.textContent = catCounts[cat] + ' use case' + (catCounts[cat] !== 1 ? 's' : '');
+    });
+
+    empty.classList.toggle('visible', visible === 0);
+    showing.textContent = 'Showing ' + visible + ' of ' + cards.length;
+  }
+
+  catPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      activeCat = pill.dataset.cat;
+      setActive(catPills, activeCat, 'data-cat');
+      filter();
+    });
+  });
+
+  designPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      activeDesign = pill.dataset.design;
+      setActive(designPills, activeDesign, 'data-design');
+      filter();
+    });
+  });
+
+  // Initialize design pills — "All" is active by default
+  setActive(designPills, 'all', 'data-design');
+
+  search.addEventListener('input', filter);
+
+  // Keyboard shortcut: / to focus search
+  document.addEventListener('keydown', e => {
+    if (e.key === '/' && document.activeElement !== search) {
+      e.preventDefault();
+      search.focus();
+    }
+  });
+})();
+</script>
+</body>
+</html>

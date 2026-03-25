@@ -1,0 +1,86 @@
+{
+    "metadata": {
+        "name": "Data Replication Lag",
+        "description": "Fractional factorial of 5 replication parameters for lag and failover readiness"
+    },
+    "factors": [
+        {
+            "name": "sync_mode",
+            "levels": [
+                "async",
+                "semi_sync"
+            ],
+            "type": "categorical",
+            "unit": "",
+            "description": "Replication sync mode"
+        },
+        {
+            "name": "binlog_batch_size",
+            "levels": [
+                "1",
+                "100"
+            ],
+            "type": "continuous",
+            "unit": "txns",
+            "description": "Binlog batch size"
+        },
+        {
+            "name": "parallel_workers",
+            "levels": [
+                "1",
+                "16"
+            ],
+            "type": "continuous",
+            "unit": "threads",
+            "description": "Replica applier workers"
+        },
+        {
+            "name": "network_buffer_kb",
+            "levels": [
+                "64",
+                "1024"
+            ],
+            "type": "continuous",
+            "unit": "KB",
+            "description": "Replication network buffer"
+        },
+        {
+            "name": "compression",
+            "levels": [
+                "off",
+                "on"
+            ],
+            "type": "categorical",
+            "unit": "",
+            "description": "Binlog compression"
+        }
+    ],
+    "fixed_factors": {
+        "engine": "mysql_8",
+        "gtid": "on"
+    },
+    "responses": [
+        {
+            "name": "replication_lag_ms",
+            "optimize": "minimize",
+            "unit": "ms",
+            "description": "Median replication lag"
+        },
+        {
+            "name": "failover_ready_pct",
+            "optimize": "maximize",
+            "unit": "%",
+            "description": "Percentage of time replica is within RPO"
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "use_cases/44_data_replication_lag/sim.sh",
+        "operation": "fractional_factorial",
+        "processed_directory": "use_cases/44_data_replication_lag/results/analysis",
+        "out_directory": "use_cases/44_data_replication_lag/results"
+    }
+}

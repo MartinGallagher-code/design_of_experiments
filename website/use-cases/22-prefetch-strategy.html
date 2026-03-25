@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hardware &amp; Software Prefetch Tuning &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .caption { font-size:.72rem; color:var(--faint); margin-bottom:4px; }
+  </style>
+</head>
+<body>
+
+<img src="../logo-light.svg" alt="" class="bg-logo-light">
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><span class="dot"></span> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<section class="uc-hero-detail" style="background:linear-gradient(135deg, #f59e0b11, #f59e0b08);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-badge" style="background:#f59e0b18;color:#f59e0b;">Plackett-Burman</div>
+    <h1>Hardware &amp; Software Prefetch Tuning</h1>
+    <p class="uc-subtitle">Identify critical prefetch parameters for memory-bound CFD workloads on modern HPC processors.</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Levels</th><th>Type</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td>hw_prefetcher</td><td>off / on</td><td>categorical</td><td>&mdash;</td></tr>
+            <tr><td>sw_prefetch_dist</td><td>64 &ndash; 512</td><td>continuous</td><td>bytes</td></tr>
+            <tr><td>l2_stream_detect</td><td>off / on</td><td>categorical</td><td>&mdash;</td></tr>
+            <tr><td>dcache_policy</td><td>write_back / write_through</td><td>categorical</td><td>&mdash;</td></tr>
+            <tr><td>prefetch_threads</td><td>0 &ndash; 2</td><td>continuous</td><td>&mdash;</td></tr>
+            <tr><td>tlb_prefetch</td><td>off / on</td><td>categorical</td><td>&mdash;</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> processor = Xeon 8490H, workload = CFD structured grid, grid_points = 256M, iterations = 100</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td>solver_time_sec</td><td style="color:var(--green);font-weight:600;">&#x2193; minimize</td><td>seconds</td></tr>
+            <tr><td>cache_miss_rate</td><td style="color:var(--green);font-weight:600;">&#x2193; minimize</td><td>%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Plackett-Burman Design produces <strong>16 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>Block</th><th><code>hw_prefetcher</code></th><th><code>sw_prefetch_dist</code></th><th><code>l2_stream_detect</code></th><th><code>dcache_policy</code></th><th><code>prefetch_threads</code></th><th><code>tlb_prefetch</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>1</td><td>on</td><td>512</td><td>on</td><td>write_back</td><td>0</td><td>off</td></tr>
+        <tr><td>2</td><td>1</td><td>off</td><td>64</td><td>on</td><td>write_through</td><td>0</td><td>off</td></tr>
+        <tr><td>3</td><td>1</td><td>off</td><td>512</td><td>off</td><td>write_through</td><td>0</td><td>on</td></tr>
+        <tr><td>4</td><td>1</td><td>on</td><td>512</td><td>on</td><td>write_through</td><td>2</td><td>on</td></tr>
+        <tr><td>5</td><td>1</td><td>off</td><td>512</td><td>off</td><td>write_back</td><td>2</td><td>off</td></tr>
+        <tr><td>6</td><td>1</td><td>on</td><td>64</td><td>off</td><td>write_through</td><td>2</td><td>off</td></tr>
+        <tr><td>7</td><td>1</td><td>off</td><td>64</td><td>on</td><td>write_back</td><td>2</td><td>on</td></tr>
+        <tr><td>8</td><td>1</td><td>on</td><td>64</td><td>off</td><td>write_back</td><td>0</td><td>on</td></tr>
+        <tr><td>9</td><td>2</td><td>on</td><td>512</td><td>on</td><td>write_back</td><td>0</td><td>off</td></tr>
+        <tr><td>10</td><td>2</td><td>on</td><td>512</td><td>on</td><td>write_through</td><td>2</td><td>on</td></tr>
+        <tr><td>11</td><td>2</td><td>off</td><td>512</td><td>off</td><td>write_back</td><td>2</td><td>off</td></tr>
+        <tr><td>12</td><td>2</td><td>off</td><td>64</td><td>on</td><td>write_back</td><td>2</td><td>on</td></tr>
+        <tr><td>13</td><td>2</td><td>off</td><td>64</td><td>on</td><td>write_through</td><td>0</td><td>off</td></tr>
+        <tr><td>14</td><td>2</td><td>off</td><td>512</td><td>off</td><td>write_through</td><td>0</td><td>on</td></tr>
+        <tr><td>15</td><td>2</td><td>on</td><td>64</td><td>off</td><td>write_through</td><td>2</td><td>off</td></tr>
+        <tr><td>16</td><td>2</td><td>on</td><td>64</td><td>off</td><td>write_back</td><td>0</td><td>on</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="uc-section">
+    <h2>How to Run</h2>
+    <div class="code-block"><div class="code-header"><span>terminal</span></div><div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/22_prefetch_strategy/config.json
+<span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/22_prefetch_strategy/config.json <span class="flag">--output</span> results/run.sh <span class="flag">--seed</span> 42
+<span class="prompt">$ </span>bash results/run.sh
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/22_prefetch_strategy/config.json
+<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/22_prefetch_strategy/config.json
+<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/22_prefetch_strategy/config.json <span class="flag">--output</span> report.html</div></div>
+  </section>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs.</p>
+
+    <h3>Response: solver_time_sec</h3>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/22_pareto_solver_time_sec.png" alt="Pareto chart for solver_time_sec">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/22_main_effects_solver_time_sec.png" alt="Main effects plot for solver_time_sec">
+      </div>
+    </div>
+
+    <h3>Response: cache_miss_rate</h3>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/22_pareto_cache_miss_rate.png" alt="Pareto chart for cache_miss_rate">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/22_main_effects_cache_miss_rate.png" alt="Main effects plot for cache_miss_rate">
+      </div>
+    </div>
+
+    <h3>Response Surface Plots</h3>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">solver_time: sw_prefetch_dist vs prefetch_threads</p>
+      <img src="../images/22_rsm_solver_time_sec_sw_prefetch_dist_vs_prefetch_threads.png" alt="RSM surface: solver_time: sw_prefetch_dist vs prefetch_threads" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cache_miss_rate: sw_prefetch_dist vs prefetch_threads</p>
+      <img src="../images/22_rsm_cache_miss_rate_sw_prefetch_dist_vs_prefetch_threads.png" alt="RSM surface: cache_miss_rate: sw_prefetch_dist vs prefetch_threads" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: solver_time_sec ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+sw_prefetch_dist        13.8375       4.4263            24.6%
+l2_stream_detect       -12.1125       4.4263            21.5%
+prefetch_threads        -9.2450       4.4263            16.4%
+hw_prefetcher           -8.4075       4.4263            14.9%
+tlb_prefetch            -7.6350       4.4263            13.6%
+dcache_policy           -5.0750       4.4263             9.0%
+
+=== Interaction Effects: solver_time_sec ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+hw_prefetcher        l2_stream_detect         -13.8375             9.5%
+dcache_policy        tlb_prefetch             -13.8375             9.5%
+hw_prefetcher        sw_prefetch_dist          12.1125             8.4%
+prefetch_threads     tlb_prefetch             -12.1125             8.4%
+hw_prefetcher        tlb_prefetch             -10.8100             7.5%
+sw_prefetch_dist     prefetch_threads          10.8100             7.5%
+l2_stream_detect     dcache_policy            -10.8100             7.5%
+hw_prefetcher        dcache_policy             -9.2450             6.4%
+l2_stream_detect     tlb_prefetch              -9.2450             6.4%
+sw_prefetch_dist     l2_stream_detect           8.4075             5.8%
+dcache_policy        prefetch_threads          -8.4075             5.8%
+sw_prefetch_dist     dcache_policy              7.6350             5.3%
+l2_stream_detect     prefetch_threads          -7.6350             5.3%
+hw_prefetcher        prefetch_threads          -5.0750             3.5%
+sw_prefetch_dist     tlb_prefetch               5.0750             3.5%
+
+=== Summary Statistics: solver_time_sec ===
+
+hw_prefetcher:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 8    88.7550    13.1396    69.7300   110.5000
+  on                  8    80.3475    21.4169    50.7300   109.7600
+
+sw_prefetch_dist:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  512                 8    77.6325    17.8757    50.7300   102.8700
+  64                  8    91.4700    15.5810    69.7300   110.5000
+
+l2_stream_detect:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 8    90.6075    12.8466    72.7600   109.7600
+  on                  8    78.4950    20.5634    50.7300   110.5000
+
+dcache_policy:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  write_back          8    87.0888    10.9197    72.7600   109.7600
+  write_through       8    82.0138    23.1898    50.7300   110.5000
+
+prefetch_threads:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   8    89.1737    16.2978    69.7300   110.5000
+  2                   8    79.9287    18.9014    50.7300   101.7600
+
+tlb_prefetch:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 8    88.3688    12.5660    69.7300   110.5000
+  on                  8    80.7338    21.9205    50.7300   109.7600
+
+=== Main Effects: cache_miss_rate ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+tlb_prefetch            -2.1975       0.7905            26.7%
+hw_prefetcher           -2.0825       0.7905            25.3%
+dcache_policy           -1.9475       0.7905            23.7%
+l2_stream_detect        -1.1025       0.7905            13.4%
+sw_prefetch_dist         0.4825       0.7905             5.9%
+prefetch_threads        -0.4125       0.7905             5.0%
+
+=== Interaction Effects: cache_miss_rate ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+hw_prefetcher        tlb_prefetch              -3.0675            12.0%
+sw_prefetch_dist     prefetch_threads           3.0675            12.0%
+l2_stream_detect     dcache_policy             -3.0675            12.0%
+sw_prefetch_dist     dcache_policy              2.1975             8.6%
+l2_stream_detect     prefetch_threads          -2.1975             8.6%
+sw_prefetch_dist     l2_stream_detect           2.0825             8.1%
+dcache_policy        prefetch_threads          -2.0825             8.1%
+hw_prefetcher        prefetch_threads          -1.9475             7.6%
+sw_prefetch_dist     tlb_prefetch               1.9475             7.6%
+hw_prefetcher        sw_prefetch_dist           1.1025             4.3%
+prefetch_threads     tlb_prefetch              -1.1025             4.3%
+hw_prefetcher        l2_stream_detect          -0.4825             1.9%
+dcache_policy        tlb_prefetch              -0.4825             1.9%
+hw_prefetcher        dcache_policy             -0.4125             1.6%
+l2_stream_detect     tlb_prefetch              -0.4125             1.6%
+
+=== Summary Statistics: cache_miss_rate ===
+
+hw_prefetcher:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 8     8.5125     2.2260     3.4600    10.5400
+  on                  8     6.4300     3.7405     1.6200    10.3200
+
+sw_prefetch_dist:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  512                 8     7.2300     3.3916     1.6200    10.3200
+  64                  8     7.7125     3.1287     2.2700    10.5400
+
+l2_stream_detect:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 8     8.0225     2.3541     2.2700     9.2700
+  on                  8     6.9200     3.8973     1.6200    10.5400
+
+dcache_policy:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  write_back          8     8.4450     2.6124     2.2700    10.5400
+  write_through       8     6.4975     3.5260     1.6200    10.5400
+
+prefetch_threads:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   8     7.6775     3.0921     2.2700    10.5400
+  2                   8     7.2650     3.4302     1.6200    10.5400
+
+tlb_prefetch:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 8     8.5700     2.2039     3.4600    10.5400
+  on                  8     6.3725     3.7159     1.6200    10.5400</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: solver_time_sec ===
+Direction: minimize
+
+Best observed run: #10
+  hw_prefetcher = off
+  sw_prefetch_dist = 512
+  l2_stream_detect = off
+  dcache_policy = write_through
+  prefetch_threads = 0
+  tlb_prefetch = on
+  Value: 50.73
+
+Factor importance:
+  1. dcache_policy  (effect: -12.0, contribution: 27.1%)
+  2. prefetch_threads  (effect: -11.0, contribution: 24.8%)
+  3. l2_stream_detect  (effect: -8.8, contribution: 19.8%)
+  4. sw_prefetch_dist  (effect: 8.3, contribution: 18.6%)
+  5. tlb_prefetch  (effect: -2.5, contribution: 5.6%)
+  6. hw_prefetcher  (effect: 1.8, contribution: 4.1%)
+
+=== Optimization: cache_miss_rate ===
+Direction: minimize
+
+Best observed run: #4
+  hw_prefetcher = on
+  sw_prefetch_dist = 512
+  l2_stream_detect = on
+  dcache_policy = write_through
+  prefetch_threads = 2
+  tlb_prefetch = on
+  Value: 1.62
+
+Factor importance:
+  1. dcache_policy  (effect: -2.5, contribution: 38.1%)
+  2. prefetch_threads  (effect: -1.9, contribution: 28.6%)
+  3. tlb_prefetch  (effect: -1.2, contribution: 19.1%)
+  4. sw_prefetch_dist  (effect: 0.7, contribution: 11.1%)
+  5. l2_stream_detect  (effect: 0.1, contribution: 2.0%)
+  6. hw_prefetcher  (effect: 0.1, contribution: 1.2%)</div></div>
+  </section>
+
+  <div class="chapter-nav">
+    <a href="21-vectorization-simd-tuning.html">&larr; SIMD Vectorization Tuning</a>
+    <a href="23-parallel-filesystem-metadata.html">Parallel FS Metadata &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <span>doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

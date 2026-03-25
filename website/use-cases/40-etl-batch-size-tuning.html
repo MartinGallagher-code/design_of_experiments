@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ETL Batch Size Tuning &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F4CA;</div>
+    <div class="uc-badge" style="background:rgba(5,150,105,.12);color:#059669;">Fractional Factorial Design</div>
+    <h1>ETL Batch Size Tuning</h1>
+    <p class="uc-subtitle">Fractional factorial of 5 ETL pipeline parameters for throughput and resource efficiency</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>batch_size</code></td><td>1000</td><td>100000</td><td>rows</td></tr>
+            <tr><td><code>writer_threads</code></td><td>1</td><td>16</td><td>threads</td></tr>
+            <tr><td><code>commit_interval</code></td><td>1000</td><td>50000</td><td>rows</td></tr>
+            <tr><td><code>transform_mode</code></td><td>row</td><td>vectorized</td><td></td></tr>
+            <tr><td><code>buffer_mb</code></td><td>64</td><td>512</td><td>MB</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> source = postgresql, sink = s3_parquet</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>rows_per_sec</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>rows/s</td></tr>
+            <tr><td><code>peak_memory_gb</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>GB</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/40_etl_batch_size_tuning/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;ETL Batch Size Tuning&quot;,
+    &quot;description&quot;: &quot;Fractional factorial of 5 ETL pipeline parameters for throughput and resource efficiency&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;batch_size&quot;,
+      &quot;levels&quot;: [
+        &quot;1000&quot;,
+        &quot;100000&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;rows&quot;
+    },
+    {
+      &quot;name&quot;: &quot;writer_threads&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;16&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;threads&quot;
+    },
+    {
+      &quot;name&quot;: &quot;commit_interval&quot;,
+      &quot;levels&quot;: [
+        &quot;1000&quot;,
+        &quot;50000&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;rows&quot;
+    },
+    {
+      &quot;name&quot;: &quot;transform_mode&quot;,
+      &quot;levels&quot;: [
+        &quot;row&quot;,
+        &quot;vectorized&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    },
+    {
+      &quot;name&quot;: &quot;buffer_mb&quot;,
+      &quot;levels&quot;: [
+        &quot;64&quot;,
+        &quot;512&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;MB&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;source&quot;: &quot;postgresql&quot;,
+    &quot;sink&quot;: &quot;s3_parquet&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;rows_per_sec&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;rows/s&quot;
+    },
+    {
+      &quot;name&quot;: &quot;peak_memory_gb&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;GB&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;fractional_factorial&quot;,
+    &quot;test_script&quot;: &quot;use_cases/40_etl_batch_size_tuning/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Fractional Factorial Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>batch_size</code></th><th><code>writer_threads</code></th><th><code>commit_interval</code></th><th><code>transform_mode</code></th><th><code>buffer_mb</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>1000</td><td>16</td><td>50000</td><td>row</td><td>64</td></tr>
+        <tr><td>2</td><td>100000</td><td>1</td><td>1000</td><td>row</td><td>64</td></tr>
+        <tr><td>3</td><td>100000</td><td>16</td><td>1000</td><td>vectorized</td><td>64</td></tr>
+        <tr><td>4</td><td>100000</td><td>16</td><td>50000</td><td>vectorized</td><td>512</td></tr>
+        <tr><td>5</td><td>1000</td><td>16</td><td>1000</td><td>row</td><td>512</td></tr>
+        <tr><td>6</td><td>100000</td><td>1</td><td>50000</td><td>row</td><td>512</td></tr>
+        <tr><td>7</td><td>1000</td><td>1</td><td>1000</td><td>vectorized</td><td>512</td></tr>
+        <tr><td>8</td><td>1000</td><td>1</td><td>50000</td><td>vectorized</td><td>64</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/40_etl_batch_size_tuning/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/40_etl_batch_size_tuning/config.json \
+    <span class="flag">--output</span> use_cases/40_etl_batch_size_tuning/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/40_etl_batch_size_tuning/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/40_etl_batch_size_tuning/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/40_etl_batch_size_tuning/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/40_etl_batch_size_tuning/config.json \
+    <span class="flag">--output</span> use_cases/40_etl_batch_size_tuning/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>fractional_factorial</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (4), <code>categorical</code> (1)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (rows_per_sec &#x2191;, peak_memory_gb &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>8</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: rows_per_sec</h3>
+    <p>Top factors: commit_interval (37.9%), transform_mode (36.1%), batch_size (13.7%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/40_pareto_rows_per_sec.png" alt="Pareto chart for rows_per_sec">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/40_main_effects_rows_per_sec.png" alt="Main effects plot for rows_per_sec">
+      </div>
+    </div>
+
+    <h3>Response: peak_memory_gb</h3>
+    <p>Top factors: batch_size (36.1%), transform_mode (20.3%), commit_interval (16.2%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/40_pareto_peak_memory_gb.png" alt="Pareto chart for peak_memory_gb">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/40_main_effects_peak_memory_gb.png" alt="Main effects plot for peak_memory_gb">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">peak memory gb batch size vs buffer mb</p>
+      <img src="../images/40_rsm_peak_memory_gb_batch_size_vs_buffer_mb.png" alt="RSM surface: peak memory gb batch size vs buffer mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">peak memory gb batch size vs commit interval</p>
+      <img src="../images/40_rsm_peak_memory_gb_batch_size_vs_commit_interval.png" alt="RSM surface: peak memory gb batch size vs commit interval" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">peak memory gb batch size vs writer threads</p>
+      <img src="../images/40_rsm_peak_memory_gb_batch_size_vs_writer_threads.png" alt="RSM surface: peak memory gb batch size vs writer threads" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">peak memory gb commit interval vs buffer mb</p>
+      <img src="../images/40_rsm_peak_memory_gb_commit_interval_vs_buffer_mb.png" alt="RSM surface: peak memory gb commit interval vs buffer mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">peak memory gb writer threads vs buffer mb</p>
+      <img src="../images/40_rsm_peak_memory_gb_writer_threads_vs_buffer_mb.png" alt="RSM surface: peak memory gb writer threads vs buffer mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">peak memory gb writer threads vs commit interval</p>
+      <img src="../images/40_rsm_peak_memory_gb_writer_threads_vs_commit_interval.png" alt="RSM surface: peak memory gb writer threads vs commit interval" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rows per sec batch size vs buffer mb</p>
+      <img src="../images/40_rsm_rows_per_sec_batch_size_vs_buffer_mb.png" alt="RSM surface: rows per sec batch size vs buffer mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rows per sec batch size vs commit interval</p>
+      <img src="../images/40_rsm_rows_per_sec_batch_size_vs_commit_interval.png" alt="RSM surface: rows per sec batch size vs commit interval" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rows per sec batch size vs writer threads</p>
+      <img src="../images/40_rsm_rows_per_sec_batch_size_vs_writer_threads.png" alt="RSM surface: rows per sec batch size vs writer threads" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rows per sec commit interval vs buffer mb</p>
+      <img src="../images/40_rsm_rows_per_sec_commit_interval_vs_buffer_mb.png" alt="RSM surface: rows per sec commit interval vs buffer mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rows per sec writer threads vs buffer mb</p>
+      <img src="../images/40_rsm_rows_per_sec_writer_threads_vs_buffer_mb.png" alt="RSM surface: rows per sec writer threads vs buffer mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rows per sec writer threads vs commit interval</p>
+      <img src="../images/40_rsm_rows_per_sec_writer_threads_vs_commit_interval.png" alt="RSM surface: rows per sec writer threads vs commit interval" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: rows_per_sec ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+commit_interval      -31571.5000   11805.0212            37.9%
+transform_mode       -30045.0000   11805.0212            36.1%
+batch_size           -11416.0000   11805.0212            13.7%
+writer_threads        6877.0000   11805.0212             8.3%
+buffer_mb             3411.5000   11805.0212             4.1%
+
+=== Interaction Effects: rows_per_sec ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+writer_threads       buffer_mb             -40976.5000            20.5%
+commit_interval      transform_mode         40976.5000            20.5%
+batch_size           buffer_mb              31571.5000            15.8%
+batch_size           writer_threads        -30045.0000            15.0%
+writer_threads       commit_interval       -11586.5000             5.8%
+transform_mode       buffer_mb              11586.5000             5.8%
+writer_threads       transform_mode        -11416.0000             5.7%
+commit_interval      buffer_mb              11416.0000             5.7%
+batch_size           transform_mode          6877.0000             3.4%
+batch_size           commit_interval        -3411.5000             1.7%
+
+=== Summary Statistics: rows_per_sec ===
+
+batch_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1000                4 48039.5000 40493.1626 17377.0000 106862.0000
+  100000              4 36623.5000 29576.6722 16021.0000 80394.0000
+
+writer_threads:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4 38893.0000 30092.8253 16021.0000 80394.0000
+  16                  4 45770.0000 40795.2477 22243.0000 106862.0000
+
+commit_interval:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1000                4 58117.2500 42618.5653 17377.0000 106862.0000
+  50000               4 26545.7500 10977.7326 16021.0000 41780.0000
+
+transform_mode:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  row                 4 57354.0000 43453.7178 16021.0000 106862.0000
+  vectorized          4 27309.0000 10551.4067 17377.0000 41780.0000
+
+buffer_mb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  512                 4 40625.7500 44238.2354 16021.0000 106862.0000
+  64                  4 44037.2500 25230.5126 26139.0000 80394.0000
+
+=== Main Effects: peak_memory_gb ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+batch_size              -2.1750       0.8102            36.1%
+transform_mode          -1.2250       0.8102            20.3%
+commit_interval         -0.9750       0.8102            16.2%
+writer_threads           0.8750       0.8102            14.5%
+buffer_mb                0.7750       0.8102            12.9%
+
+=== Interaction Effects: peak_memory_gb ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+writer_threads       buffer_mb                 -2.4750            14.6%
+commit_interval      transform_mode             2.4750            14.6%
+writer_threads       transform_mode            -2.1750            12.8%
+commit_interval      buffer_mb                  2.1750            12.8%
+writer_threads       commit_interval           -1.9250            11.3%
+transform_mode       buffer_mb                  1.9250            11.3%
+batch_size           writer_threads            -1.2250             7.2%
+batch_size           buffer_mb                  0.9750             5.7%
+batch_size           transform_mode             0.8750             5.1%
+batch_size           commit_interval           -0.7750             4.6%
+
+=== Summary Statistics: peak_memory_gb ===
+
+batch_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1000                4     3.6500     2.8172     0.5000     7.0000
+  100000              4     1.4750     1.0782     0.5000     2.8000
+
+writer_threads:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4     2.1250     2.0304     0.5000     4.7000
+  16                  4     3.0000     2.7604     0.7000     7.0000
+
+commit_interval:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1000                4     3.0500     2.7982     0.5000     7.0000
+  50000               4     2.0750     1.9466     0.5000     4.7000
+
+transform_mode:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  row                 4     3.1750     2.7403     0.5000     7.0000
+  vectorized          4     1.9500     1.9348     0.5000     4.7000
+
+buffer_mb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  512                 4     2.1750     3.2180     0.5000     7.0000
+  64                  4     2.9500     1.2234     1.9000     4.7000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: rows_per_sec ===
+Direction: maximize
+
+Best observed run: #4
+  batch_size = 1000
+  writer_threads = 1
+  commit_interval = 50000
+  transform_mode = vectorized
+  buffer_mb = 64
+  Value: 106862.0
+
+RSM Model (linear, R² = 0.7034, Adj R² = -0.0380):
+  Coefficients:
+    intercept                      +42331.5000
+    batch_size                     -4734.0000
+    writer_threads                 -15361.5000
+    commit_interval                +8322.7500
+    transform_mode                 -307.5000
+    buffer_mb                      -18932.7500
+
+  Predicted optimum (from linear model):
+    batch_size = 1000
+    writer_threads = 1
+    commit_interval = 50000
+    transform_mode = vectorized
+    buffer_mb = 64
+    Predicted value: 89375.0000
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. buffer_mb  (effect: 37865.5, contribution: 39.7%)
+  2. writer_threads  (effect: -30723.0, contribution: 32.2%)
+  3. commit_interval  (effect: 16645.5, contribution: 17.5%)
+  4. batch_size  (effect: -9468.0, contribution: 9.9%)
+  5. transform_mode  (effect: -615.0, contribution: 0.6%)
+
+=== Optimization: peak_memory_gb ===
+Direction: minimize
+
+Best observed run: #1
+  batch_size = 100000
+  writer_threads = 16
+  commit_interval = 1000
+  transform_mode = vectorized
+  buffer_mb = 64
+  Value: 0.5
+
+RSM Model (linear, R² = 0.9355, Adj R² = 0.7741):
+  Coefficients:
+    intercept                      +2.5625
+    batch_size                     -0.6625
+    writer_threads                 -0.6125
+    commit_interval                +1.4375
+    transform_mode                 -0.0875
+    buffer_mb                      -1.1875
+
+  Predicted optimum (from linear model):
+    batch_size = 1000
+    writer_threads = 1
+    commit_interval = 50000
+    transform_mode = vectorized
+    buffer_mb = 64
+    Predicted value: 6.3750
+
+  Model quality: Excellent fit — surface predictions are reliable.
+
+Factor importance:
+  1. commit_interval  (effect: 2.9, contribution: 36.1%)
+  2. buffer_mb  (effect: 2.4, contribution: 29.8%)
+  3. batch_size  (effect: -1.3, contribution: 16.6%)
+  4. writer_threads  (effect: -1.2, contribution: 15.4%)
+  5. transform_mode  (effect: -0.2, contribution: 2.2%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="39-stream-processing-windowing.html">&larr; Previous: Stream Processing Windowing</a>
+    <a href="41-columnar-compression.html">Next: Columnar Compression &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

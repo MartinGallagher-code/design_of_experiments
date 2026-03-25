@@ -1,0 +1,2450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design of Experiments — The Book</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .book-content { font-family: 'Merriweather', Georgia, serif; font-size: .92rem; }
+    .book-content h1, .book-content h2, .book-content h3, .book-content h4 {
+      font-family: var(--sans);
+    }
+    .book-cover {
+      text-align: center; padding: 80px 0 60px;
+      background: var(--ink); color: #fff;
+      position: relative; overflow: hidden;
+    }
+    .book-cover::before {
+      content: ''; position: absolute; inset: 0;
+      background-image: radial-gradient(rgba(99,102,241,.12) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    .book-cover h1 { color: #fff; font-size: 2.8rem; margin-bottom: 8px; letter-spacing: -.03em; position: relative; }
+    .book-cover .subtitle { font-size: 1.1rem; color: var(--electric-l); margin-bottom: 8px; font-weight: 500; position: relative; }
+    .book-cover .edition { font-size: .8rem; color: var(--muted); font-family: var(--mono); position: relative; }
+    .book-cover .cube-art {
+      margin: 32px auto; width: 100px; height: 100px;
+      border: 2px solid var(--electric); border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2.5rem; transform: rotate(3deg);
+      background: rgba(99,102,241,.08); position: relative;
+    }
+    .book-selector {
+      background: var(--slate-50); border-bottom: 1px solid var(--slate-200);
+      padding: 12px 0; text-align: center;
+    }
+    .book-selector .tabs { justify-content: center; border-bottom: none; }
+    .analogy {
+      background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+      border: 1px solid #bbf7d0; border-radius: var(--radius);
+      padding: 20px 24px; margin: 20px 0;
+    }
+    .analogy h4 { color: #166534; font-size: .9rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .analogy p { color: #15803d; font-size: .88rem; }
+    .keypoint-box {
+      background: linear-gradient(135deg, var(--ice), #dbeafe);
+      border: 1px solid #93c5fd; border-radius: var(--radius);
+      padding: 20px 24px; margin: 20px 0;
+    }
+    .keypoint-box h4 { color: var(--deep-blue); font-size: .9rem; margin-bottom: 8px; }
+    .keypoint-box p { color: #1e40af; font-size: .88rem; }
+    .warning-box {
+      background: linear-gradient(135deg, #fef3c7, #fde68a);
+      border: 1px solid #fbbf24; border-radius: var(--radius);
+      padding: 20px 24px; margin: 20px 0;
+    }
+    .warning-box h4 { color: #92400e; font-size: .9rem; margin-bottom: 8px; }
+    .warning-box p { color: #a16207; font-size: .88rem; }
+    .danger-box {
+      background: linear-gradient(135deg, #fee2e2, #fecaca);
+      border: 1px solid #f87171; border-radius: var(--radius);
+      padding: 20px 24px; margin: 20px 0;
+    }
+    .danger-box h4 { color: #991b1b; font-size: .9rem; margin-bottom: 8px; }
+    .danger-box p { color: #b91c1c; font-size: .88rem; }
+    .comparison-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;
+    }
+    .comparison-card {
+      border-radius: var(--radius-sm); padding: 20px; font-size: .85rem;
+    }
+    .comparison-card.bad { background: var(--coral-light); border: 1px solid #fca5a5; }
+    .comparison-card.good { background: var(--mint-light); border: 1px solid #6ee7b7; }
+    .comparison-card h4 { font-size: .85rem; margin-bottom: 8px; }
+    .visual-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px; margin: 16px 0;
+    }
+    .visual-cell {
+      text-align: center; padding: 12px 8px; border-radius: 8px;
+      font-size: .8rem; font-weight: 600;
+    }
+    .progress-bar {
+      height: 4px; background: var(--slate-200); border-radius: 2px;
+      margin: 4px 0 0; overflow: hidden;
+    }
+    .progress-bar-fill { height: 100%; border-radius: 2px; transition: width .6s ease; }
+  </style>
+</head>
+<body>
+
+<img src="logo-light.svg" alt="" class="bg-logo-light">
+
+<!-- ═══════════════ NAVIGATION ═══════════════ -->
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo"><span class="dot"></span> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="howto.html">Quick Start</a></li>
+      <li><a href="use-cases/index.html">Use Cases</a></li>
+      <li><a href="book.html" class="cta active">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- ═══════════════ BOOK COVER ═══════════════ -->
+<section class="book-cover" style="margin-top: 64px;">
+  <h1>Design of Experiments</h1>
+  <div class="subtitle">A Practical Guide &mdash; From Theory to Automated Analysis</div>
+  <div class="edition" style="margin-top: 12px; font-size: .95rem; color: rgba(255,255,255,.85);">Martin J. Gallagher</div>
+</section>
+
+<!-- ═══════════════ BOOK LAYOUT ═══════════════ -->
+<div class="book-layout">
+
+  <!-- ── Sidebar ── -->
+  <aside class="book-sidebar">
+    <div class="sidebar-part">Preface</div>
+    <a class="sidebar-chapter" href="#preface">Preface</a>
+    <a class="sidebar-section-link" href="#organization">How This Book Is Organized</a>
+
+    <div class="sidebar-part">Part I: Foundations</div>
+    <a class="sidebar-chapter" href="#ch1">1. Why Design of Experiments?</a>
+    <a class="sidebar-section-link" href="#cost">The Cost of Unplanned Experiments</a>
+    <a class="sidebar-section-link" href="#three-principles">The Three Principles</a>
+    <a class="sidebar-section-link" href="#ovat-trap">The OVAT Trap</a>
+    <a class="sidebar-section-link" href="#web-server">Web Server Tuning Example</a>
+    <a class="sidebar-section-link" href="#effect-sparsity">Effect Sparsity</a>
+    <a class="sidebar-section-link" href="#when-not">When NOT to Use DOE</a>
+
+    <a class="sidebar-chapter" href="#ch2">2. Statistical Foundations</a>
+    <a class="sidebar-section-link" href="#linear-model">The Linear Model</a>
+    <a class="sidebar-section-link" href="#coded-vars">Coded Variables</a>
+    <a class="sidebar-section-link" href="#estimating-effects">Estimating Effects</a>
+    <a class="sidebar-section-link" href="#confidence-intervals">Confidence Intervals</a>
+    <a class="sidebar-section-link" href="#orthogonality">Orthogonality and Balance</a>
+    <a class="sidebar-section-link" href="#degrees-of-freedom">Degrees of Freedom</a>
+    <a class="sidebar-section-link" href="#normal-plot">Normal Probability Plot</a>
+
+    <div class="sidebar-part">Part II: Design Types</div>
+    <a class="sidebar-chapter" href="#ch3">3. Full Factorial Designs</a>
+    <a class="sidebar-section-link" href="#2k-factorial">The 2&#x1D4F; Factorial</a>
+    <a class="sidebar-section-link" href="#design-matrix">The Design Matrix</a>
+    <a class="sidebar-section-link" href="#when-full-factorial">When to Use Full Factorials</a>
+    <a class="sidebar-section-link" href="#seal-strength">Worked Example: Seal Strength</a>
+    <a class="sidebar-section-link" href="#center-points">Adding Center Points</a>
+    <a class="sidebar-section-link" href="#blocking">Blocking a Factorial</a>
+    <a class="sidebar-section-link" href="#replicated-factorials">Replicated Factorials</a>
+
+    <a class="sidebar-chapter" href="#ch4">4. Fractional Factorial Designs</a>
+    <a class="sidebar-section-link" href="#exponential-growth">Exponential Growth Problem</a>
+    <a class="sidebar-section-link" href="#2kp-design">The 2&#x1D4F;&#x207B;&#x1D56; Design</a>
+    <a class="sidebar-section-link" href="#resolution">Resolution</a>
+    <a class="sidebar-section-link" href="#generators">Generators &amp; Defining Relations</a>
+    <a class="sidebar-section-link" href="#half-fraction-example">Worked Example: Half-Fraction</a>
+    <a class="sidebar-section-link" href="#foldover">Foldover</a>
+    <a class="sidebar-section-link" href="#choosing-fraction">Choosing the Right Fraction</a>
+
+    <a class="sidebar-chapter" href="#ch5">5. Screening Designs</a>
+    <a class="sidebar-section-link" href="#plackett-burman">Plackett-Burman Designs</a>
+    <a class="sidebar-section-link" href="#screening-pipeline">Screening-to-Optimization Pipeline</a>
+    <a class="sidebar-section-link" href="#hpc-example">Worked Example: HPC Cluster</a>
+    <a class="sidebar-section-link" href="#dummy-factors">Dummy Factors</a>
+    <a class="sidebar-section-link" href="#definitive-screening">Definitive Screening Designs</a>
+
+    <a class="sidebar-chapter" href="#ch6">6. Response Surface Designs</a>
+    <a class="sidebar-section-link" href="#ccd">Central Composite Design</a>
+    <a class="sidebar-section-link" href="#alpha-parameter">The Alpha Parameter</a>
+    <a class="sidebar-section-link" href="#box-behnken">Box-Behnken Design</a>
+    <a class="sidebar-section-link" href="#lhs">Latin Hypercube Sampling</a>
+    <a class="sidebar-section-link" href="#choosing-design">Choosing a Design</a>
+    <a class="sidebar-section-link" href="#chemical-example">Worked Example: Chemical Process</a>
+    <a class="sidebar-section-link" href="#sequential">Sequential Experimentation</a>
+
+    <div class="sidebar-part">Part III: Analysis</div>
+    <a class="sidebar-chapter" href="#ch7">7. Analyzing Results</a>
+    <a class="sidebar-section-link" href="#pareto">The Pareto Chart</a>
+    <a class="sidebar-section-link" href="#main-effects-plots">Main Effects Plots</a>
+    <a class="sidebar-section-link" href="#interaction-plots">Interaction Plots</a>
+    <a class="sidebar-section-link" href="#statistical-significance">Statistical Significance</a>
+    <a class="sidebar-section-link" href="#residuals">Residual Analysis</a>
+    <a class="sidebar-section-link" href="#multi-response">Multi-Response Analysis</a>
+    <a class="sidebar-section-link" href="#effect-power">Effect Size and Power</a>
+    <a class="sidebar-section-link" href="#confirmation">Confirmation Runs</a>
+    <a class="sidebar-section-link" href="#analysis-workflow">The Analysis Workflow</a>
+
+    <a class="sidebar-chapter" href="#ch8">8. Response Surface Methodology</a>
+    <a class="sidebar-section-link" href="#effects-to-models">From Effects to Models</a>
+    <a class="sidebar-section-link" href="#rsm-worked-example">Worked Example: Reactor Yield</a>
+    <a class="sidebar-section-link" href="#model-adequacy">Model Adequacy</a>
+    <a class="sidebar-section-link" href="#finding-optimum">Finding the Optimum</a>
+    <a class="sidebar-section-link" href="#contour-plots">Contour &amp; Surface Plots</a>
+    <a class="sidebar-section-link" href="#canonical">Canonical Analysis</a>
+    <a class="sidebar-section-link" href="#ridge-analysis">Ridge Analysis</a>
+    <a class="sidebar-section-link" href="#steepest-ascent">Steepest Ascent</a>
+    <a class="sidebar-section-link" href="#lack-of-fit">Lack-of-Fit Testing</a>
+    <a class="sidebar-section-link" href="#desirability">Multi-Response Desirability</a>
+    <a class="sidebar-section-link" href="#rsm-workflow">The RSM Workflow</a>
+
+    <a class="sidebar-chapter" href="#ch9">9. Practical Troubleshooting</a>
+    <a class="sidebar-section-link" href="#common-mistakes">Common Mistakes Checklist</a>
+    <a class="sidebar-section-link" href="#doe-workflow">The DOE Workflow</a>
+
+  </aside>
+
+  <!-- ── Content ── -->
+  <main class="book-content">
+
+    <!-- ═══════ PREFACE ═══════ -->
+    <section id="preface">
+      <h1>Preface</h1>
+      <p class="lead">This book teaches the theory and practice of Design of Experiments (DOE) &mdash; a systematic method for planning experiments that extracts the maximum information from the minimum number of runs.</p>
+
+      <p>It is written for engineers, scientists, and anyone who runs experiments, benchmarks, or tests and wants to do so more efficiently.</p>
+
+      <p>DOE is not new. Ronald Fisher developed the foundations in the 1920s and 1930s for agricultural experiments at Rothamsted. George Box, Genichi Taguchi, and others extended it to manufacturing, quality engineering, and process optimization. Yet the technique remains underused, especially in software engineering and technology, where practitioners often default to changing one variable at a time or running exhaustive grid searches.</p>
+
+      <p>This guide takes a practical approach. Each chapter introduces the theory you need, then shows you how to apply it. Mathematical derivations are included where they build intuition, but the emphasis is on understanding <em>when</em> and <em>why</em> to use each technique, not on proofs.</p>
+
+      <div class="keypoint-box">
+        <h4>Who This Book Is For</h4>
+        <p>Engineers optimizing systems, processes, or software configurations. Scientists planning laboratory or field experiments. Data scientists evaluating model hyperparameters. Quality engineers improving manufacturing processes. Anyone who has ever wondered: <em>"Which of these 10 knobs actually matters?"</em></p>
+      </div>
+
+      <p><strong>Prerequisites:</strong> Basic familiarity with mean, variance, and standard deviation. No prior statistics coursework is assumed.</p>
+
+      <h2 id="organization">How This Book Is Organized</h2>
+
+      <p><strong>Part I (Chapters 1&ndash;2)</strong> lays the conceptual and statistical groundwork. You'll learn why planned experiments outperform ad hoc testing and acquire the vocabulary needed for the rest of the book.</p>
+
+      <p><strong>Part II (Chapters 3&ndash;6)</strong> covers the major design families &mdash; full factorials, fractional factorials, screening designs, and response surface designs. Each chapter explains when to use the design, how the mathematics works, and walks through a realistic example.</p>
+
+      <p><strong>Part III (Chapters 7&ndash;9)</strong> focuses on analysis: interpreting Pareto charts, fitting response surface models, diagnosing problems, and making data-driven decisions.</p>
+
+      <p>The <strong>User Guide</strong> at the end is a complete software reference for the DOE Helper Tool, including configuration fields, CLI commands, and step-by-step tutorials.</p>
+
+      <div class="analogy">
+        <h4>&#x1F4D6; Reading Order</h4>
+        <p>If you're new to DOE, read Chapters 1&ndash;3 first, then jump to Chapter 7 to learn analysis. Come back to Chapters 4&ndash;6 when you need designs beyond the basic factorial. If you already know DOE and just want to use the tool, skip straight to the User Guide.</p>
+      </div>
+    </section>
+
+    <hr style="border: none; border-top: 2px solid var(--slate-200); margin: 48px 0;">
+
+    <!-- ═══════ CHAPTER 1 ═══════ -->
+    <section id="ch1">
+      <h1>Chapter 1</h1>
+      <div class="chapter-subtitle">Why Design of Experiments?</div>
+
+      <h2 id="cost">The Cost of Unplanned Experiments</h2>
+
+      <p>Every experiment costs something &mdash; time, money, materials, compute cycles. A poorly planned experiment wastes these resources and may lead to wrong conclusions. A well-designed experiment extracts the maximum learning from each run.</p>
+
+      <div class="analogy">
+        <h4>&#x1F370; The Cake Analogy</h4>
+        <p>Imagine you're baking a cake and want to make it taste better. You could try changing the sugar amount, then the oven temperature, then the baking time &mdash; one thing at a time. After dozens of attempts, you might find a decent recipe. But you would never discover that a <em>specific combination</em> of less sugar <em>with</em> higher temperature produces the best result, because you never tested them together. DOE solves exactly this problem.</p>
+      </div>
+
+      <p>Consider a team tuning a database. They have five configuration knobs they suspect affect performance: buffer pool size, I/O capacity, connection limit, query cache, and thread pool size. The one-variable-at-a-time (OVAT) approach would be:</p>
+
+      <ol>
+        <li>Fix all knobs at their defaults.</li>
+        <li>Change buffer pool size. Measure.</li>
+        <li>Reset buffer pool. Change I/O capacity. Measure.</li>
+        <li>Continue for each knob.</li>
+      </ol>
+
+      <p>This requires at least 10 runs (2 per knob) and only measures each knob's effect <em>in isolation, at the default settings of every other knob</em>. It tells you nothing about how the knobs interact.</p>
+
+      <p>A Plackett-Burman screening design tests all five knobs in just <strong>8 runs</strong> and estimates every main effect simultaneously. A full factorial on the two most important knobs then takes 4 more runs and reveals their interaction. Twelve runs total, and you know more than OVAT would teach you in fifty.</p>
+
+      <h2 id="three-principles">The Three Principles of DOE</h2>
+
+      <p>Fisher established three principles that remain the foundation of every well-designed experiment:</p>
+
+      <div class="keypoint-box">
+        <h4>1. Randomization</h4>
+        <p>Randomly assign the order in which experimental runs are performed to protect against unknown lurking variables. If you run all low-temperature experiments in the morning and all high-temperature experiments in the afternoon, any morning-to-afternoon drift becomes confounded with your temperature factor.</p>
+      </div>
+
+      <p>Randomization does not eliminate lurking variables &mdash; it distributes their effects equally across all treatments, on average. This ensures that the statistical tests remain valid.</p>
+
+      <div class="keypoint-box">
+        <h4>2. Replication</h4>
+        <p>Repeat experimental runs to estimate experimental error and increase the precision of effect estimates. A single run at each combination tells you the response, but not how much it varies.</p>
+      </div>
+
+      <div class="warning-box">
+        <h4>Replication vs. Repetition</h4>
+        <p><strong>Replication</strong> means independently setting up and running the experiment again. <strong>Repetition</strong> means measuring the same setup multiple times. Repetition estimates measurement error, but replication estimates the full experimental error. DOE requires replication.</p>
+      </div>
+
+      <div class="keypoint-box">
+        <h4>3. Blocking</h4>
+        <p>Group experimental runs into blocks of similar conditions to remove known sources of variation from the experimental error. If you must run experiments over two days, make each day a block.</p>
+      </div>
+
+      <h2 id="ovat-trap">The OVAT Trap: A Quantitative Example</h2>
+
+      <p>Suppose the true relationship between yield and two factors (temperature T and pressure P) is:</p>
+
+      <div class="math">
+        Y = 50 + 10T + 5P + 8TP + &epsilon;
+      </div>
+
+      <p>where T, P &isin; {-1, +1} (coded levels) and &epsilon; ~ N(0, 1).</p>
+
+      <div class="comparison-grid">
+        <div class="comparison-card bad">
+          <h4 style="color: #991b1b;">&#x2717; OVAT Approach</h4>
+          <p>Run at T=-1, P=-1: Y = 43</p>
+          <p>Change T to +1: Y = 47</p>
+          <p><strong>Conclusion:</strong> Temperature effect = 4</p>
+          <p style="color:#991b1b; font-weight:600; margin-top:8px;">Wrong! True effect is 10.</p>
+        </div>
+        <div class="comparison-card good">
+          <h4 style="color: #166534;">&#x2713; Factorial Approach</h4>
+          <p>All 4 combinations tested.</p>
+          <p>ME<sub>T</sub> = (47+73)/2 - (43+37)/2 = 20</p>
+          <p>Effect = 20/2 = <strong>10</strong> &#x2714;</p>
+          <p style="color:#166534; font-weight:600; margin-top:8px;">Correct! Also finds interaction = 8.</p>
+        </div>
+      </div>
+
+      <p>The OVAT estimate is biased because it was measured at P=-1, where the interaction TP reduces temperature's apparent effect. The factorial design correctly estimates both effects <em>and</em> their interaction, using the same total data.</p>
+
+      <div class="keypoint-box">
+        <h4>Hidden Replication in Factorials</h4>
+        <p>In a 2<sup>k</sup> factorial, every effect estimate uses <em>all</em> 2<sup>k</sup> observations. Each observation plays a role in estimating every effect. This is why factorials are so efficient &mdash; there is no wasted data.</p>
+      </div>
+
+      <h2 id="web-server">A Concrete Example: Web Server Tuning</h2>
+
+      <p>Suppose you are optimizing a web server. Two factors matter: <strong>thread count</strong> (10 or 100) and <strong>cache size</strong> (64 MB or 512 MB). The true performance:</p>
+
+      <table>
+        <thead>
+          <tr><th>Threads</th><th>Cache</th><th>Throughput (req/sec)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>10</td><td>64 MB</td><td>500</td></tr>
+          <tr><td>100</td><td>64 MB</td><td>600</td></tr>
+          <tr><td>10</td><td>512 MB</td><td>700</td></tr>
+          <tr><td>100</td><td>512 MB</td><td><strong>1,400</strong></td></tr>
+        </tbody>
+      </table>
+
+      <div class="comparison-grid">
+        <div class="comparison-card bad">
+          <h4 style="color: #991b1b;">OVAT Result</h4>
+          <p>Starting at (10, 64MB):</p>
+          <p>Threads: 500 &rarr; 600 (+100)</p>
+          <p>Cache: 500 &rarr; 700 (+200)</p>
+          <p><strong>Recommendation:</strong> Use 512MB cache alone.</p>
+          <p><strong>Predicted:</strong> 700 req/sec</p>
+        </div>
+        <div class="comparison-card good">
+          <h4 style="color: #166534;">DOE Result</h4>
+          <p>All 4 combinations tested:</p>
+          <p>Thread effect: +400</p>
+          <p>Cache effect: +500</p>
+          <p>Interaction: +600!</p>
+          <p><strong>Recommendation:</strong> Both high.</p>
+          <p><strong>Actual:</strong> 1,400 req/sec</p>
+        </div>
+      </div>
+
+      <p>OVAT would have left <strong>700 req/sec on the table</strong> &mdash; a 2x performance improvement, missed entirely because OVAT can't detect interactions.</p>
+
+      <h2 id="effect-sparsity">Effect Sparsity: Why DOE Works</h2>
+
+      <p>A fundamental observation underpins DOE's practicality: in most real systems, only a small fraction of factors truly matter. This is called the <strong>effect sparsity principle</strong> (sometimes the Pareto principle of effects). Out of 20 possible factors, typically 3&ndash;5 drive 80% or more of the variation.</p>
+
+      <p>This means you can afford a two-stage strategy: screen many factors cheaply to find the vital few, then investigate those few in detail. The total cost is far less than testing every factor exhaustively.</p>
+
+      <div class="keypoint-box">
+        <h4>Effect Hierarchy</h4>
+        <p>A related principle: <strong>main effects</strong> tend to be larger than <strong>two-factor interactions</strong>, which tend to be larger than <strong>three-factor interactions</strong>, and so on. This hierarchy is why fractional factorial designs work &mdash; they sacrifice higher-order interaction estimates that are usually negligible anyway.</p>
+      </div>
+
+      <h2 id="when-not">When NOT to Use DOE</h2>
+
+      <p>DOE is not always the right tool. Consider alternatives when:</p>
+
+      <ul>
+        <li><strong>You have only one factor.</strong> A simple A/B test or one-way comparison is sufficient.</li>
+        <li><strong>The response is not measurable.</strong> DOE requires a quantifiable outcome. Subjective preferences need special treatment (conjoint analysis, paired comparisons).</li>
+        <li><strong>The system is completely unknown.</strong> If you have no idea which factors might matter, start with domain-expert brainstorming and a few exploratory runs before committing to a formal design.</li>
+        <li><strong>Runs are effectively free.</strong> If you can test millions of combinations cheaply (e.g., a fast simulation), a random search or grid search may be simpler.</li>
+      </ul>
+
+      <p>In most practical engineering situations, however, experiments have a non-trivial cost, and DOE will save you time and resources.</p>
+    </section>
+
+    <hr style="border: none; border-top: 2px solid var(--slate-200); margin: 48px 0;">
+
+    <!-- ═══════ CHAPTER 2 ═══════ -->
+    <section id="ch2">
+      <h1>Chapter 2</h1>
+      <div class="chapter-subtitle">Statistical Foundations</div>
+
+      <h2 id="linear-model">The Linear Model</h2>
+
+      <p>DOE assumes the response can be modeled as a linear combination of factor effects:</p>
+
+      <div class="math">
+        Y = &beta;<sub>0</sub> + &beta;<sub>1</sub>X<sub>1</sub> + &beta;<sub>2</sub>X<sub>2</sub> + &beta;<sub>12</sub>X<sub>1</sub>X<sub>2</sub> + &epsilon;
+      </div>
+
+      <p>where &beta;<sub>0</sub> is the grand mean, &beta;<sub>i</sub> are main effect coefficients, &beta;<sub>ij</sub> are interaction coefficients, and &epsilon; is random error.</p>
+
+      <p>This model is "linear" in the <em>parameters</em> (&beta;), not necessarily in the factors. Even quadratic terms like X<sup>2</sup> are linear in the coefficient &beta;<sub>ii</sub>.</p>
+
+      <h2 id="coded-vars">Coded Variables</h2>
+
+      <p>We convert natural factor values to coded values (-1, +1) using:</p>
+
+      <div class="math">
+        x = (X - X&#x0305;) / (X<sub>range</sub> / 2)
+      </div>
+
+      <p>This standardizes all factors to the same scale, making effect magnitudes directly comparable. A factor with levels 150&deg;C and 200&deg;C has coded values -1 and +1, where 175&deg;C is zero.</p>
+
+      <div class="analogy">
+        <h4>&#x1F4CF; Why Code?</h4>
+        <p>Imagine comparing the "effect" of temperature (150 vs 200) to pressure (2 vs 6). In natural units, the numbers aren't comparable. In coded units, both range from -1 to +1, so an effect of 10 in temperature is directly comparable to an effect of 5 in pressure.</p>
+      </div>
+
+      <h2 id="estimating-effects">Estimating Effects</h2>
+
+      <h3>Main Effects</h3>
+      <p>The main effect of factor A is the difference between the average response at the high level and the average response at the low level:</p>
+
+      <div class="math">
+        ME<sub>A</sub> = Y&#x0305;<sub>A+</sub> - Y&#x0305;<sub>A-</sub>
+      </div>
+
+      <h3>Interaction Effects</h3>
+      <p>The interaction effect of factors A and B measures whether the effect of A depends on the level of B:</p>
+
+      <div class="math">
+        IE<sub>AB</sub> = &frac12;[(Y&#x0305;<sub>A+,B+</sub> - Y&#x0305;<sub>A-,B+</sub>) - (Y&#x0305;<sub>A+,B-</sub> - Y&#x0305;<sub>A-,B-</sub>)]
+      </div>
+
+      <p>If this is zero, A and B act independently. If large, their combined effect is synergistic (positive) or antagonistic (negative).</p>
+
+      <h3>Percentage Contribution</h3>
+      <p>To compare the relative importance of effects, we compute:</p>
+
+      <div class="math">
+        % Contribution<sub>i</sub> = |Effect<sub>i</sub>| / &Sigma;|Effect<sub>j</sub>| &times; 100
+      </div>
+
+      <p>This is what the Pareto chart displays &mdash; a ranked bar chart of contributions with a cumulative line.</p>
+
+      <h2 id="confidence-intervals">Confidence Intervals</h2>
+
+      <p>A 95% confidence interval on a main effect is:</p>
+
+      <div class="math">
+        Effect &plusmn; t<sub>&alpha;/2, df</sub> &times; SE<sub>effect</sub>
+      </div>
+
+      <p>If the interval includes zero, the effect is not statistically significant at the 5% level. The DOE Helper Tool computes these automatically using the t-distribution.</p>
+
+      <div class="warning-box">
+        <h4>Practical vs. Statistical Significance</h4>
+        <p>A statistically significant effect might be too small to matter in practice. Conversely, a practically important effect might not reach statistical significance with few observations. Always consider both.</p>
+      </div>
+
+      <h2 id="orthogonality">Orthogonality and Balance</h2>
+
+      <p>A design is <strong>orthogonal</strong> when the columns of the design matrix are uncorrelated. This means each effect estimate is independent of every other &mdash; changing one factor's range or removing one effect from the model doesn't change the other estimates.</p>
+
+      <p>A design is <strong>balanced</strong> when each factor level appears equally often. Balance ensures that effect estimates use all available data symmetrically.</p>
+
+      <div class="analogy">
+        <h4>&#x2696; The Scale Analogy</h4>
+        <p>Think of balance like a weighing scale. If you test factor A at the high level 6 times but at the low level only 2 times, your estimate of A's effect is skewed &mdash; it's like putting heavier weights on one side of the scale. Balanced designs put equal weight on both sides.</p>
+      </div>
+
+      <p>Full factorial and Plackett-Burman designs are both orthogonal and balanced. This is what makes them statistically powerful &mdash; every run contributes useful information to every effect estimate.</p>
+
+      <h2 id="degrees-of-freedom">Degrees of Freedom</h2>
+
+      <p>Degrees of freedom (df) determine how much information your design provides. In a 2<sup>k</sup> factorial with N = 2<sup>k</sup> runs:</p>
+
+      <ul>
+        <li><strong>1 df</strong> for the overall mean</li>
+        <li><strong>k df</strong> for main effects</li>
+        <li><strong>C(k,2) df</strong> for two-factor interactions</li>
+        <li><strong>Remaining df</strong> available for error estimation (if you have replicates)</li>
+      </ul>
+
+      <p>Without replicates, you must assume higher-order interactions are zero and "pool" their degrees of freedom to estimate error. This is why center-point replicates are valuable &mdash; they provide pure-error degrees of freedom without increasing the factorial portion of the design.</p>
+
+      <h2 id="normal-plot">The Normal Probability Plot</h2>
+
+      <p>When you have no replicates (and therefore no independent error estimate), a <strong>normal probability plot</strong> of effects helps identify which effects are real. Negligible effects cluster along a straight line (they are just noise). Effects that deviate from the line are likely real.</p>
+
+      <div class="keypoint-box">
+        <h4>Reading a Normal Probability Plot</h4>
+        <p><strong>Points on the line:</strong> Noise &mdash; these effects are indistinguishable from random error.<br>
+        <strong>Points far from the line:</strong> Real effects &mdash; the further from the line, the more confident you can be.<br>
+        This technique was developed by Cuthbert Daniel (1959) and remains one of the most useful diagnostic tools in DOE.</p>
+      </div>
+    </section>
+
+    <hr style="border: none; border-top: 2px solid var(--slate-200); margin: 48px 0;">
+
+    <!-- ═══════ CHAPTER 3 ═══════ -->
+    <section id="ch3">
+      <h1>Chapter 3</h1>
+      <div class="chapter-subtitle">Full Factorial Designs</div>
+
+      <p class="lead">The 2<sup>k</sup> factorial tests every combination of k factors at 2 levels each. It is the most complete design &mdash; and the foundation for all others.</p>
+
+      <h2 id="2k-factorial">The 2<sup>k</sup> Factorial</h2>
+
+      <p>For k factors, each at 2 levels, we need 2<sup>k</sup> runs:</p>
+
+      <div class="visual-grid">
+        <div class="visual-cell" style="background: var(--ice);">
+          <div style="font-size: 1.5rem; font-weight: 800; color: var(--deep-blue);">4</div>
+          <div style="font-size: .7rem; color: var(--slate-500);">2 factors</div>
+        </div>
+        <div class="visual-cell" style="background: var(--mint-light);">
+          <div style="font-size: 1.5rem; font-weight: 800; color: var(--mint);">8</div>
+          <div style="font-size: .7rem; color: var(--slate-500);">3 factors</div>
+        </div>
+        <div class="visual-cell" style="background: var(--amber-light);">
+          <div style="font-size: 1.5rem; font-weight: 800; color: var(--amber);">16</div>
+          <div style="font-size: .7rem; color: var(--slate-500);">4 factors</div>
+        </div>
+        <div class="visual-cell" style="background: var(--purple-light);">
+          <div style="font-size: 1.5rem; font-weight: 800; color: var(--purple);">32</div>
+          <div style="font-size: .7rem; color: var(--slate-500);">5 factors</div>
+        </div>
+        <div class="visual-cell" style="background: var(--coral-light);">
+          <div style="font-size: 1.5rem; font-weight: 800; color: var(--coral);">64</div>
+          <div style="font-size: .7rem; color: var(--slate-500);">6 factors</div>
+        </div>
+        <div class="visual-cell" style="background: var(--slate-100);">
+          <div style="font-size: 1.5rem; font-weight: 800; color: var(--slate-600);">1024</div>
+          <div style="font-size: .7rem; color: var(--slate-500);">10 factors</div>
+        </div>
+      </div>
+
+      <p>Growth is exponential. This is manageable for 2&ndash;5 factors, but becomes impractical beyond that &mdash; which motivates fractional and screening designs.</p>
+
+      <h2 id="design-matrix">The Design Matrix</h2>
+
+      <p>A 2<sup>3</sup> full factorial design matrix:</p>
+
+      <table>
+        <thead>
+          <tr><th>Run</th><th>A</th><th>B</th><th>C</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td style="color:var(--coral);font-weight:600;">-1</td><td style="color:var(--coral);font-weight:600;">-1</td><td style="color:var(--coral);font-weight:600;">-1</td></tr>
+          <tr><td>2</td><td style="color:var(--mint);font-weight:600;">+1</td><td style="color:var(--coral);font-weight:600;">-1</td><td style="color:var(--coral);font-weight:600;">-1</td></tr>
+          <tr><td>3</td><td style="color:var(--coral);font-weight:600;">-1</td><td style="color:var(--mint);font-weight:600;">+1</td><td style="color:var(--coral);font-weight:600;">-1</td></tr>
+          <tr><td>4</td><td style="color:var(--mint);font-weight:600;">+1</td><td style="color:var(--mint);font-weight:600;">+1</td><td style="color:var(--coral);font-weight:600;">-1</td></tr>
+          <tr><td>5</td><td style="color:var(--coral);font-weight:600;">-1</td><td style="color:var(--coral);font-weight:600;">-1</td><td style="color:var(--mint);font-weight:600;">+1</td></tr>
+          <tr><td>6</td><td style="color:var(--mint);font-weight:600;">+1</td><td style="color:var(--coral);font-weight:600;">-1</td><td style="color:var(--mint);font-weight:600;">+1</td></tr>
+          <tr><td>7</td><td style="color:var(--coral);font-weight:600;">-1</td><td style="color:var(--mint);font-weight:600;">+1</td><td style="color:var(--mint);font-weight:600;">+1</td></tr>
+          <tr><td>8</td><td style="color:var(--mint);font-weight:600;">+1</td><td style="color:var(--mint);font-weight:600;">+1</td><td style="color:var(--mint);font-weight:600;">+1</td></tr>
+        </tbody>
+      </table>
+
+      <p>Every column is balanced: equal numbers of -1 and +1. Every pair of columns is orthogonal. This ensures unbiased, independent estimates of all effects.</p>
+
+      <h2 id="when-full-factorial">When to Use Full Factorials</h2>
+
+      <div class="keypoint-box">
+        <h4>Use Full Factorial When:</h4>
+        <p>&bull; You have 2&ndash;4 factors (manageable run count)<br>
+        &bull; You need to estimate <em>all</em> interactions, not just main effects<br>
+        &bull; Each run is cheap (fast simulations, automated tests)<br>
+        &bull; You want zero ambiguity about which effects are real</p>
+      </div>
+
+      <h2 id="seal-strength">Worked Example: Packaging Seal Strength</h2>
+
+      <p>Three factors at 2 levels each: Seal Temperature (A), Pressure (B), Dwell Time (C). Response: seal strength in Newtons.</p>
+
+      <table>
+        <thead><tr><th>Run</th><th>A</th><th>B</th><th>C</th><th>Strength (N)</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>-1</td><td>-1</td><td>-1</td><td>15.3</td></tr>
+          <tr><td>2</td><td>+1</td><td>-1</td><td>-1</td><td>27.1</td></tr>
+          <tr><td>3</td><td>-1</td><td>+1</td><td>-1</td><td>18.6</td></tr>
+          <tr><td>4</td><td>+1</td><td>+1</td><td>-1</td><td>32.4</td></tr>
+          <tr><td>5</td><td>-1</td><td>-1</td><td>+1</td><td>17.8</td></tr>
+          <tr><td>6</td><td>+1</td><td>-1</td><td>+1</td><td>29.5</td></tr>
+          <tr><td>7</td><td>-1</td><td>+1</td><td>+1</td><td>20.1</td></tr>
+          <tr><td>8</td><td>+1</td><td>+1</td><td>+1</td><td>34.2</td></tr>
+        </tbody>
+      </table>
+
+      <p><strong>Main effect of A (Temperature):</strong></p>
+      <div class="math">
+        ME<sub>A</sub> = (27.1 + 32.4 + 29.5 + 34.2)/4 - (15.3 + 18.6 + 17.8 + 20.1)/4 = 30.8 - 17.95 = <strong>12.85 N</strong>
+      </div>
+
+      <p>Temperature is the dominant factor, increasing seal strength by ~12.85 N on average. The tool computes all effects, confidence intervals, and creates the Pareto chart automatically.</p>
+
+      <h2 id="center-points">Adding Center Points</h2>
+
+      <p>A 2<sup>k</sup> factorial only tests the extremes. What if the response curves between the extremes? Adding <strong>center points</strong> &mdash; runs at the midpoint of all factor ranges &mdash; lets you detect curvature without fitting a full quadratic model.</p>
+
+      <p>If the center-point average differs significantly from the average of the factorial points, curvature is present, and you should consider upgrading to a CCD or Box-Behnken design for the next phase.</p>
+
+      <div class="keypoint-box">
+        <h4>Center Points Serve Two Purposes</h4>
+        <p><strong>1. Curvature detection:</strong> Compare the center-point mean to the factorial mean. A statistically significant difference signals nonlinearity.<br>
+        <strong>2. Pure error estimation:</strong> Replicated center points provide degrees of freedom for error, even in unreplicated factorials. Three to five center replicates are typically sufficient.</p>
+      </div>
+
+      <h2 id="blocking">Blocking a Factorial Design</h2>
+
+      <p>Sometimes you can't complete all runs under identical conditions. Perhaps the raw material comes in batches, or experiments span multiple days. <strong>Blocking</strong> partitions the runs into groups (blocks) so that known sources of variation are accounted for.</p>
+
+      <p>In a 2<sup>k</sup> factorial, you assign the highest-order interaction to the block effect. For a 2<sup>3</sup> design split into 2 blocks, assign ABC to blocks: runs where ABC = -1 go in Block 1, and runs where ABC = +1 go in Block 2. The ABC interaction becomes confounded with the block effect, but all main effects and two-factor interactions remain estimable.</p>
+
+      <div class="warning-box">
+        <h4>Choose Your Block Generator Wisely</h4>
+        <p>Always confound the highest-order interaction with blocks. This sacrifices the least valuable information. Never confound a main effect or a two-factor interaction you care about with the block variable.</p>
+      </div>
+
+      <h2 id="replicated-factorials">Replicated Factorials</h2>
+
+      <p>Running the entire factorial more than once gives you a direct estimate of experimental error and increases the precision of all effect estimates. With n replicates of a 2<sup>k</sup> design, the standard error of each effect is:</p>
+
+      <div class="math">
+        SE<sub>effect</sub> = 2s / &radic;(n &times; 2<sup>k</sup>)
+      </div>
+
+      <p>where s is the pooled standard deviation. Doubling the replicates reduces the standard error by a factor of &radic;2 &mdash; you get about 41% more precision for twice the runs. This is diminishing returns, so most practitioners use 2&ndash;3 replicates rather than many.</p>
+    </section>
+
+    <hr style="border: none; border-top: 2px solid var(--slate-200); margin: 48px 0;">
+
+    <!-- ═══════ CHAPTER 4 ═══════ -->
+    <section id="ch4">
+      <h1>Chapter 4</h1>
+      <div class="chapter-subtitle">Fractional Factorial Designs</div>
+
+      <p class="lead">When full factorials require too many runs, fractional factorials let you trade off complete interaction information for dramatic run-count reduction.</p>
+
+      <h2 id="exponential-growth">The Problem of Exponential Growth</h2>
+
+      <p>Full factorial runs grow as 2<sup>k</sup>. For 7 factors, that's 128 runs. For 10, it's 1,024. This is often impractical.</p>
+
+      <h2 id="2kp-design">The 2<sup>k-p</sup> Design</h2>
+
+      <p>A fractional factorial runs 2<sup>k-p</sup> experiments, where p is the number of "generators." A half-fraction (p=1) cuts runs by 50%. A quarter-fraction (p=2) cuts by 75%.</p>
+
+      <div class="visual-grid">
+        <div class="visual-cell" style="background: var(--ice);">
+          <div style="font-size: .8rem; font-weight: 700; color: var(--deep-blue);">2<sup>5-1</sup> = 16</div>
+          <div style="font-size: .7rem; color: var(--slate-500);">vs. 32 full</div>
+          <div class="progress-bar"><div class="progress-bar-fill" style="width:50%;background:var(--steel);"></div></div>
+        </div>
+        <div class="visual-cell" style="background: var(--mint-light);">
+          <div style="font-size: .8rem; font-weight: 700; color: var(--mint);">2<sup>7-2</sup> = 32</div>
+          <div style="font-size: .7rem; color: var(--slate-500);">vs. 128 full</div>
+          <div class="progress-bar"><div class="progress-bar-fill" style="width:25%;background:var(--mint);"></div></div>
+        </div>
+        <div class="visual-cell" style="background: var(--amber-light);">
+          <div style="font-size: .8rem; font-weight: 700; color: var(--amber);">2<sup>10-3</sup> = 128</div>
+          <div style="font-size: .7rem; color: var(--slate-500);">vs. 1024 full</div>
+          <div class="progress-bar"><div class="progress-bar-fill" style="width:12.5%;background:var(--amber);"></div></div>
+        </div>
+      </div>
+
+      <h2 id="resolution">Resolution</h2>
+
+      <p>Resolution describes the severity of the aliasing (confounding):</p>
+
+      <table>
+        <thead><tr><th>Resolution</th><th>Aliasing</th><th>Interpretation</th></tr></thead>
+        <tbody>
+          <tr><td><strong>III</strong></td><td>Main effects aliased with 2-factor interactions</td><td>Good for screening; not for estimating interactions</td></tr>
+          <tr><td><strong>IV</strong></td><td>Main effects clear; 2-factor interactions aliased with each other</td><td>Good for most practical work</td></tr>
+          <tr><td><strong>V+</strong></td><td>Main effects and 2FIs clear</td><td>Nearly as good as full factorial</td></tr>
+        </tbody>
+      </table>
+
+      <div class="warning-box">
+        <h4>The Trade-Off</h4>
+        <p>Fractional factorials save runs but lose information. In a Resolution III design, if factor A appears important, it might actually be the AB interaction that matters. Follow-up experiments (foldover) can resolve these ambiguities.</p>
+      </div>
+
+      <h2 id="generators">Generators and Defining Relations</h2>
+
+      <p>A fractional factorial is constructed by writing k-p factors as a full factorial, then <strong>generating</strong> the remaining p factors as products of existing columns. For example, in a 2<sup>5-1</sup> design, we might set E = ABCD. This is the <strong>generator</strong>.</p>
+
+      <p>The <strong>defining relation</strong> is I = ABCDE (multiply both sides by E). It tells you every alias pair. Any effect multiplied by the defining relation gives its alias:</p>
+
+      <div class="math">
+        A &times; ABCDE = BCDE, &ensp; so A is aliased with BCDE<br>
+        AB &times; ABCDE = CDE, &ensp; so AB is aliased with CDE
+      </div>
+
+      <p>In a Resolution V design like this, main effects are aliased only with four-factor interactions (negligible), and two-factor interactions are aliased with three-factor interactions (usually small). This is why Resolution V designs are nearly as good as full factorials.</p>
+
+      <h2 id="half-fraction-example">Worked Example: 2<sup>4-1</sup> Half-Fraction</h2>
+
+      <p>Four factors (A, B, C, D). A full factorial needs 16 runs. A half-fraction (p=1) needs only 8. We set D = ABC as the generator, giving defining relation I = ABCD (Resolution IV).</p>
+
+      <table>
+        <thead><tr><th>Run</th><th>A</th><th>B</th><th>C</th><th>D=ABC</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>-1</td><td>-1</td><td>-1</td><td>-1</td></tr>
+          <tr><td>2</td><td>+1</td><td>-1</td><td>-1</td><td>+1</td></tr>
+          <tr><td>3</td><td>-1</td><td>+1</td><td>-1</td><td>+1</td></tr>
+          <tr><td>4</td><td>+1</td><td>+1</td><td>-1</td><td>-1</td></tr>
+          <tr><td>5</td><td>-1</td><td>-1</td><td>+1</td><td>+1</td></tr>
+          <tr><td>6</td><td>+1</td><td>-1</td><td>+1</td><td>-1</td></tr>
+          <tr><td>7</td><td>-1</td><td>+1</td><td>+1</td><td>-1</td></tr>
+          <tr><td>8</td><td>+1</td><td>+1</td><td>+1</td><td>+1</td></tr>
+        </tbody>
+      </table>
+
+      <p>The alias structure: A+BCD, B+ACD, C+ABD, D+ABC, AB+CD, AC+BD, AD+BC. Main effects are clear of two-factor interactions (Resolution IV), but two-factor interactions are aliased in pairs (AB with CD, etc.).</p>
+
+      <h2 id="foldover">Foldover: Resolving Aliases</h2>
+
+      <p>If a fractional factorial reveals ambiguous results (you can't tell if the effect comes from AB or CD), a <strong>foldover</strong> resolves the ambiguity. A foldover reverses the signs of one or more columns and runs the resulting design as a supplementary experiment.</p>
+
+      <div class="keypoint-box">
+        <h4>Full Foldover</h4>
+        <p>Reversing <em>all</em> column signs and combining with the original design doubles the runs but upgrades the resolution by one level. A Resolution III design becomes Resolution IV. This is the safest option when you're unsure which aliases are causing problems.</p>
+      </div>
+
+      <div class="keypoint-box">
+        <h4>Single-Factor Foldover</h4>
+        <p>Reversing just one column (say, factor A) de-aliases all effects involving A. This is more efficient when you suspect a specific factor is involved in the ambiguous interaction.</p>
+      </div>
+
+      <h2 id="choosing-fraction">Choosing the Right Fraction</h2>
+
+      <p>The DOE Helper Tool selects minimum-aberration generators automatically, but here's the decision logic:</p>
+
+      <table>
+        <thead><tr><th>Factors</th><th>Recommended Design</th><th>Runs</th><th>Resolution</th></tr></thead>
+        <tbody>
+          <tr><td>2&ndash;4</td><td>Full factorial</td><td>4&ndash;16</td><td>&mdash;</td></tr>
+          <tr><td>5</td><td>2<sup>5-1</sup></td><td>16</td><td>V</td></tr>
+          <tr><td>6</td><td>2<sup>6-1</sup></td><td>32</td><td>VI</td></tr>
+          <tr><td>7</td><td>2<sup>7-2</sup></td><td>32</td><td>IV</td></tr>
+          <tr><td>8&ndash;11</td><td>Plackett-Burman or 2<sup>k-p</sup></td><td>12&ndash;32</td><td>III&ndash;IV</td></tr>
+          <tr><td>12+</td><td>Plackett-Burman screening first</td><td>varies</td><td>III</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <hr style="border: none; border-top: 2px solid var(--slate-200); margin: 48px 0;">
+
+    <!-- ═══════ CHAPTER 5 ═══════ -->
+    <section id="ch5">
+      <h1>Chapter 5</h1>
+      <div class="chapter-subtitle">Screening Designs</div>
+
+      <p class="lead">When you have many factors and limited budget, Plackett-Burman designs let you screen them all with remarkably few runs.</p>
+
+      <h2 id="plackett-burman">Plackett-Burman Designs</h2>
+
+      <p>Plackett-Burman designs are 2-level screening designs that require only N+1 runs for N factors (rounded up to a multiple of 4). They estimate main effects only &mdash; all interactions are confounded.</p>
+
+      <div class="visual-grid">
+        <div class="visual-cell" style="background: var(--mint-light);">
+          <div style="font-size: 1.2rem; font-weight: 800; color: var(--mint);">8 runs</div>
+          <div style="font-size: .7rem; color: var(--slate-500);">for 7 factors</div>
+        </div>
+        <div class="visual-cell" style="background: var(--ice);">
+          <div style="font-size: 1.2rem; font-weight: 800; color: var(--steel);">12 runs</div>
+          <div style="font-size: .7rem; color: var(--slate-500);">for 11 factors</div>
+        </div>
+        <div class="visual-cell" style="background: var(--amber-light);">
+          <div style="font-size: 1.2rem; font-weight: 800; color: var(--amber);">20 runs</div>
+          <div style="font-size: .7rem; color: var(--slate-500);">for 19 factors</div>
+        </div>
+      </div>
+
+      <h2 id="screening-pipeline">The Screening-to-Optimization Pipeline</h2>
+
+      <div class="keypoint-box">
+        <h4>The Two-Stage Strategy</h4>
+        <p><strong>Stage 1 (Screen):</strong> Use Plackett-Burman to test all candidates. Identify the 2&ndash;3 factors with the largest effects.<br>
+        <strong>Stage 2 (Optimize):</strong> Run a full factorial, CCD, or Box-Behnken on just those important factors to find the true optimum.<br>
+        <strong>Result:</strong> ~25 total runs instead of hundreds, with a rigorous path from "which factors matter?" to "what's the best setting?"</p>
+      </div>
+
+      <div class="danger-box">
+        <h4>Limitations</h4>
+        <p>Plackett-Burman cannot estimate interaction effects. If you suspect strong interactions, use a fractional factorial (Resolution IV+) instead. Also, PB requires exactly 2 levels per factor.</p>
+      </div>
+
+      <h2 id="hpc-example">Worked Example: HPC Cluster Screening</h2>
+
+      <p>An HPC team suspects that 7 parameters affect job throughput: MPI ranks per node, OpenMP threads, memory allocation policy, I/O scheduler, network buffer size, file striping count, and checkpoint interval. Testing all 128 combinations of a full 2<sup>7</sup> factorial is impractical &mdash; each run takes 20 minutes on a shared cluster.</p>
+
+      <p>A Plackett-Burman design requires only <strong>8 runs</strong> (2 hours of wall-clock time). The Pareto chart from the analysis reveals that MPI ranks per node and network buffer size together account for 72% of the throughput variation. The other five factors are noise.</p>
+
+      <div class="comparison-grid">
+        <div class="comparison-card bad">
+          <h4 style="color: #991b1b;">Full Factorial</h4>
+          <p>128 runs &times; 20 min = <strong>42 hours</strong></p>
+          <p>All 127 effects estimable</p>
+          <p>Only 2 effects actually matter</p>
+        </div>
+        <div class="comparison-card good">
+          <h4 style="color: #166534;">Plackett-Burman + Follow-up</h4>
+          <p>8 screening + 4 factorial = <strong>4 hours</strong></p>
+          <p>Identifies the 2 important factors</p>
+          <p>Full interaction detail on the vital few</p>
+        </div>
+      </div>
+
+      <h2 id="dummy-factors">Dummy Factors and Error Estimation</h2>
+
+      <p>If your Plackett-Burman design has more columns than real factors, the leftover columns become <strong>dummy factors</strong> &mdash; factors that don't correspond to any real variable. Their estimated effects should be zero (they're just noise), so they provide an estimate of experimental error.</p>
+
+      <div class="keypoint-box">
+        <h4>Using Dummy Factors</h4>
+        <p>In a 12-run PB design with 7 real factors, you have 4 dummy columns. The effects of these dummies estimate the noise floor. Any real factor whose effect exceeds 2&ndash;3 times the average dummy effect is likely significant. This is a practical alternative to formal hypothesis testing when you have no replicates.</p>
+      </div>
+
+      <h2 id="definitive-screening">Definitive Screening Designs</h2>
+
+      <p>Definitive Screening Designs (DSDs), introduced by Jones and Nachtsheim (2011), are a modern alternative to Plackett-Burman for continuous factors. They require only 2k+1 runs (for k factors), but can estimate:</p>
+
+      <ul>
+        <li>All main effects</li>
+        <li>All quadratic effects</li>
+        <li>Some two-factor interactions (when factors are dropped from the model)</li>
+      </ul>
+
+      <p>DSDs use three levels per factor (-1, 0, +1), so they can detect curvature that PB designs miss. The trade-off is slightly more runs and the requirement that factors be continuous (not categorical).</p>
+
+      <div class="warning-box">
+        <h4>When to Choose DSDs Over PB</h4>
+        <p>Use DSDs when all factors are continuous and you suspect curvature may be important. Use Plackett-Burman when you have categorical factors, when minimizing runs is critical, or when you're confident that a linear model is sufficient for screening purposes.</p>
+      </div>
+    </section>
+
+    <hr style="border: none; border-top: 2px solid var(--slate-200); margin: 48px 0;">
+
+    <!-- ═══════ CHAPTER 6 ═══════ -->
+    <section id="ch6">
+      <h1>Chapter 6</h1>
+      <div class="chapter-subtitle">Response Surface Designs</div>
+
+      <p class="lead">When screening has identified the key factors, response surface designs add star points and center replicates to fit quadratic models and find the true optimum.</p>
+
+      <h2 id="ccd">Central Composite Design (CCD)</h2>
+
+      <p>A CCD consists of three types of experimental points, each serving a distinct purpose:</p>
+
+      <ol>
+        <li><strong>Factorial points</strong> (2<sup>k</sup>): the corners of the design cube. These estimate linear effects and interactions &mdash; the same information a full factorial provides.</li>
+        <li><strong>Star (axial) points</strong> (2k): points along each axis at distance &alpha; from center. These provide the additional information needed to estimate quadratic (curvature) terms.</li>
+        <li><strong>Center replicates</strong> (c): repeated runs at the center, providing a direct estimate of experimental error and enabling the lack-of-fit test.</li>
+      </ol>
+
+      <p>Here's what a CCD looks like for 2 factors:</p>
+
+      <!-- CCD Diagram (SVG) -->
+      <div style="background: #fff; border: 1px solid var(--slate-200); border-radius: var(--radius); padding: 24px; margin: 20px 0;">
+        <div style="font: 600 .8rem var(--sans); color: var(--slate-600); margin-bottom: 16px; text-align: center;">Central Composite Design &mdash; 2 Factors</div>
+        <svg viewBox="0 0 340 290" style="width: 100%; max-width: 340px; display: block; margin: 0 auto;" xmlns="http://www.w3.org/2000/svg">
+          <!-- Design region box -->
+          <rect x="70" y="30" width="200" height="200" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1" rx="2"/>
+          <!-- Factorial square (inner) -->
+          <rect x="100" y="60" width="140" height="140" fill="none" stroke="#c7d2fe" stroke-width="1.5" stroke-dasharray="6,3"/>
+          <!-- Axes through center -->
+          <line x1="170" y1="20" x2="170" y2="240" stroke="#e2e8f0" stroke-width="0.5"/>
+          <line x1="50" y1="130" x2="290" y2="130" stroke="#e2e8f0" stroke-width="0.5"/>
+          <!-- Factorial points (corners) -->
+          <circle cx="100" cy="60" r="7" fill="#6366f1"/>
+          <circle cx="240" cy="60" r="7" fill="#6366f1"/>
+          <circle cx="100" cy="200" r="7" fill="#6366f1"/>
+          <circle cx="240" cy="200" r="7" fill="#6366f1"/>
+          <!-- Star points (axial) -->
+          <circle cx="170" cy="20" r="7" fill="#f59e0b"/>
+          <circle cx="170" cy="240" r="7" fill="#f59e0b"/>
+          <circle cx="50" cy="130" r="7" fill="#f59e0b"/>
+          <circle cx="290" cy="130" r="7" fill="#f59e0b"/>
+          <!-- Center points (stacked) -->
+          <circle cx="170" cy="130" r="8" fill="#10b981"/>
+          <circle cx="170" cy="130" r="4" fill="#fff"/>
+          <text x="185" y="126" font-size="8" fill="#047857" font-weight="600">5&times;</text>
+          <!-- Labels -->
+          <text x="100" y="52" text-anchor="middle" font-size="8" fill="#4338ca">(-1,-1)</text>
+          <text x="240" y="52" text-anchor="middle" font-size="8" fill="#4338ca">(+1,-1)</text>
+          <text x="100" y="217" text-anchor="middle" font-size="8" fill="#4338ca">(-1,+1)</text>
+          <text x="240" y="217" text-anchor="middle" font-size="8" fill="#4338ca">(+1,+1)</text>
+          <text x="170" y="14" text-anchor="middle" font-size="8" fill="#b45309">(0,-&alpha;)</text>
+          <text x="170" y="254" text-anchor="middle" font-size="8" fill="#b45309">(0,+&alpha;)</text>
+          <text x="40" y="126" text-anchor="end" font-size="8" fill="#b45309">(-&alpha;,0)</text>
+          <text x="300" y="126" font-size="8" fill="#b45309">(+&alpha;,0)</text>
+          <!-- Axis labels -->
+          <text x="170" y="275" text-anchor="middle" font-size="9" fill="#475569">Factor x₁</text>
+          <text x="20" y="130" text-anchor="middle" font-size="9" fill="#475569" transform="rotate(-90, 20, 130)">Factor x₂</text>
+          <!-- Legend -->
+          <circle cx="80" cy="282" r="5" fill="#6366f1"/>
+          <text x="89" y="285" font-size="8" fill="#64748b">Factorial (4)</text>
+          <circle cx="165" cy="282" r="5" fill="#f59e0b"/>
+          <text x="174" y="285" font-size="8" fill="#64748b">Star (4)</text>
+          <circle cx="235" cy="282" r="5" fill="#10b981"/>
+          <text x="244" y="285" font-size="8" fill="#64748b">Center (5)</text>
+        </svg>
+      </div>
+
+      <p>The factorial points (purple) form a square at the corners. The star points (amber) extend outward along each axis. The center points (green) are stacked at the middle. Together, these 13 runs provide enough information to fit all 6 terms of a two-factor quadratic model (intercept, two linear, one interaction, two quadratic).</p>
+
+      <table>
+        <thead><tr><th>Factors</th><th>Factorial</th><th>Star</th><th>Center</th><th>Total</th><th>Model terms fitted</th></tr></thead>
+        <tbody>
+          <tr><td>2</td><td>4</td><td>4</td><td>5</td><td><strong>13</strong></td><td>6</td></tr>
+          <tr><td>3</td><td>8</td><td>6</td><td>6</td><td><strong>20</strong></td><td>10</td></tr>
+          <tr><td>4</td><td>16</td><td>8</td><td>7</td><td><strong>31</strong></td><td>15</td></tr>
+          <tr><td>5</td><td>32</td><td>10</td><td>8</td><td><strong>50</strong></td><td>21</td></tr>
+        </tbody>
+      </table>
+
+      <div class="keypoint-box">
+        <h4>Why CCD Works: Building On What You Have</h4>
+        <p>A major practical advantage of CCD is that you can build it <strong>sequentially</strong>. If you've already run a 2<sup>k</sup> factorial with center points, you don't need to start over &mdash; just add the star points. This saves the factorial runs and lets you upgrade from a linear model to a quadratic model incrementally.</p>
+      </div>
+
+      <h2 id="alpha-parameter">The Alpha Parameter in CCD</h2>
+
+      <p>The star-point distance &alpha; controls where the axial points sit relative to the factorial cube. This single parameter determines the shape and statistical properties of the entire design:</p>
+
+      <table>
+        <thead><tr><th>Choice</th><th>&alpha; value (2 factors)</th><th>Property</th><th>When to use</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Face-centered</strong></td><td>1.00</td><td>Star points on cube faces; only 3 levels needed per factor</td><td>Factors with only 3 feasible levels; simplest to implement</td></tr>
+          <tr><td><strong>Rotatable</strong></td><td>1.414 (= 2<sup>k/4</sup>)</td><td>Prediction variance depends only on distance from center, not direction</td><td>General-purpose; best when you don't know which direction matters most</td></tr>
+          <tr><td><strong>Spherical</strong></td><td>1.414 (= &radic;k)</td><td>All points lie on a sphere of equal radius</td><td>When the factor space has natural circular/spherical boundaries</td></tr>
+        </tbody>
+      </table>
+
+      <!-- Alpha comparison SVG -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;">
+        <div style="background: #eff6ff; border: 1px solid #93c5fd; border-radius: var(--radius); padding: 16px; text-align: center;">
+          <div style="font: 600 .75rem var(--sans); color: #1e40af; margin-bottom: 8px;">Face-Centered (&alpha; = 1)</div>
+          <svg viewBox="0 0 140 140" style="width: 100%; max-width: 140px;" xmlns="http://www.w3.org/2000/svg">
+            <rect x="20" y="20" width="100" height="100" fill="#f0f9ff" stroke="#93c5fd" stroke-width="1"/>
+            <!-- Factorial -->
+            <circle cx="20" cy="20" r="5" fill="#6366f1"/>
+            <circle cx="120" cy="20" r="5" fill="#6366f1"/>
+            <circle cx="20" cy="120" r="5" fill="#6366f1"/>
+            <circle cx="120" cy="120" r="5" fill="#6366f1"/>
+            <!-- Star (on faces) -->
+            <circle cx="70" cy="20" r="5" fill="#f59e0b"/>
+            <circle cx="70" cy="120" r="5" fill="#f59e0b"/>
+            <circle cx="20" cy="70" r="5" fill="#f59e0b"/>
+            <circle cx="120" cy="70" r="5" fill="#f59e0b"/>
+            <!-- Center -->
+            <circle cx="70" cy="70" r="5" fill="#10b981"/>
+          </svg>
+          <div style="font-size: .75rem; color: #1e40af; margin-top: 4px;">Star points sit on the cube faces. Only 3 levels per factor. Simplest.</div>
+        </div>
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius); padding: 16px; text-align: center;">
+          <div style="font: 600 .75rem var(--sans); color: #166534; margin-bottom: 8px;">Rotatable (&alpha; = 1.41)</div>
+          <svg viewBox="0 0 140 140" style="width: 100%; max-width: 140px;" xmlns="http://www.w3.org/2000/svg">
+            <rect x="20" y="20" width="100" height="100" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1" stroke-dasharray="4,3"/>
+            <!-- Factorial -->
+            <circle cx="20" cy="20" r="5" fill="#6366f1"/>
+            <circle cx="120" cy="20" r="5" fill="#6366f1"/>
+            <circle cx="20" cy="120" r="5" fill="#6366f1"/>
+            <circle cx="120" cy="120" r="5" fill="#6366f1"/>
+            <!-- Star (beyond faces) -->
+            <circle cx="70" cy="0" r="5" fill="#f59e0b"/>
+            <circle cx="70" cy="140" r="5" fill="#f59e0b"/>
+            <circle cx="0" cy="70" r="5" fill="#f59e0b"/>
+            <circle cx="140" cy="70" r="5" fill="#f59e0b"/>
+            <!-- Center -->
+            <circle cx="70" cy="70" r="5" fill="#10b981"/>
+            <!-- Circle showing rotatability -->
+            <circle cx="70" cy="70" r="70" fill="none" stroke="#86efac" stroke-width="1" stroke-dasharray="3,3"/>
+          </svg>
+          <div style="font-size: .75rem; color: #166534; margin-top: 4px;">Star points extend beyond the cube. 5 levels per factor. Equal prediction precision in all directions.</div>
+        </div>
+      </div>
+
+      <div class="warning-box">
+        <h4>Practical Consideration: Factor Ranges</h4>
+        <p>With a rotatable CCD (&alpha; &gt; 1), the star points lie outside the factorial range. For 2 factors, &alpha; = 1.414 means the star points are 41% beyond the original range. Make sure these extreme values are physically feasible and safe <em>before</em> generating the design. If they aren't, use face-centered (&alpha; = 1).</p>
+      </div>
+
+      <h2 id="box-behnken">Box-Behnken Design</h2>
+
+      <p>Box-Behnken is an alternative RSM design that <strong>never tests the corner conditions</strong>. Every run has at most two factors at their extreme levels &mdash; the remaining factors stay at center. This makes Box-Behnken ideal when the corners represent dangerous, expensive, or physically impossible combinations.</p>
+
+      <!-- Box-Behnken SVG for 3 factors -->
+      <div style="background: #fff; border: 1px solid var(--slate-200); border-radius: var(--radius); padding: 24px; margin: 20px 0;">
+        <div style="font: 600 .8rem var(--sans); color: var(--slate-600); margin-bottom: 16px; text-align: center;">Box-Behnken Design &mdash; 3 Factors (15 runs)</div>
+        <svg viewBox="0 0 340 240" style="width: 100%; max-width: 340px; display: block; margin: 0 auto;" xmlns="http://www.w3.org/2000/svg">
+          <!-- 3D cube (isometric) -->
+          <!-- Back face -->
+          <polygon points="170,30 290,80 290,180 170,130" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+          <polygon points="170,30 50,80 50,180 170,130" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+          <polygon points="50,180 170,230 290,180 170,130" fill="none" stroke="#e2e8f0" stroke-width="1"/>
+          <!-- Edges -->
+          <line x1="170" y1="30" x2="170" y2="130" stroke="#e2e8f0" stroke-width="0.5"/>
+          <line x1="50" y1="80" x2="290" y2="80" stroke="#e2e8f0" stroke-width="0.5" stroke-dasharray="3,3"/>
+          <!-- Corner points (NOT tested - shown as hollow) -->
+          <circle cx="170" cy="30" r="4" fill="none" stroke="#cbd5e1" stroke-width="1.5"/>
+          <circle cx="290" cy="80" r="4" fill="none" stroke="#cbd5e1" stroke-width="1.5"/>
+          <circle cx="50" cy="80" r="4" fill="none" stroke="#cbd5e1" stroke-width="1.5"/>
+          <circle cx="290" cy="180" r="4" fill="none" stroke="#cbd5e1" stroke-width="1.5"/>
+          <circle cx="50" cy="180" r="4" fill="none" stroke="#cbd5e1" stroke-width="1.5"/>
+          <circle cx="170" cy="230" r="4" fill="none" stroke="#cbd5e1" stroke-width="1.5"/>
+          <circle cx="170" cy="130" r="4" fill="none" stroke="#cbd5e1" stroke-width="1.5"/>
+          <!-- Edge midpoints (Box-Behnken points - shown as solid) -->
+          <!-- Top face edges -->
+          <circle cx="230" cy="55" r="5" fill="#6366f1"/>
+          <circle cx="110" cy="55" r="5" fill="#6366f1"/>
+          <circle cx="230" cy="155" r="5" fill="#6366f1"/>
+          <circle cx="110" cy="155" r="5" fill="#6366f1"/>
+          <!-- Side edges -->
+          <circle cx="170" cy="80" r="5" fill="#6366f1"/>
+          <circle cx="170" cy="180" r="5" fill="#6366f1"/>
+          <circle cx="50" cy="130" r="5" fill="#6366f1"/>
+          <circle cx="290" cy="130" r="5" fill="#6366f1"/>
+          <!-- Vertical edges -->
+          <circle cx="110" cy="105" r="5" fill="#6366f1"/>
+          <circle cx="230" cy="105" r="5" fill="#6366f1"/>
+          <circle cx="170" cy="130" r="0" fill="none"/>
+          <circle cx="110" cy="205" r="5" fill="#6366f1"/>
+          <circle cx="230" cy="205" r="5" fill="#6366f1"/>
+          <!-- Center -->
+          <circle cx="170" cy="130" r="6" fill="#10b981"/>
+          <circle cx="170" cy="130" r="3" fill="#fff"/>
+          <text x="183" y="128" font-size="8" fill="#047857" font-weight="600">3&times;</text>
+          <!-- Legend -->
+          <circle cx="80" cy="220" r="4" fill="none" stroke="#cbd5e1" stroke-width="1.5"/>
+          <text x="89" y="223" font-size="8" fill="#94a3b8">Corners (not tested)</text>
+          <circle cx="200" cy="220" r="4" fill="#6366f1"/>
+          <text x="209" y="223" font-size="8" fill="#64748b">Edge midpoints (12)</text>
+        </svg>
+      </div>
+
+      <p>In a 3-factor Box-Behnken, the 12 design points sit at the midpoints of the cube's edges, plus 3 center replicates. No run has all three factors at their extremes simultaneously. Compare this to a CCD, which tests every corner:</p>
+
+      <table>
+        <thead><tr><th>Property</th><th>CCD (3 factors)</th><th>Box-Behnken (3 factors)</th></tr></thead>
+        <tbody>
+          <tr><td>Total runs</td><td>20 (8+6+6)</td><td>15 (12+3)</td></tr>
+          <tr><td>Corner conditions tested?</td><td>Yes (all 8 corners)</td><td><strong>No</strong></td></tr>
+          <tr><td>Levels per factor</td><td>5 (rotatable) or 3 (face-centered)</td><td>3</td></tr>
+          <tr><td>Can be built sequentially?</td><td>Yes (add stars to factorial)</td><td>No (requires all points)</td></tr>
+          <tr><td>Quadratic model fittable?</td><td>Yes</td><td>Yes</td></tr>
+        </tbody>
+      </table>
+
+      <div class="keypoint-box">
+        <h4>CCD vs. Box-Behnken: Decision Guide</h4>
+        <p><strong>Use CCD when:</strong> Corner conditions are safe and feasible, you want to build on an existing factorial design, or you want the flexibility of choosing &alpha;.<br><br>
+        <strong>Use Box-Behnken when:</strong> Corner conditions are dangerous or impossible (e.g., max temperature + max pressure + max flow rate in a reactor), when you want fewer total runs for 3+ factors, or when only 3 levels per factor are practical.</p>
+      </div>
+
+      <div class="danger-box">
+        <h4>When Corner Conditions Are Dangerous</h4>
+        <p>In a chemical reactor, running at maximum temperature, maximum pressure, and maximum catalyst simultaneously could cause a runaway reaction. In a server cluster, setting all resource parameters to maximum simultaneously could cause cascading failures. Box-Behnken avoids these extremes by design &mdash; no run ever has more than two factors at their limits.</p>
+      </div>
+
+      <h2 id="lhs">Latin Hypercube Sampling</h2>
+
+      <p>Latin Hypercube Sampling (LHS) is fundamentally different from factorial and RSM designs. Instead of testing specific combinations at discrete levels, LHS generates a <strong>space-filling</strong> set of points across the full continuous factor range.</p>
+
+      <p>For N samples and k factors, LHS divides each factor's range into N equal intervals and places exactly one sample in each interval for every factor:</p>
+
+      <!-- LHS Diagram (SVG) -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;">
+        <div style="background: #fee2e2; border: 1px solid #fca5a5; border-radius: var(--radius); padding: 16px; text-align: center;">
+          <div style="font: 600 .75rem var(--sans); color: #991b1b; margin-bottom: 8px;">Random Sampling (Clumps)</div>
+          <svg viewBox="0 0 140 140" style="width: 100%; max-width: 140px;" xmlns="http://www.w3.org/2000/svg">
+            <rect x="5" y="5" width="130" height="130" fill="#fef2f2" stroke="#fca5a5" stroke-width="0.5"/>
+            <!-- Grid -->
+            <line x1="31" y1="5" x2="31" y2="135" stroke="#fecaca" stroke-width="0.5"/>
+            <line x1="57" y1="5" x2="57" y2="135" stroke="#fecaca" stroke-width="0.5"/>
+            <line x1="83" y1="5" x2="83" y2="135" stroke="#fecaca" stroke-width="0.5"/>
+            <line x1="109" y1="5" x2="109" y2="135" stroke="#fecaca" stroke-width="0.5"/>
+            <line x1="5" y1="31" x2="135" y2="31" stroke="#fecaca" stroke-width="0.5"/>
+            <line x1="5" y1="57" x2="135" y2="57" stroke="#fecaca" stroke-width="0.5"/>
+            <line x1="5" y1="83" x2="135" y2="83" stroke="#fecaca" stroke-width="0.5"/>
+            <line x1="5" y1="109" x2="135" y2="109" stroke="#fecaca" stroke-width="0.5"/>
+            <!-- Random points (clustered) -->
+            <circle cx="42" cy="38" r="4" fill="#ef4444"/>
+            <circle cx="55" cy="44" r="4" fill="#ef4444"/>
+            <circle cx="90" cy="95" r="4" fill="#ef4444"/>
+            <circle cx="100" cy="85" r="4" fill="#ef4444"/>
+            <circle cx="115" cy="110" r="4" fill="#ef4444"/>
+          </svg>
+          <div style="font-size: .75rem; color: #b91c1c; margin-top: 4px;">Points cluster, leaving large unexplored gaps.</div>
+        </div>
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius); padding: 16px; text-align: center;">
+          <div style="font: 600 .75rem var(--sans); color: #166534; margin-bottom: 8px;">Latin Hypercube (Space-Filling)</div>
+          <svg viewBox="0 0 140 140" style="width: 100%; max-width: 140px;" xmlns="http://www.w3.org/2000/svg">
+            <rect x="5" y="5" width="130" height="130" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="0.5"/>
+            <!-- Grid -->
+            <line x1="31" y1="5" x2="31" y2="135" stroke="#dcfce7" stroke-width="0.5"/>
+            <line x1="57" y1="5" x2="57" y2="135" stroke="#dcfce7" stroke-width="0.5"/>
+            <line x1="83" y1="5" x2="83" y2="135" stroke="#dcfce7" stroke-width="0.5"/>
+            <line x1="109" y1="5" x2="109" y2="135" stroke="#dcfce7" stroke-width="0.5"/>
+            <line x1="5" y1="31" x2="135" y2="31" stroke="#dcfce7" stroke-width="0.5"/>
+            <line x1="5" y1="57" x2="135" y2="57" stroke="#dcfce7" stroke-width="0.5"/>
+            <line x1="5" y1="83" x2="135" y2="83" stroke="#dcfce7" stroke-width="0.5"/>
+            <line x1="5" y1="109" x2="135" y2="109" stroke="#dcfce7" stroke-width="0.5"/>
+            <!-- LHS points (one per row, one per column) -->
+            <circle cx="22" cy="95" r="4" fill="#10b981"/>
+            <circle cx="48" cy="18" r="4" fill="#10b981"/>
+            <circle cx="70" cy="120" r="4" fill="#10b981"/>
+            <circle cx="96" cy="44" r="4" fill="#10b981"/>
+            <circle cx="122" cy="70" r="4" fill="#10b981"/>
+          </svg>
+          <div style="font-size: .75rem; color: #15803d; margin-top: 4px;">Exactly one point per row and column. Uniform coverage guaranteed.</div>
+        </div>
+      </div>
+
+      <div class="analogy">
+        <h4>&#x265F; Think of It Like Sudoku</h4>
+        <p>In a Latin Hypercube, each row and column of the sampling grid has exactly one point &mdash; like placing non-attacking rooks on a chessboard. This guarantees that no region of the factor space is left unexplored, unlike pure random sampling which can leave large gaps.</p>
+      </div>
+
+      <h3>When to Use LHS vs. Factorial Designs</h3>
+
+      <table>
+        <thead><tr><th>Situation</th><th>Use LHS</th><th>Use Factorial/CCD</th></tr></thead>
+        <tbody>
+          <tr><td>Goal</td><td>Explore a large space; build surrogate models</td><td>Estimate specific effects; find precise optimum</td></tr>
+          <tr><td>Factors</td><td>Many continuous factors (5+)</td><td>Few factors (2&ndash;5)</td></tr>
+          <tr><td>Levels</td><td>Continuous range; many unique values</td><td>Discrete: 2&ndash;5 levels per factor</td></tr>
+          <tr><td>Model type</td><td>Gaussian process, neural net, or any ML model</td><td>Linear/quadratic polynomial</td></tr>
+          <tr><td>Statistical tests</td><td>None built-in; need bootstrap or cross-validation</td><td>ANOVA, t-tests, confidence intervals</td></tr>
+        </tbody>
+      </table>
+
+      <div class="warning-box">
+        <h4>LHS Cannot Estimate Effects Directly</h4>
+        <p>Unlike factorial designs, LHS does not produce orthogonal columns. You cannot compute clean main effects or interaction effects from LHS data. LHS is best paired with flexible modeling techniques (Gaussian processes, random forests) that don't require orthogonality. If you need traditional DOE analysis (Pareto charts, effect estimates, ANOVA), use factorial or RSM designs.</p>
+      </div>
+
+      <h2 id="choosing-design">Quick Reference: Choosing a Design</h2>
+
+      <p>This is the most important table in the book. Use it to select your design based on what you need to learn:</p>
+
+      <table>
+        <thead><tr><th>Question You Need to Answer</th><th>Design</th><th>Typical Runs</th></tr></thead>
+        <tbody>
+          <tr><td>Which of these 10+ factors matter?</td><td><strong>Plackett-Burman</strong></td><td>8&ndash;20</td></tr>
+          <tr><td>Main effects + some interactions? (5&ndash;8 factors)</td><td><strong>Fractional Factorial</strong></td><td>16&ndash;32</td></tr>
+          <tr><td>All effects, no compromises? (2&ndash;4 factors)</td><td><strong>Full Factorial</strong></td><td>4&ndash;16</td></tr>
+          <tr><td>Find the quadratic optimum? Corners safe?</td><td><strong>CCD</strong></td><td>13&ndash;50</td></tr>
+          <tr><td>Find the quadratic optimum? Corners dangerous?</td><td><strong>Box-Behnken</strong></td><td>13&ndash;46</td></tr>
+          <tr><td>Uniform coverage of a large continuous space?</td><td><strong>Latin Hypercube</strong></td><td>10&ndash;100+</td></tr>
+        </tbody>
+      </table>
+
+      <div class="keypoint-box">
+        <h4>The Design Selection Flowchart</h4>
+        <p><strong>Step 1:</strong> How many factors? If &gt; 6, start with screening (PB). If 2&ndash;5, go to Step 2.<br>
+        <strong>Step 2:</strong> Do you need interactions? If no, PB is sufficient. If yes, use fractional or full factorial.<br>
+        <strong>Step 3:</strong> Do you suspect curvature? Check center points. If center-point mean differs from factorial mean, upgrade to CCD or Box-Behnken.<br>
+        <strong>Step 4:</strong> Are corner conditions feasible? If yes, CCD. If no, Box-Behnken.<br>
+        <strong>Step 5:</strong> Is the factor space continuous with many dimensions? Consider LHS for initial exploration.</p>
+      </div>
+
+      <h2 id="chemical-example">Worked Example: Chemical Process Optimization</h2>
+
+      <p>A chemical engineer has identified two critical factors from a screening study: reaction temperature (150&ndash;200&deg;C) and catalyst concentration (1&ndash;5%). They choose a rotatable CCD (&alpha; = 1.414) with 5 center replicates, giving 13 runs total.</p>
+
+      <table>
+        <thead><tr><th>Run</th><th>Type</th><th>x<sub>1</sub> (coded)</th><th>x<sub>2</sub> (coded)</th><th>Temp (&deg;C)</th><th>Catalyst (%)</th><th>Yield (%)</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Factorial</td><td>-1</td><td>-1</td><td>150</td><td>1</td><td>62</td></tr>
+          <tr><td>2</td><td>Factorial</td><td>+1</td><td>-1</td><td>200</td><td>1</td><td>74</td></tr>
+          <tr><td>3</td><td>Factorial</td><td>-1</td><td>+1</td><td>150</td><td>5</td><td>78</td></tr>
+          <tr><td>4</td><td>Factorial</td><td>+1</td><td>+1</td><td>200</td><td>5</td><td>85</td></tr>
+          <tr><td>5</td><td>Star</td><td>-1.414</td><td>0</td><td>139.6</td><td>3</td><td>66</td></tr>
+          <tr><td>6</td><td>Star</td><td>+1.414</td><td>0</td><td>210.4</td><td>3</td><td>79</td></tr>
+          <tr><td>7</td><td>Star</td><td>0</td><td>-1.414</td><td>175</td><td>0.17</td><td>58</td></tr>
+          <tr><td>8</td><td>Star</td><td>0</td><td>+1.414</td><td>175</td><td>5.83</td><td>82</td></tr>
+          <tr><td>9&ndash;13</td><td>Center</td><td>0</td><td>0</td><td>175</td><td>3</td><td>88, 87, 89, 86, 88</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Step 1: Check for Curvature</h3>
+
+      <p>The average of the 4 factorial points is (62+74+78+85)/4 = <strong>74.75%</strong>. The average of the 5 center points is (88+87+89+86+88)/5 = <strong>87.6%</strong>. The center-point average is 12.85% higher than the factorial average &mdash; strong evidence of quadratic curvature. The optimum lies inside the design space, not at the corners.</p>
+
+      <div class="keypoint-box">
+        <h4>The Curvature Test Is Your First Check</h4>
+        <p>If center-point mean &asymp; factorial mean, the surface is approximately flat (linear) in this region. Use steepest ascent to move toward the optimum. If center-point mean is significantly higher (or lower), curvature is present and the CCD data can map it. In our example, the 12.85% gap confirms strong curvature.</p>
+      </div>
+
+      <h3>Step 2: Interpret the Fitted Model</h3>
+
+      <p>The full quadratic model fitted to all 13 runs yields the prediction equation (see Chapter 8 for complete RSM analysis). The fitted model finds the predicted optimum at approximately <strong>180&deg;C and 3.5% catalyst</strong>, with a predicted yield of <strong>89.2%</strong>.</p>
+
+      <h3>Step 3: What the Star Points Reveal</h3>
+
+      <p>The star points at extreme temperature (runs 5&ndash;6) give yields of 66% and 79% &mdash; both well below the center points. Similarly, extreme catalyst (runs 7&ndash;8) give 58% and 82%. This confirms that both factors have strong downward curvature at the extremes &mdash; there really is a peak in the middle.</p>
+
+      <div class="warning-box">
+        <h4>What If Center Points Weren't Higher?</h4>
+        <p>If the center yields had been ~75% (close to the factorial average), the linear model would be adequate and the CCD star points wouldn't add much value. You'd use the factorial data alone and apply steepest ascent to move toward the optimum. Always check center points first before committing to the full quadratic analysis.</p>
+      </div>
+
+      <h2 id="sequential">Sequential Experimentation</h2>
+
+      <p>RSM designs are most powerful when used <strong>sequentially</strong>, in stages that build on each other. This avoids the common mistake of running an expensive, comprehensive experiment in a region far from the optimum.</p>
+
+      <h3>The Three-Phase RSM Strategy</h3>
+
+      <ol>
+        <li><strong>Phase 1 &mdash; Screen:</strong> Run a Plackett-Burman or fractional factorial to identify the 2&ndash;4 important factors from the original 8&ndash;15 candidates. (Chapter 5)</li>
+        <li><strong>Phase 2 &mdash; First-order model + steepest ascent:</strong> Run a 2<sup>k</sup> factorial with center points on the important factors. If the surface is approximately linear (center ≈ factorial average), use steepest ascent to move toward the optimum. Stop when the response levels off or starts declining.</li>
+        <li><strong>Phase 3 &mdash; Second-order model:</strong> Center a CCD or Box-Behnken around the best point from Phase 2. Fit the full quadratic model. Locate the precise optimum. Run confirmation experiments.</li>
+      </ol>
+
+      <div style="background: #fff; border: 1px solid var(--slate-200); border-radius: var(--radius); padding: 24px; margin: 20px 0;">
+        <div style="font: 600 .8rem var(--sans); color: var(--slate-600); margin-bottom: 16px; text-align: center;">Sequential RSM Strategy</div>
+        <svg viewBox="0 0 520 80" style="width: 100%; max-width: 520px; display: block; margin: 0 auto;" xmlns="http://www.w3.org/2000/svg">
+          <!-- Phase 1 -->
+          <rect x="5" y="15" width="130" height="50" rx="8" fill="#eff6ff" stroke="#93c5fd" stroke-width="1.5"/>
+          <text x="70" y="36" text-anchor="middle" font-size="9" font-weight="700" fill="#1e40af">Phase 1: Screen</text>
+          <text x="70" y="50" text-anchor="middle" font-size="7.5" fill="#3b82f6">PB or Frac. Factorial</text>
+          <text x="70" y="60" text-anchor="middle" font-size="7" fill="#64748b">Find vital few factors</text>
+          <!-- Arrow -->
+          <line x1="140" y1="40" x2="170" y2="40" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowGrey)"/>
+          <!-- Phase 2 -->
+          <rect x="175" y="15" width="145" height="50" rx="8" fill="#fef3c7" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="247" y="36" text-anchor="middle" font-size="9" font-weight="700" fill="#92400e">Phase 2: Move</text>
+          <text x="247" y="50" text-anchor="middle" font-size="7.5" fill="#d97706">Factorial + Steepest Ascent</text>
+          <text x="247" y="60" text-anchor="middle" font-size="7" fill="#64748b">Approach the optimum region</text>
+          <!-- Arrow -->
+          <line x1="325" y1="40" x2="355" y2="40" stroke="#94a3b8" stroke-width="1.5" marker-end="url(#arrowGrey)"/>
+          <!-- Phase 3 -->
+          <rect x="360" y="15" width="150" height="50" rx="8" fill="#f0fdf4" stroke="#86efac" stroke-width="1.5"/>
+          <text x="435" y="36" text-anchor="middle" font-size="9" font-weight="700" fill="#166534">Phase 3: Optimize</text>
+          <text x="435" y="50" text-anchor="middle" font-size="7.5" fill="#15803d">CCD or Box-Behnken</text>
+          <text x="435" y="60" text-anchor="middle" font-size="7" fill="#64748b">Map the peak precisely</text>
+          <defs><marker id="arrowGrey" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#94a3b8"/></marker></defs>
+        </svg>
+      </div>
+
+      <div class="analogy">
+        <h4>&#x26F0; The Hill-Climbing Analogy</h4>
+        <p>Imagine finding the peak of a mountain in fog. <strong>Phase 1</strong> is looking around to see which directions slope upward (screening). <strong>Phase 2</strong> is walking uphill in the steepest direction (steepest ascent). <strong>Phase 3</strong> is stopping when the ground levels off and mapping the summit precisely (CCD). This iterative approach is far more efficient than trying to map the entire mountain at once.</p>
+      </div>
+
+      <div class="keypoint-box">
+        <h4>How Many Total Runs?</h4>
+        <p>A typical three-phase RSM study on 10 candidate factors:<br>
+        <strong>Phase 1:</strong> 12-run Plackett-Burman identifies 3 important factors.<br>
+        <strong>Phase 2:</strong> 8-run factorial + 3 center points + 5 steepest ascent runs = 16 runs.<br>
+        <strong>Phase 3:</strong> 20-run CCD + 3 confirmation runs = 23 runs.<br>
+        <strong>Total: ~51 runs</strong> from "which factors matter?" to "here's the validated optimum." A full factorial on 10 factors at 2 levels would need 1,024 runs &mdash; and still wouldn't find the quadratic optimum.</p>
+      </div>
+    </section>
+
+    <hr style="border: none; border-top: 2px solid var(--slate-200); margin: 48px 0;">
+
+    <!-- ═══════ CHAPTER 7 ═══════ -->
+    <section id="ch7">
+      <h1>Chapter 7</h1>
+      <div class="chapter-subtitle">Analyzing Results</div>
+
+      <p class="lead">Once you've run your experiments, the analysis phase turns raw data into actionable knowledge. The DOE Helper Tool automates this entire process.</p>
+
+      <h2 id="pareto">The Pareto Chart</h2>
+
+      <p>A Pareto chart ranks all effects by magnitude and shows their cumulative contribution. It is the single most important chart in DOE analysis &mdash; one glance tells you which factors matter and which don't.</p>
+
+      <p>Consider a 2<sup>3</sup> factorial on web server tuning with factors Thread Count (A), Cache Size (B), and Connection Timeout (C). The analysis produces these effect magnitudes:</p>
+
+      <table>
+        <thead><tr><th>Effect</th><th>Magnitude</th><th>% Contribution</th><th>Cumulative %</th></tr></thead>
+        <tbody>
+          <tr><td><strong>B (Cache Size)</strong></td><td>18.4</td><td>42.1%</td><td>42.1%</td></tr>
+          <tr><td><strong>A (Threads)</strong></td><td>12.6</td><td>28.8%</td><td>70.9%</td></tr>
+          <tr><td><strong>AB</strong></td><td>7.3</td><td>16.7%</td><td>87.6%</td></tr>
+          <tr><td>C (Timeout)</td><td>2.8</td><td>6.4%</td><td>94.0%</td></tr>
+          <tr><td>AC</td><td>1.4</td><td>3.2%</td><td>97.2%</td></tr>
+          <tr><td>BC</td><td>0.8</td><td>1.8%</td><td>99.0%</td></tr>
+          <tr><td>ABC</td><td>0.4</td><td>1.0%</td><td>100%</td></tr>
+        </tbody>
+      </table>
+
+      <p>The Pareto chart renders this as descending bars with a cumulative line:</p>
+
+      <!-- Pareto Chart Example (SVG) -->
+      <div style="background: #fff; border: 1px solid var(--slate-200); border-radius: var(--radius); padding: 24px; margin: 20px 0;">
+        <div style="font: 600 .8rem var(--sans); color: var(--slate-600); margin-bottom: 16px; text-align: center;">Pareto Chart of Effects &mdash; Server Throughput</div>
+        <svg viewBox="0 0 520 220" style="width: 100%; max-width: 520px; display: block; margin: 0 auto;" xmlns="http://www.w3.org/2000/svg">
+          <!-- Axes -->
+          <line x1="60" y1="10" x2="60" y2="180" stroke="#94a3b8" stroke-width="1"/>
+          <line x1="60" y1="180" x2="500" y2="180" stroke="#94a3b8" stroke-width="1"/>
+          <!-- Y-axis labels (effect magnitude) -->
+          <text x="55" y="180" text-anchor="end" font-size="9" fill="#64748b">0</text>
+          <text x="55" y="138" text-anchor="end" font-size="9" fill="#64748b">5</text>
+          <text x="55" y="96" text-anchor="end" font-size="9" fill="#64748b">10</text>
+          <text x="55" y="54" text-anchor="end" font-size="9" fill="#64748b">15</text>
+          <text x="55" y="15" text-anchor="end" font-size="9" fill="#64748b">20</text>
+          <!-- Grid lines -->
+          <line x1="60" y1="138" x2="500" y2="138" stroke="#e2e8f0" stroke-width="0.5"/>
+          <line x1="60" y1="96" x2="500" y2="96" stroke="#e2e8f0" stroke-width="0.5"/>
+          <line x1="60" y1="54" x2="500" y2="54" stroke="#e2e8f0" stroke-width="0.5"/>
+          <!-- Bars -->
+          <rect x="80" y="25" width="50" height="155" rx="3" fill="#6366f1" opacity="0.85"/>
+          <rect x="145" y="74" width="50" height="106" rx="3" fill="#6366f1" opacity="0.7"/>
+          <rect x="210" y="118" width="50" height="62" rx="3" fill="#6366f1" opacity="0.55"/>
+          <rect x="275" y="157" width="50" height="23" rx="3" fill="#94a3b8" opacity="0.5"/>
+          <rect x="340" y="168" width="50" height="12" rx="3" fill="#94a3b8" opacity="0.4"/>
+          <rect x="405" y="173" width="50" height="7" rx="3" fill="#94a3b8" opacity="0.35"/>
+          <!-- Bar labels -->
+          <text x="105" y="196" text-anchor="middle" font-size="9" font-weight="600" fill="#4338ca">B</text>
+          <text x="170" y="196" text-anchor="middle" font-size="9" font-weight="600" fill="#4338ca">A</text>
+          <text x="235" y="196" text-anchor="middle" font-size="9" font-weight="600" fill="#4338ca">AB</text>
+          <text x="300" y="196" text-anchor="middle" font-size="9" fill="#64748b">C</text>
+          <text x="365" y="196" text-anchor="middle" font-size="9" fill="#64748b">AC</text>
+          <text x="430" y="196" text-anchor="middle" font-size="9" fill="#64748b">BC</text>
+          <!-- Cumulative line -->
+          <polyline points="105,109 170,61 235,36 300,28 365,23 430,19" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="105" cy="109" r="3" fill="#f97316"/>
+          <circle cx="170" cy="61" r="3" fill="#f97316"/>
+          <circle cx="235" cy="36" r="3" fill="#f97316"/>
+          <circle cx="300" cy="28" r="3" fill="#f97316"/>
+          <circle cx="365" cy="23" r="3" fill="#f97316"/>
+          <circle cx="430" cy="19" r="3" fill="#f97316"/>
+          <!-- Cumulative % labels -->
+          <text x="105" y="104" text-anchor="middle" font-size="8" fill="#ea580c">42%</text>
+          <text x="170" y="56" text-anchor="middle" font-size="8" fill="#ea580c">71%</text>
+          <text x="235" y="31" text-anchor="middle" font-size="8" fill="#ea580c">88%</text>
+          <!-- 80% threshold line -->
+          <line x1="60" y1="44" x2="500" y2="44" stroke="#ef4444" stroke-width="1" stroke-dasharray="6,3"/>
+          <text x="503" y="47" font-size="8" fill="#ef4444">80%</text>
+          <!-- Right Y-axis labels (cumulative %) -->
+          <text x="503" y="180" font-size="8" fill="#ea580c">0%</text>
+          <text x="503" y="15" font-size="8" fill="#ea580c">100%</text>
+          <!-- Axis titles -->
+          <text x="280" y="212" text-anchor="middle" font-size="9" fill="#64748b">Effect</text>
+          <text x="12" y="100" text-anchor="middle" font-size="9" fill="#64748b" transform="rotate(-90, 12, 100)">Magnitude</text>
+        </svg>
+      </div>
+
+      <div class="keypoint-box">
+        <h4>How to Interpret This Pareto Chart</h4>
+        <p><strong>The bars</strong> (purple) are sorted tallest to shortest. Cache Size (B) dominates, followed by Threads (A). Together with their interaction (AB), these three effects account for 88% of all variation &mdash; past the 80% threshold (dashed red line).<br><br>
+        <strong>The orange cumulative line</strong> rises steeply at first, then flattens. Once it crosses 80%, the remaining effects are noise. Factors C, AC, and BC (the grey bars) contribute less than 12% combined &mdash; you can fix Connection Timeout at any convenient value.<br><br>
+        <strong>Action:</strong> The AB interaction is large (16.7%), which means Threads and Cache Size don't act independently. You must optimize them <em>together</em>, not separately. This is exactly the insight OVAT would miss.</p>
+      </div>
+
+      <h2 id="main-effects-plots">Main Effects Plots</h2>
+
+      <p>A main effects plot shows the average response at each level of each factor. It answers the question: <em>"When I change this factor from low to high, what happens to the response on average?"</em></p>
+
+      <p>Using the same web server example, suppose the mean throughput at each factor level is:</p>
+
+      <table>
+        <thead><tr><th>Factor</th><th>Low Level Mean</th><th>High Level Mean</th><th>Effect</th></tr></thead>
+        <tbody>
+          <tr><td>A (Threads): 10 vs 100</td><td>660 req/s</td><td>920 req/s</td><td>+260</td></tr>
+          <tr><td>B (Cache): 64MB vs 512MB</td><td>580 req/s</td><td>1000 req/s</td><td>+420</td></tr>
+          <tr><td>C (Timeout): 5s vs 30s</td><td>770 req/s</td><td>810 req/s</td><td>+40</td></tr>
+        </tbody>
+      </table>
+
+      <!-- Main Effects Plot (SVG) -->
+      <div style="background: #fff; border: 1px solid var(--slate-200); border-radius: var(--radius); padding: 24px; margin: 20px 0;">
+        <div style="font: 600 .8rem var(--sans); color: var(--slate-600); margin-bottom: 16px; text-align: center;">Main Effects Plot &mdash; Server Throughput (req/s)</div>
+        <svg viewBox="0 0 520 200" style="width: 100%; max-width: 520px; display: block; margin: 0 auto;" xmlns="http://www.w3.org/2000/svg">
+          <!-- Panel 1: Factor A -->
+          <rect x="30" y="5" width="145" height="165" rx="4" fill="#f8fafc" stroke="#e2e8f0"/>
+          <text x="102" y="185" text-anchor="middle" font-size="9" fill="#64748b">A (Threads)</text>
+          <!-- Y-axis -->
+          <text x="40" y="155" font-size="8" fill="#94a3b8">500</text>
+          <text x="40" y="85" font-size="8" fill="#94a3b8">800</text>
+          <text x="40" y="20" font-size="8" fill="#94a3b8">1100</text>
+          <!-- Grid -->
+          <line x1="55" y1="150" x2="165" y2="150" stroke="#e2e8f0" stroke-width="0.5"/>
+          <line x1="55" y1="85" x2="165" y2="85" stroke="#e2e8f0" stroke-width="0.5"/>
+          <line x1="55" y1="20" x2="165" y2="20" stroke="#e2e8f0" stroke-width="0.5"/>
+          <!-- Line: 660 -> 920 (mapped: 500=150, 1100=20, so 660~127, 920~79) -->
+          <line x1="80" y1="127" x2="148" y2="79" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="80" cy="127" r="4" fill="#6366f1"/>
+          <circle cx="148" cy="79" r="4" fill="#6366f1"/>
+          <text x="80" y="140" text-anchor="middle" font-size="8" fill="#4338ca">660</text>
+          <text x="148" y="74" text-anchor="middle" font-size="8" fill="#4338ca">920</text>
+          <text x="80" y="165" text-anchor="middle" font-size="8" fill="#94a3b8">Low</text>
+          <text x="148" y="165" text-anchor="middle" font-size="8" fill="#94a3b8">High</text>
+
+          <!-- Panel 2: Factor B -->
+          <rect x="190" y="5" width="145" height="165" rx="4" fill="#f8fafc" stroke="#e2e8f0"/>
+          <text x="262" y="185" text-anchor="middle" font-size="9" fill="#64748b">B (Cache Size)</text>
+          <line x1="215" y1="150" x2="325" y2="150" stroke="#e2e8f0" stroke-width="0.5"/>
+          <line x1="215" y1="85" x2="325" y2="85" stroke="#e2e8f0" stroke-width="0.5"/>
+          <line x1="215" y1="20" x2="325" y2="20" stroke="#e2e8f0" stroke-width="0.5"/>
+          <!-- Line: 580 -> 1000 (580~138, 1000~63) -->
+          <line x1="240" y1="138" x2="308" y2="63" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="240" cy="138" r="4" fill="#10b981"/>
+          <circle cx="308" cy="63" r="4" fill="#10b981"/>
+          <text x="240" y="151" text-anchor="middle" font-size="8" fill="#047857">580</text>
+          <text x="308" y="58" text-anchor="middle" font-size="8" fill="#047857">1000</text>
+          <text x="240" y="165" text-anchor="middle" font-size="8" fill="#94a3b8">Low</text>
+          <text x="308" y="165" text-anchor="middle" font-size="8" fill="#94a3b8">High</text>
+
+          <!-- Panel 3: Factor C -->
+          <rect x="350" y="5" width="145" height="165" rx="4" fill="#f8fafc" stroke="#e2e8f0"/>
+          <text x="422" y="185" text-anchor="middle" font-size="9" fill="#64748b">C (Timeout)</text>
+          <line x1="375" y1="150" x2="485" y2="150" stroke="#e2e8f0" stroke-width="0.5"/>
+          <line x1="375" y1="85" x2="485" y2="85" stroke="#e2e8f0" stroke-width="0.5"/>
+          <line x1="375" y1="20" x2="485" y2="20" stroke="#e2e8f0" stroke-width="0.5"/>
+          <!-- Line: 770 -> 810 (770~105, 810~99) — nearly flat -->
+          <line x1="400" y1="105" x2="468" y2="99" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="400" cy="105" r="4" fill="#f59e0b"/>
+          <circle cx="468" cy="99" r="4" fill="#f59e0b"/>
+          <text x="400" y="118" text-anchor="middle" font-size="8" fill="#b45309">770</text>
+          <text x="468" y="93" text-anchor="middle" font-size="8" fill="#b45309">810</text>
+          <text x="400" y="165" text-anchor="middle" font-size="8" fill="#94a3b8">Low</text>
+          <text x="468" y="165" text-anchor="middle" font-size="8" fill="#94a3b8">High</text>
+        </svg>
+      </div>
+
+      <div class="keypoint-box">
+        <h4>How to Interpret Main Effects Plots</h4>
+        <p><strong>Steep line = large effect.</strong> Factor B (Cache Size) has the steepest slope &mdash; it produces a 420 req/s improvement when going from low to high. This is the most impactful knob to turn.<br><br>
+        <strong>Moderate line = moderate effect.</strong> Factor A (Threads) also matters, with a 260 req/s gain. Worth optimizing, especially given its interaction with B.<br><br>
+        <strong>Flat line = negligible effect.</strong> Factor C (Timeout) barely changes the response (40 req/s). Set it to whatever is operationally convenient &mdash; it won't affect throughput meaningfully.<br><br>
+        <strong>Direction matters.</strong> All three lines slope upward, meaning higher levels improve throughput. If a line sloped downward, the low level would be better for that factor.</p>
+      </div>
+
+      <div class="warning-box">
+        <h4>Main Effects Plots Can Be Misleading</h4>
+        <p>A main effects plot shows <em>averages</em> across all levels of all other factors. If a strong interaction exists (like AB here), the average can mask what's really happening. Factor A might have a huge effect when B is high but almost no effect when B is low. Always check the interaction plot before drawing conclusions from main effects alone.</p>
+      </div>
+
+      <h2 id="interaction-plots">Interaction Plots</h2>
+
+      <p>Interaction plots are the most important diagnostic in DOE. They show whether the effect of one factor <em>depends on the level of another factor</em>. This is information that OVAT experiments can never provide.</p>
+
+      <p>Continuing our server example, here are the mean throughput values for all four AB combinations:</p>
+
+      <table>
+        <thead><tr><th></th><th>B Low (64MB)</th><th>B High (512MB)</th></tr></thead>
+        <tbody>
+          <tr><td><strong>A Low (10 threads)</strong></td><td>500</td><td>820</td></tr>
+          <tr><td><strong>A High (100 threads)</strong></td><td>660</td><td>1180</td></tr>
+        </tbody>
+      </table>
+
+      <!-- Interaction Plot (SVG) -->
+      <div style="background: #fff; border: 1px solid var(--slate-200); border-radius: var(--radius); padding: 24px; margin: 20px 0;">
+        <div style="font: 600 .8rem var(--sans); color: var(--slate-600); margin-bottom: 16px; text-align: center;">Interaction Plot: A (Threads) &times; B (Cache Size)</div>
+        <svg viewBox="0 0 400 230" style="width: 100%; max-width: 400px; display: block; margin: 0 auto;" xmlns="http://www.w3.org/2000/svg">
+          <!-- Axes -->
+          <line x1="60" y1="15" x2="60" y2="180" stroke="#94a3b8" stroke-width="1"/>
+          <line x1="60" y1="180" x2="360" y2="180" stroke="#94a3b8" stroke-width="1"/>
+          <!-- Y-axis labels (400=170, 1200=20, scale: y = 170 - (val-400)*0.1875) -->
+          <text x="55" y="173" text-anchor="end" font-size="9" fill="#64748b">400</text>
+          <text x="55" y="135" text-anchor="end" font-size="9" fill="#64748b">600</text>
+          <text x="55" y="98" text-anchor="end" font-size="9" fill="#64748b">800</text>
+          <text x="55" y="60" text-anchor="end" font-size="9" fill="#64748b">1000</text>
+          <text x="55" y="23" text-anchor="end" font-size="9" fill="#64748b">1200</text>
+          <!-- Grid -->
+          <line x1="60" y1="135" x2="360" y2="135" stroke="#e2e8f0" stroke-width="0.5"/>
+          <line x1="60" y1="98" x2="360" y2="98" stroke="#e2e8f0" stroke-width="0.5"/>
+          <line x1="60" y1="60" x2="360" y2="60" stroke="#e2e8f0" stroke-width="0.5"/>
+          <!-- X-axis labels -->
+          <text x="130" y="196" text-anchor="middle" font-size="9" fill="#64748b">B Low (64 MB)</text>
+          <text x="300" y="196" text-anchor="middle" font-size="9" fill="#64748b">B High (512 MB)</text>
+          <!-- Line 1: A Low (10 threads): 500 -> 820 -->
+          <!-- 500: 170-(500-400)*0.1875 = 170-18.75 = 151.25 -->
+          <!-- 820: 170-(820-400)*0.1875 = 170-78.75 = 91.25 -->
+          <line x1="130" y1="151" x2="300" y2="91" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="130" cy="151" r="5" fill="#6366f1"/>
+          <circle cx="300" cy="91" r="5" fill="#6366f1"/>
+          <text x="115" y="148" text-anchor="end" font-size="9" font-weight="600" fill="#4338ca">500</text>
+          <text x="315" y="88" font-size="9" font-weight="600" fill="#4338ca">820</text>
+          <!-- Line 2: A High (100 threads): 660 -> 1180 -->
+          <!-- 660: 170-(660-400)*0.1875 = 170-48.75 = 121.25 -->
+          <!-- 1180: 170-(1180-400)*0.1875 = 170-146.25 = 23.75 -->
+          <line x1="130" y1="121" x2="300" y2="24" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="130" cy="121" r="5" fill="#10b981"/>
+          <circle cx="300" cy="24" r="5" fill="#10b981"/>
+          <text x="115" y="118" text-anchor="end" font-size="9" font-weight="600" fill="#047857">660</text>
+          <text x="315" y="21" font-size="9" font-weight="600" fill="#047857">1180</text>
+          <!-- Legend -->
+          <line x1="130" y1="215" x2="150" y2="215" stroke="#6366f1" stroke-width="2.5"/>
+          <circle cx="140" cy="215" r="3" fill="#6366f1"/>
+          <text x="155" y="218" font-size="9" fill="#4338ca">A Low (10 threads)</text>
+          <line x1="280" y1="215" x2="300" y2="215" stroke="#10b981" stroke-width="2.5"/>
+          <circle cx="290" cy="215" r="3" fill="#10b981"/>
+          <text x="305" y="218" font-size="9" fill="#047857">A High (100 threads)</text>
+          <!-- Y-axis title -->
+          <text x="12" y="100" text-anchor="middle" font-size="9" fill="#64748b" transform="rotate(-90, 12, 100)">Throughput (req/s)</text>
+        </svg>
+      </div>
+
+      <div class="keypoint-box">
+        <h4>How to Interpret Interaction Plots</h4>
+        <p><strong>Non-parallel lines = interaction.</strong> The two lines in this plot diverge &mdash; the green line (A High) rises much more steeply than the purple line (A Low). This means the benefit of more cache is <em>amplified</em> when you also have more threads. This is a <strong>synergistic interaction</strong>.<br><br>
+        <strong>Read the gap between lines.</strong> At B Low, the gap between A Low (500) and A High (660) is 160 req/s. At B High, the gap widens to 360 req/s (820 vs 1180). The effect of threads <em>more than doubles</em> when cache is large.<br><br>
+        <strong>The practical implication:</strong> If you could only change one factor, you'd pick Cache Size (B). But the interaction tells you that changing <em>both</em> together yields 1180 &mdash; far more than the sum of their individual effects (160 + 320 = 480 above baseline of 500, giving 980). The extra 200 req/s is pure interaction benefit.</p>
+      </div>
+
+      <p>For comparison, here's what different interaction patterns look like and what they mean:</p>
+
+      <div class="comparison-grid">
+        <div class="comparison-card" style="background: #f0fdf4; border: 1px solid #bbf7d0;">
+          <h4 style="color: #166534;">Parallel Lines = No Interaction</h4>
+          <p>Both lines have the same slope. The effect of A is the same regardless of B's level. Each factor acts independently. You can optimize them separately.</p>
+        </div>
+        <div class="comparison-card" style="background: #eff6ff; border: 1px solid #93c5fd;">
+          <h4 style="color: #1e40af;">Diverging Lines = Synergistic</h4>
+          <p>Lines spread apart. The combined effect is <em>greater</em> than the sum of individual effects. Both factors should be set high (or both low) together. This is the pattern in our example.</p>
+        </div>
+        <div class="comparison-card" style="background: #fef3c7; border: 1px solid #fbbf24;">
+          <h4 style="color: #92400e;">Converging Lines = Antagonistic</h4>
+          <p>Lines come together. One factor cancels part of the other's effect. The combined improvement is less than expected. You may need to choose which factor to prioritize.</p>
+        </div>
+        <div class="comparison-card" style="background: #fee2e2; border: 1px solid #f87171;">
+          <h4 style="color: #991b1b;">Crossed Lines = Strong Interaction</h4>
+          <p>Lines cross over. The <em>direction</em> of one factor's effect reverses depending on the other. The main effect average is meaningless here &mdash; only the interaction tells the real story. This is the most dangerous pattern to miss.</p>
+        </div>
+      </div>
+
+      <h2 id="statistical-significance">Statistical Significance</h2>
+
+      <p>The tool computes 95% confidence intervals for each effect. A confidence interval tells you the range within which the true effect likely falls, accounting for experimental noise. If the interval does not include zero, the effect is statistically significant &mdash; meaning it's unlikely to be just noise.</p>
+
+      <p>Here's how the confidence intervals look for our server tuning example (with 2 replicates, SE = 2.1):</p>
+
+      <table>
+        <thead><tr><th>Effect</th><th>Estimate</th><th>95% CI</th><th>Significant?</th></tr></thead>
+        <tbody>
+          <tr><td>B (Cache)</td><td>18.4</td><td>[14.0, 22.8]</td><td style="color: #166534; font-weight: 600;">Yes</td></tr>
+          <tr><td>A (Threads)</td><td>12.6</td><td>[8.2, 17.0]</td><td style="color: #166534; font-weight: 600;">Yes</td></tr>
+          <tr><td>AB</td><td>7.3</td><td>[2.9, 11.7]</td><td style="color: #166534; font-weight: 600;">Yes</td></tr>
+          <tr><td>C (Timeout)</td><td>2.8</td><td>[-1.6, 7.2]</td><td style="color: #991b1b;">No (includes 0)</td></tr>
+          <tr><td>AC</td><td>1.4</td><td>[-3.0, 5.8]</td><td style="color: #991b1b;">No</td></tr>
+          <tr><td>BC</td><td>0.8</td><td>[-3.6, 5.2]</td><td style="color: #991b1b;">No</td></tr>
+        </tbody>
+      </table>
+
+      <p>The confidence interval for C (Timeout) spans from -1.6 to 7.2 &mdash; it includes zero, so we cannot confidently say Timeout has any real effect. The positive estimate of 2.8 could easily be noise. By contrast, Cache Size's interval [14.0, 22.8] is entirely above zero and far from it, so we're confident it's a real and large effect.</p>
+
+      <div class="comparison-grid">
+        <div class="comparison-card good">
+          <h4 style="color: #166534;">Both Statistically &amp; Practically Significant</h4>
+          <p>Effect: 12.5 &plusmn; 3.2</p>
+          <p>CI: [9.3, 15.7]</p>
+          <p>Large effect, CI excludes zero. <strong>Act on this.</strong></p>
+        </div>
+        <div class="comparison-card" style="background: var(--amber-light); border-color: #fbbf24;">
+          <h4 style="color: #92400e;">Statistically but Not Practically Significant</h4>
+          <p>Effect: 0.3 &plusmn; 0.1</p>
+          <p>CI: [0.2, 0.4]</p>
+          <p>CI excludes zero, but the effect is tiny. <strong>Probably ignore.</strong></p>
+        </div>
+      </div>
+
+      <div class="warning-box">
+        <h4>Practical vs. Statistical Significance</h4>
+        <p>Statistical significance depends on sample size. With enough data, even trivially small effects become "statistically significant." Always ask: <em>"Is this effect large enough to matter in my application?"</em> A 0.1% throughput improvement is statistically real but not worth engineering effort. A 20% improvement is worth chasing even if the p-value is marginal. Define your minimum meaningful effect size <em>before</em> the experiment.</p>
+      </div>
+
+      <h2 id="residuals">Residual Analysis</h2>
+
+      <p>After fitting a model, always check the <strong>residuals</strong> (observed minus predicted values). The model assumes residuals are random, independent, and normally distributed with constant variance. If these assumptions fail, your effect estimates and confidence intervals may be unreliable.</p>
+
+      <p>There are four key residual plots to check:</p>
+
+      <h3>1. Residuals vs. Predicted Values</h3>
+
+      <p>Plot residuals on the Y-axis against predicted (fitted) values on the X-axis. You want a random scatter with no pattern:</p>
+
+      <!-- Residual Plots (SVG) -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;">
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius); padding: 16px; text-align: center;">
+          <div style="font: 600 .75rem var(--sans); color: #166534; margin-bottom: 8px;">Good: Random Scatter</div>
+          <svg viewBox="0 0 180 120" style="width: 100%; max-width: 180px;" xmlns="http://www.w3.org/2000/svg">
+            <line x1="20" y1="60" x2="170" y2="60" stroke="#bbf7d0" stroke-width="1" stroke-dasharray="4,3"/>
+            <line x1="20" y1="10" x2="20" y2="110" stroke="#94a3b8" stroke-width="0.5"/>
+            <line x1="20" y1="110" x2="170" y2="110" stroke="#94a3b8" stroke-width="0.5"/>
+            <circle cx="35" cy="52" r="3" fill="#10b981"/>
+            <circle cx="50" cy="68" r="3" fill="#10b981"/>
+            <circle cx="65" cy="55" r="3" fill="#10b981"/>
+            <circle cx="80" cy="72" r="3" fill="#10b981"/>
+            <circle cx="90" cy="48" r="3" fill="#10b981"/>
+            <circle cx="105" cy="64" r="3" fill="#10b981"/>
+            <circle cx="115" cy="53" r="3" fill="#10b981"/>
+            <circle cx="130" cy="70" r="3" fill="#10b981"/>
+            <circle cx="145" cy="56" r="3" fill="#10b981"/>
+            <circle cx="155" cy="62" r="3" fill="#10b981"/>
+            <text x="95" y="108" text-anchor="middle" font-size="7" fill="#64748b">Predicted</text>
+            <text x="10" y="60" text-anchor="middle" font-size="7" fill="#64748b" transform="rotate(-90, 10, 60)">Residual</text>
+          </svg>
+          <div style="font-size: .75rem; color: #15803d; margin-top: 4px;">Points scattered randomly around zero. Model assumptions hold.</div>
+        </div>
+        <div style="background: #fee2e2; border: 1px solid #fca5a5; border-radius: var(--radius); padding: 16px; text-align: center;">
+          <div style="font: 600 .75rem var(--sans); color: #991b1b; margin-bottom: 8px;">Bad: Funnel Shape</div>
+          <svg viewBox="0 0 180 120" style="width: 100%; max-width: 180px;" xmlns="http://www.w3.org/2000/svg">
+            <line x1="20" y1="60" x2="170" y2="60" stroke="#fca5a5" stroke-width="1" stroke-dasharray="4,3"/>
+            <line x1="20" y1="10" x2="20" y2="110" stroke="#94a3b8" stroke-width="0.5"/>
+            <line x1="20" y1="110" x2="170" y2="110" stroke="#94a3b8" stroke-width="0.5"/>
+            <circle cx="35" cy="58" r="3" fill="#ef4444"/>
+            <circle cx="45" cy="62" r="3" fill="#ef4444"/>
+            <circle cx="60" cy="53" r="3" fill="#ef4444"/>
+            <circle cx="75" cy="68" r="3" fill="#ef4444"/>
+            <circle cx="90" cy="45" r="3" fill="#ef4444"/>
+            <circle cx="100" cy="75" r="3" fill="#ef4444"/>
+            <circle cx="115" cy="35" r="3" fill="#ef4444"/>
+            <circle cx="125" cy="82" r="3" fill="#ef4444"/>
+            <circle cx="145" cy="25" r="3" fill="#ef4444"/>
+            <circle cx="155" cy="90" r="3" fill="#ef4444"/>
+            <text x="95" y="108" text-anchor="middle" font-size="7" fill="#64748b">Predicted</text>
+            <text x="10" y="60" text-anchor="middle" font-size="7" fill="#64748b" transform="rotate(-90, 10, 60)">Residual</text>
+          </svg>
+          <div style="font-size: .75rem; color: #b91c1c; margin-top: 4px;">Variance increases with predicted value. Try a log transform.</div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;">
+        <div style="background: #fee2e2; border: 1px solid #fca5a5; border-radius: var(--radius); padding: 16px; text-align: center;">
+          <div style="font: 600 .75rem var(--sans); color: #991b1b; margin-bottom: 8px;">Bad: Curved Pattern</div>
+          <svg viewBox="0 0 180 120" style="width: 100%; max-width: 180px;" xmlns="http://www.w3.org/2000/svg">
+            <line x1="20" y1="60" x2="170" y2="60" stroke="#fca5a5" stroke-width="1" stroke-dasharray="4,3"/>
+            <line x1="20" y1="10" x2="20" y2="110" stroke="#94a3b8" stroke-width="0.5"/>
+            <line x1="20" y1="110" x2="170" y2="110" stroke="#94a3b8" stroke-width="0.5"/>
+            <circle cx="35" cy="40" r="3" fill="#ef4444"/>
+            <circle cx="50" cy="42" r="3" fill="#ef4444"/>
+            <circle cx="70" cy="55" r="3" fill="#ef4444"/>
+            <circle cx="85" cy="68" r="3" fill="#ef4444"/>
+            <circle cx="95" cy="75" r="3" fill="#ef4444"/>
+            <circle cx="110" cy="72" r="3" fill="#ef4444"/>
+            <circle cx="125" cy="60" r="3" fill="#ef4444"/>
+            <circle cx="140" cy="45" r="3" fill="#ef4444"/>
+            <circle cx="155" cy="38" r="3" fill="#ef4444"/>
+            <text x="95" y="108" text-anchor="middle" font-size="7" fill="#64748b">Predicted</text>
+            <text x="10" y="60" text-anchor="middle" font-size="7" fill="#64748b" transform="rotate(-90, 10, 60)">Residual</text>
+          </svg>
+          <div style="font-size: .75rem; color: #b91c1c; margin-top: 4px;">U-shape means missing quadratic terms. Add squared terms or use CCD.</div>
+        </div>
+        <div style="background: #fee2e2; border: 1px solid #fca5a5; border-radius: var(--radius); padding: 16px; text-align: center;">
+          <div style="font: 600 .75rem var(--sans); color: #991b1b; margin-bottom: 8px;">Bad: Time Trend</div>
+          <svg viewBox="0 0 180 120" style="width: 100%; max-width: 180px;" xmlns="http://www.w3.org/2000/svg">
+            <line x1="20" y1="60" x2="170" y2="60" stroke="#fca5a5" stroke-width="1" stroke-dasharray="4,3"/>
+            <line x1="20" y1="10" x2="20" y2="110" stroke="#94a3b8" stroke-width="0.5"/>
+            <line x1="20" y1="110" x2="170" y2="110" stroke="#94a3b8" stroke-width="0.5"/>
+            <circle cx="35" cy="82" r="3" fill="#ef4444"/>
+            <circle cx="50" cy="78" r="3" fill="#ef4444"/>
+            <circle cx="70" cy="72" r="3" fill="#ef4444"/>
+            <circle cx="85" cy="65" r="3" fill="#ef4444"/>
+            <circle cx="100" cy="58" r="3" fill="#ef4444"/>
+            <circle cx="115" cy="50" r="3" fill="#ef4444"/>
+            <circle cx="130" cy="42" r="3" fill="#ef4444"/>
+            <circle cx="145" cy="38" r="3" fill="#ef4444"/>
+            <circle cx="160" cy="32" r="3" fill="#ef4444"/>
+            <text x="95" y="108" text-anchor="middle" font-size="7" fill="#64748b">Run Order</text>
+            <text x="10" y="60" text-anchor="middle" font-size="7" fill="#64748b" transform="rotate(-90, 10, 60)">Residual</text>
+          </svg>
+          <div style="font-size: .75rem; color: #b91c1c; margin-top: 4px;">Residuals drift over time. Use blocking or randomize run order.</div>
+        </div>
+      </div>
+
+      <h3>2. Normal Probability Plot of Residuals</h3>
+
+      <p>Plot residuals against expected normal quantiles. If the model is adequate and the data is well-behaved, points fall along a straight diagonal line. Deviations indicate non-normality:</p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;">
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius); padding: 16px; text-align: center;">
+          <div style="font: 600 .75rem var(--sans); color: #166534; margin-bottom: 8px;">Good: Points on the Line</div>
+          <svg viewBox="0 0 180 120" style="width: 100%; max-width: 180px;" xmlns="http://www.w3.org/2000/svg">
+            <line x1="25" y1="100" x2="165" y2="20" stroke="#bbf7d0" stroke-width="1.5"/>
+            <line x1="20" y1="10" x2="20" y2="110" stroke="#94a3b8" stroke-width="0.5"/>
+            <line x1="20" y1="110" x2="170" y2="110" stroke="#94a3b8" stroke-width="0.5"/>
+            <circle cx="35" cy="96" r="3" fill="#10b981"/>
+            <circle cx="52" cy="84" r="3" fill="#10b981"/>
+            <circle cx="68" cy="73" r="3" fill="#10b981"/>
+            <circle cx="82" cy="64" r="3" fill="#10b981"/>
+            <circle cx="95" cy="58" r="3" fill="#10b981"/>
+            <circle cx="110" cy="48" r="3" fill="#10b981"/>
+            <circle cx="125" cy="39" r="3" fill="#10b981"/>
+            <circle cx="140" cy="30" r="3" fill="#10b981"/>
+            <circle cx="155" cy="24" r="3" fill="#10b981"/>
+            <text x="95" y="108" text-anchor="middle" font-size="7" fill="#64748b">Theoretical Quantile</text>
+          </svg>
+          <div style="font-size: .75rem; color: #15803d; margin-top: 4px;">Residuals are approximately normal. Analysis is valid.</div>
+        </div>
+        <div style="background: #fee2e2; border: 1px solid #fca5a5; border-radius: var(--radius); padding: 16px; text-align: center;">
+          <div style="font: 600 .75rem var(--sans); color: #991b1b; margin-bottom: 8px;">Bad: S-Curve (Heavy Tails)</div>
+          <svg viewBox="0 0 180 120" style="width: 100%; max-width: 180px;" xmlns="http://www.w3.org/2000/svg">
+            <line x1="25" y1="100" x2="165" y2="20" stroke="#fca5a5" stroke-width="1.5"/>
+            <line x1="20" y1="10" x2="20" y2="110" stroke="#94a3b8" stroke-width="0.5"/>
+            <line x1="20" y1="110" x2="170" y2="110" stroke="#94a3b8" stroke-width="0.5"/>
+            <circle cx="30" cy="105" r="3" fill="#ef4444"/>
+            <circle cx="45" cy="98" r="3" fill="#ef4444"/>
+            <circle cx="60" cy="82" r="3" fill="#ef4444"/>
+            <circle cx="80" cy="65" r="3" fill="#ef4444"/>
+            <circle cx="95" cy="58" r="3" fill="#ef4444"/>
+            <circle cx="110" cy="50" r="3" fill="#ef4444"/>
+            <circle cx="130" cy="35" r="3" fill="#ef4444"/>
+            <circle cx="148" cy="18" r="3" fill="#ef4444"/>
+            <circle cx="160" cy="12" r="3" fill="#ef4444"/>
+            <text x="95" y="108" text-anchor="middle" font-size="7" fill="#64748b">Theoretical Quantile</text>
+          </svg>
+          <div style="font-size: .75rem; color: #b91c1c; margin-top: 4px;">S-shape = heavy-tailed distribution. Check for outliers.</div>
+        </div>
+      </div>
+
+      <div class="keypoint-box">
+        <h4>Residual Analysis Summary</h4>
+        <p><strong>What you want:</strong> Random scatter in residuals vs. predicted, straight line in normal plot, no trends over time, no outliers.<br><br>
+        <strong>What to do if it fails:</strong><br>
+        &bull; <strong>Funnel shape:</strong> Transform the response (log Y, &radic;Y, or 1/Y). Log is the most common choice.<br>
+        &bull; <strong>Curved pattern:</strong> Your linear model is missing curvature. Add center points to detect it, or upgrade to CCD/Box-Behnken to fit quadratic terms.<br>
+        &bull; <strong>Time trend:</strong> Something drifted during the experiment (temperature, tool wear, cache warming). Block by time or re-randomize and repeat.<br>
+        &bull; <strong>Outlier:</strong> Investigate the specific run. Was there a measurement error? Equipment issue? If you can identify the cause, remove it and note why. If not, keep it &mdash; the model should be robust to one outlier.</p>
+      </div>
+
+      <h2 id="multi-response">Multi-Response Analysis</h2>
+
+      <p>Real experiments often have multiple responses. A database tuning study might measure throughput, latency, and CPU usage. Different responses may have conflicting optima &mdash; the settings that maximize throughput might also maximize CPU usage.</p>
+
+      <p>Consider a server optimization with two responses:</p>
+
+      <table>
+        <thead><tr><th>Setting</th><th>Throughput (req/s)</th><th>CPU Usage (%)</th></tr></thead>
+        <tbody>
+          <tr><td>A Low, B Low</td><td>500</td><td>35%</td></tr>
+          <tr><td>A High, B Low</td><td>660</td><td>52%</td></tr>
+          <tr><td>A Low, B High</td><td>820</td><td>48%</td></tr>
+          <tr><td>A High, B High</td><td>1180</td><td>88%</td></tr>
+        </tbody>
+      </table>
+
+      <p>The best throughput (1180) comes with 88% CPU usage &mdash; dangerously close to saturation. You need to find the sweet spot.</p>
+
+      <div class="keypoint-box">
+        <h4>Strategies for Multiple Responses</h4>
+        <p><strong>1. Overlay plots:</strong> Plot contour maps of each response on the same axes. The feasible region is where all responses are within acceptable bounds. Visually identify the best operating point in the overlap zone.<br><br>
+        <strong>2. Desirability functions:</strong> Convert each response to a 0&ndash;1 desirability score (0 = unacceptable, 1 = ideal) and maximize the geometric mean. This balances competing objectives automatically. The <code>optimize</code> command supports this approach.<br><br>
+        <strong>3. Prioritize and constrain:</strong> Optimize the primary response (throughput) while constraining secondary responses to acceptable ranges (CPU &lt; 70%). This is often the most practical approach &mdash; it frames the problem as <em>"What's the best I can do without breaking anything?"</em></p>
+      </div>
+
+      <h2 id="effect-power">Effect Size and Power</h2>
+
+      <p>Before running an experiment, consider: how large an effect do you need to detect? The <strong>power</strong> of a design is the probability of detecting a real effect of a given size. Higher power requires more replicates.</p>
+
+      <p>Power depends on four things:</p>
+
+      <table>
+        <thead><tr><th>Factor</th><th>Effect on Power</th><th>You Control It?</th></tr></thead>
+        <tbody>
+          <tr><td>Effect size (signal)</td><td>Larger effect = easier to detect</td><td>Indirectly (widen factor ranges)</td></tr>
+          <tr><td>Noise (std deviation)</td><td>More noise = harder to detect</td><td>Partially (better measurement, blocking)</td></tr>
+          <tr><td>Sample size (replicates)</td><td>More runs = more power</td><td>Yes (set <code>block_count</code>)</td></tr>
+          <tr><td>Significance level (&alpha;)</td><td>Stricter threshold = less power</td><td>Yes (usually 0.05)</td></tr>
+        </tbody>
+      </table>
+
+      <p>As a rough guide: a 2<sup>k</sup> design with 2 replicates can detect effects about 2&ndash;3 times the noise standard deviation with 80% power. If your effects are likely smaller than that, you need more replicates or a larger design.</p>
+
+      <div class="analogy">
+        <h4>&#x1F50D; The Signal-to-Noise Analogy</h4>
+        <p>Detecting an effect in a noisy experiment is like hearing a conversation in a loud room. A large effect (loud voice) is easy to detect even with few replicates. A small effect (whisper) requires either a quiet room (low noise) or many listeners (many replicates) to be heard reliably.</p>
+      </div>
+
+      <h2 id="confirmation">Confirmation Runs</h2>
+
+      <p>After identifying the best settings, always run <strong>confirmation experiments</strong> at those settings. This is the final validation step before deploying to production. Compare the confirmation results to the model's prediction:</p>
+
+      <table>
+        <thead><tr><th>Metric</th><th>Model Prediction</th><th>Confirmation Result</th><th>Verdict</th></tr></thead>
+        <tbody>
+          <tr><td>Throughput</td><td>1150 &plusmn; 85 req/s</td><td>1120, 1165, 1138</td><td style="color: #166534; font-weight: 600;">Within prediction interval</td></tr>
+          <tr><td>Latency</td><td>12.3 &plusmn; 2.1 ms</td><td>11.8, 13.1, 12.4</td><td style="color: #166534; font-weight: 600;">Within prediction interval</td></tr>
+        </tbody>
+      </table>
+
+      <p>If the confirmation results fall within the model's prediction interval, the model is validated and you can proceed with confidence. If they don't:</p>
+
+      <ul>
+        <li><strong>Results consistently higher or lower:</strong> The model has a bias. Check for a lurking variable that changed between the experiment and confirmation.</li>
+        <li><strong>Results much more variable:</strong> The experimental conditions weren't fully reproduced. Document what differed.</li>
+        <li><strong>Results completely off:</strong> The model is inadequate. Consider additional terms, a wider design, or re-examining your assumptions.</li>
+      </ul>
+
+      <div class="danger-box">
+        <h4>Don't Skip Confirmation</h4>
+        <p>A model is a simplification of reality. No matter how good the R&sup2;, always confirm with real data before committing to production settings. Three confirmation runs is a reasonable minimum. If the stakes are high (production database, safety-critical system), run five or more.</p>
+      </div>
+
+      <h2 id="analysis-workflow">Putting It All Together: The Analysis Workflow</h2>
+
+      <p>Here is the recommended sequence for analyzing any DOE result:</p>
+
+      <ol>
+        <li><strong>Check the Pareto chart.</strong> Which factors are in the vital few? Are there any surprises (unexpected interactions)?</li>
+        <li><strong>Examine main effects plots.</strong> What direction does each important factor push the response? How large are the effects in practical units?</li>
+        <li><strong>Study interaction plots.</strong> Do the important factors interact? If lines cross, the main effect averages are misleading &mdash; optimize the combination, not the individual factors.</li>
+        <li><strong>Verify with confidence intervals.</strong> Are the important effects statistically significant? Are the unimportant ones truly negligible?</li>
+        <li><strong>Check residual plots.</strong> Is the model adequate? Are the assumptions met? If not, transform the data or upgrade the design.</li>
+        <li><strong>Run confirmation experiments.</strong> Does reality match the model's prediction at the recommended settings?</li>
+      </ol>
+
+      <div class="keypoint-box">
+        <h4>The Most Common Mistake in DOE Analysis</h4>
+        <p>Looking only at main effects and ignoring interactions. In our server example, if you only looked at main effects, you'd set both A and B to high and expect 660 + 420 = 1080 req/s above the baseline. But the interaction gives you an extra 100 req/s (1180 total), and more importantly, if you had <em>missed</em> the interaction and only changed one factor, you'd capture far less improvement than possible. Always check the interaction plots.</p>
+      </div>
+    </section>
+
+    <hr style="border: none; border-top: 2px solid var(--slate-200); margin: 48px 0;">
+
+    <!-- ═══════ CHAPTER 8 ═══════ -->
+    <section id="ch8">
+      <h1>Chapter 8</h1>
+      <div class="chapter-subtitle">Response Surface Methodology</div>
+
+      <p class="lead">RSM moves beyond "which factors matter" to "what is the optimal setting?" by fitting a mathematical model to the experimental data.</p>
+
+      <h2 id="effects-to-models">From Effects to Models</h2>
+
+      <p>In Chapters 3&ndash;7 you learned to estimate <em>effects</em> &mdash; the change in response when a factor moves from low to high. Effects tell you the <strong>direction</strong> of improvement. But they don't tell you what happens at intermediate settings, or exactly where the optimum lies. That's where RSM comes in.</p>
+
+      <p>RSM fits a mathematical model to the experimental data, turning your discrete measurements into a continuous <strong>prediction equation</strong>. For two factors the full quadratic model is:</p>
+
+      <div class="math">
+        &ycirc; = &beta;<sub>0</sub> + &beta;<sub>1</sub>x<sub>1</sub> + &beta;<sub>2</sub>x<sub>2</sub> + &beta;<sub>12</sub>x<sub>1</sub>x<sub>2</sub> + &beta;<sub>11</sub>x<sub>1</sub><sup>2</sup> + &beta;<sub>22</sub>x<sub>2</sub><sup>2</sup>
+      </div>
+
+      <p>Each &beta; term captures a specific type of behaviour:</p>
+
+      <table>
+        <thead><tr><th>Term</th><th>What It Models</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td>&beta;<sub>0</sub></td><td>Overall average response at the center of the design</td><td>88.5% yield at 175&deg;C, 3% catalyst</td></tr>
+          <tr><td>&beta;<sub>1</sub>x<sub>1</sub></td><td>Linear effect of temperature</td><td>Higher temperature increases yield by 6.2 per coded unit</td></tr>
+          <tr><td>&beta;<sub>2</sub>x<sub>2</sub></td><td>Linear effect of catalyst</td><td>More catalyst increases yield by 8.1 per coded unit</td></tr>
+          <tr><td>&beta;<sub>12</sub>x<sub>1</sub>x<sub>2</sub></td><td>Interaction &mdash; synergy or antagonism</td><td>Temperature + catalyst together boost yield by an extra 2.3</td></tr>
+          <tr><td>&beta;<sub>11</sub>x<sub>1</sub><sup>2</sup></td><td>Curvature in the temperature direction</td><td>Yield peaks and then drops at very high temp (&beta;<sub>11</sub> &lt; 0)</td></tr>
+          <tr><td>&beta;<sub>22</sub>x<sub>2</sub><sup>2</sup></td><td>Curvature in the catalyst direction</td><td>Yield peaks at moderate catalyst (&beta;<sub>22</sub> &lt; 0)</td></tr>
+        </tbody>
+      </table>
+
+      <div class="analogy">
+        <h4>&#x1F4D0; The Terrain Map Analogy</h4>
+        <p>Think of RSM as building a topographic map from a handful of elevation measurements. The linear terms tell you which direction is uphill. The quadratic terms tell you whether the terrain curves &mdash; whether there's a peak, a valley, or a saddle. The interaction term tells you whether the slope in one direction changes as you move in the other direction. Once you have the map, you can find the peak without visiting every single point.</p>
+      </div>
+
+      <h3>First-Order vs. Second-Order Models</h3>
+
+      <p>Not every RSM study needs quadratic terms. The two model orders serve different purposes:</p>
+
+      <div class="comparison-grid">
+        <div class="comparison-card" style="background: #eff6ff; border: 1px solid #93c5fd;">
+          <h4 style="color: #1e40af;">First-Order (Linear + Interactions)</h4>
+          <p>&ycirc; = &beta;<sub>0</sub> + &Sigma;&beta;<sub>i</sub>x<sub>i</sub> + &Sigma;&beta;<sub>ij</sub>x<sub>i</sub>x<sub>j</sub></p>
+          <p style="margin-top:8px;"><strong>Use when:</strong> You're far from the optimum and need to find the direction of steepest ascent. Requires only factorial + center points.</p>
+        </div>
+        <div class="comparison-card" style="background: #f0fdf4; border: 1px solid #bbf7d0;">
+          <h4 style="color: #166534;">Second-Order (Full Quadratic)</h4>
+          <p>&ycirc; = &beta;<sub>0</sub> + &Sigma;&beta;<sub>i</sub>x<sub>i</sub> + &Sigma;&beta;<sub>ij</sub>x<sub>i</sub>x<sub>j</sub> + &Sigma;&beta;<sub>ii</sub>x<sub>i</sub><sup>2</sup></p>
+          <p style="margin-top:8px;"><strong>Use when:</strong> You're near the optimum and need to map the peak precisely. Requires CCD or Box-Behnken.</p>
+        </div>
+      </div>
+
+      <h2 id="rsm-worked-example">Worked Example: Reactor Yield Optimization</h2>
+
+      <p>A chemical process team has screened 7 factors down to 2: temperature (x<sub>1</sub>, 150&ndash;200&deg;C) and catalyst concentration (x<sub>2</sub>, 1&ndash;5%). They run a CCD with 5 center replicates (13 runs total). After fitting the full quadratic model, the <code>optimize</code> command reports:</p>
+
+      <div class="code-block">
+        <div class="code-header"><span>RSM Output</span></div>
+        <div class="code-body"><span class="comment"># Fitted Model (coded units):</span>
+&ycirc; = 87.6 + 6.2&middot;x₁ + 8.1&middot;x₂ + 2.3&middot;x₁x₂ - 5.8&middot;x₁² - 4.1&middot;x₂²
+
+<span class="comment"># Model Fit:</span>
+R²        = 0.964
+R²(adj)   = 0.938
+Lack-of-fit p-value = 0.31  (not significant → model is adequate)
+
+<span class="comment"># Stationary Point (coded):</span>
+x₁ = +0.48,  x₂ = +0.85
+
+<span class="comment"># Stationary Point (natural units):</span>
+Temperature = 187°C,  Catalyst = 3.7%
+
+<span class="comment"># Predicted optimum:</span>
+&ycirc; = 92.1% yield</div>
+      </div>
+
+      <p>Let's walk through how to interpret every part of this output.</p>
+
+      <h3>Reading the Coefficients</h3>
+
+      <table>
+        <thead><tr><th>Coefficient</th><th>Value</th><th>Interpretation</th></tr></thead>
+        <tbody>
+          <tr><td>&beta;<sub>0</sub> = 87.6</td><td>Intercept</td><td>At the center point (175&deg;C, 3%), predicted yield is 87.6%</td></tr>
+          <tr><td>&beta;<sub>1</sub> = +6.2</td><td>Temperature (linear)</td><td>Moving from center to high temperature adds 6.2% yield</td></tr>
+          <tr><td>&beta;<sub>2</sub> = +8.1</td><td>Catalyst (linear)</td><td>Catalyst has a larger linear effect than temperature</td></tr>
+          <tr><td>&beta;<sub>12</sub> = +2.3</td><td>Interaction</td><td>Mild synergy &mdash; both high together gives a bonus 2.3%</td></tr>
+          <tr><td>&beta;<sub>11</sub> = -5.8</td><td>Temperature (quadratic)</td><td><strong>Negative</strong> &rarr; yield curves <em>downward</em> at extreme temperatures. There's a peak.</td></tr>
+          <tr><td>&beta;<sub>22</sub> = -4.1</td><td>Catalyst (quadratic)</td><td><strong>Negative</strong> &rarr; yield also curves downward with extreme catalyst. There's a peak.</td></tr>
+        </tbody>
+      </table>
+
+      <p>Both quadratic coefficients are negative, which means the response surface is dome-shaped &mdash; there's a true maximum inside the experimental region. This is the ideal outcome for RSM.</p>
+
+      <h2 id="model-adequacy">Model Adequacy</h2>
+
+      <p>Before trusting any prediction, you must verify that the model actually fits the data. The tool reports several diagnostics:</p>
+
+      <h3>R&sup2; and Adjusted R&sup2;</h3>
+
+      <table>
+        <thead><tr><th>R&sup2;</th><th>Interpretation</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td>&gt; 0.9</td><td>Excellent fit &mdash; model explains most variation</td><td>Proceed with optimization</td></tr>
+          <tr><td>0.7 &ndash; 0.9</td><td>Good fit &mdash; useful for optimization</td><td>Proceed, but widen confirmation runs</td></tr>
+          <tr><td>0.5 &ndash; 0.7</td><td>Moderate &mdash; model is missing something</td><td>Check for missing quadratic terms or transform the response</td></tr>
+          <tr><td>&lt; 0.5</td><td>Poor fit &mdash; the model doesn't describe the data</td><td>Redesign the experiment: wider range, more factors, different model</td></tr>
+        </tbody>
+      </table>
+
+      <p>In our reactor example, R&sup2; = 0.964 means the model explains 96.4% of the variation in yield. Adjusted R&sup2; = 0.938 penalizes for the number of terms &mdash; still high, confirming that the terms in the model are justified, not just overfitting noise.</p>
+
+      <div class="warning-box">
+        <h4>R&sup2; vs. Adjusted R&sup2;: When to Worry</h4>
+        <p>If R&sup2; = 0.95 but adjusted R&sup2; = 0.72, you have too many terms for the amount of data. Remove non-significant terms (usually the interaction first, then the smaller quadratic) and refit. A gap greater than ~0.10 between R&sup2; and adjusted R&sup2; is a red flag for overfitting.</p>
+      </div>
+
+      <h3>ANOVA Table</h3>
+
+      <p>The analysis of variance breaks the model into individual terms and tests each one:</p>
+
+      <table>
+        <thead><tr><th>Source</th><th>Sum of Squares</th><th>df</th><th>F-value</th><th>p-value</th><th>Significant?</th></tr></thead>
+        <tbody>
+          <tr><td>x<sub>1</sub> (Temp, linear)</td><td>307.4</td><td>1</td><td>38.2</td><td>0.0003</td><td style="color:#166534;font-weight:600;">Yes</td></tr>
+          <tr><td>x<sub>2</sub> (Cat, linear)</td><td>524.9</td><td>1</td><td>65.3</td><td>&lt;0.0001</td><td style="color:#166534;font-weight:600;">Yes</td></tr>
+          <tr><td>x<sub>1</sub>x<sub>2</sub></td><td>21.2</td><td>1</td><td>2.6</td><td>0.15</td><td style="color:#991b1b;">No</td></tr>
+          <tr><td>x<sub>1</sub>&sup2;</td><td>198.3</td><td>1</td><td>24.7</td><td>0.0011</td><td style="color:#166534;font-weight:600;">Yes</td></tr>
+          <tr><td>x<sub>2</sub>&sup2;</td><td>99.1</td><td>1</td><td>12.3</td><td>0.0079</td><td style="color:#166534;font-weight:600;">Yes</td></tr>
+          <tr><td>Lack of fit</td><td>15.4</td><td>3</td><td>1.5</td><td>0.31</td><td style="color:#166534;">Not significant (good)</td></tr>
+          <tr><td>Pure error</td><td>13.6</td><td>4</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr>
+        </tbody>
+      </table>
+
+      <div class="keypoint-box">
+        <h4>How to Read the ANOVA Table</h4>
+        <p><strong>Significant terms (p &lt; 0.05):</strong> Both linear effects and both quadratic effects are significant &mdash; these terms belong in the model.<br><br>
+        <strong>Non-significant terms:</strong> The interaction x<sub>1</sub>x<sub>2</sub> (p = 0.15) is borderline. You could remove it to simplify the model, but keeping a mild interaction term usually doesn't hurt prediction accuracy.<br><br>
+        <strong>Lack of fit (p = 0.31):</strong> This is <em>not</em> significant, which is what you want. It means the quadratic model fits the data adequately &mdash; there's no evidence of a pattern that the model misses. If this were significant (p &lt; 0.05), you'd need a more complex model.</p>
+      </div>
+
+      <h2 id="finding-optimum">Finding the Optimum</h2>
+
+      <p>The <code>optimize</code> command reports two things: the <strong>best observed run</strong> (the highest actual measurement) and the <strong>predicted optimum</strong> from the RSM model.</p>
+
+      <div class="comparison-grid">
+        <div class="comparison-card" style="background: #eff6ff; border: 1px solid #93c5fd;">
+          <h4 style="color: #1e40af;">Best Observed Run</h4>
+          <p>Temperature: 175&deg;C</p>
+          <p>Catalyst: 3%</p>
+          <p>Yield: <strong>89.0%</strong></p>
+          <p style="margin-top:8px; font-size:.8rem; color:#64748b;">This is a real measurement from a center-point replicate. It's trustworthy but might not be the true optimum &mdash; you only tested discrete points.</p>
+        </div>
+        <div class="comparison-card" style="background: #f0fdf4; border: 1px solid #bbf7d0;">
+          <h4 style="color: #166534;">Predicted Optimum (RSM)</h4>
+          <p>Temperature: <strong>187&deg;C</strong></p>
+          <p>Catalyst: <strong>3.7%</strong></p>
+          <p>Yield: <strong>92.1%</strong> &plusmn; 2.4</p>
+          <p style="margin-top:8px; font-size:.8rem; color:#64748b;">This is the model's prediction at an untested point. It's the peak of the fitted surface. Must be validated with confirmation runs.</p>
+        </div>
+      </div>
+
+      <p>The predicted optimum is 3.1% better than the best observed run, and it occurs at a setting nobody tested directly. This is the power of RSM &mdash; interpolation between experimental points to find a better answer than any individual run.</p>
+
+      <h3>Method of Steepest Ascent</h3>
+
+      <p>If your first-order model suggests the optimum is far outside your experimental region (the contour lines are nearly parallel, pointing off the edge of the plot), use the <strong>method of steepest ascent</strong> before committing to a full CCD.</p>
+
+      <ol>
+        <li>Fit a first-order (linear) model to your factorial data.</li>
+        <li>Compute the gradient direction: the path of steepest increase in the predicted response.</li>
+        <li>Run a few experiments along that path, stepping outward from the center, until the response stops improving.</li>
+        <li>Center a new CCD around the best point found on the path.</li>
+      </ol>
+
+      <div class="analogy">
+        <h4>&#x26F0; Hill-Climbing in Fog</h4>
+        <p>You're on a mountainside in fog. You can't see the summit, but you can feel the slope under your feet. Steepest ascent says: walk uphill in the steepest direction. When the ground levels off (response stops improving), stop and survey the area carefully (run a CCD). This two-phase approach avoids wasting a full CCD in a region far from the peak.</p>
+      </div>
+
+      <h2 id="contour-plots">Contour Plots and Surface Plots</h2>
+
+      <p>The fitted RSM model can be visualized as a <strong>contour plot</strong> (2D topographic map) or a <strong>surface plot</strong> (3D wireframe). Contour plots are more practical for decision-making because you can read exact coordinates from them.</p>
+
+      <p>Here is the contour plot for our reactor example, showing predicted yield as a function of temperature and catalyst concentration:</p>
+
+      <!-- Contour Plot Example (SVG) -->
+      <div style="background: #fff; border: 1px solid var(--slate-200); border-radius: var(--radius); padding: 24px; margin: 20px 0;">
+        <div style="font: 600 .8rem var(--sans); color: var(--slate-600); margin-bottom: 16px; text-align: center;">Contour Plot &mdash; Predicted Yield (%) vs. Temperature &times; Catalyst</div>
+        <svg viewBox="0 0 440 360" style="width: 100%; max-width: 440px; display: block; margin: 0 auto;" xmlns="http://www.w3.org/2000/svg">
+          <!-- Plot area background -->
+          <rect x="60" y="15" width="300" height="260" fill="#f8fafc" stroke="#e2e8f0" rx="2"/>
+          <!-- Axes -->
+          <line x1="60" y1="275" x2="360" y2="275" stroke="#94a3b8" stroke-width="1"/>
+          <line x1="60" y1="15" x2="60" y2="275" stroke="#94a3b8" stroke-width="1"/>
+          <!-- X-axis: Temperature 150–200°C -->
+          <text x="210" y="300" text-anchor="middle" font-size="10" fill="#475569">Temperature (&deg;C)</text>
+          <text x="60" y="290" text-anchor="middle" font-size="8" fill="#64748b">150</text>
+          <text x="135" y="290" text-anchor="middle" font-size="8" fill="#64748b">162</text>
+          <text x="210" y="290" text-anchor="middle" font-size="8" fill="#64748b">175</text>
+          <text x="285" y="290" text-anchor="middle" font-size="8" fill="#64748b">188</text>
+          <text x="360" y="290" text-anchor="middle" font-size="8" fill="#64748b">200</text>
+          <!-- Y-axis: Catalyst 1–5% -->
+          <text x="30" y="150" text-anchor="middle" font-size="10" fill="#475569" transform="rotate(-90, 30, 150)">Catalyst (%)</text>
+          <text x="52" y="278" text-anchor="end" font-size="8" fill="#64748b">1</text>
+          <text x="52" y="213" text-anchor="end" font-size="8" fill="#64748b">2</text>
+          <text x="52" y="148" text-anchor="end" font-size="8" fill="#64748b">3</text>
+          <text x="52" y="83" text-anchor="end" font-size="8" fill="#64748b">4</text>
+          <text x="52" y="18" text-anchor="end" font-size="8" fill="#64748b">5</text>
+          <!-- Contour ellipses (outermost to innermost) -->
+          <!-- 70% yield contour -->
+          <ellipse cx="220" cy="115" rx="140" ry="115" fill="none" stroke="#bfdbfe" stroke-width="1.5" transform="rotate(-12, 220, 115)"/>
+          <text x="365" y="195" font-size="8" fill="#93c5fd" font-weight="600">70%</text>
+          <!-- 78% yield contour -->
+          <ellipse cx="220" cy="115" rx="110" ry="90" fill="none" stroke="#93c5fd" stroke-width="1.5" transform="rotate(-12, 220, 115)"/>
+          <text x="335" y="145" font-size="8" fill="#60a5fa" font-weight="600">78%</text>
+          <!-- 84% yield contour -->
+          <ellipse cx="220" cy="115" rx="80" ry="65" fill="none" stroke="#60a5fa" stroke-width="1.5" transform="rotate(-12, 220, 115)"/>
+          <text x="300" y="108" font-size="8" fill="#3b82f6" font-weight="600">84%</text>
+          <!-- 88% yield contour -->
+          <ellipse cx="220" cy="115" rx="52" ry="42" fill="none" stroke="#3b82f6" stroke-width="1.5" transform="rotate(-12, 220, 115)"/>
+          <text x="268" y="92" font-size="8" fill="#2563eb" font-weight="600">88%</text>
+          <!-- 91% yield contour (near optimum) -->
+          <ellipse cx="220" cy="115" rx="24" ry="19" fill="none" stroke="#2563eb" stroke-width="2" transform="rotate(-12, 220, 115)"/>
+          <text x="244" y="107" font-size="8" fill="#1d4ed8" font-weight="600">91%</text>
+          <!-- Optimum point -->
+          <circle cx="226" cy="107" r="5" fill="#dc2626" stroke="#fff" stroke-width="1.5"/>
+          <text x="238" y="98" font-size="9" font-weight="700" fill="#dc2626">92.1%</text>
+          <text x="238" y="88" font-size="7" fill="#991b1b">(187&deg;C, 3.7%)</text>
+          <!-- Design points -->
+          <circle cx="60" cy="275" r="3" fill="#6366f1" opacity="0.6"/>
+          <circle cx="360" cy="275" r="3" fill="#6366f1" opacity="0.6"/>
+          <circle cx="60" cy="15" r="3" fill="#6366f1" opacity="0.6"/>
+          <circle cx="360" cy="15" r="3" fill="#6366f1" opacity="0.6"/>
+          <circle cx="210" cy="145" r="3" fill="#6366f1" opacity="0.8"/>
+          <circle cx="210" cy="145" r="1.5" fill="#fff"/>
+          <!-- Star points -->
+          <circle cx="15" cy="145" r="3" fill="#f59e0b" opacity="0.6"/>
+          <circle cx="405" cy="145" r="3" fill="#f59e0b" opacity="0.6"/>
+          <circle cx="210" cy="310" r="3" fill="#f59e0b" opacity="0.6"/>
+          <circle cx="210" cy="-20" r="3" fill="#f59e0b" opacity="0.6"/>
+          <!-- Legend -->
+          <circle cx="75" y="338" cx="75" cy="338" r="3" fill="#6366f1"/>
+          <text x="82" y="341" font-size="8" fill="#64748b">Factorial points</text>
+          <circle cx="160" cy="338" r="3" fill="#f59e0b"/>
+          <text x="167" y="341" font-size="8" fill="#64748b">Star points</text>
+          <circle cx="235" cy="338" r="3" fill="#6366f1" opacity="0.8"/>
+          <circle cx="235" cy="338" r="1.5" fill="#fff"/>
+          <text x="242" y="341" font-size="8" fill="#64748b">Center replicates</text>
+          <circle cx="325" cy="338" r="4" fill="#dc2626"/>
+          <text x="333" y="341" font-size="8" fill="#dc2626" font-weight="600">Predicted optimum</text>
+        </svg>
+      </div>
+
+      <div class="keypoint-box">
+        <h4>How to Read This Contour Plot</h4>
+        <p><strong>Each contour line</strong> connects points with the same predicted yield. The labels (70%, 78%, 84%, 88%, 91%) show the yield at each contour level. Moving inward toward the center of the concentric ellipses means higher yield.<br><br>
+        <strong>The red dot</strong> marks the predicted optimum (92.1% at 187&deg;C, 3.7% catalyst). It lies inside the innermost contour, slightly above and to the right of the design center.<br><br>
+        <strong>The ellipse tilt</strong> reveals the interaction. The contours are tilted about 12&deg; from horizontal, meaning temperature and catalyst have a mild synergy (the AB interaction). If there were no interaction, the ellipses would be aligned with the axes.<br><br>
+        <strong>Contour spacing</strong> tells you sensitivity. Contours are more tightly packed in the temperature direction (left-right), meaning yield is more sensitive to temperature near the edges of the region. Along the catalyst axis (up-down), contours are more spread out, meaning yield changes more gradually.</p>
+      </div>
+
+      <p>Here's what different contour patterns mean and how to act on them:</p>
+
+      <!-- Contour Pattern Gallery (SVG) -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;">
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius); padding: 16px; text-align: center;">
+          <div style="font: 600 .75rem var(--sans); color: #166534; margin-bottom: 8px;">Concentric Ellipses: Clear Peak</div>
+          <svg viewBox="0 0 140 110" style="width: 100%; max-width: 140px;" xmlns="http://www.w3.org/2000/svg">
+            <rect x="5" y="5" width="130" height="100" fill="#f8fafc" rx="2"/>
+            <ellipse cx="70" cy="50" rx="55" ry="40" fill="none" stroke="#86efac" stroke-width="1"/>
+            <ellipse cx="70" cy="50" rx="35" ry="25" fill="none" stroke="#4ade80" stroke-width="1"/>
+            <ellipse cx="70" cy="50" rx="15" ry="10" fill="none" stroke="#22c55e" stroke-width="1.5"/>
+            <circle cx="70" cy="50" r="3" fill="#dc2626"/>
+          </svg>
+          <div style="font-size: .75rem; color: #15803d; margin-top: 4px;">Optimum is inside the region. Run confirmation at the predicted peak.</div>
+        </div>
+        <div style="background: #fef3c7; border: 1px solid #fbbf24; border-radius: var(--radius); padding: 16px; text-align: center;">
+          <div style="font: 600 .75rem var(--sans); color: #92400e; margin-bottom: 8px;">Parallel Lines: Ridge System</div>
+          <svg viewBox="0 0 140 110" style="width: 100%; max-width: 140px;" xmlns="http://www.w3.org/2000/svg">
+            <rect x="5" y="5" width="130" height="100" fill="#f8fafc" rx="2"/>
+            <line x1="25" y1="5" x2="25" y2="105" stroke="#fbbf24" stroke-width="1"/>
+            <line x1="50" y1="5" x2="50" y2="105" stroke="#f59e0b" stroke-width="1"/>
+            <line x1="75" y1="5" x2="75" y2="105" stroke="#d97706" stroke-width="1"/>
+            <line x1="100" y1="5" x2="100" y2="105" stroke="#f59e0b" stroke-width="1"/>
+            <line x1="125" y1="5" x2="125" y2="105" stroke="#fbbf24" stroke-width="1"/>
+          </svg>
+          <div style="font-size: .75rem; color: #a16207; margin-top: 4px;">Only one factor matters here. The other has no curvature. Set the flat factor to any convenient value.</div>
+        </div>
+        <div style="background: #fee2e2; border: 1px solid #fca5a5; border-radius: var(--radius); padding: 16px; text-align: center;">
+          <div style="font: 600 .75rem var(--sans); color: #991b1b; margin-bottom: 8px;">Saddle Point: No True Optimum</div>
+          <svg viewBox="0 0 140 110" style="width: 100%; max-width: 140px;" xmlns="http://www.w3.org/2000/svg">
+            <rect x="5" y="5" width="130" height="100" fill="#f8fafc" rx="2"/>
+            <!-- Hyperbolic curves suggesting a saddle -->
+            <path d="M 10,20 Q 70,55 130,20" fill="none" stroke="#f87171" stroke-width="1"/>
+            <path d="M 10,35 Q 70,55 130,35" fill="none" stroke="#ef4444" stroke-width="1"/>
+            <path d="M 10,65 Q 70,55 130,65" fill="none" stroke="#ef4444" stroke-width="1"/>
+            <path d="M 10,80 Q 70,55 130,80" fill="none" stroke="#f87171" stroke-width="1"/>
+            <circle cx="70" cy="55" r="3" fill="#94a3b8"/>
+          </svg>
+          <div style="font-size: .75rem; color: #b91c1c; margin-top: 4px;">Eigenvalues have mixed signs. The best point is on the boundary. Use ridge analysis.</div>
+        </div>
+        <div style="background: #eff6ff; border: 1px solid #93c5fd; border-radius: var(--radius); padding: 16px; text-align: center;">
+          <div style="font: 600 .75rem var(--sans); color: #1e40af; margin-bottom: 8px;">Open Contours: Optimum Outside</div>
+          <svg viewBox="0 0 140 110" style="width: 100%; max-width: 140px;" xmlns="http://www.w3.org/2000/svg">
+            <rect x="5" y="5" width="130" height="100" fill="#f8fafc" rx="2"/>
+            <path d="M 5,85 Q 90,70 135,15" fill="none" stroke="#93c5fd" stroke-width="1"/>
+            <path d="M 5,60 Q 80,50 135,5" fill="none" stroke="#60a5fa" stroke-width="1"/>
+            <path d="M 5,35 Q 50,30 100,5" fill="none" stroke="#3b82f6" stroke-width="1.5"/>
+            <!-- Arrow pointing up-right -->
+            <line x1="90" y1="60" x2="125" y2="20" stroke="#2563eb" stroke-width="2" marker-end="url(#arrowBlue)"/>
+            <defs><marker id="arrowBlue" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb"/></marker></defs>
+          </svg>
+          <div style="font-size: .75rem; color: #1e40af; margin-top: 4px;">The optimum is beyond your tested range. Use steepest ascent to move toward it, then re-center a new CCD.</div>
+        </div>
+      </div>
+
+      <h2 id="canonical">Canonical Analysis</h2>
+
+      <p>Canonical analysis transforms the fitted model into a simpler form that reveals the nature of the response surface at its stationary point. The quadratic RSM model can be written in matrix form as:</p>
+
+      <div class="math">
+        &ycirc; = &ycirc;<sub>s</sub> + &lambda;<sub>1</sub>w<sub>1</sub><sup>2</sup> + &lambda;<sub>2</sub>w<sub>2</sub><sup>2</sup>
+      </div>
+
+      <p>where &ycirc;<sub>s</sub> is the predicted response at the stationary point, &lambda;<sub>i</sub> are the eigenvalues of the quadratic coefficient matrix B, and w<sub>i</sub> are the rotated coordinates. The original matrix form is:</p>
+
+      <div class="math">
+        &ycirc; = &beta;<sub>0</sub> + x'b + x'Bx &ensp;&ensp; &rArr; &ensp;&ensp; x<sub>s</sub> = -&frac12; B<sup>-1</sup>b
+      </div>
+
+      <p>The eigenvalues tell you everything about the shape of the surface at the stationary point:</p>
+
+      <table>
+        <thead><tr><th>Eigenvalues</th><th>Surface Shape</th><th>What It Looks Like</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td>All negative</td><td><strong>Maximum</strong> (hill-top)</td><td>A dome &mdash; response decreases in every direction from the peak</td><td>The stationary point is your optimum. Confirm it.</td></tr>
+          <tr><td>All positive</td><td><strong>Minimum</strong> (valley)</td><td>A bowl &mdash; response increases in every direction from the low point</td><td>If minimizing, this is your optimum. If maximizing, the best point is on the boundary.</td></tr>
+          <tr><td>Mixed signs</td><td><strong>Saddle point</strong></td><td>A horse saddle &mdash; a peak in one direction but a valley in the other</td><td>No true optimum exists. Use ridge analysis to find the best point on the boundary.</td></tr>
+          <tr><td>Some near zero</td><td><strong>Ridge system</strong></td><td>A mountain ridge &mdash; flat along one direction, curved in another</td><td>Multiple near-optimal points exist. Pick the one that's most practical or robust.</td></tr>
+        </tbody>
+      </table>
+
+      <p>For our reactor example:</p>
+
+      <div class="code-block">
+        <div class="code-header"><span>Canonical Analysis Output</span></div>
+        <div class="code-body"><span class="comment"># Eigenvalues of B matrix:</span>
+λ₁ = -6.13   (temperature direction, rotated)
+λ₂ = -3.77   (catalyst direction, rotated)
+
+<span class="comment"># Both negative → surface is a MAXIMUM (dome)</span>
+<span class="comment"># Predicted response at stationary point: 92.1%</span>
+<span class="comment"># Stationary point in coded units: x₁=+0.48, x₂=+0.85</span>
+<span class="comment"># Stationary point in natural: Temp=187°C, Cat=3.7%</span></div>
+      </div>
+
+      <p>Both eigenvalues are negative, confirming a true maximum. The magnitude ratio |&lambda;<sub>1</sub>/&lambda;<sub>2</sub>| = 1.63 tells us the surface is about 63% more curved in the temperature direction than in the catalyst direction &mdash; meaning yield is more sensitive to temperature deviations from the optimum. This has practical implications: you should control temperature more tightly than catalyst concentration in production.</p>
+
+      <div class="keypoint-box">
+        <h4>Eigenvalue Magnitudes Matter</h4>
+        <p>The absolute magnitude of each eigenvalue tells you how sensitive the response is along that direction. Large |&lambda;| means steep curvature &mdash; small deviations from the optimum cause big response changes. Small |&lambda;| means a flat ridge &mdash; you have more tolerance. When setting process tolerances, allocate tighter control to factors aligned with the largest eigenvalue.</p>
+      </div>
+
+      <h2 id="ridge-analysis">Ridge Analysis</h2>
+
+      <p>In roughly 30&ndash;40% of real RSM studies, the stationary point falls <strong>outside the experimental region</strong> or is a saddle point. In either case, the stationary point is not directly useful. Ridge analysis solves this by finding the best predicted response at each distance from the center of the design.</p>
+
+      <p>Think of it as drawing concentric circles (or spheres) outward from the center and asking: <em>"What's the highest yield I can achieve on each circle?"</em></p>
+
+      <div class="analogy">
+        <h4>&#x1F3AF; The Fenced Garden Analogy</h4>
+        <p>If the highest point on your property is actually outside the fence, ridge analysis finds the highest point <em>on</em> the fence &mdash; the best you can achieve within your constraints. You can then decide whether to extend the fence (expand the experimental region) in a follow-up study.</p>
+      </div>
+
+      <p>A ridge analysis trace for a saddle-point example might look like:</p>
+
+      <table>
+        <thead><tr><th>Radius (coded)</th><th>x<sub>1</sub></th><th>x<sub>2</sub></th><th>Predicted Response</th></tr></thead>
+        <tbody>
+          <tr><td>0.0</td><td>0.00</td><td>0.00</td><td>85.2</td></tr>
+          <tr><td>0.2</td><td>-0.08</td><td>+0.18</td><td>86.1</td></tr>
+          <tr><td>0.4</td><td>-0.16</td><td>+0.36</td><td>87.8</td></tr>
+          <tr><td>0.6</td><td>-0.22</td><td>+0.56</td><td>89.9</td></tr>
+          <tr><td>0.8</td><td>-0.27</td><td>+0.75</td><td>91.5</td></tr>
+          <tr><td>1.0</td><td>-0.30</td><td>+0.95</td><td><strong>92.4</strong></td></tr>
+          <tr style="color: #991b1b; font-style: italic;">
+            <td>1.2</td><td>-0.32</td><td>+1.14</td><td>92.8 (outside region)</td></tr>
+        </tbody>
+      </table>
+
+      <div class="warning-box">
+        <h4>Don't Extrapolate Beyond the Design</h4>
+        <p>The model is fitted to data within the experimental region (coded -1 to +1). Predictions at radius &gt; 1.0 are extrapolations &mdash; the model has no data there and may be wildly wrong. If the ridge trace shows the response still climbing at radius = 1.0, that's a signal to run a follow-up experiment centered further along the ridge direction.</p>
+      </div>
+
+      <h2 id="steepest-ascent">The Method of Steepest Ascent</h2>
+
+      <p>When you're far from the optimum, steepest ascent is the most efficient way to move toward it. The idea is simple: use the first-order model's coefficients to determine the direction of fastest improvement, then run a few experiments along that path.</p>
+
+      <p>From a first-order model with coefficients &beta;<sub>1</sub> = 6.2 (temperature) and &beta;<sub>2</sub> = 8.1 (catalyst), the steepest ascent path moves in the direction proportional to these coefficients. In natural units, you step along:</p>
+
+      <table>
+        <thead><tr><th>Step</th><th>Temp (&deg;C)</th><th>Catalyst (%)</th><th>Observed Yield (%)</th></tr></thead>
+        <tbody>
+          <tr><td>Center</td><td>175</td><td>3.0</td><td>82.4</td></tr>
+          <tr><td>+1 step</td><td>183</td><td>3.6</td><td>86.1</td></tr>
+          <tr><td>+2 steps</td><td>191</td><td>4.2</td><td>88.7</td></tr>
+          <tr><td>+3 steps</td><td>199</td><td>4.8</td><td style="color: #166534; font-weight:600;">89.3 (best)</td></tr>
+          <tr><td>+4 steps</td><td>207</td><td>5.4</td><td>87.0 (declining)</td></tr>
+        </tbody>
+      </table>
+
+      <p>Yield peaked at step 3 and declined at step 4 &mdash; you've passed the optimum. Center a new CCD around (199&deg;C, 4.8%) to map the peak precisely.</p>
+
+      <div class="keypoint-box">
+        <h4>When to Use Steepest Ascent vs. Direct CCD</h4>
+        <p><strong>Use steepest ascent when:</strong> Your initial factorial or screening study shows mostly linear effects with little curvature (center points close to factorial average). You're probably far from the peak and need to move toward it.<br><br>
+        <strong>Skip to CCD directly when:</strong> Center points are noticeably higher (or lower) than the factorial average &mdash; this signals curvature, meaning you're already near the peak. A CCD will map it directly.</p>
+      </div>
+
+      <h2 id="lack-of-fit">Lack-of-Fit Testing</h2>
+
+      <p>If you have replicated center points (and you should &mdash; always include 3&ndash;5), you can formally test whether the quadratic model fits the data. The lack-of-fit test compares two sources of variation:</p>
+
+      <ul>
+        <li><strong>Pure error:</strong> Variation among replicates at the same settings (estimated from center points). This is "real" noise &mdash; the inherent variability of the process.</li>
+        <li><strong>Lack of fit:</strong> Variation between model predictions and observed means at each unique design point. This is "systematic" error &mdash; patterns the model fails to capture.</li>
+      </ul>
+
+      <p>The F-test asks: <em>"Is the model's prediction error significantly larger than the pure experimental noise?"</em></p>
+
+      <div class="comparison-grid">
+        <div class="comparison-card" style="background: #f0fdf4; border: 1px solid #bbf7d0;">
+          <h4 style="color: #166534;">Lack-of-Fit NOT Significant (p &gt; 0.05)</h4>
+          <p>The model fits the data adequately. Prediction errors are no larger than random noise. Proceed with optimization using this model.</p>
+          <p style="margin-top: 8px;"><strong>Our reactor example:</strong> p = 0.31. The quadratic model is sufficient.</p>
+        </div>
+        <div class="comparison-card" style="background: #fee2e2; border: 1px solid #fca5a5;">
+          <h4 style="color: #991b1b;">Lack-of-Fit IS Significant (p &lt; 0.05)</h4>
+          <p>The model is missing something systematic. Predictions deviate from reality in a patterned way. Do <strong>not</strong> trust the predicted optimum.</p>
+          <p style="margin-top: 8px;"><strong>Remedies:</strong> Transform Y (log, sqrt), add cubic terms, restrict the region, or try a different model.</p>
+        </div>
+      </div>
+
+      <h2 id="desirability">Multi-Response Optimization with Desirability</h2>
+
+      <p>Most real processes have multiple responses to optimize simultaneously. A reactor produces yield, purity, and cost. A server has throughput, latency, and CPU usage. The settings that maximize one response often worsen another.</p>
+
+      <p>The <strong>desirability function</strong> approach converts each response to a 0&ndash;1 scale (0 = unacceptable, 1 = ideal), then combines them into a single score:</p>
+
+      <div class="math">
+        D = (d<sub>1</sub><sup>w<sub>1</sub></sup> &times; d<sub>2</sub><sup>w<sub>2</sub></sup> &times; &hellip; &times; d<sub>k</sub><sup>w<sub>k</sub></sup>)<sup>1/&Sigma;w</sup>
+      </div>
+
+      <p>where d<sub>i</sub> is the individual desirability for response i, and w<sub>i</sub> is its importance weight.</p>
+
+      <h3>Desirability Functions by Goal</h3>
+
+      <table>
+        <thead><tr><th>Goal</th><th>d<sub>i</sub> = 0 when</th><th>d<sub>i</sub> = 1 when</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td>Maximize</td><td>Response &le; lower bound</td><td>Response &ge; target</td><td>Yield: d = 0 below 70%, d = 1 above 95%</td></tr>
+          <tr><td>Minimize</td><td>Response &ge; upper bound</td><td>Response &le; target</td><td>Cost: d = 0 above $50, d = 1 below $20</td></tr>
+          <tr><td>Target</td><td>Response outside bounds</td><td>Response = target</td><td>pH: d = 1 at exactly 7.0, d = 0 outside 6.0&ndash;8.0</td></tr>
+        </tbody>
+      </table>
+
+      <p>Continuing the reactor example with three responses:</p>
+
+      <table>
+        <thead><tr><th>Response</th><th>Goal</th><th>Lower</th><th>Target/Upper</th><th>Weight</th></tr></thead>
+        <tbody>
+          <tr><td>Yield (%)</td><td>Maximize</td><td>70</td><td>95</td><td>3 (high priority)</td></tr>
+          <tr><td>Purity (%)</td><td>Maximize</td><td>90</td><td>99</td><td>2</td></tr>
+          <tr><td>Cost ($/kg)</td><td>Minimize</td><td>15</td><td>40</td><td>1 (low priority)</td></tr>
+        </tbody>
+      </table>
+
+      <div class="keypoint-box">
+        <h4>Interpreting the Overall Desirability</h4>
+        <p><strong>D = 1.0:</strong> All responses have hit their ideal targets simultaneously &mdash; rare in practice.<br>
+        <strong>D &gt; 0.8:</strong> Excellent compromise. All responses are close to their targets.<br>
+        <strong>D = 0.5&ndash;0.8:</strong> Acceptable compromise. Some responses are trading off against others.<br>
+        <strong>D &lt; 0.5:</strong> At least one response is far from its target. Revisit the weights or accept that the goals conflict strongly.<br>
+        <strong>D = 0:</strong> At least one response is completely unacceptable. The geometric mean makes D = 0 if <em>any</em> individual d<sub>i</sub> = 0 &mdash; this is a safety feature that prevents accepting solutions where any single response is terrible.</p>
+      </div>
+
+      <h2 id="rsm-workflow">The Complete RSM Workflow</h2>
+
+      <p>Bringing together everything in this chapter, here's the recommended sequence:</p>
+
+      <ol>
+        <li><strong>Start with a first-order model.</strong> Fit a factorial or PB design. Check center points for curvature. If center-point mean &asymp; factorial mean, the surface is flat &mdash; use steepest ascent to move toward the optimum.</li>
+        <li><strong>Run steepest ascent.</strong> Take 3&ndash;6 steps along the gradient. Stop when the response starts declining or leveling off.</li>
+        <li><strong>Center a CCD around the best point.</strong> Run a CCD (or Box-Behnken if corners are infeasible). Fit the full quadratic model.</li>
+        <li><strong>Check model adequacy.</strong> R&sup2; &gt; 0.9? Lack of fit not significant? Residuals look random? If yes, proceed. If no, diagnose and fix.</li>
+        <li><strong>Interpret the contour plot.</strong> Concentric ellipses with the optimum inside? Great. Saddle or open contours? Use ridge analysis or expand the region.</li>
+        <li><strong>Run canonical analysis.</strong> Confirm the stationary point type. Check eigenvalue magnitudes for sensitivity information.</li>
+        <li><strong>For multiple responses, compute desirability.</strong> Set targets and weights. Find the best compromise.</li>
+        <li><strong>Confirm.</strong> Run 3&ndash;5 experiments at the predicted optimum. Compare to the prediction interval.</li>
+      </ol>
+
+      <div class="warning-box">
+        <h4>RSM Is Not Machine Learning</h4>
+        <p>RSM fits simple polynomial models (usually 5&ndash;15 coefficients) to small datasets (13&ndash;50 runs). It works because the experimental region is small and the physics is smooth. Don't expect it to capture complex, highly nonlinear relationships across a vast design space &mdash; that's a different problem requiring different tools. RSM's strength is <em>precise optimization in a local region</em> with statistical guarantees, not global exploration.</p>
+      </div>
+    </section>
+
+    <hr style="border: none; border-top: 2px solid var(--slate-200); margin: 48px 0;">
+
+    <!-- ═══════ CHAPTER 9 ═══════ -->
+    <section id="ch9">
+      <h1>Chapter 9</h1>
+      <div class="chapter-subtitle">Practical Troubleshooting</div>
+
+      <p class="lead">Common issues and how to resolve them.</p>
+
+      <div class="accordion">
+        <div class="accordion-item">
+          <div class="accordion-header">"All my effects look the same size" <span class="arrow">&#9660;</span></div>
+          <div class="accordion-body">
+            <p><strong>Likely cause:</strong> Factor ranges are too narrow, or the response is dominated by noise. <strong>Fix:</strong> Widen factor ranges (use more extreme levels) or add replicates to reduce noise.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <div class="accordion-header">"The confidence intervals are huge" <span class="arrow">&#9660;</span></div>
+          <div class="accordion-body">
+            <p><strong>Likely cause:</strong> Too few replicates or high experimental noise. <strong>Fix:</strong> Increase <code>block_count</code> to add replicates, or reduce measurement variability.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <div class="accordion-header">"My optimizer says linear R&sup2; is low" <span class="arrow">&#9660;</span></div>
+          <div class="accordion-body">
+            <p><strong>Likely cause:</strong> The true relationship is nonlinear (quadratic curvature). <strong>Fix:</strong> Switch from a screening design to CCD or Box-Behnken, which can fit quadratic terms.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <div class="accordion-header">"Some runs failed" <span class="arrow">&#9660;</span></div>
+          <div class="accordion-body">
+            <p>The generated runner scripts handle failures gracefully &mdash; they track failed runs and continue. After fixing the issue, re-run only the missing runs (the skip logic detects existing result files). The analysis handles missing data by computing statistics only over available runs.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <div class="accordion-header">"I need more than 2 levels for screening" <span class="arrow">&#9660;</span></div>
+          <div class="accordion-body">
+            <p>Plackett-Burman and fractional factorial require exactly 2 levels. For multi-level screening, use a full factorial with a manageable subset of factors, or use Latin Hypercube for continuous factors.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <div class="accordion-header">"My model predicts values outside the physical range" <span class="arrow">&#9660;</span></div>
+          <div class="accordion-body">
+            <p><strong>Likely cause:</strong> A linear or quadratic model extrapolating beyond the experimental region, or the response has a natural bound (e.g., yield can't exceed 100%). <strong>Fix:</strong> Apply a transformation (logit for proportions, log for positive-only values) before fitting the model, or constrain predictions to the feasible range during optimization.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <div class="accordion-header">"I have categorical and continuous factors mixed together" <span class="arrow">&#9660;</span></div>
+          <div class="accordion-body">
+            <p>This is common (e.g., algorithm type + buffer size). Use a full or fractional factorial design where categorical factors appear as coded levels. The tool handles mixed factor types &mdash; just set <code>type: "categorical"</code> or <code>type: "continuous"</code> in the config. Note: CCD and Box-Behnken require continuous factors, so you may need to run separate RSM studies for each level of the categorical factor.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <div class="accordion-header">"My results aren't reproducible between days" <span class="arrow">&#9660;</span></div>
+          <div class="accordion-body">
+            <p><strong>Likely cause:</strong> Day-to-day environmental variation (ambient temperature, system load, different hardware). <strong>Fix:</strong> Use blocking &mdash; set <code>block_count: 2</code> (or more) so each day is a block. Randomize run order within each block. The analysis separates block effects from treatment effects.</p>
+          </div>
+        </div>
+      </div>
+
+      <h2 id="common-mistakes">Common Mistakes Checklist</h2>
+
+      <p>Before running your experiment, verify you haven't made these common errors:</p>
+
+      <table>
+        <thead><tr><th>Mistake</th><th>Consequence</th><th>Prevention</th></tr></thead>
+        <tbody>
+          <tr><td>Running factors one at a time</td><td>Missing interactions; biased effect estimates</td><td>Use a proper design (factorial, PB, etc.)</td></tr>
+          <tr><td>Not randomizing run order</td><td>Time trends confounded with factor effects</td><td>Always randomize; the tool does this by default</td></tr>
+          <tr><td>Factor ranges too narrow</td><td>All effects look insignificant</td><td>Use bold ranges (at least &plusmn;25% of current value)</td></tr>
+          <tr><td>Factor ranges too wide</td><td>Nonlinear behavior; model breaks down at extremes</td><td>Check feasibility of extreme combinations first</td></tr>
+          <tr><td>No replicates</td><td>No error estimate; can't assess significance</td><td>Add center points or use <code>block_count &gt; 1</code></td></tr>
+          <tr><td>Changing unmeasured variables between runs</td><td>Confounded effects</td><td>Document and control all known nuisance variables</td></tr>
+          <tr><td>Ignoring the response metric definition</td><td>Measuring the wrong thing</td><td>Define the response precisely before running (mean? median? p99?)</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="doe-workflow">The DOE Workflow in Practice</h2>
+
+      <p>Here is the complete workflow, from initial idea to validated optimum:</p>
+
+      <ol>
+        <li><strong>Define the objective.</strong> What are you optimizing? What constitutes success? Agree on quantifiable responses.</li>
+        <li><strong>List candidate factors.</strong> Brainstorm with domain experts. Include factors you're <em>not sure</em> about &mdash; screening will sort them out.</li>
+        <li><strong>Set factor levels.</strong> Choose bold but feasible ranges. The levels should be far enough apart that real effects are detectable.</li>
+        <li><strong>Choose the design.</strong> Many factors? Screen first (PB). Few factors? Go straight to factorial or CCD.</li>
+        <li><strong>Randomize and run.</strong> Follow the generated run order. Record everything, including conditions you didn't plan to vary.</li>
+        <li><strong>Analyze.</strong> Compute effects, check residuals, identify the vital few factors.</li>
+        <li><strong>Follow up.</strong> If screening, run a factorial or RSM on the important factors. If optimizing, run confirmation experiments.</li>
+        <li><strong>Confirm and implement.</strong> Validate the optimum with independent runs. Then deploy.</li>
+      </ol>
+
+      <div class="keypoint-box">
+        <h4>Iteration Is Normal</h4>
+        <p>DOE is rarely a one-shot process. Most real optimization studies require 2&ndash;3 rounds: screening, then characterization, then fine-tuning. Each round informs the next. The total cost is still far less than exhaustive search, and the conclusions are statistically defensible.</p>
+      </div>
+    </section>
+
+    <!-- ── Chapter Navigation ── -->
+    <div class="chapter-nav">
+      <a href="index.html">&larr; Back to Home</a>
+      <a href="howto.html">Quick Start &amp; Reference &rarr;</a>
+    </div>
+
+  </main>
+</div>
+
+<!-- Mobile sidebar toggle -->
+<button class="sidebar-toggle" aria-label="Toggle sidebar">&#x2630;</button>
+
+<script src="js/main.js"></script>
+</body>
+</html>

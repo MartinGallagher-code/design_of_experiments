@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Distillation Column Optimization — DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<img src="../logo-light.svg" alt="" class="bg-logo-light">
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><span class="dot"></span> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x2316;</div>
+    <div class="uc-badge" style="background:rgba(55,48,163,.12);color:#3730a3;">Central Composite Design</div>
+    <h1>Distillation Column Optimization</h1>
+    <p class="uc-subtitle">Full pipeline with CCD: star points, center replicates, quadratic RSM, and single-response optimization.</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <section class="uc-section">
+    <h2>The Scenario</h2>
+    <p>You are optimizing a distillation column for maximum separation efficiency at minimum energy cost. You suspect the response surface is curved (quadratic), so you need a design with star points and center points to fit a second-order model.</p>
+    <div class="callout info">
+      <span class="callout-icon">&#x2139;</span>
+      <div class="callout-body">
+        <h4>Why Central Composite Design?</h4>
+        <p>CCD = factorial (2<sup>3</sup>=8) + star (2&times;3=6) + center (8) = 22 runs. Star points at &plusmn;&alpha; extend beyond the factorial cube to probe curvature. Center replicates estimate pure error. Orthogonal alpha ensures balanced estimation of all model terms.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>reflux_ratio</code></td><td>1.5</td><td>4.5</td><td>L/D</td></tr>
+            <tr><td><code>feed_rate</code></td><td>50</td><td>150</td><td>L/h</td></tr>
+            <tr><td><code>column_pressure</code></td><td>1.0</td><td>3.0</td><td>atm</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> feed_temp = 80&deg;C, n_trays = 20</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>separation_efficiency</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+            <tr><td><code>energy_cost</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>USD/h</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <h3>CCD Run Structure</h3>
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px;">
+      <div style="background: var(--ice); border-radius: 10px; padding: 16px; text-align: center;">
+        <div style="font-size: 1.8rem; font-weight: 800; color: var(--deep-blue);">8</div>
+        <div style="font-size: .8rem; color: var(--slate-500);">Factorial points</div>
+        <div style="font-size: .7rem; color: var(--slate-400);">All corner combos</div>
+      </div>
+      <div style="background: var(--amber-light); border-radius: 10px; padding: 16px; text-align: center;">
+        <div style="font-size: 1.8rem; font-weight: 800; color: var(--amber);">6</div>
+        <div style="font-size: .7rem; color: var(--slate-500);">Star (axial) points</div>
+        <div style="font-size: .7rem; color: var(--slate-400);">Probe curvature</div>
+      </div>
+      <div style="background: var(--mint-light); border-radius: 10px; padding: 16px; text-align: center;">
+        <div style="font-size: 1.8rem; font-weight: 800; color: var(--mint);">8</div>
+        <div style="font-size: .7rem; color: var(--slate-500);">Center replicates</div>
+        <div style="font-size: .7rem; color: var(--slate-400);">Estimate pure error</div>
+      </div>
+    </div>
+  </section>
+
+
+
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Central Composite Design produces <strong>22 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>reflux_ratio</code></th><th><code>feed_rate</code></th><th><code>column_pressure</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>3</td><td>100</td><td>2</td></tr>
+        <tr><td>2</td><td>4.5</td><td>50</td><td>3</td></tr>
+        <tr><td>3</td><td>1.5</td><td>150</td><td>1</td></tr>
+        <tr><td>4</td><td>3</td><td>191.287</td><td>2</td></tr>
+        <tr><td>5</td><td>3</td><td>100</td><td>2</td></tr>
+        <tr><td>6</td><td>0.261387</td><td>100</td><td>2</td></tr>
+        <tr><td>7</td><td>3</td><td>100</td><td>0.174258</td></tr>
+        <tr><td>8</td><td>3</td><td>100</td><td>2</td></tr>
+        <tr><td>9</td><td>4.5</td><td>150</td><td>1</td></tr>
+        <tr><td>10</td><td>5.73861</td><td>100</td><td>2</td></tr>
+        <tr><td>11</td><td>3</td><td>100</td><td>2</td></tr>
+        <tr><td>12</td><td>3</td><td>8.71291</td><td>2</td></tr>
+        <tr><td>13</td><td>3</td><td>100</td><td>2</td></tr>
+        <tr><td>14</td><td>1.5</td><td>50</td><td>3</td></tr>
+        <tr><td>15</td><td>3</td><td>100</td><td>2</td></tr>
+        <tr><td>16</td><td>4.5</td><td>50</td><td>1</td></tr>
+        <tr><td>17</td><td>3</td><td>100</td><td>3.82574</td></tr>
+        <tr><td>18</td><td>4.5</td><td>150</td><td>3</td></tr>
+        <tr><td>19</td><td>3</td><td>100</td><td>2</td></tr>
+        <tr><td>20</td><td>1.5</td><td>50</td><td>1</td></tr>
+        <tr><td>21</td><td>1.5</td><td>150</td><td>3</td></tr>
+        <tr><td>22</td><td>3</td><td>100</td><td>2</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+    <p>This use case demonstrates the <strong>full pipeline</strong> &mdash; every command the tool offers:</p>
+
+    <div class="code-block">
+      <div class="code-header"><span>Full pipeline: info &rarr; generate &rarr; run &rarr; analyze &rarr; optimize &rarr; report &rarr; csv</span><button class="code-copy">Copy</button></div>
+      <div class="code-body"><span class="comment"># 1. Preview the CCD design</span>
+<span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/06_distillation_column/config.json
+
+<span class="comment"># 2. Generate runner script</span>
+<span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/06_distillation_column/config.json \
+    <span class="flag">--output</span> results/run.sh <span class="flag">--seed</span> 55
+
+<span class="comment"># 3. Execute all 22 experiments</span>
+<span class="prompt">$ </span>bash results/run.sh
+
+<span class="comment"># 4. Analyze (with plots)</span>
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/06_distillation_column/config.json
+
+<span class="comment"># 5a. Optimize ALL responses</span>
+<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/06_distillation_column/config.json
+
+<span class="comment"># 5b. Optimize a SINGLE response</span>
+<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/06_distillation_column/config.json \
+    <span class="flag">--response</span> separation_efficiency
+
+<span class="comment"># 6. Generate HTML report</span>
+<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/06_distillation_column/config.json \
+    <span class="flag">--output</span> results/report.html
+
+<span class="comment"># 7. Export CSV for custom quadratic modeling</span>
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/06_distillation_column/config.json \
+    <span class="flag">--csv</span> results/csv/</div>
+    </div>
+
+    <div class="callout warning">
+      <span class="callout-icon">&#x26A0;</span>
+      <div class="callout-body">
+        <h4>Star points extend beyond [low, high]</h4>
+        <p>Some runs have factor values <em>outside</em> the [low, high] range (e.g., reflux_ratio below 1.5 or above 4.5). This is the CCD's circumscribed design: the factorial cube is inscribed within the star points. Make sure your equipment can handle these extended ranges.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="uc-section">
+    <h2>Interpreting the Results</h2>
+
+    <h3>Trade-offs</h3>
+    <ul>
+      <li><strong>Higher reflux ratio</strong> &rarr; better separation but much higher energy cost</li>
+      <li><strong>Higher feed rate</strong> &rarr; moderate effect on both responses</li>
+      <li><strong>Higher pressure</strong> &rarr; improves separation with moderate energy increase</li>
+    </ul>
+
+    <h3>Single vs. Multi-Response Optimization</h3>
+    <div class="callout success">
+      <span class="callout-icon">&#x2714;</span>
+      <div class="callout-body">
+        <h4>The <code>--response</code> flag</h4>
+        <p>Compare <code>optimize --response separation_efficiency</code> (ignores cost) vs. <code>optimize</code> (all responses). The settings that maximize efficiency often increase energy cost. This reveals the Pareto frontier &mdash; the set of optimal trade-offs.</p>
+      </div>
+    </div>
+
+    <h3>Next Steps</h3>
+    <ol>
+      <li>Fit a full quadratic RSM model using the CCD data</li>
+      <li>Construct a desirability function weighting efficiency vs. cost</li>
+      <li>Find the Pareto-optimal frontier</li>
+      <li>Run confirmation experiments at the predicted optimum</li>
+    </ol>
+  </section>
+
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>central_composite</code> (circumscribed, orthogonal &alpha;)</td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Star points</td><td>Yes (extends beyond [low, high])</td></tr>
+        <tr><td>Center replicates</td><td>8 center points for error estimation</td></tr>
+        <tr><td><code>--response</code></td><td>Single-response optimization</td></tr>
+        <tr><td><code>--csv</code></td><td>Export for custom modeling</td></tr>
+        <tr><td>Full pipeline</td><td>info &rarr; generate &rarr; run &rarr; analyze &rarr; optimize &rarr; report &rarr; csv</td></tr>
+        <tr><td>Total runs</td><td>22 (8 factorial + 6 star + 8 center)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: separation_efficiency</h3>
+    <p>The Pareto chart identifies which column parameters most strongly influence separation efficiency.</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/06_pareto_separation_efficiency.png" alt="Pareto chart for separation efficiency">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/06_main_effects_separation_efficiency.png" alt="Main effects plot for separation efficiency">
+      </div>
+    </div>
+
+    <h3>Response: energy_cost</h3>
+    <p>Energy cost responds to a different set of column parameters, requiring careful optimization against separation efficiency.</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/06_pareto_energy_cost.png" alt="Pareto chart for energy cost">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/06_main_effects_energy_cost.png" alt="Main effects plot for energy cost">
+      </div>
+    </div>
+
+      <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+    <div class="callout info" style="margin-top:24px;">
+      <span class="callout-icon">&#x1F4CA;</span>
+      <div class="callout-body">
+        <h4>How to Read These Surfaces</h4>
+        <p style="margin-bottom:10px;">Each plot shows predicted response (vertical axis) across two factors while other factors are held at center. Red dots are actual experimental observations.</p>
+        <ul style="font-size:.82rem;line-height:1.6;margin:0 0 0 16px;">
+          <li><strong>Flat surface</strong> — these two factors have little effect on the response.</li>
+          <li><strong>Tilted plane</strong> — strong linear effect; moving along one axis consistently changes the response.</li>
+          <li><strong>Curved/domed surface</strong> — quadratic curvature; there is an optimum somewhere in the middle.</li>
+          <li><strong>Saddle shape</strong> — significant interaction; the best setting of one factor depends on the other.</li>
+          <li><strong>Red dots far from surface</strong> — poor model fit in that region; be cautious about predictions there.</li>
+        </ul>
+        <p style="margin-top:12px;font-size:.82rem;"><strong>separation_efficiency (%)</strong> — R² = 0.312, Adj R² = -0.204<br>Weak fit — interpret the surface shape with caution.<br>Curvature detected in reflux_ratio, column_pressure — look for a peak or valley in the surface.<br>Strongest linear driver: <code>column_pressure</code> (decreases separation_efficiency).<br>Notable interaction: <code>reflux_ratio</code> × <code>feed_rate</code> — the effect of one depends on the level of the other. Look for a twisted surface.</p>
+        <p style="margin-top:12px;font-size:.82rem;"><strong>energy_cost (USD/h)</strong> — R² = 0.277, Adj R² = -0.265<br>Weak fit — interpret the surface shape with caution.<br>Curvature detected in column_pressure, reflux_ratio — look for a peak or valley in the surface.<br>Strongest linear driver: <code>reflux_ratio</code> (decreases energy_cost).<br>Notable interaction: <code>reflux_ratio</code> × <code>feed_rate</code> — the effect of one depends on the level of the other. Look for a twisted surface.</p>
+      </div>
+    </div>
+
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">energy: cost feed rate vs column pressure</p>
+      <img src="../images/06_rsm_energy_cost_feed_rate_vs_column_pressure.png" alt="RSM surface: energy — cost feed rate vs column pressure" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">energy: cost reflux ratio vs column pressure</p>
+      <img src="../images/06_rsm_energy_cost_reflux_ratio_vs_column_pressure.png" alt="RSM surface: energy — cost reflux ratio vs column pressure" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">energy: cost reflux ratio vs feed rate</p>
+      <img src="../images/06_rsm_energy_cost_reflux_ratio_vs_feed_rate.png" alt="RSM surface: energy — cost reflux ratio vs feed rate" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">separation: efficiency feed rate vs column pressure</p>
+      <img src="../images/06_rsm_separation_efficiency_feed_rate_vs_column_pressure.png" alt="RSM surface: separation — efficiency feed rate vs column pressure" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">separation: efficiency reflux ratio vs column pressure</p>
+      <img src="../images/06_rsm_separation_efficiency_reflux_ratio_vs_column_pressure.png" alt="RSM surface: separation — efficiency reflux ratio vs column pressure" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">separation: efficiency reflux ratio vs feed rate</p>
+      <img src="../images/06_rsm_separation_efficiency_reflux_ratio_vs_feed_rate.png" alt="RSM surface: separation — efficiency reflux ratio vs feed rate" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+  </section>
+
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: separation_efficiency ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+reflux_ratio            16.1300       1.6045            38.5%
+feed_rate               13.2175       1.6045            31.5%
+column_pressure         12.5900       1.6045            30.0%
+
+=== Summary Statistics: separation_efficiency ===
+
+reflux_ratio:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.261387            1    75.5500     0.0000    75.5500    75.5500
+  1.5                 4    79.7475    10.9426    63.4000    86.1400
+  3                  12    81.7875     5.9172    71.9400    88.5400
+  4.5                 4    75.6250     7.7099    67.1900    85.1700
+  5.73861             1    91.6800     0.0000    91.6800    91.6800
+
+feed_rate:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                12    81.7408     6.8013    71.9400    91.6800
+  150                 4    83.2500     3.7214    77.8500    86.1400
+  191.287             1    82.4500     0.0000    82.4500    82.4500
+  50                  4    72.1225     9.7014    63.4000    85.6100
+  8.71291             1    85.3400     0.0000    85.3400    85.3400
+
+column_pressure:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.174258            1    84.5300     0.0000    84.5300    84.5300
+  1                   4    73.6450    10.3350    63.4000    86.1400
+  2                  12    82.6842     6.0885    72.1700    91.6800
+  3                   4    81.7275     6.3365    72.2900    85.6100
+  3.82574             1    71.9400     0.0000    71.9400    71.9400
+
+=== Main Effects: energy_cost ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+reflux_ratio            26.3000       2.1251            44.5%
+feed_rate               19.4875       2.1251            33.0%
+column_pressure         13.3392       2.1251            22.6%
+
+=== Summary Statistics: energy_cost ===
+
+reflux_ratio:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.261387            1    30.2400     0.0000    30.2400    30.2400
+  1.5                 4    24.7800     9.8810    10.0300    31.0100
+  3                  12    30.9358     7.0655    20.4800    45.9900
+  4.5                 4    27.2325    14.7182    14.0200    48.0900
+  5.73861             1    51.0800     0.0000    51.0800    51.0800
+
+feed_rate:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                12    32.0933     8.9857    20.4800    51.0800
+  150                 4    33.5600     9.9320    25.7600    48.0900
+  191.287             1    37.9400     0.0000    37.9400    37.9400
+  50                  4    18.4525     8.2137    10.0300    28.7000
+  8.71291             1    29.4900     0.0000    29.4900    29.4900
+
+column_pressure:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.174258            1    28.4300     0.0000    28.4300    28.4300
+  1                   4    19.7975     9.2405    10.0300    29.3800
+  2                  12    33.1367     8.8992    20.4800    51.0800
+  3                   4    32.2150    11.4055    21.0600    48.0900
+  3.82574             1    26.4800     0.0000    26.4800    26.4800</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: separation_efficiency ===
+Direction: maximize
+
+Best observed run: #18
+  reflux_ratio = 3
+  feed_rate = 100
+  column_pressure = 2
+  Value: 91.68
+
+RSM Model (linear, R² = 0.21):
+  Coefficients:
+    intercept:  +80.4623
+    reflux_ratio:  +0.0513
+    feed_rate:  -3.1826
+    column_pressure:  -2.5962
+  Predicted optimum:
+    reflux_ratio = 4.5
+    feed_rate = 50
+    column_pressure = 1
+    Predicted value: 86.2923
+
+Factor importance:
+  1. column_pressure  (effect: 14.1, contribution: 47.5%)
+  2. feed_rate  (effect: 8.5, contribution: 28.6%)
+  3. reflux_ratio  (effect: 7.1, contribution: 23.9%)
+
+=== Optimization: energy_cost ===
+Direction: minimize
+
+Best observed run: #6
+  reflux_ratio = 4.5
+  feed_rate = 150
+  column_pressure = 3
+  Value: 10.03
+
+RSM Model (linear, R² = 0.22):
+  Coefficients:
+    intercept:  +30.0273
+    reflux_ratio:  -0.4562
+    feed_rate:  -5.3215
+    column_pressure:  -1.8471
+  Predicted optimum:
+    reflux_ratio = 3
+    feed_rate = 8.71291
+    column_pressure = 2
+    Predicted value: 39.7429
+
+Factor importance:
+  1. feed_rate  (effect: 16.0, contribution: 55.4%)
+  2. column_pressure  (effect: 10.8, contribution: 37.2%)
+  3. reflux_ratio  (effect: 2.1, contribution: 7.4%)</div></div>
+
+  </section>
+
+  <div class="chapter-nav">
+    <a href="05-material-formulation.html">&larr; Material Formulation</a>
+    <a href="index.html">All Use Cases &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

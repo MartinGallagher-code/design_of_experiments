@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Lake Partitioning &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #d1fae5, #a7f3d0);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F4CA;</div>
+    <div class="uc-badge" style="background:rgba(5,150,105,.12);color:#059669;">Full Factorial Design</div>
+    <h1>Data Lake Partitioning</h1>
+    <p class="uc-subtitle">Full factorial of partitioning strategy, file format, and compaction for query speed and storage cost</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>partition_cols</code></td><td>date</td><td>date_hour_region</td><td></td></tr>
+            <tr><td><code>file_format</code></td><td>parquet</td><td>orc</td><td></td></tr>
+            <tr><td><code>target_file_mb</code></td><td>64</td><td>256</td><td>MB</td></tr>
+            <tr><td><code>z_order</code></td><td>off</td><td>on</td><td></td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> table_size_tb = 5, retention_days = 90</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>query_time_s</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>s</td></tr>
+            <tr><td><code>storage_cost_month</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>USD</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/38_data_lake_partitioning/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Data Lake Partitioning&quot;,
+    &quot;description&quot;: &quot;Full factorial of partitioning strategy, file format, and compaction for query speed and storage cost&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;partition_cols&quot;,
+      &quot;levels&quot;: [
+        &quot;date&quot;,
+        &quot;date_hour&quot;,
+        &quot;date_hour_region&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    },
+    {
+      &quot;name&quot;: &quot;file_format&quot;,
+      &quot;levels&quot;: [
+        &quot;parquet&quot;,
+        &quot;orc&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    },
+    {
+      &quot;name&quot;: &quot;target_file_mb&quot;,
+      &quot;levels&quot;: [
+        &quot;64&quot;,
+        &quot;256&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;MB&quot;
+    },
+    {
+      &quot;name&quot;: &quot;z_order&quot;,
+      &quot;levels&quot;: [
+        &quot;off&quot;,
+        &quot;on&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;table_size_tb&quot;: &quot;5&quot;,
+    &quot;retention_days&quot;: &quot;90&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;query_time_s&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;s&quot;
+    },
+    {
+      &quot;name&quot;: &quot;storage_cost_month&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;USD&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;full_factorial&quot;,
+    &quot;test_script&quot;: &quot;use_cases/38_data_lake_partitioning/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Full Factorial Design produces <strong>24 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>partition_cols</code></th><th><code>file_format</code></th><th><code>target_file_mb</code></th><th><code>z_order</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>date_hour</td><td>orc</td><td>256</td><td>on</td></tr>
+        <tr><td>2</td><td>date</td><td>orc</td><td>64</td><td>on</td></tr>
+        <tr><td>3</td><td>date_hour_region</td><td>parquet</td><td>256</td><td>off</td></tr>
+        <tr><td>4</td><td>date_hour_region</td><td>orc</td><td>256</td><td>on</td></tr>
+        <tr><td>5</td><td>date_hour</td><td>orc</td><td>64</td><td>on</td></tr>
+        <tr><td>6</td><td>date_hour</td><td>parquet</td><td>256</td><td>off</td></tr>
+        <tr><td>7</td><td>date_hour_region</td><td>parquet</td><td>64</td><td>on</td></tr>
+        <tr><td>8</td><td>date_hour</td><td>parquet</td><td>256</td><td>on</td></tr>
+        <tr><td>9</td><td>date_hour</td><td>orc</td><td>256</td><td>off</td></tr>
+        <tr><td>10</td><td>date_hour_region</td><td>parquet</td><td>64</td><td>off</td></tr>
+        <tr><td>11</td><td>date</td><td>parquet</td><td>64</td><td>on</td></tr>
+        <tr><td>12</td><td>date_hour</td><td>orc</td><td>64</td><td>off</td></tr>
+        <tr><td>13</td><td>date_hour_region</td><td>orc</td><td>64</td><td>on</td></tr>
+        <tr><td>14</td><td>date</td><td>orc</td><td>256</td><td>off</td></tr>
+        <tr><td>15</td><td>date_hour</td><td>parquet</td><td>64</td><td>on</td></tr>
+        <tr><td>16</td><td>date</td><td>parquet</td><td>256</td><td>off</td></tr>
+        <tr><td>17</td><td>date_hour_region</td><td>orc</td><td>256</td><td>off</td></tr>
+        <tr><td>18</td><td>date</td><td>orc</td><td>64</td><td>off</td></tr>
+        <tr><td>19</td><td>date_hour_region</td><td>parquet</td><td>256</td><td>on</td></tr>
+        <tr><td>20</td><td>date</td><td>orc</td><td>256</td><td>on</td></tr>
+        <tr><td>21</td><td>date_hour</td><td>parquet</td><td>64</td><td>off</td></tr>
+        <tr><td>22</td><td>date</td><td>parquet</td><td>64</td><td>off</td></tr>
+        <tr><td>23</td><td>date</td><td>parquet</td><td>256</td><td>on</td></tr>
+        <tr><td>24</td><td>date_hour_region</td><td>orc</td><td>64</td><td>off</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/38_data_lake_partitioning/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/38_data_lake_partitioning/config.json \
+    <span class="flag">--output</span> use_cases/38_data_lake_partitioning/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/38_data_lake_partitioning/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/38_data_lake_partitioning/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/38_data_lake_partitioning/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/38_data_lake_partitioning/config.json \
+    <span class="flag">--output</span> use_cases/38_data_lake_partitioning/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>full_factorial</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (1), <code>categorical</code> (3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (query_time_s &#x2193;, storage_cost_month &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>24</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: query_time_s</h3>
+    <p>Top factors: file_format (35.4%), target_file_mb (30.3%), partition_cols (22.7%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/38_pareto_query_time_s.png" alt="Pareto chart for query_time_s">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/38_main_effects_query_time_s.png" alt="Main effects plot for query_time_s">
+      </div>
+    </div>
+
+    <h3>Response: storage_cost_month</h3>
+    <p>Top factors: file_format (48.6%), partition_cols (26.9%), target_file_mb (22.2%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/38_pareto_storage_cost_month.png" alt="Pareto chart for storage_cost_month">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/38_main_effects_storage_cost_month.png" alt="Main effects plot for storage_cost_month">
+      </div>
+    </div>
+
+  </section>
+
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: query_time_s ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+file_format              4.9500       1.1045            35.4%
+target_file_mb          -4.2333       1.1045            30.3%
+partition_cols           3.1750       1.1045            22.7%
+z_order                  1.6167       1.1045            11.6%
+
+=== Interaction Effects: query_time_s ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+file_format          target_file_mb            -2.0167            63.7%
+target_file_mb       z_order                    0.8500            26.8%
+file_format          z_order                   -0.3000             9.5%
+
+=== Summary Statistics: query_time_s ===
+
+partition_cols:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  date                8    12.5000     5.6727     4.9000    20.5000
+  date_hour           8    10.4625     5.0633     2.9000    20.3000
+  date_hour_region     8    13.6375     5.6981     6.6000    23.5000
+
+file_format:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  orc                12     9.7250     4.6111     2.9000    18.1000
+  parquet            12    14.6750     5.1567     5.5000    23.5000
+
+target_file_mb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  256                12    14.3167     5.5686     6.1000    23.5000
+  64                 12    10.0833     4.5204     2.9000    18.1000
+
+z_order:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                12    11.3917     5.9604     4.9000    23.5000
+  on                 12    13.0083     4.9261     2.9000    20.3000
+
+=== Main Effects: storage_cost_month ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+file_format            -16.2500       6.2977            48.6%
+partition_cols           9.0000       6.2977            26.9%
+target_file_mb           7.4167       6.2977            22.2%
+z_order                 -0.7500       6.2977             2.2%
+
+=== Interaction Effects: storage_cost_month ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+file_format          target_file_mb            21.2500            56.5%
+target_file_mb       z_order                   16.0833            42.8%
+file_format          z_order                   -0.2500             0.7%
+
+=== Summary Statistics: storage_cost_month ===
+
+partition_cols:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  date                8   251.3750    24.4420   220.0000   283.0000
+  date_hour           8   243.5000    43.7819   182.0000   312.0000
+  date_hour_region     8   252.5000    23.6281   215.0000   281.0000
+
+file_format:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  orc                12   257.2500    26.9987   215.0000   312.0000
+  parquet            12   241.0000    33.4256   182.0000   283.0000
+
+target_file_mb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  256                12   245.4167    38.9206   182.0000   312.0000
+  64                 12   252.8333    21.1051   215.0000   283.0000
+
+z_order:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                12   249.5000    32.8924   182.0000   312.0000
+  on                 12   248.7500    30.1334   185.0000   283.0000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: query_time_s ===
+Direction: minimize
+
+Best observed run: #4
+  partition_cols = date_hour
+  file_format = orc
+  target_file_mb = 64
+  z_order = on
+  Value: 2.9
+
+RSM Model (linear, R² = 0.0970, Adj R² = -0.0931):
+  Coefficients:
+    intercept                      +12.2000
+    partition_cols                 -1.8813
+    file_format                    +0.3583
+    target_file_mb                 +0.1250
+    z_order                        +0.4667
+
+RSM Model (quadratic, R² = 0.3304, Adj R² = -0.7113):
+  Coefficients:
+    intercept                      +2.4969
+    partition_cols                 -1.8813
+    file_format                    +0.3583
+    target_file_mb                 +0.1250
+    z_order                        +0.4667
+    partition_cols*file_format     +0.7812
+    partition_cols*target_file_mb  -0.5312
+    partition_cols*z_order         -0.8187
+    file_format*target_file_mb     +1.4333
+    file_format*z_order            -0.6917
+    target_file_mb*z_order         -0.7250
+    partition_cols^2               +3.3187
+    file_format^2                  +2.4969
+    target_file_mb^2               +2.4969
+    z_order^2                      +2.4969
+
+  Curvature analysis:
+    partition_cols                 coef=+3.3187  convex (has a minimum)
+    file_format                    coef=+2.4969  convex (has a minimum)
+    target_file_mb                 coef=+2.4969  convex (has a minimum)
+    z_order                        coef=+2.4969  convex (has a minimum)
+
+  Notable interactions:
+    file_format*target_file_mb     coef=+1.4333  (synergistic)
+    partition_cols*z_order         coef=-0.8187  (antagonistic)
+    partition_cols*file_format     coef=+0.7812  (synergistic)
+    target_file_mb*z_order         coef=-0.7250  (antagonistic)
+    file_format*z_order            coef=-0.6917  (antagonistic)
+    partition_cols*target_file_mb  coef=-0.5312  (antagonistic)
+
+  Predicted optimum (from linear model):
+    partition_cols = date
+    file_format = parquet
+    target_file_mb = 256
+    z_order = on
+    Predicted value: 15.0313
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. partition_cols  (effect: 5.2, contribution: 73.2%)
+  2. z_order  (effect: 0.9, contribution: 13.1%)
+  3. file_format  (effect: 0.7, contribution: 10.1%)
+  4. target_file_mb  (effect: -0.2, contribution: 3.5%)
+
+=== Optimization: storage_cost_month ===
+Direction: minimize
+
+Best observed run: #23
+  partition_cols = date_hour
+  file_format = parquet
+  target_file_mb = 64
+  z_order = off
+  Value: 182.0
+
+RSM Model (linear, R² = 0.3279, Adj R² = 0.1864):
+  Coefficients:
+    intercept                      +249.1250
+    partition_cols                 +17.1875
+    file_format                    -7.8750
+    target_file_mb                 +1.6250
+    z_order                        -6.1250
+
+RSM Model (quadratic, R² = 0.4074, Adj R² = -0.5143):
+  Coefficients:
+    intercept                      +62.8750
+    partition_cols                 +17.1875
+    file_format                    -7.8750
+    target_file_mb                 +1.6250
+    z_order                        -6.1250
+    partition_cols*file_format     -7.6875
+    partition_cols*target_file_mb  +0.5625
+    partition_cols*z_order         -0.8125
+    file_format*target_file_mb     +1.6250
+    file_format*z_order            +0.8750
+    target_file_mb*z_order         -5.1250
+    partition_cols^2               -3.5625
+    file_format^2                  +62.8750
+    target_file_mb^2               +62.8750
+    z_order^2                      +62.8750
+
+  Curvature analysis:
+    target_file_mb                 coef=+62.8750  convex (has a minimum)
+    z_order                        coef=+62.8750  convex (has a minimum)
+    file_format                    coef=+62.8750  convex (has a minimum)
+    partition_cols                 coef=-3.5625  concave (has a maximum)
+
+  Notable interactions:
+    partition_cols*file_format     coef=-7.6875  (antagonistic)
+    target_file_mb*z_order         coef=-5.1250  (antagonistic)
+    file_format*target_file_mb     coef=+1.6250  (synergistic)
+    file_format*z_order            coef=+0.8750  (synergistic)
+    partition_cols*z_order         coef=-0.8125  (antagonistic)
+    partition_cols*target_file_mb  coef=+0.5625  (synergistic)
+
+  Predicted optimum (from linear model):
+    partition_cols = date_hour_region
+    file_format = orc
+    target_file_mb = 256
+    z_order = off
+    Predicted value: 281.9375
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. partition_cols  (effect: 34.4, contribution: 52.4%)
+  2. file_format  (effect: -15.8, contribution: 24.0%)
+  3. z_order  (effect: -12.2, contribution: 18.7%)
+  4. target_file_mb  (effect: -3.2, contribution: 5.0%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="37-spark-shuffle-optimization.html">&larr; Previous: Spark Shuffle Optimization</a>
+    <a href="39-stream-processing-windowing.html">Next: Stream Processing Windowing &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>
