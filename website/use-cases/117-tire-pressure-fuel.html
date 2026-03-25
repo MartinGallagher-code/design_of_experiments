@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tire Pressure &amp; Fuel Economy &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #fed7aa, #fdba74);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F697;</div>
+    <div class="uc-badge" style="background:rgba(234,88,12,.12);color:#ea580c;">Box-Behnken Design</div>
+    <h1>Tire Pressure &amp; Fuel Economy</h1>
+    <p class="uc-subtitle">Box-Behnken design to maximize fuel economy and minimize tire wear by tuning front pressure, rear pressure, and load weight</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>front_psi</code></td><td>28</td><td>38</td><td>psi</td></tr>
+            <tr><td><code>rear_psi</code></td><td>28</td><td>38</td><td>psi</td></tr>
+            <tr><td><code>load_kg</code></td><td>100</td><td>400</td><td>kg</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> vehicle = sedan, tire_model = all_season</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>mpg</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>mpg</td></tr>
+            <tr><td><code>wear_rate</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>mm/10k_mi</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/117_tire_pressure_fuel/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Tire Pressure &amp; Fuel Economy&quot;,
+    &quot;description&quot;: &quot;Box-Behnken design to maximize fuel economy and minimize tire wear by tuning front pressure, rear pressure, and load weight&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;front_psi&quot;,
+      &quot;levels&quot;: [
+        &quot;28&quot;,
+        &quot;38&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;psi&quot;
+    },
+    {
+      &quot;name&quot;: &quot;rear_psi&quot;,
+      &quot;levels&quot;: [
+        &quot;28&quot;,
+        &quot;38&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;psi&quot;
+    },
+    {
+      &quot;name&quot;: &quot;load_kg&quot;,
+      &quot;levels&quot;: [
+        &quot;100&quot;,
+        &quot;400&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;kg&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;vehicle&quot;: &quot;sedan&quot;,
+    &quot;tire_model&quot;: &quot;all_season&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;mpg&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;mpg&quot;
+    },
+    {
+      &quot;name&quot;: &quot;wear_rate&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;mm/10k_mi&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;box_behnken&quot;,
+    &quot;test_script&quot;: &quot;use_cases/117_tire_pressure_fuel/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Box-Behnken Design produces <strong>15 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>front_psi</code></th><th><code>rear_psi</code></th><th><code>load_kg</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>33</td><td>28</td><td>100</td></tr>
+        <tr><td>2</td><td>33</td><td>33</td><td>250</td></tr>
+        <tr><td>3</td><td>38</td><td>33</td><td>400</td></tr>
+        <tr><td>4</td><td>38</td><td>33</td><td>100</td></tr>
+        <tr><td>5</td><td>33</td><td>33</td><td>250</td></tr>
+        <tr><td>6</td><td>33</td><td>33</td><td>250</td></tr>
+        <tr><td>7</td><td>28</td><td>33</td><td>400</td></tr>
+        <tr><td>8</td><td>38</td><td>28</td><td>250</td></tr>
+        <tr><td>9</td><td>33</td><td>28</td><td>400</td></tr>
+        <tr><td>10</td><td>38</td><td>38</td><td>250</td></tr>
+        <tr><td>11</td><td>28</td><td>33</td><td>100</td></tr>
+        <tr><td>12</td><td>33</td><td>38</td><td>400</td></tr>
+        <tr><td>13</td><td>28</td><td>28</td><td>250</td></tr>
+        <tr><td>14</td><td>28</td><td>38</td><td>250</td></tr>
+        <tr><td>15</td><td>33</td><td>38</td><td>100</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/117_tire_pressure_fuel/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/117_tire_pressure_fuel/config.json \
+    <span class="flag">--output</span> use_cases/117_tire_pressure_fuel/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/117_tire_pressure_fuel/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/117_tire_pressure_fuel/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/117_tire_pressure_fuel/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/117_tire_pressure_fuel/config.json \
+    <span class="flag">--output</span> use_cases/117_tire_pressure_fuel/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>box_behnken</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (mpg &#x2191;, wear_rate &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>15</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: mpg</h3>
+    <p>Top factors: rear_psi (46.3%), front_psi (33.4%), load_kg (20.3%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/117_pareto_mpg.png" alt="Pareto chart for mpg">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/117_main_effects_mpg.png" alt="Main effects plot for mpg">
+      </div>
+    </div>
+
+    <h3>Response: wear_rate</h3>
+    <p>Top factors: rear_psi (54.0%), front_psi (29.3%), load_kg (16.7%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/117_pareto_wear_rate.png" alt="Pareto chart for wear_rate">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/117_main_effects_wear_rate.png" alt="Main effects plot for wear_rate">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">mpg front psi vs load kg</p>
+      <img src="../images/117_rsm_mpg_front_psi_vs_load_kg.png" alt="RSM surface: mpg front psi vs load kg" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">mpg front psi vs rear psi</p>
+      <img src="../images/117_rsm_mpg_front_psi_vs_rear_psi.png" alt="RSM surface: mpg front psi vs rear psi" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">mpg rear psi vs load kg</p>
+      <img src="../images/117_rsm_mpg_rear_psi_vs_load_kg.png" alt="RSM surface: mpg rear psi vs load kg" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">wear rate front psi vs load kg</p>
+      <img src="../images/117_rsm_wear_rate_front_psi_vs_load_kg.png" alt="RSM surface: wear rate front psi vs load kg" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">wear rate front psi vs rear psi</p>
+      <img src="../images/117_rsm_wear_rate_front_psi_vs_rear_psi.png" alt="RSM surface: wear rate front psi vs rear psi" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">wear rate rear psi vs load kg</p>
+      <img src="../images/117_rsm_wear_rate_rear_psi_vs_load_kg.png" alt="RSM surface: wear rate rear psi vs load kg" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_mpg_front_psi_vs_rear_psi.png
+  RSM surface: rsm_mpg_front_psi_vs_load_kg.png
+  RSM surface: rsm_mpg_rear_psi_vs_load_kg.png
+  RSM surface: rsm_wear_rate_front_psi_vs_rear_psi.png
+  RSM surface: rsm_wear_rate_front_psi_vs_load_kg.png
+  RSM surface: rsm_wear_rate_rear_psi_vs_load_kg.png
+
+=== Main Effects: mpg ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+rear_psi                 2.2250       0.6254            46.3%
+front_psi                1.6071       0.6254            33.4%
+load_kg                  0.9786       0.6254            20.3%
+
+=== Summary Statistics: mpg ===
+
+front_psi:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  28                  4    31.6250     1.4268    29.7000    33.1000
+  33                  7    30.2429     2.7048    27.0000    35.1000
+  38                  4    31.8500     2.8101    28.0000    34.5000
+
+rear_psi:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  28                  4    32.0750     1.7443    30.5000    34.5000
+  33                  7    31.1286     2.8900    27.5000    35.1000
+  38                  4    29.8500     2.0728    27.0000    31.7000
+
+load_kg:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4    30.4500     1.6523    28.0000    31.6000
+  250                 7    31.4286     2.7681    27.5000    35.1000
+  400                 4    30.9500     2.9149    27.0000    33.2000
+
+=== Main Effects: wear_rate ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+rear_psi                 0.5025       0.1292            54.0%
+front_psi                0.2732       0.1292            29.3%
+load_kg                  0.1554       0.1292            16.7%
+
+=== Summary Statistics: wear_rate ===
+
+front_psi:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  28                  4     1.9100     0.2874     1.6800     2.3300
+  33                  7     2.1057     0.5792     1.0500     2.6900
+  38                  4     1.8325     0.5854     1.2700     2.6300
+
+rear_psi:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  28                  4     1.7400     0.3780     1.2700     2.1900
+  33                  7     1.9686     0.6068     1.0500     2.6900
+  38                  4     2.2425     0.3469     1.8700     2.6800
+
+load_kg:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4     2.0625     0.4116     1.7000     2.6300
+  250                 7     1.9071     0.5962     1.0500     2.6900
+  400                 4     2.0275     0.5136     1.5600     2.6800
+
+Pareto chart (mpg): use_cases/117_tire_pressure_fuel/results/analysis/pareto_mpg.png
+
+Pareto chart (wear_rate): use_cases/117_tire_pressure_fuel/results/analysis/pareto_wear_rate.png
+Main effects (mpg): use_cases/117_tire_pressure_fuel/results/analysis/main_effects_mpg.png
+Main effects (wear_rate): use_cases/117_tire_pressure_fuel/results/analysis/main_effects_wear_rate.png</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: mpg ===
+Direction: maximize
+
+Best observed run: #4
+  front_psi = 38
+  rear_psi = 38
+  load_kg = 250
+  Value: 35.1
+
+RSM Model (linear, R² = 0.3042, Adj R² = 0.1145):
+  Coefficients:
+    intercept                      +31.0400
+    front_psi                      +1.0125
+    rear_psi                       +0.6875
+    load_kg                        +1.2750
+
+RSM Model (quadratic, R² = 0.7301, Adj R² = 0.2441):
+  Coefficients:
+    intercept                      +31.8000
+    front_psi                      +1.0125
+    rear_psi                       +0.6875
+    load_kg                        +1.2750
+    front_psi*rear_psi             +0.1000
+    front_psi*load_kg              +0.0250
+    rear_psi*load_kg               -0.7250
+    front_psi^2                    +1.3000
+    rear_psi^2                     -0.1500
+    load_kg^2                      -2.5750
+
+  Curvature analysis:
+    load_kg                        coef=-2.5750  concave (has a maximum)
+    front_psi                      coef=+1.3000  convex (has a minimum)
+    rear_psi                       coef=-0.1500  concave (has a maximum)
+
+  Notable interactions:
+    rear_psi*load_kg               coef=-0.7250  (antagonistic)
+
+  Predicted optimum (from quadratic model):
+    front_psi = 38
+    rear_psi = 38
+    load_kg = 250
+    Predicted value: 34.7500
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. load_kg  (effect: 3.9, contribution: 50.3%)
+  2. front_psi  (effect: 2.5, contribution: 32.1%)
+  3. rear_psi  (effect: 1.4, contribution: 17.6%)
+
+=== Optimization: wear_rate ===
+Direction: minimize
+
+Best observed run: #4
+  front_psi = 38
+  rear_psi = 38
+  load_kg = 250
+  Value: 1.05
+
+RSM Model (linear, R² = 0.2843, Adj R² = 0.0891):
+  Coefficients:
+    intercept                      +1.9807
+    front_psi                      -0.2588
+    rear_psi                       -0.1163
+    load_kg                        -0.2100
+
+RSM Model (quadratic, R² = 0.7508, Adj R² = 0.3021):
+  Coefficients:
+    intercept                      +1.8733
+    front_psi                      -0.2587
+    rear_psi                       -0.1162
+    load_kg                        -0.2100
+    front_psi*rear_psi             +0.0425
+    front_psi*load_kg              +0.0350
+    rear_psi*load_kg               +0.1300
+    front_psi^2                    -0.3004
+    rear_psi^2                     -0.0454
+    load_kg^2                      +0.5471
+
+  Curvature analysis:
+    load_kg                        coef=+0.5471  convex (has a minimum)
+    front_psi                      coef=-0.3004  concave (has a maximum)
+    rear_psi                       coef=-0.0454  negligible curvature
+
+  Predicted optimum (from quadratic model):
+    front_psi = 33
+    rear_psi = 28
+    load_kg = 100
+    Predicted value: 2.8312
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. load_kg  (effect: 0.8, contribution: 48.6%)
+  2. front_psi  (effect: 0.6, contribution: 37.0%)
+  3. rear_psi  (effect: 0.2, contribution: 14.4%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="116-sunscreen-formulation.html">&larr; Previous: Sunscreen SPF Formulation</a>
+    <a href="118-engine-oil-change.html">Next: Engine Oil Change Interval &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

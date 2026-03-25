@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Traffic Signal Timing &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #fed7aa, #fdba74);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F697;</div>
+    <div class="uc-badge" style="background:rgba(234,88,12,.12);color:#ea580c;">Plackett-Burman Design</div>
+    <h1>Traffic Signal Timing</h1>
+    <p class="uc-subtitle">Plackett-Burman screening of green phase duration, cycle length, offset, pedestrian phase, left-turn phase, and sensor delay for throughput and average wait time</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>green_sec</code></td><td>15</td><td>60</td><td>sec</td></tr>
+            <tr><td><code>cycle_sec</code></td><td>60</td><td>150</td><td>sec</td></tr>
+            <tr><td><code>offset_pct</code></td><td>0</td><td>50</td><td>%</td></tr>
+            <tr><td><code>ped_phase_sec</code></td><td>10</td><td>30</td><td>sec</td></tr>
+            <tr><td><code>left_turn_sec</code></td><td>0</td><td>20</td><td>sec</td></tr>
+            <tr><td><code>sensor_delay</code></td><td>1</td><td>5</td><td>sec</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> intersection_type = 4_way, time_of_day = peak</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>throughput_vph</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>veh/hr</td></tr>
+            <tr><td><code>avg_wait_sec</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>sec</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/122_traffic_signal_timing/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Traffic Signal Timing&quot;,
+    &quot;description&quot;: &quot;Plackett-Burman screening of green phase duration, cycle length, offset, pedestrian phase, left-turn phase, and sensor delay for throughput and average wait time&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;green_sec&quot;,
+      &quot;levels&quot;: [
+        &quot;15&quot;,
+        &quot;60&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;sec&quot;
+    },
+    {
+      &quot;name&quot;: &quot;cycle_sec&quot;,
+      &quot;levels&quot;: [
+        &quot;60&quot;,
+        &quot;150&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;sec&quot;
+    },
+    {
+      &quot;name&quot;: &quot;offset_pct&quot;,
+      &quot;levels&quot;: [
+        &quot;0&quot;,
+        &quot;50&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;ped_phase_sec&quot;,
+      &quot;levels&quot;: [
+        &quot;10&quot;,
+        &quot;30&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;sec&quot;
+    },
+    {
+      &quot;name&quot;: &quot;left_turn_sec&quot;,
+      &quot;levels&quot;: [
+        &quot;0&quot;,
+        &quot;20&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;sec&quot;
+    },
+    {
+      &quot;name&quot;: &quot;sensor_delay&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;5&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;sec&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;intersection_type&quot;: &quot;4_way&quot;,
+    &quot;time_of_day&quot;: &quot;peak&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;throughput_vph&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;veh/hr&quot;
+    },
+    {
+      &quot;name&quot;: &quot;avg_wait_sec&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;sec&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;plackett_burman&quot;,
+    &quot;test_script&quot;: &quot;use_cases/122_traffic_signal_timing/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Plackett-Burman Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>green_sec</code></th><th><code>cycle_sec</code></th><th><code>offset_pct</code></th><th><code>ped_phase_sec</code></th><th><code>left_turn_sec</code></th><th><code>sensor_delay</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>60</td><td>150</td><td>50</td><td>10</td><td>0</td><td>1</td></tr>
+        <tr><td>2</td><td>15</td><td>60</td><td>50</td><td>30</td><td>0</td><td>1</td></tr>
+        <tr><td>3</td><td>15</td><td>150</td><td>0</td><td>30</td><td>0</td><td>5</td></tr>
+        <tr><td>4</td><td>60</td><td>150</td><td>50</td><td>30</td><td>20</td><td>5</td></tr>
+        <tr><td>5</td><td>15</td><td>150</td><td>0</td><td>10</td><td>20</td><td>1</td></tr>
+        <tr><td>6</td><td>60</td><td>60</td><td>0</td><td>30</td><td>20</td><td>1</td></tr>
+        <tr><td>7</td><td>15</td><td>60</td><td>50</td><td>10</td><td>20</td><td>5</td></tr>
+        <tr><td>8</td><td>60</td><td>60</td><td>0</td><td>10</td><td>0</td><td>5</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/122_traffic_signal_timing/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/122_traffic_signal_timing/config.json \
+    <span class="flag">--output</span> use_cases/122_traffic_signal_timing/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/122_traffic_signal_timing/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/122_traffic_signal_timing/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/122_traffic_signal_timing/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/122_traffic_signal_timing/config.json \
+    <span class="flag">--output</span> use_cases/122_traffic_signal_timing/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>plackett_burman</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 6)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (throughput_vph &#x2191;, avg_wait_sec &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>8</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: throughput_vph</h3>
+    <p>Top factors: left_turn_sec (41.8%), sensor_delay (36.0%), offset_pct (11.8%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/122_pareto_throughput_vph.png" alt="Pareto chart for throughput_vph">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/122_main_effects_throughput_vph.png" alt="Main effects plot for throughput_vph">
+      </div>
+    </div>
+
+    <h3>Response: avg_wait_sec</h3>
+    <p>Top factors: sensor_delay (38.6%), left_turn_sec (24.1%), green_sec (16.9%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/122_pareto_avg_wait_sec.png" alt="Pareto chart for avg_wait_sec">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/122_main_effects_avg_wait_sec.png" alt="Main effects plot for avg_wait_sec">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">avg wait sec cycle sec vs left turn sec</p>
+      <img src="../images/122_rsm_avg_wait_sec_cycle_sec_vs_left_turn_sec.png" alt="RSM surface: avg wait sec cycle sec vs left turn sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">avg wait sec cycle sec vs offset pct</p>
+      <img src="../images/122_rsm_avg_wait_sec_cycle_sec_vs_offset_pct.png" alt="RSM surface: avg wait sec cycle sec vs offset pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">avg wait sec cycle sec vs ped phase sec</p>
+      <img src="../images/122_rsm_avg_wait_sec_cycle_sec_vs_ped_phase_sec.png" alt="RSM surface: avg wait sec cycle sec vs ped phase sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">avg wait sec cycle sec vs sensor delay</p>
+      <img src="../images/122_rsm_avg_wait_sec_cycle_sec_vs_sensor_delay.png" alt="RSM surface: avg wait sec cycle sec vs sensor delay" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">avg wait sec green sec vs cycle sec</p>
+      <img src="../images/122_rsm_avg_wait_sec_green_sec_vs_cycle_sec.png" alt="RSM surface: avg wait sec green sec vs cycle sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">avg wait sec green sec vs left turn sec</p>
+      <img src="../images/122_rsm_avg_wait_sec_green_sec_vs_left_turn_sec.png" alt="RSM surface: avg wait sec green sec vs left turn sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">avg wait sec green sec vs offset pct</p>
+      <img src="../images/122_rsm_avg_wait_sec_green_sec_vs_offset_pct.png" alt="RSM surface: avg wait sec green sec vs offset pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">avg wait sec green sec vs ped phase sec</p>
+      <img src="../images/122_rsm_avg_wait_sec_green_sec_vs_ped_phase_sec.png" alt="RSM surface: avg wait sec green sec vs ped phase sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">avg wait sec green sec vs sensor delay</p>
+      <img src="../images/122_rsm_avg_wait_sec_green_sec_vs_sensor_delay.png" alt="RSM surface: avg wait sec green sec vs sensor delay" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">avg wait sec left turn sec vs sensor delay</p>
+      <img src="../images/122_rsm_avg_wait_sec_left_turn_sec_vs_sensor_delay.png" alt="RSM surface: avg wait sec left turn sec vs sensor delay" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">avg wait sec offset pct vs left turn sec</p>
+      <img src="../images/122_rsm_avg_wait_sec_offset_pct_vs_left_turn_sec.png" alt="RSM surface: avg wait sec offset pct vs left turn sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">avg wait sec offset pct vs ped phase sec</p>
+      <img src="../images/122_rsm_avg_wait_sec_offset_pct_vs_ped_phase_sec.png" alt="RSM surface: avg wait sec offset pct vs ped phase sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">avg wait sec offset pct vs sensor delay</p>
+      <img src="../images/122_rsm_avg_wait_sec_offset_pct_vs_sensor_delay.png" alt="RSM surface: avg wait sec offset pct vs sensor delay" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">avg wait sec ped phase sec vs left turn sec</p>
+      <img src="../images/122_rsm_avg_wait_sec_ped_phase_sec_vs_left_turn_sec.png" alt="RSM surface: avg wait sec ped phase sec vs left turn sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">avg wait sec ped phase sec vs sensor delay</p>
+      <img src="../images/122_rsm_avg_wait_sec_ped_phase_sec_vs_sensor_delay.png" alt="RSM surface: avg wait sec ped phase sec vs sensor delay" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput vph cycle sec vs left turn sec</p>
+      <img src="../images/122_rsm_throughput_vph_cycle_sec_vs_left_turn_sec.png" alt="RSM surface: throughput vph cycle sec vs left turn sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput vph cycle sec vs offset pct</p>
+      <img src="../images/122_rsm_throughput_vph_cycle_sec_vs_offset_pct.png" alt="RSM surface: throughput vph cycle sec vs offset pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput vph cycle sec vs ped phase sec</p>
+      <img src="../images/122_rsm_throughput_vph_cycle_sec_vs_ped_phase_sec.png" alt="RSM surface: throughput vph cycle sec vs ped phase sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput vph cycle sec vs sensor delay</p>
+      <img src="../images/122_rsm_throughput_vph_cycle_sec_vs_sensor_delay.png" alt="RSM surface: throughput vph cycle sec vs sensor delay" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput vph green sec vs cycle sec</p>
+      <img src="../images/122_rsm_throughput_vph_green_sec_vs_cycle_sec.png" alt="RSM surface: throughput vph green sec vs cycle sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput vph green sec vs left turn sec</p>
+      <img src="../images/122_rsm_throughput_vph_green_sec_vs_left_turn_sec.png" alt="RSM surface: throughput vph green sec vs left turn sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput vph green sec vs offset pct</p>
+      <img src="../images/122_rsm_throughput_vph_green_sec_vs_offset_pct.png" alt="RSM surface: throughput vph green sec vs offset pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput vph green sec vs ped phase sec</p>
+      <img src="../images/122_rsm_throughput_vph_green_sec_vs_ped_phase_sec.png" alt="RSM surface: throughput vph green sec vs ped phase sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput vph green sec vs sensor delay</p>
+      <img src="../images/122_rsm_throughput_vph_green_sec_vs_sensor_delay.png" alt="RSM surface: throughput vph green sec vs sensor delay" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput vph left turn sec vs sensor delay</p>
+      <img src="../images/122_rsm_throughput_vph_left_turn_sec_vs_sensor_delay.png" alt="RSM surface: throughput vph left turn sec vs sensor delay" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput vph offset pct vs left turn sec</p>
+      <img src="../images/122_rsm_throughput_vph_offset_pct_vs_left_turn_sec.png" alt="RSM surface: throughput vph offset pct vs left turn sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput vph offset pct vs ped phase sec</p>
+      <img src="../images/122_rsm_throughput_vph_offset_pct_vs_ped_phase_sec.png" alt="RSM surface: throughput vph offset pct vs ped phase sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput vph offset pct vs sensor delay</p>
+      <img src="../images/122_rsm_throughput_vph_offset_pct_vs_sensor_delay.png" alt="RSM surface: throughput vph offset pct vs sensor delay" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput vph ped phase sec vs left turn sec</p>
+      <img src="../images/122_rsm_throughput_vph_ped_phase_sec_vs_left_turn_sec.png" alt="RSM surface: throughput vph ped phase sec vs left turn sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput vph ped phase sec vs sensor delay</p>
+      <img src="../images/122_rsm_throughput_vph_ped_phase_sec_vs_sensor_delay.png" alt="RSM surface: throughput vph ped phase sec vs sensor delay" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_throughput_vph_green_sec_vs_cycle_sec.png
+  RSM surface: rsm_throughput_vph_green_sec_vs_offset_pct.png
+  RSM surface: rsm_throughput_vph_green_sec_vs_ped_phase_sec.png
+  RSM surface: rsm_throughput_vph_green_sec_vs_left_turn_sec.png
+  RSM surface: rsm_throughput_vph_green_sec_vs_sensor_delay.png
+  RSM surface: rsm_throughput_vph_cycle_sec_vs_offset_pct.png
+  RSM surface: rsm_throughput_vph_cycle_sec_vs_ped_phase_sec.png
+  RSM surface: rsm_throughput_vph_cycle_sec_vs_left_turn_sec.png
+  RSM surface: rsm_throughput_vph_cycle_sec_vs_sensor_delay.png
+  RSM surface: rsm_throughput_vph_offset_pct_vs_ped_phase_sec.png
+  RSM surface: rsm_throughput_vph_offset_pct_vs_left_turn_sec.png
+  RSM surface: rsm_throughput_vph_offset_pct_vs_sensor_delay.png
+  RSM surface: rsm_throughput_vph_ped_phase_sec_vs_left_turn_sec.png
+  RSM surface: rsm_throughput_vph_ped_phase_sec_vs_sensor_delay.png
+  RSM surface: rsm_throughput_vph_left_turn_sec_vs_sensor_delay.png
+  RSM surface: rsm_avg_wait_sec_green_sec_vs_cycle_sec.png
+  RSM surface: rsm_avg_wait_sec_green_sec_vs_offset_pct.png
+  RSM surface: rsm_avg_wait_sec_green_sec_vs_ped_phase_sec.png
+  RSM surface: rsm_avg_wait_sec_green_sec_vs_left_turn_sec.png
+  RSM surface: rsm_avg_wait_sec_green_sec_vs_sensor_delay.png
+  RSM surface: rsm_avg_wait_sec_cycle_sec_vs_offset_pct.png
+  RSM surface: rsm_avg_wait_sec_cycle_sec_vs_ped_phase_sec.png
+  RSM surface: rsm_avg_wait_sec_cycle_sec_vs_left_turn_sec.png
+  RSM surface: rsm_avg_wait_sec_cycle_sec_vs_sensor_delay.png
+  RSM surface: rsm_avg_wait_sec_offset_pct_vs_ped_phase_sec.png
+  RSM surface: rsm_avg_wait_sec_offset_pct_vs_left_turn_sec.png
+  RSM surface: rsm_avg_wait_sec_offset_pct_vs_sensor_delay.png
+  RSM surface: rsm_avg_wait_sec_ped_phase_sec_vs_left_turn_sec.png
+  RSM surface: rsm_avg_wait_sec_ped_phase_sec_vs_sensor_delay.png
+  RSM surface: rsm_avg_wait_sec_left_turn_sec_vs_sensor_delay.png
+
+=== Main Effects: throughput_vph ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+left_turn_sec         -301.2500      78.1300            41.8%
+sensor_delay          -259.2500      78.1300            36.0%
+offset_pct             -84.7500      78.1300            11.8%
+green_sec              -66.2500      78.1300             9.2%
+cycle_sec                4.2500      78.1300             0.6%
+ped_phase_sec            4.2500      78.1300             0.6%
+
+=== Interaction Effects: throughput_vph ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+green_sec            ped_phase_sec           -301.2500            19.4%
+offset_pct           sensor_delay            -301.2500            19.4%
+cycle_sec            ped_phase_sec            259.2500            16.7%
+offset_pct           left_turn_sec           -259.2500            16.7%
+green_sec            cycle_sec                 84.7500             5.5%
+left_turn_sec        sensor_delay             -84.7500             5.5%
+cycle_sec            offset_pct                66.2500             4.3%
+ped_phase_sec        left_turn_sec            -66.2500             4.3%
+green_sec            sensor_delay             -36.7500             2.4%
+cycle_sec            left_turn_sec             36.7500             2.4%
+offset_pct           ped_phase_sec            -36.7500             2.4%
+green_sec            offset_pct                -4.2500             0.3%
+green_sec            left_turn_sec              4.2500             0.3%
+cycle_sec            sensor_delay              -4.2500             0.3%
+ped_phase_sec        sensor_delay              -4.2500             0.3%
+
+=== Summary Statistics: throughput_vph ===
+
+green_sec:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  15                  4  1237.2500   223.0970   933.0000  1461.0000
+  60                  4  1171.0000   247.4847   830.0000  1423.0000
+
+cycle_sec:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  150                 4  1202.0000   259.5316   830.0000  1423.0000
+  60                  4  1206.2500   215.8199   933.0000  1461.0000
+
+offset_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4  1246.5000    49.2916  1215.0000  1319.0000
+  50                  4  1161.7500   326.6939   830.0000  1461.0000
+
+ped_phase_sec:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4  1202.0000   202.1171   933.0000  1423.0000
+  30                  4  1206.2500   270.3398   830.0000  1461.0000
+
+left_turn_sec:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4  1354.7500   110.2675  1216.0000  1461.0000
+  20                  4  1053.5000   203.1920   830.0000  1236.0000
+
+sensor_delay:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4  1333.7500   126.2468  1215.0000  1461.0000
+  5                   4  1074.5000   230.6549   830.0000  1319.0000
+
+=== Main Effects: avg_wait_sec ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+sensor_delay            32.0000       8.1350            38.6%
+left_turn_sec           20.0000       8.1350            24.1%
+green_sec               14.0000       8.1350            16.9%
+offset_pct              12.0000       8.1350            14.5%
+cycle_sec                5.0000       8.1350             6.0%
+ped_phase_sec            0.0000       8.1350             0.0%
+
+=== Interaction Effects: avg_wait_sec ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+cycle_sec            ped_phase_sec            -32.0000            16.8%
+offset_pct           left_turn_sec             32.0000            16.8%
+green_sec            ped_phase_sec             20.0000            10.5%
+offset_pct           sensor_delay              20.0000            10.5%
+cycle_sec            offset_pct               -14.0000             7.4%
+ped_phase_sec        left_turn_sec             14.0000             7.4%
+green_sec            cycle_sec                -12.0000             6.3%
+left_turn_sec        sensor_delay              12.0000             6.3%
+green_sec            sensor_delay               8.0000             4.2%
+cycle_sec            left_turn_sec             -8.0000             4.2%
+offset_pct           ped_phase_sec              8.0000             4.2%
+green_sec            offset_pct                -5.0000             2.6%
+ped_phase_sec        sensor_delay              -5.0000             2.6%
+green_sec            left_turn_sec              0.0000             0.0%
+cycle_sec            sensor_delay               0.0000             0.0%
+
+=== Summary Statistics: avg_wait_sec ===
+
+green_sec:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  15                  4    38.5000    20.5345    25.0000    69.0000
+  60                  4    52.5000    26.1343    26.0000    86.0000
+
+cycle_sec:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  150                 4    43.0000    28.7750    26.0000    86.0000
+  60                  4    48.0000    19.7653    25.0000    69.0000
+
+offset_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4    39.5000    13.7720    28.0000    59.0000
+  50                  4    51.5000    30.8167    25.0000    86.0000
+
+ped_phase_sec:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4    45.5000    21.7639    26.0000    69.0000
+  30                  4    45.5000    27.5983    25.0000    86.0000
+
+left_turn_sec:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4    35.5000    15.9687    25.0000    59.0000
+  20                  4    55.5000    26.7145    28.0000    86.0000
+
+sensor_delay:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    29.5000     6.4550    25.0000    39.0000
+  5                   4    61.5000    22.6053    32.0000    86.0000
+
+Pareto chart (throughput_vph): use_cases/122_traffic_signal_timing/results/analysis/pareto_throughput_vph.png
+
+Pareto chart (avg_wait_sec): use_cases/122_traffic_signal_timing/results/analysis/pareto_avg_wait_sec.png
+Main effects (throughput_vph): use_cases/122_traffic_signal_timing/results/analysis/main_effects_throughput_vph.png
+Main effects (avg_wait_sec): use_cases/122_traffic_signal_timing/results/analysis/main_effects_avg_wait_sec.png</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: throughput_vph ===
+Direction: maximize
+
+Best observed run: #1
+  green_sec = 60
+  cycle_sec = 150
+  offset_pct = 50
+  ped_phase_sec = 30
+  left_turn_sec = 20
+  sensor_delay = 5
+  Value: 1461.0
+
+RSM Model (linear, R² = 0.8906, Adj R² = 0.2341):
+  Coefficients:
+    intercept                      +1204.1250
+    green_sec                      -23.6250
+    cycle_sec                      +7.1250
+    offset_pct                     +150.3750
+    ped_phase_sec                  +103.8750
+    left_turn_sec                  +54.1250
+    sensor_delay                   +33.3750
+
+  Predicted optimum (from linear model):
+    green_sec = 60
+    cycle_sec = 150
+    offset_pct = 50
+    ped_phase_sec = 30
+    left_turn_sec = 20
+    sensor_delay = 5
+    Predicted value: 1529.3750
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. offset_pct  (effect: 300.8, contribution: 40.4%)
+  2. ped_phase_sec  (effect: 207.8, contribution: 27.9%)
+  3. left_turn_sec  (effect: 108.2, contribution: 14.5%)
+  4. sensor_delay  (effect: 66.8, contribution: 9.0%)
+  5. green_sec  (effect: -47.2, contribution: 6.3%)
+  6. cycle_sec  (effect: -14.2, contribution: 1.9%)
+
+=== Optimization: avg_wait_sec ===
+Direction: minimize
+
+Best observed run: #1
+  green_sec = 60
+  cycle_sec = 150
+  offset_pct = 50
+  ped_phase_sec = 30
+  left_turn_sec = 20
+  sensor_delay = 5
+  Value: 25.0
+
+RSM Model (linear, R² = 0.8786, Adj R² = 0.1500):
+  Coefficients:
+    intercept                      +45.5000
+    green_sec                      +6.7500
+    cycle_sec                      -5.2500
+    offset_pct                     -15.0000
+    ped_phase_sec                  -9.5000
+    left_turn_sec                  -0.7500
+    sensor_delay                   -4.2500
+
+  Predicted optimum (from linear model):
+    green_sec = 60
+    cycle_sec = 60
+    offset_pct = 0
+    ped_phase_sec = 10
+    left_turn_sec = 0
+    sensor_delay = 5
+    Predicted value: 78.5000
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. offset_pct  (effect: -30.0, contribution: 36.1%)
+  2. ped_phase_sec  (effect: -19.0, contribution: 22.9%)
+  3. green_sec  (effect: 13.5, contribution: 16.3%)
+  4. cycle_sec  (effect: 10.5, contribution: 12.7%)
+  5. sensor_delay  (effect: -8.5, contribution: 10.2%)
+  6. left_turn_sec  (effect: -1.5, contribution: 1.8%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="121-bicycle-gear-cadence.html">&larr; Previous: Bicycle Gearing &amp; Cadence</a>
+    <a href="123-suspension-tuning.html">Next: Suspension Comfort Tuning &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

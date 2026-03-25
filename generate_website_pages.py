@@ -24,6 +24,9 @@ HERO_STYLES = {
     "food": ("linear-gradient(135deg, #fef3c7, #fde68a)", "rgba(217,119,6,.12)", "#d97706", "&#x1F373;"),
     "agriculture": ("linear-gradient(135deg, #d9f99d, #bef264)", "rgba(101,163,13,.12)", "#65a30d", "&#x1F331;"),
     "health": ("linear-gradient(135deg, #fce7f3, #fbcfe8)", "rgba(219,39,119,.12)", "#db2777", "&#x1F3CB;"),
+    "automotive": ("linear-gradient(135deg, #fed7aa, #fdba74)", "rgba(234,88,12,.12)", "#ea580c", "&#x1F697;"),
+    "environment": ("linear-gradient(135deg, #bbf7d0, #86efac)", "rgba(22,163,74,.12)", "#16a34a", "&#x1F30D;"),
+    "home": ("linear-gradient(135deg, #e0e7ff, #c7d2fe)", "rgba(79,70,229,.12)", "#4f46e5", "&#x1F3E0;"),
 }
 
 CATEGORIES = {
@@ -47,6 +50,14 @@ CATEGORIES = {
     105: "agriculture", 106: "agriculture",
     107: "health", 108: "health", 109: "health", 110: "health", 111: "health",
     112: "health", 113: "health", 114: "health", 115: "health", 116: "health",
+    117: "automotive", 118: "automotive", 119: "automotive", 120: "automotive",
+    121: "automotive", 122: "automotive", 123: "automotive", 124: "automotive",
+    125: "automotive", 126: "automotive",
+    127: "environment", 128: "environment", 129: "environment", 130: "environment",
+    131: "environment", 132: "environment", 133: "environment", 134: "environment",
+    135: "environment", 136: "environment",
+    137: "home", 138: "home", 139: "home", 140: "home", 141: "home",
+    142: "home", 143: "home", 144: "home", 145: "home", 146: "home",
 }
 
 def slug_to_web(slug):
@@ -275,7 +286,7 @@ def build_page(num, uc_dir):
             prev_name = prev_cfg["metadata"]["name"]
             prev_link = f'<a href="{prev_num:02d}-{prev_web}.html">&larr; Previous: {escape(prev_name)}</a>'
 
-    if next_num <= 116:
+    if next_num <= 146:
         next_dirs = glob.glob(f"use_cases/{next_num:02d}_*")
         if next_dirs:
             next_slug = os.path.basename(next_dirs[0]).split("_", 1)[1]
@@ -564,13 +575,13 @@ def inject_matrix_into_existing(num, uc_dir):
 
 
 def main():
-    # Generate pages for use cases 27-116
-    for num in range(27, 117):
+    # Generate pages for use cases 27-146
+    for num in range(27, 147):
         pattern = f"use_cases/{num:02d}_*" if num < 100 else f"use_cases/{num}_*"
         dirs = glob.glob(pattern)
         if dirs:
             build_page(num, dirs[0])
-    print(f"\n  90 HTML pages generated (27-116).")
+    print(f"\n  120 HTML pages generated (27-146).")
 
     # Inject experimental matrix into existing pages for use cases 1-26
     print("\nInjecting experimental matrices into use cases 1-26...")

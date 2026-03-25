@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Windshield Defog Strategy &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #fed7aa, #fdba74);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F697;</div>
+    <div class="uc-badge" style="background:rgba(234,88,12,.12);color:#ea580c;">Fractional Factorial Design</div>
+    <h1>Windshield Defog Strategy</h1>
+    <p class="uc-subtitle">Fractional factorial of fan speed, temperature setting, AC mode, recirculation, and rear defrost to minimize defog time and energy use</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>fan_speed</code></td><td>1</td><td>5</td><td>level</td></tr>
+            <tr><td><code>temp_setting</code></td><td>18</td><td>30</td><td>C</td></tr>
+            <tr><td><code>ac_on</code></td><td>0</td><td>1</td><td>bool</td></tr>
+            <tr><td><code>recirc</code></td><td>0</td><td>1</td><td>bool</td></tr>
+            <tr><td><code>rear_defrost</code></td><td>0</td><td>1</td><td>bool</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> ambient_temp = 2C, humidity = 85pct</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>defog_time_sec</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>sec</td></tr>
+            <tr><td><code>energy_watts</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>W</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/126_windshield_defog/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Windshield Defog Strategy&quot;,
+    &quot;description&quot;: &quot;Fractional factorial of fan speed, temperature setting, AC mode, recirculation, and rear defrost to minimize defog time and energy use&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;fan_speed&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;5&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;level&quot;
+    },
+    {
+      &quot;name&quot;: &quot;temp_setting&quot;,
+      &quot;levels&quot;: [
+        &quot;18&quot;,
+        &quot;30&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;C&quot;
+    },
+    {
+      &quot;name&quot;: &quot;ac_on&quot;,
+      &quot;levels&quot;: [
+        &quot;0&quot;,
+        &quot;1&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;bool&quot;
+    },
+    {
+      &quot;name&quot;: &quot;recirc&quot;,
+      &quot;levels&quot;: [
+        &quot;0&quot;,
+        &quot;1&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;bool&quot;
+    },
+    {
+      &quot;name&quot;: &quot;rear_defrost&quot;,
+      &quot;levels&quot;: [
+        &quot;0&quot;,
+        &quot;1&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;bool&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;ambient_temp&quot;: &quot;2C&quot;,
+    &quot;humidity&quot;: &quot;85pct&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;defog_time_sec&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;sec&quot;
+    },
+    {
+      &quot;name&quot;: &quot;energy_watts&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;W&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;fractional_factorial&quot;,
+    &quot;test_script&quot;: &quot;use_cases/126_windshield_defog/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Fractional Factorial Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>fan_speed</code></th><th><code>temp_setting</code></th><th><code>ac_on</code></th><th><code>recirc</code></th><th><code>rear_defrost</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>1</td><td>30</td><td>1</td><td>0</td><td>0</td></tr>
+        <tr><td>2</td><td>5</td><td>18</td><td>0</td><td>0</td><td>0</td></tr>
+        <tr><td>3</td><td>5</td><td>30</td><td>0</td><td>1</td><td>0</td></tr>
+        <tr><td>4</td><td>5</td><td>30</td><td>1</td><td>1</td><td>1</td></tr>
+        <tr><td>5</td><td>1</td><td>30</td><td>0</td><td>0</td><td>1</td></tr>
+        <tr><td>6</td><td>5</td><td>18</td><td>1</td><td>0</td><td>1</td></tr>
+        <tr><td>7</td><td>1</td><td>18</td><td>0</td><td>1</td><td>1</td></tr>
+        <tr><td>8</td><td>1</td><td>18</td><td>1</td><td>1</td><td>0</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/126_windshield_defog/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/126_windshield_defog/config.json \
+    <span class="flag">--output</span> use_cases/126_windshield_defog/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/126_windshield_defog/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/126_windshield_defog/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/126_windshield_defog/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/126_windshield_defog/config.json \
+    <span class="flag">--output</span> use_cases/126_windshield_defog/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>fractional_factorial</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 5)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (defog_time_sec &#x2193;, energy_watts &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>8</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: defog_time_sec</h3>
+    <p>Top factors: ac_on (35.4%), temp_setting (30.8%), rear_defrost (26.0%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/126_pareto_defog_time_sec.png" alt="Pareto chart for defog_time_sec">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/126_main_effects_defog_time_sec.png" alt="Main effects plot for defog_time_sec">
+      </div>
+    </div>
+
+    <h3>Response: energy_watts</h3>
+    <p>Top factors: ac_on (45.1%), fan_speed (28.1%), rear_defrost (25.2%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/126_pareto_energy_watts.png" alt="Pareto chart for energy_watts">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/126_main_effects_energy_watts.png" alt="Main effects plot for energy_watts">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">defog time sec ac on vs rear defrost</p>
+      <img src="../images/126_rsm_defog_time_sec_ac_on_vs_rear_defrost.png" alt="RSM surface: defog time sec ac on vs rear defrost" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">defog time sec ac on vs recirc</p>
+      <img src="../images/126_rsm_defog_time_sec_ac_on_vs_recirc.png" alt="RSM surface: defog time sec ac on vs recirc" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">defog time sec fan speed vs ac on</p>
+      <img src="../images/126_rsm_defog_time_sec_fan_speed_vs_ac_on.png" alt="RSM surface: defog time sec fan speed vs ac on" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">defog time sec fan speed vs rear defrost</p>
+      <img src="../images/126_rsm_defog_time_sec_fan_speed_vs_rear_defrost.png" alt="RSM surface: defog time sec fan speed vs rear defrost" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">defog time sec fan speed vs recirc</p>
+      <img src="../images/126_rsm_defog_time_sec_fan_speed_vs_recirc.png" alt="RSM surface: defog time sec fan speed vs recirc" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">defog time sec fan speed vs temp setting</p>
+      <img src="../images/126_rsm_defog_time_sec_fan_speed_vs_temp_setting.png" alt="RSM surface: defog time sec fan speed vs temp setting" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">defog time sec recirc vs rear defrost</p>
+      <img src="../images/126_rsm_defog_time_sec_recirc_vs_rear_defrost.png" alt="RSM surface: defog time sec recirc vs rear defrost" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">defog time sec temp setting vs ac on</p>
+      <img src="../images/126_rsm_defog_time_sec_temp_setting_vs_ac_on.png" alt="RSM surface: defog time sec temp setting vs ac on" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">defog time sec temp setting vs rear defrost</p>
+      <img src="../images/126_rsm_defog_time_sec_temp_setting_vs_rear_defrost.png" alt="RSM surface: defog time sec temp setting vs rear defrost" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">defog time sec temp setting vs recirc</p>
+      <img src="../images/126_rsm_defog_time_sec_temp_setting_vs_recirc.png" alt="RSM surface: defog time sec temp setting vs recirc" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">energy watts ac on vs rear defrost</p>
+      <img src="../images/126_rsm_energy_watts_ac_on_vs_rear_defrost.png" alt="RSM surface: energy watts ac on vs rear defrost" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">energy watts ac on vs recirc</p>
+      <img src="../images/126_rsm_energy_watts_ac_on_vs_recirc.png" alt="RSM surface: energy watts ac on vs recirc" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">energy watts fan speed vs ac on</p>
+      <img src="../images/126_rsm_energy_watts_fan_speed_vs_ac_on.png" alt="RSM surface: energy watts fan speed vs ac on" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">energy watts fan speed vs rear defrost</p>
+      <img src="../images/126_rsm_energy_watts_fan_speed_vs_rear_defrost.png" alt="RSM surface: energy watts fan speed vs rear defrost" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">energy watts fan speed vs recirc</p>
+      <img src="../images/126_rsm_energy_watts_fan_speed_vs_recirc.png" alt="RSM surface: energy watts fan speed vs recirc" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">energy watts fan speed vs temp setting</p>
+      <img src="../images/126_rsm_energy_watts_fan_speed_vs_temp_setting.png" alt="RSM surface: energy watts fan speed vs temp setting" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">energy watts recirc vs rear defrost</p>
+      <img src="../images/126_rsm_energy_watts_recirc_vs_rear_defrost.png" alt="RSM surface: energy watts recirc vs rear defrost" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">energy watts temp setting vs ac on</p>
+      <img src="../images/126_rsm_energy_watts_temp_setting_vs_ac_on.png" alt="RSM surface: energy watts temp setting vs ac on" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">energy watts temp setting vs rear defrost</p>
+      <img src="../images/126_rsm_energy_watts_temp_setting_vs_rear_defrost.png" alt="RSM surface: energy watts temp setting vs rear defrost" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">energy watts temp setting vs recirc</p>
+      <img src="../images/126_rsm_energy_watts_temp_setting_vs_recirc.png" alt="RSM surface: energy watts temp setting vs recirc" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_defog_time_sec_fan_speed_vs_temp_setting.png
+  RSM surface: rsm_defog_time_sec_fan_speed_vs_ac_on.png
+  RSM surface: rsm_defog_time_sec_fan_speed_vs_recirc.png
+  RSM surface: rsm_defog_time_sec_fan_speed_vs_rear_defrost.png
+  RSM surface: rsm_defog_time_sec_temp_setting_vs_ac_on.png
+  RSM surface: rsm_defog_time_sec_temp_setting_vs_recirc.png
+  RSM surface: rsm_defog_time_sec_temp_setting_vs_rear_defrost.png
+  RSM surface: rsm_defog_time_sec_ac_on_vs_recirc.png
+  RSM surface: rsm_defog_time_sec_ac_on_vs_rear_defrost.png
+  RSM surface: rsm_defog_time_sec_recirc_vs_rear_defrost.png
+  RSM surface: rsm_energy_watts_fan_speed_vs_temp_setting.png
+  RSM surface: rsm_energy_watts_fan_speed_vs_ac_on.png
+  RSM surface: rsm_energy_watts_fan_speed_vs_recirc.png
+  RSM surface: rsm_energy_watts_fan_speed_vs_rear_defrost.png
+  RSM surface: rsm_energy_watts_temp_setting_vs_ac_on.png
+  RSM surface: rsm_energy_watts_temp_setting_vs_recirc.png
+  RSM surface: rsm_energy_watts_temp_setting_vs_rear_defrost.png
+  RSM surface: rsm_energy_watts_ac_on_vs_recirc.png
+  RSM surface: rsm_energy_watts_ac_on_vs_rear_defrost.png
+  RSM surface: rsm_energy_watts_recirc_vs_rear_defrost.png
+
+=== Main Effects: defog_time_sec ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+ac_on                   65.7500      20.3373            35.4%
+temp_setting           -57.2500      20.3373            30.8%
+rear_defrost           -48.2500      20.3373            26.0%
+fan_speed               13.2500      20.3373             7.1%
+recirc                  -1.2500      20.3373             0.7%
+
+=== Interaction Effects: defog_time_sec ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+fan_speed            rear_defrost              65.7500            21.9%
+fan_speed            recirc                   -57.2500            19.1%
+fan_speed            ac_on                    -48.2500            16.1%
+temp_setting         rear_defrost              35.2500            11.8%
+ac_on                recirc                    35.2500            11.8%
+temp_setting         ac_on                     15.2500             5.1%
+recirc               rear_defrost              15.2500             5.1%
+temp_setting         recirc                    13.2500             4.4%
+ac_on                rear_defrost              13.2500             4.4%
+fan_speed            temp_setting              -1.2500             0.4%
+
+=== Summary Statistics: defog_time_sec ===
+
+fan_speed:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4   112.0000    74.2339    37.0000   207.0000
+  5                   4   125.2500    45.7484    62.0000   171.0000
+
+temp_setting:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  18                  4   147.2500    56.9583    73.0000   207.0000
+  30                  4    90.0000    47.8679    37.0000   131.0000
+
+ac_on:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4    85.7500    58.7955    37.0000   171.0000
+  1                   4   151.5000    37.1708   130.0000   207.0000
+
+recirc:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4   119.2500    57.5406    37.0000   171.0000
+  1                   4   118.0000    66.3978    62.0000   207.0000
+
+rear_defrost:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4   142.7500    62.1416    62.0000   207.0000
+  1                   4    94.5000    48.0312    37.0000   138.0000
+
+=== Main Effects: energy_watts ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+ac_on                 -247.0000      63.2292            45.1%
+fan_speed             -154.0000      63.2292            28.1%
+rear_defrost           138.0000      63.2292            25.2%
+temp_setting            -4.5000      63.2292             0.8%
+recirc                   4.5000      63.2292             0.8%
+
+=== Interaction Effects: energy_watts ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+fan_speed            rear_defrost            -247.0000            26.7%
+temp_setting         recirc                  -154.0000            16.6%
+ac_on                rear_defrost            -154.0000            16.6%
+fan_speed            ac_on                    138.0000            14.9%
+temp_setting         rear_defrost             -86.5000             9.3%
+ac_on                recirc                   -86.5000             9.3%
+temp_setting         ac_on                     25.5000             2.8%
+recirc               rear_defrost              25.5000             2.8%
+fan_speed            temp_setting               4.5000             0.5%
+fan_speed            recirc                    -4.5000             0.5%
+
+=== Summary Statistics: energy_watts ===
+
+fan_speed:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4   377.0000   231.5527   133.0000   630.0000
+  5                   4   223.0000    72.1156   138.0000   308.0000
+
+temp_setting:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  18                  4   302.2500   223.4418   133.0000   630.0000
+  30                  4   297.7500   157.1250   138.0000   509.0000
+
+ac_on:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4   423.5000   177.4307   247.0000   630.0000
+  1                   4   176.5000    49.7360   133.0000   236.0000
+
+recirc:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4   297.7500   142.3221   199.0000   509.0000
+  1                   4   302.2500   233.1500   133.0000   630.0000
+
+rear_defrost:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4   231.0000    72.6039   133.0000   308.0000
+  1                   4   369.0000   238.0350   138.0000   630.0000
+
+Pareto chart (defog_time_sec): use_cases/126_windshield_defog/results/analysis/pareto_defog_time_sec.png
+
+Pareto chart (energy_watts): use_cases/126_windshield_defog/results/analysis/pareto_energy_watts.png
+Main effects (defog_time_sec): use_cases/126_windshield_defog/results/analysis/main_effects_defog_time_sec.png
+Main effects (energy_watts): use_cases/126_windshield_defog/results/analysis/main_effects_energy_watts.png</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: defog_time_sec ===
+Direction: minimize
+
+Best observed run: #6
+  fan_speed = 5
+  temp_setting = 18
+  ac_on = 0
+  recirc = 0
+  rear_defrost = 0
+  Value: 37.0
+
+RSM Model (linear, R² = 0.3570, Adj R² = -1.2505):
+  Coefficients:
+    intercept                      +118.6250
+    fan_speed                      +9.3750
+    temp_setting                   +6.6250
+    ac_on                          +13.8750
+    recirc                         -0.6250
+    rear_defrost                   +26.6250
+
+  Predicted optimum (from linear model):
+    fan_speed = 5
+    temp_setting = 30
+    ac_on = 1
+    recirc = 1
+    rear_defrost = 1
+    Predicted value: 174.5000
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. rear_defrost  (effect: 53.2, contribution: 46.6%)
+  2. ac_on  (effect: 27.8, contribution: 24.3%)
+  3. fan_speed  (effect: 18.8, contribution: 16.4%)
+  4. temp_setting  (effect: 13.2, contribution: 11.6%)
+  5. recirc  (effect: -1.2, contribution: 1.1%)
+
+=== Optimization: energy_watts ===
+Direction: minimize
+
+Best observed run: #7
+  fan_speed = 5
+  temp_setting = 18
+  ac_on = 1
+  recirc = 0
+  rear_defrost = 1
+  Value: 133.0
+
+RSM Model (linear, R² = 0.6580, Adj R² = -0.1969):
+  Coefficients:
+    intercept                      +300.0000
+    fan_speed                      -55.2500
+    temp_setting                   -77.0000
+    ac_on                          -96.2500
+    recirc                         +0.7500
+    rear_defrost                   -13.0000
+
+  Predicted optimum (from linear model):
+    fan_speed = 1
+    temp_setting = 18
+    ac_on = 0
+    recirc = 1
+    rear_defrost = 1
+    Predicted value: 516.2500
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
+
+Factor importance:
+  1. ac_on  (effect: -192.5, contribution: 39.7%)
+  2. temp_setting  (effect: -154.0, contribution: 31.8%)
+  3. fan_speed  (effect: -110.5, contribution: 22.8%)
+  4. rear_defrost  (effect: -26.0, contribution: 5.4%)
+  5. recirc  (effect: 1.5, contribution: 0.3%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="125-parking-lot-layout.html">&larr; Previous: Parking Lot Layout Design</a>
+    <a href="127-solar-panel-tilt.html">Next: Solar Panel Tilt &amp; Orientation &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>
