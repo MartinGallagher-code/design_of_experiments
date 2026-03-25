@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aggregate Gradation Optimization &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #f5f5dc, #ddd6c1);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1FAA8;</div>
+    <div class="uc-badge" style="background:rgba(120,113,108,.12);color:#78716c;">Plackett-Burman Design</div>
+    <h1>Aggregate Gradation Optimization</h1>
+    <p class="uc-subtitle">Plackett-Burman screening of coarse aggregate ratio, sand fineness modulus, max aggregate size, fines content, and angularity for workability and strength</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>coarse_pct</code></td><td>50</td><td>75</td><td>%</td></tr>
+            <tr><td><code>fineness_mod</code></td><td>2.3</td><td>3.1</td><td>FM</td></tr>
+            <tr><td><code>max_size_mm</code></td><td>10</td><td>25</td><td>mm</td></tr>
+            <tr><td><code>fines_pct</code></td><td>0</td><td>5</td><td>%</td></tr>
+            <tr><td><code>angularity</code></td><td>1</td><td>5</td><td>level</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> cement = type_I, target_slump = 100mm</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>workability_score</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>pts</td></tr>
+            <tr><td><code>strength_28d_mpa</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>MPa</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/236_concrete_aggregate/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Aggregate Gradation Optimization&quot;,
+    &quot;description&quot;: &quot;Plackett-Burman screening of coarse aggregate ratio, sand fineness modulus, max aggregate size, fines content, and angularity for workability and strength&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;coarse_pct&quot;,
+      &quot;levels&quot;: [
+        &quot;50&quot;,
+        &quot;75&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;fineness_mod&quot;,
+      &quot;levels&quot;: [
+        &quot;2.3&quot;,
+        &quot;3.1&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;FM&quot;
+    },
+    {
+      &quot;name&quot;: &quot;max_size_mm&quot;,
+      &quot;levels&quot;: [
+        &quot;10&quot;,
+        &quot;25&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;mm&quot;
+    },
+    {
+      &quot;name&quot;: &quot;fines_pct&quot;,
+      &quot;levels&quot;: [
+        &quot;0&quot;,
+        &quot;5&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;angularity&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;5&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;level&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;cement&quot;: &quot;type_I&quot;,
+    &quot;target_slump&quot;: &quot;100mm&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;workability_score&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;pts&quot;
+    },
+    {
+      &quot;name&quot;: &quot;strength_28d_mpa&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;MPa&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;plackett_burman&quot;,
+    &quot;test_script&quot;: &quot;use_cases/236_concrete_aggregate/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Plackett-Burman Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>coarse_pct</code></th><th><code>fineness_mod</code></th><th><code>max_size_mm</code></th><th><code>fines_pct</code></th><th><code>angularity</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>75</td><td>3.1</td><td>25</td><td>0</td><td>1</td></tr>
+        <tr><td>2</td><td>50</td><td>2.3</td><td>25</td><td>5</td><td>1</td></tr>
+        <tr><td>3</td><td>50</td><td>3.1</td><td>10</td><td>5</td><td>1</td></tr>
+        <tr><td>4</td><td>75</td><td>3.1</td><td>25</td><td>5</td><td>5</td></tr>
+        <tr><td>5</td><td>50</td><td>3.1</td><td>10</td><td>0</td><td>5</td></tr>
+        <tr><td>6</td><td>75</td><td>2.3</td><td>10</td><td>5</td><td>5</td></tr>
+        <tr><td>7</td><td>50</td><td>2.3</td><td>25</td><td>0</td><td>5</td></tr>
+        <tr><td>8</td><td>75</td><td>2.3</td><td>10</td><td>0</td><td>1</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/236_concrete_aggregate/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/236_concrete_aggregate/config.json \
+    <span class="flag">--output</span> use_cases/236_concrete_aggregate/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/236_concrete_aggregate/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/236_concrete_aggregate/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/236_concrete_aggregate/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/236_concrete_aggregate/config.json \
+    <span class="flag">--output</span> use_cases/236_concrete_aggregate/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>plackett_burman</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 5)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (workability_score &#x2191;, strength_28d_mpa &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>8</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: workability_score</h3>
+    <p>Top factors: max_size_mm (35.1%), coarse_pct (22.1%), fineness_mod (15.6%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/236_pareto_workability_score.png" alt="Pareto chart for workability_score">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/236_main_effects_workability_score.png" alt="Main effects plot for workability_score">
+      </div>
+    </div>
+
+    <h3>Response: strength_28d_mpa</h3>
+    <p>Top factors: max_size_mm (42.9%), fineness_mod (25.7%), fines_pct (20.0%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/236_pareto_strength_28d_mpa.png" alt="Pareto chart for strength_28d_mpa">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/236_main_effects_strength_28d_mpa.png" alt="Main effects plot for strength_28d_mpa">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">strength 28d mpa coarse pct vs angularity</p>
+      <img src="../images/236_rsm_strength_28d_mpa_coarse_pct_vs_angularity.png" alt="RSM surface: strength 28d mpa coarse pct vs angularity" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">strength 28d mpa coarse pct vs fineness mod</p>
+      <img src="../images/236_rsm_strength_28d_mpa_coarse_pct_vs_fineness_mod.png" alt="RSM surface: strength 28d mpa coarse pct vs fineness mod" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">strength 28d mpa coarse pct vs fines pct</p>
+      <img src="../images/236_rsm_strength_28d_mpa_coarse_pct_vs_fines_pct.png" alt="RSM surface: strength 28d mpa coarse pct vs fines pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">strength 28d mpa coarse pct vs max size mm</p>
+      <img src="../images/236_rsm_strength_28d_mpa_coarse_pct_vs_max_size_mm.png" alt="RSM surface: strength 28d mpa coarse pct vs max size mm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">strength 28d mpa fineness mod vs angularity</p>
+      <img src="../images/236_rsm_strength_28d_mpa_fineness_mod_vs_angularity.png" alt="RSM surface: strength 28d mpa fineness mod vs angularity" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">strength 28d mpa fineness mod vs fines pct</p>
+      <img src="../images/236_rsm_strength_28d_mpa_fineness_mod_vs_fines_pct.png" alt="RSM surface: strength 28d mpa fineness mod vs fines pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">strength 28d mpa fineness mod vs max size mm</p>
+      <img src="../images/236_rsm_strength_28d_mpa_fineness_mod_vs_max_size_mm.png" alt="RSM surface: strength 28d mpa fineness mod vs max size mm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">strength 28d mpa fines pct vs angularity</p>
+      <img src="../images/236_rsm_strength_28d_mpa_fines_pct_vs_angularity.png" alt="RSM surface: strength 28d mpa fines pct vs angularity" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">strength 28d mpa max size mm vs angularity</p>
+      <img src="../images/236_rsm_strength_28d_mpa_max_size_mm_vs_angularity.png" alt="RSM surface: strength 28d mpa max size mm vs angularity" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">strength 28d mpa max size mm vs fines pct</p>
+      <img src="../images/236_rsm_strength_28d_mpa_max_size_mm_vs_fines_pct.png" alt="RSM surface: strength 28d mpa max size mm vs fines pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">workability score coarse pct vs angularity</p>
+      <img src="../images/236_rsm_workability_score_coarse_pct_vs_angularity.png" alt="RSM surface: workability score coarse pct vs angularity" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">workability score coarse pct vs fineness mod</p>
+      <img src="../images/236_rsm_workability_score_coarse_pct_vs_fineness_mod.png" alt="RSM surface: workability score coarse pct vs fineness mod" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">workability score coarse pct vs fines pct</p>
+      <img src="../images/236_rsm_workability_score_coarse_pct_vs_fines_pct.png" alt="RSM surface: workability score coarse pct vs fines pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">workability score coarse pct vs max size mm</p>
+      <img src="../images/236_rsm_workability_score_coarse_pct_vs_max_size_mm.png" alt="RSM surface: workability score coarse pct vs max size mm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">workability score fineness mod vs angularity</p>
+      <img src="../images/236_rsm_workability_score_fineness_mod_vs_angularity.png" alt="RSM surface: workability score fineness mod vs angularity" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">workability score fineness mod vs fines pct</p>
+      <img src="../images/236_rsm_workability_score_fineness_mod_vs_fines_pct.png" alt="RSM surface: workability score fineness mod vs fines pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">workability score fineness mod vs max size mm</p>
+      <img src="../images/236_rsm_workability_score_fineness_mod_vs_max_size_mm.png" alt="RSM surface: workability score fineness mod vs max size mm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">workability score fines pct vs angularity</p>
+      <img src="../images/236_rsm_workability_score_fines_pct_vs_angularity.png" alt="RSM surface: workability score fines pct vs angularity" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">workability score max size mm vs angularity</p>
+      <img src="../images/236_rsm_workability_score_max_size_mm_vs_angularity.png" alt="RSM surface: workability score max size mm vs angularity" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">workability score max size mm vs fines pct</p>
+      <img src="../images/236_rsm_workability_score_max_size_mm_vs_fines_pct.png" alt="RSM surface: workability score max size mm vs fines pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_workability_score_coarse_pct_vs_fineness_mod.png
+  RSM surface: rsm_workability_score_coarse_pct_vs_max_size_mm.png
+  RSM surface: rsm_workability_score_coarse_pct_vs_fines_pct.png
+  RSM surface: rsm_workability_score_coarse_pct_vs_angularity.png
+  RSM surface: rsm_workability_score_fineness_mod_vs_max_size_mm.png
+  RSM surface: rsm_workability_score_fineness_mod_vs_fines_pct.png
+  RSM surface: rsm_workability_score_fineness_mod_vs_angularity.png
+  RSM surface: rsm_workability_score_max_size_mm_vs_fines_pct.png
+  RSM surface: rsm_workability_score_max_size_mm_vs_angularity.png
+  RSM surface: rsm_workability_score_fines_pct_vs_angularity.png
+  RSM surface: rsm_strength_28d_mpa_coarse_pct_vs_fineness_mod.png
+  RSM surface: rsm_strength_28d_mpa_coarse_pct_vs_max_size_mm.png
+  RSM surface: rsm_strength_28d_mpa_coarse_pct_vs_fines_pct.png
+  RSM surface: rsm_strength_28d_mpa_coarse_pct_vs_angularity.png
+  RSM surface: rsm_strength_28d_mpa_fineness_mod_vs_max_size_mm.png
+  RSM surface: rsm_strength_28d_mpa_fineness_mod_vs_fines_pct.png
+  RSM surface: rsm_strength_28d_mpa_fineness_mod_vs_angularity.png
+  RSM surface: rsm_strength_28d_mpa_max_size_mm_vs_fines_pct.png
+  RSM surface: rsm_strength_28d_mpa_max_size_mm_vs_angularity.png
+  RSM surface: rsm_strength_28d_mpa_fines_pct_vs_angularity.png
+
+=== Main Effects: workability_score ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+max_size_mm              1.3500       0.4153            35.1%
+coarse_pct              -0.8500       0.4153            22.1%
+fineness_mod             0.6000       0.4153            15.6%
+angularity               0.6000       0.4153            15.6%
+fines_pct                0.4500       0.4153            11.7%
+
+=== Interaction Effects: workability_score ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+coarse_pct           fineness_mod               1.3500            16.9%
+fineness_mod         max_size_mm               -0.8500            10.6%
+fineness_mod         fines_pct                 -0.8500            10.6%
+max_size_mm          angularity                -0.8500            10.6%
+fines_pct            angularity                -0.8500            10.6%
+fineness_mod         angularity                 0.8000            10.0%
+max_size_mm          fines_pct                  0.8000            10.0%
+coarse_pct           max_size_mm                0.6000             7.5%
+coarse_pct           fines_pct                  0.6000             7.5%
+coarse_pct           angularity                 0.4500             5.6%
+
+=== Summary Statistics: workability_score ===
+
+coarse_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  50                  4     6.4750     1.0500     5.2000     7.6000
+  75                  4     5.6250     1.2790     4.1000     7.1000
+
+fineness_mod:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2.3                 4     5.7500     1.4799     4.1000     7.6000
+  3.1                 4     6.3500     0.8888     5.2000     7.1000
+
+max_size_mm:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4     5.3750     1.2010     4.1000     7.0000
+  25                  4     6.7250     0.7500     6.1000     7.6000
+
+fines_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4     5.8250     1.2258     4.1000     7.0000
+  5                   4     6.2750     1.2580     5.2000     7.6000
+
+angularity:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4     5.7500     1.4799     4.1000     7.6000
+  5                   4     6.3500     0.8888     5.2000     7.1000
+
+=== Main Effects: strength_28d_mpa ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+max_size_mm             -3.7500       1.2598            42.9%
+fineness_mod            -2.2500       1.2598            25.7%
+fines_pct               -1.7500       1.2598            20.0%
+angularity               0.7500       1.2598             8.6%
+coarse_pct              -0.2500       1.2598             2.9%
+
+=== Interaction Effects: strength_28d_mpa ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+coarse_pct           fineness_mod              -3.7500            17.0%
+fineness_mod         fines_pct                  3.7500            17.0%
+max_size_mm          angularity                 3.7500            17.0%
+fineness_mod         angularity                -2.7500            12.5%
+max_size_mm          fines_pct                 -2.7500            12.5%
+coarse_pct           max_size_mm               -2.2500            10.2%
+coarse_pct           angularity                -1.7500             8.0%
+coarse_pct           fines_pct                  0.7500             3.4%
+fineness_mod         max_size_mm               -0.2500             1.1%
+fines_pct            angularity                -0.2500             1.1%
+
+=== Summary Statistics: strength_28d_mpa ===
+
+coarse_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  50                  4    30.2500     4.1130    25.0000    34.0000
+  75                  4    30.0000     3.5590    27.0000    34.0000
+
+fineness_mod:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2.3                 4    31.2500     4.2720    25.0000    34.0000
+  3.1                 4    29.0000     2.8284    27.0000    33.0000
+
+max_size_mm:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4    32.0000     2.1602    29.0000    34.0000
+  25                  4    28.2500     3.9476    25.0000    34.0000
+
+fines_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4    31.0000     3.5590    27.0000    34.0000
+  5                   4    29.2500     3.8622    25.0000    33.0000
+
+angularity:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    29.7500     4.4253    25.0000    34.0000
+  5                   4    30.5000     3.1091    27.0000    34.0000
+
+Pareto chart (workability_score): use_cases/236_concrete_aggregate/results/analysis/pareto_workability_score.png
+
+Pareto chart (strength_28d_mpa): use_cases/236_concrete_aggregate/results/analysis/pareto_strength_28d_mpa.png
+Main effects (workability_score): use_cases/236_concrete_aggregate/results/analysis/main_effects_workability_score.png
+Main effects (strength_28d_mpa): use_cases/236_concrete_aggregate/results/analysis/main_effects_strength_28d_mpa.png</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: workability_score ===
+Direction: maximize
+
+Best observed run: #2
+  coarse_pct = 50
+  fineness_mod = 2.3
+  max_size_mm = 25
+  fines_pct = 0
+  angularity = 5
+  Value: 7.6
+
+RSM Model (linear, R² = 0.7578, Adj R² = 0.1522):
+  Coefficients:
+    intercept                      +6.0500
+    coarse_pct                     -0.6500
+    fineness_mod                   -0.4500
+    max_size_mm                    -0.3000
+    fines_pct                      -0.2000
+    angularity                     +0.4000
+
+  Predicted optimum (from linear model):
+    coarse_pct = 50
+    fineness_mod = 2.3
+    max_size_mm = 25
+    fines_pct = 0
+    angularity = 5
+    Predicted value: 7.4500
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. coarse_pct  (effect: -1.3, contribution: 32.5%)
+  2. fineness_mod  (effect: -0.9, contribution: 22.5%)
+  3. angularity  (effect: 0.8, contribution: 20.0%)
+  4. max_size_mm  (effect: -0.6, contribution: 15.0%)
+  5. fines_pct  (effect: -0.4, contribution: 10.0%)
+
+=== Optimization: strength_28d_mpa ===
+Direction: maximize
+
+Best observed run: #4
+  coarse_pct = 50
+  fineness_mod = 3.1
+  max_size_mm = 10
+  fines_pct = 5
+  angularity = 1
+  Value: 34.0
+
+RSM Model (linear, R² = 0.8734, Adj R² = 0.5570):
+  Coefficients:
+    intercept                      +30.1250
+    coarse_pct                     +1.3750
+    fineness_mod                   +2.3750
+    max_size_mm                    -0.3750
+    fines_pct                      +0.3750
+    angularity                     -1.3750
+
+  Predicted optimum (from linear model):
+    coarse_pct = 75
+    fineness_mod = 3.1
+    max_size_mm = 25
+    fines_pct = 0
+    angularity = 1
+    Predicted value: 34.5000
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. fineness_mod  (effect: 4.8, contribution: 40.4%)
+  2. coarse_pct  (effect: 2.8, contribution: 23.4%)
+  3. angularity  (effect: -2.8, contribution: 23.4%)
+  4. max_size_mm  (effect: -0.8, contribution: 6.4%)
+  5. fines_pct  (effect: 0.8, contribution: 6.4%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="235-groundwater-sampling.html">&larr; Previous: Groundwater Sampling Protocol</a>
+    <a href="237-fossil-preparation.html">Next: Fossil Preparation Technique &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

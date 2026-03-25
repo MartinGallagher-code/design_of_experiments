@@ -32,6 +32,11 @@ HERO_STYLES = {
     "petcare": ("linear-gradient(135deg, #fff3e0, #ffe0b2)", "rgba(230,81,0,.12)", "#e65100", "&#x1F43E;"),
     "textiles": ("linear-gradient(135deg, #f3e5f5, #e1bee7)", "rgba(142,36,170,.12)", "#8e24aa", "&#x1F9F5;"),
     "chemistry": ("linear-gradient(135deg, #e8f5e9, #c8e6c9)", "rgba(46,125,50,.12)", "#2e7d32", "&#x1F9EA;"),
+    "woodworking": ("linear-gradient(135deg, #fef3c7, #fde68a)", "rgba(180,83,9,.12)", "#b45309", "&#x1FA93;"),
+    "sports": ("linear-gradient(135deg, #dbeafe, #93c5fd)", "rgba(37,99,235,.12)", "#2563eb", "&#x26BD;"),
+    "cosmetics": ("linear-gradient(135deg, #fdf2f8, #fbcfe8)", "rgba(236,72,153,.12)", "#ec4899", "&#x1F484;"),
+    "geology": ("linear-gradient(135deg, #f5f5dc, #ddd6c1)", "rgba(120,113,108,.12)", "#78716c", "&#x1FAA8;"),
+    "brewing": ("linear-gradient(135deg, #fef9c3, #fef08a)", "rgba(161,98,7,.12)", "#a16207", "&#x1F37A;"),
     "general": ("linear-gradient(135deg, #f1f5f9, #e2e8f0)", "rgba(71,85,105,.12)", "#475569", "&#x2699;"),
 }
 
@@ -76,6 +81,18 @@ CATEGORIES = {
     187: "chemistry", 188: "chemistry", 189: "chemistry", 190: "chemistry", 191: "chemistry",
     192: "chemistry", 193: "chemistry", 194: "chemistry", 195: "chemistry", 196: "chemistry",
     197: "general", 198: "general",
+    199: "woodworking", 200: "woodworking", 201: "woodworking", 202: "woodworking",
+    203: "woodworking", 204: "woodworking", 205: "woodworking", 206: "woodworking",
+    207: "woodworking", 208: "woodworking",
+    209: "sports", 210: "sports", 211: "sports", 212: "sports", 213: "sports",
+    214: "sports", 215: "sports", 216: "sports", 217: "sports", 218: "sports",
+    219: "cosmetics", 220: "cosmetics", 221: "cosmetics", 222: "cosmetics", 223: "cosmetics",
+    224: "cosmetics", 225: "cosmetics", 226: "cosmetics", 227: "cosmetics", 228: "cosmetics",
+    229: "geology", 230: "geology", 231: "geology", 232: "geology", 233: "geology",
+    234: "geology", 235: "geology", 236: "geology", 237: "geology", 238: "geology",
+    239: "brewing", 240: "brewing", 241: "brewing", 242: "brewing", 243: "brewing",
+    244: "brewing", 245: "brewing", 246: "brewing", 247: "brewing", 248: "brewing",
+    249: "general", 250: "general",
 }
 
 def slug_to_web(slug):
@@ -304,7 +321,7 @@ def build_page(num, uc_dir):
             prev_name = prev_cfg["metadata"]["name"]
             prev_link = f'<a href="{prev_num:02d}-{prev_web}.html">&larr; Previous: {escape(prev_name)}</a>'
 
-    if next_num <= 198:
+    if next_num <= 250:
         next_dirs = glob.glob(f"use_cases/{next_num:02d}_*")
         if next_dirs:
             next_slug = os.path.basename(next_dirs[0]).split("_", 1)[1]
@@ -593,13 +610,13 @@ def inject_matrix_into_existing(num, uc_dir):
 
 
 def main():
-    # Generate pages for use cases 27-198
-    for num in range(27, 199):
+    # Generate pages for use cases 27-250
+    for num in range(27, 251):
         pattern = f"use_cases/{num:02d}_*" if num < 100 else f"use_cases/{num}_*"
         dirs = glob.glob(pattern)
         if dirs:
             build_page(num, dirs[0])
-    print(f"\n  172 HTML pages generated (27-198).")
+    print(f"\n  224 HTML pages generated (27-250).")
 
     # Inject experimental matrix into existing pages for use cases 1-26
     print("\nInjecting experimental matrices into use cases 1-26...")

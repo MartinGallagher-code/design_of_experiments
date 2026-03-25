@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Steam Bending Parameters &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1FA93;</div>
+    <div class="uc-badge" style="background:rgba(180,83,9,.12);color:#b45309;">Box-Behnken Design</div>
+    <h1>Steam Bending Parameters</h1>
+    <p class="uc-subtitle">Box-Behnken design to maximize bend radius achievable and minimize cracking by tuning steam time, wood moisture content, and bending speed</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>steam_min</code></td><td>30</td><td>120</td><td>min</td></tr>
+            <tr><td><code>moisture_pct</code></td><td>15</td><td>30</td><td>%</td></tr>
+            <tr><td><code>bend_speed</code></td><td>1</td><td>5</td><td>deg/sec</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> wood_species = white_ash, thickness_mm = 20</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>min_radius_cm</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>cm</td></tr>
+            <tr><td><code>crack_rate_pct</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/204_wood_bending/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Steam Bending Parameters&quot;,
+    &quot;description&quot;: &quot;Box-Behnken design to maximize bend radius achievable and minimize cracking by tuning steam time, wood moisture content, and bending speed&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;steam_min&quot;,
+      &quot;levels&quot;: [
+        &quot;30&quot;,
+        &quot;120&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;min&quot;
+    },
+    {
+      &quot;name&quot;: &quot;moisture_pct&quot;,
+      &quot;levels&quot;: [
+        &quot;15&quot;,
+        &quot;30&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;bend_speed&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;5&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;deg/sec&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;wood_species&quot;: &quot;white_ash&quot;,
+    &quot;thickness_mm&quot;: &quot;20&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;min_radius_cm&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;cm&quot;
+    },
+    {
+      &quot;name&quot;: &quot;crack_rate_pct&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;box_behnken&quot;,
+    &quot;test_script&quot;: &quot;use_cases/204_wood_bending/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Box-Behnken Design produces <strong>15 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>steam_min</code></th><th><code>moisture_pct</code></th><th><code>bend_speed</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>75</td><td>15</td><td>1</td></tr>
+        <tr><td>2</td><td>75</td><td>22.5</td><td>3</td></tr>
+        <tr><td>3</td><td>120</td><td>22.5</td><td>5</td></tr>
+        <tr><td>4</td><td>120</td><td>22.5</td><td>1</td></tr>
+        <tr><td>5</td><td>75</td><td>22.5</td><td>3</td></tr>
+        <tr><td>6</td><td>75</td><td>22.5</td><td>3</td></tr>
+        <tr><td>7</td><td>30</td><td>22.5</td><td>5</td></tr>
+        <tr><td>8</td><td>120</td><td>15</td><td>3</td></tr>
+        <tr><td>9</td><td>75</td><td>15</td><td>5</td></tr>
+        <tr><td>10</td><td>120</td><td>30</td><td>3</td></tr>
+        <tr><td>11</td><td>30</td><td>22.5</td><td>1</td></tr>
+        <tr><td>12</td><td>75</td><td>30</td><td>5</td></tr>
+        <tr><td>13</td><td>30</td><td>15</td><td>3</td></tr>
+        <tr><td>14</td><td>30</td><td>30</td><td>3</td></tr>
+        <tr><td>15</td><td>75</td><td>30</td><td>1</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/204_wood_bending/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/204_wood_bending/config.json \
+    <span class="flag">--output</span> use_cases/204_wood_bending/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/204_wood_bending/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/204_wood_bending/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/204_wood_bending/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/204_wood_bending/config.json \
+    <span class="flag">--output</span> use_cases/204_wood_bending/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>box_behnken</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (min_radius_cm &#x2193;, crack_rate_pct &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>15</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: min_radius_cm</h3>
+    <p>Top factors: bend_speed (45.1%), steam_min (29.4%), moisture_pct (25.5%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/204_pareto_min_radius_cm.png" alt="Pareto chart for min_radius_cm">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/204_main_effects_min_radius_cm.png" alt="Main effects plot for min_radius_cm">
+      </div>
+    </div>
+
+    <h3>Response: crack_rate_pct</h3>
+    <p>Top factors: bend_speed (43.5%), moisture_pct (31.9%), steam_min (24.6%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/204_pareto_crack_rate_pct.png" alt="Pareto chart for crack_rate_pct">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/204_main_effects_crack_rate_pct.png" alt="Main effects plot for crack_rate_pct">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">crack rate pct moisture pct vs bend speed</p>
+      <img src="../images/204_rsm_crack_rate_pct_moisture_pct_vs_bend_speed.png" alt="RSM surface: crack rate pct moisture pct vs bend speed" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">crack rate pct steam min vs bend speed</p>
+      <img src="../images/204_rsm_crack_rate_pct_steam_min_vs_bend_speed.png" alt="RSM surface: crack rate pct steam min vs bend speed" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">crack rate pct steam min vs moisture pct</p>
+      <img src="../images/204_rsm_crack_rate_pct_steam_min_vs_moisture_pct.png" alt="RSM surface: crack rate pct steam min vs moisture pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">min radius cm moisture pct vs bend speed</p>
+      <img src="../images/204_rsm_min_radius_cm_moisture_pct_vs_bend_speed.png" alt="RSM surface: min radius cm moisture pct vs bend speed" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">min radius cm steam min vs bend speed</p>
+      <img src="../images/204_rsm_min_radius_cm_steam_min_vs_bend_speed.png" alt="RSM surface: min radius cm steam min vs bend speed" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">min radius cm steam min vs moisture pct</p>
+      <img src="../images/204_rsm_min_radius_cm_steam_min_vs_moisture_pct.png" alt="RSM surface: min radius cm steam min vs moisture pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_min_radius_cm_steam_min_vs_moisture_pct.png
+  RSM surface: rsm_min_radius_cm_steam_min_vs_bend_speed.png
+  RSM surface: rsm_min_radius_cm_moisture_pct_vs_bend_speed.png
+  RSM surface: rsm_crack_rate_pct_steam_min_vs_moisture_pct.png
+  RSM surface: rsm_crack_rate_pct_steam_min_vs_bend_speed.png
+  RSM surface: rsm_crack_rate_pct_moisture_pct_vs_bend_speed.png
+
+=== Main Effects: min_radius_cm ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+bend_speed               4.7393       0.9168            45.1%
+steam_min                3.0929       0.9168            29.4%
+moisture_pct             2.6786       0.9168            25.5%
+
+=== Summary Statistics: min_radius_cm ===
+
+steam_min:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  120                 4    15.4500     3.2254    12.4000    19.9000
+  30                  4    14.0500     2.1733    10.8000    15.3000
+  75                  7    17.1429     4.1999    10.0000    22.1000
+
+moisture_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  15                  4    16.7500     4.0485    12.4000    21.8000
+  22.5                7    14.5714     3.3370    10.0000    19.9000
+  30                  4    17.2500     3.5595    14.0000    22.1000
+
+bend_speed:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    18.6250     2.8570    15.2000    21.8000
+  3                   7    13.8857     2.0546    10.0000    16.0000
+  5                   4    16.5750     4.7183    10.8000    22.1000
+
+=== Main Effects: crack_rate_pct ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+bend_speed               8.5357       2.0996            43.5%
+moisture_pct             6.2500       2.0996            31.9%
+steam_min                4.8214       2.0996            24.6%
+
+=== Summary Statistics: crack_rate_pct ===
+
+steam_min:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  120                 4    14.7500    10.0125     1.0000    25.0000
+  30                  4    15.2500     7.8049     6.0000    25.0000
+  75                  7    19.5714     7.7858     9.0000    33.0000
+
+moisture_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  15                  4    14.0000     9.6264     1.0000    24.0000
+  22.5                7    17.1429     7.6470     6.0000    25.0000
+  30                  4    20.2500     8.5391    15.0000    33.0000
+
+bend_speed:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    22.2500     4.8563    15.0000    25.0000
+  3                   7    13.7143     6.9693     1.0000    23.0000
+  5                   4    18.0000    11.1654     6.0000    33.0000
+
+Pareto chart (min_radius_cm): use_cases/204_wood_bending/results/analysis/pareto_min_radius_cm.png
+
+Pareto chart (crack_rate_pct): use_cases/204_wood_bending/results/analysis/pareto_crack_rate_pct.png
+Main effects (min_radius_cm): use_cases/204_wood_bending/results/analysis/main_effects_min_radius_cm.png
+Main effects (crack_rate_pct): use_cases/204_wood_bending/results/analysis/main_effects_crack_rate_pct.png</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: min_radius_cm ===
+Direction: minimize
+
+Best observed run: #10
+  steam_min = 120
+  moisture_pct = 22.5
+  bend_speed = 5
+  Value: 10.0
+
+RSM Model (linear, R² = 0.2984, Adj R² = 0.1070):
+  Coefficients:
+    intercept                      +15.8667
+    steam_min                      +1.2875
+    moisture_pct                   -1.6125
+    bend_speed                     -1.5250
+
+RSM Model (quadratic, R² = 0.6415, Adj R² = -0.0039):
+  Coefficients:
+    intercept                      +18.3000
+    steam_min                      +1.2875
+    moisture_pct                   -1.6125
+    bend_speed                     -1.5250
+    steam_min*moisture_pct         +0.3750
+    steam_min*bend_speed           -2.2500
+    moisture_pct*bend_speed        -1.6000
+    steam_min^2                    -2.6125
+    moisture_pct^2                 -1.1125
+    bend_speed^2                   -0.8375
+
+  Curvature analysis:
+    steam_min                      coef=-2.6125  concave (has a maximum)
+    moisture_pct                   coef=-1.1125  concave (has a maximum)
+    bend_speed                     coef=-0.8375  concave (has a maximum)
+
+  Notable interactions:
+    steam_min*bend_speed           coef=-2.2500  (antagonistic)
+    moisture_pct*bend_speed        coef=-1.6000  (antagonistic)
+    steam_min*moisture_pct         coef=+0.3750  (synergistic)
+
+  Predicted optimum (from linear model):
+    steam_min = 75
+    moisture_pct = 15
+    bend_speed = 1
+    Predicted value: 19.0042
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. steam_min  (effect: 3.8, contribution: 37.5%)
+  2. moisture_pct  (effect: 3.2, contribution: 32.1%)
+  3. bend_speed  (effect: 3.1, contribution: 30.4%)
+
+=== Optimization: crack_rate_pct ===
+Direction: minimize
+
+Best observed run: #15
+  steam_min = 30
+  moisture_pct = 22.5
+  bend_speed = 5
+  Value: 1.0
+
+RSM Model (linear, R² = 0.1985, Adj R² = -0.0201):
+  Coefficients:
+    intercept                      +17.1333
+    steam_min                      +2.8750
+    moisture_pct                   -1.2500
+    bend_speed                     -3.6250
+
+RSM Model (quadratic, R² = 0.4346, Adj R² = -0.5831):
+  Coefficients:
+    intercept                      +21.3333
+    steam_min                      +2.8750
+    moisture_pct                   -1.2500
+    bend_speed                     -3.6250
+    steam_min*moisture_pct         +4.5000
+    steam_min*bend_speed           +2.2500
+    moisture_pct*bend_speed        -2.0000
+    steam_min^2                    -5.0417
+    moisture_pct^2                 -1.2917
+    bend_speed^2                   -1.5417
+
+  Curvature analysis:
+    steam_min                      coef=-5.0417  concave (has a maximum)
+    bend_speed                     coef=-1.5417  concave (has a maximum)
+    moisture_pct                   coef=-1.2917  concave (has a maximum)
+
+  Notable interactions:
+    steam_min*moisture_pct         coef=+4.5000  (synergistic)
+    steam_min*bend_speed           coef=+2.2500  (synergistic)
+    moisture_pct*bend_speed        coef=-2.0000  (antagonistic)
+
+  Predicted optimum (from linear model):
+    steam_min = 120
+    moisture_pct = 22.5
+    bend_speed = 1
+    Predicted value: 23.6333
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. steam_min  (effect: 7.7, contribution: 44.2%)
+  2. bend_speed  (effect: 7.2, contribution: 41.5%)
+  3. moisture_pct  (effect: 2.5, contribution: 14.3%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="203-router-bit-speed.html">&larr; Previous: Router Bit Speed &amp; Feed</a>
+    <a href="205-sandpaper-progression.html">Next: Sandpaper Grit Progression &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>
