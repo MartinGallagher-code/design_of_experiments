@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Container Image Scanning &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #fee2e2, #fecaca);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F6E1;</div>
+    <div class="uc-badge" style="background:rgba(220,38,38,.12);color:#dc2626;">Central Composite Design</div>
+    <h1>Container Image Scanning</h1>
+    <p class="uc-subtitle">Central Composite design to optimize layer parallelism, vuln DB cache, and max image size for scan time and CVE detection</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>layer_parallelism</code></td><td>1</td><td>8</td><td>threads</td></tr>
+            <tr><td><code>vuln_db_cache_hours</code></td><td>1</td><td>24</td><td>hours</td></tr>
+            <tr><td><code>max_image_size_gb</code></td><td>1</td><td>10</td><td>GB</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> scanner = trivy, registry = ecr</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>scan_time_sec</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>sec</td></tr>
+            <tr><td><code>cve_detection_rate</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/66_container_image_scanning/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Container Image Scanning&quot;,
+    &quot;description&quot;: &quot;Central Composite design to optimize layer parallelism, vuln DB cache, and max image size for scan time and CVE detection&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;layer_parallelism&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;8&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;threads&quot;
+    },
+    {
+      &quot;name&quot;: &quot;vuln_db_cache_hours&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;24&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;hours&quot;
+    },
+    {
+      &quot;name&quot;: &quot;max_image_size_gb&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;10&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;GB&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;scanner&quot;: &quot;trivy&quot;,
+    &quot;registry&quot;: &quot;ecr&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;scan_time_sec&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;sec&quot;
+    },
+    {
+      &quot;name&quot;: &quot;cve_detection_rate&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;central_composite&quot;,
+    &quot;test_script&quot;: &quot;use_cases/66_container_image_scanning/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Central Composite Design produces <strong>22 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>layer_parallelism</code></th><th><code>vuln_db_cache_hours</code></th><th><code>max_image_size_gb</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>4.5</td><td>12.5</td><td>5.5</td></tr>
+        <tr><td>2</td><td>8</td><td>1</td><td>10</td></tr>
+        <tr><td>3</td><td>1</td><td>24</td><td>1</td></tr>
+        <tr><td>4</td><td>4.5</td><td>33.496</td><td>5.5</td></tr>
+        <tr><td>5</td><td>4.5</td><td>12.5</td><td>5.5</td></tr>
+        <tr><td>6</td><td>-1.8901</td><td>12.5</td><td>5.5</td></tr>
+        <tr><td>7</td><td>4.5</td><td>12.5</td><td>-2.71584</td></tr>
+        <tr><td>8</td><td>4.5</td><td>12.5</td><td>5.5</td></tr>
+        <tr><td>9</td><td>8</td><td>24</td><td>1</td></tr>
+        <tr><td>10</td><td>10.8901</td><td>12.5</td><td>5.5</td></tr>
+        <tr><td>11</td><td>4.5</td><td>12.5</td><td>5.5</td></tr>
+        <tr><td>12</td><td>4.5</td><td>-8.49603</td><td>5.5</td></tr>
+        <tr><td>13</td><td>4.5</td><td>12.5</td><td>5.5</td></tr>
+        <tr><td>14</td><td>1</td><td>1</td><td>10</td></tr>
+        <tr><td>15</td><td>4.5</td><td>12.5</td><td>5.5</td></tr>
+        <tr><td>16</td><td>8</td><td>1</td><td>1</td></tr>
+        <tr><td>17</td><td>4.5</td><td>12.5</td><td>13.7158</td></tr>
+        <tr><td>18</td><td>8</td><td>24</td><td>10</td></tr>
+        <tr><td>19</td><td>4.5</td><td>12.5</td><td>5.5</td></tr>
+        <tr><td>20</td><td>1</td><td>1</td><td>1</td></tr>
+        <tr><td>21</td><td>1</td><td>24</td><td>10</td></tr>
+        <tr><td>22</td><td>4.5</td><td>12.5</td><td>5.5</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/66_container_image_scanning/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/66_container_image_scanning/config.json \
+    <span class="flag">--output</span> use_cases/66_container_image_scanning/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/66_container_image_scanning/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/66_container_image_scanning/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/66_container_image_scanning/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/66_container_image_scanning/config.json \
+    <span class="flag">--output</span> use_cases/66_container_image_scanning/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>central_composite</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (scan_time_sec &#x2193;, cve_detection_rate &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>22</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: scan_time_sec</h3>
+    <p>Top factors: layer_parallelism (54.6%), vuln_db_cache_hours (33.4%), max_image_size_gb (11.9%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/66_pareto_scan_time_sec.png" alt="Pareto chart for scan_time_sec">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/66_main_effects_scan_time_sec.png" alt="Main effects plot for scan_time_sec">
+      </div>
+    </div>
+
+    <h3>Response: cve_detection_rate</h3>
+    <p>Top factors: max_image_size_gb (43.5%), layer_parallelism (32.2%), vuln_db_cache_hours (24.2%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/66_pareto_cve_detection_rate.png" alt="Pareto chart for cve_detection_rate">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/66_main_effects_cve_detection_rate.png" alt="Main effects plot for cve_detection_rate">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cve detection rate layer parallelism vs max image size gb</p>
+      <img src="../images/66_rsm_cve_detection_rate_layer_parallelism_vs_max_image_size_gb.png" alt="RSM surface: cve detection rate layer parallelism vs max image size gb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cve detection rate layer parallelism vs vuln db cache hours</p>
+      <img src="../images/66_rsm_cve_detection_rate_layer_parallelism_vs_vuln_db_cache_hours.png" alt="RSM surface: cve detection rate layer parallelism vs vuln db cache hours" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cve detection rate vuln db cache hours vs max image size gb</p>
+      <img src="../images/66_rsm_cve_detection_rate_vuln_db_cache_hours_vs_max_image_size_gb.png" alt="RSM surface: cve detection rate vuln db cache hours vs max image size gb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">scan time sec layer parallelism vs max image size gb</p>
+      <img src="../images/66_rsm_scan_time_sec_layer_parallelism_vs_max_image_size_gb.png" alt="RSM surface: scan time sec layer parallelism vs max image size gb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">scan time sec layer parallelism vs vuln db cache hours</p>
+      <img src="../images/66_rsm_scan_time_sec_layer_parallelism_vs_vuln_db_cache_hours.png" alt="RSM surface: scan time sec layer parallelism vs vuln db cache hours" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">scan time sec vuln db cache hours vs max image size gb</p>
+      <img src="../images/66_rsm_scan_time_sec_vuln_db_cache_hours_vs_max_image_size_gb.png" alt="RSM surface: scan time sec vuln db cache hours vs max image size gb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: scan_time_sec ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+layer_parallelism       70.1000       4.8245            54.6%
+vuln_db_cache_hours     42.9000       4.8245            33.4%
+max_image_size_gb       15.2750       4.8245            11.9%
+
+=== Summary Statistics: scan_time_sec ===
+
+layer_parallelism:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -1.8901             1    27.6000     0.0000    27.6000    27.6000
+  1                   4    45.0750    11.9957    31.3000    60.5000
+  10.8901             1    97.7000     0.0000    97.7000    97.7000
+  4.5                12    45.2083    18.9257    14.7000    89.0000
+  8                   4    67.0500    26.3404    42.2000    92.1000
+
+vuln_db_cache_hours:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -8.49603            1    46.5000     0.0000    46.5000    46.5000
+  1                   4    57.6000    25.9073    31.3000    92.1000
+  12.5               12    50.5500    22.8246    18.4000    97.7000
+  24                  4    54.5250    21.9580    42.2000    87.4000
+  33.496              1    14.7000     0.0000    14.7000    14.7000
+
+max_image_size_gb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -2.71584            1    44.2000     0.0000    44.2000    44.2000
+  1                   4    59.4750    23.3239    42.2000    92.1000
+  10                  4    52.6500    24.1783    31.3000    87.4000
+  13.7158             1    49.8000     0.0000    49.8000    49.8000
+  5.5                12    47.8167    25.0485    14.7000    97.7000
+
+=== Main Effects: cve_detection_rate ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+max_image_size_gb       10.8500       0.9740            43.5%
+layer_parallelism        8.0250       0.9740            32.2%
+vuln_db_cache_hours      6.0417       0.9740            24.2%
+
+=== Summary Statistics: cve_detection_rate ===
+
+layer_parallelism:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -1.8901             1    85.5000     0.0000    85.5000    85.5000
+  1                   4    90.3500     2.3951    87.0000    92.6000
+  10.8901             1    83.0000     0.0000    83.0000    83.0000
+  4.5                12    90.3333     5.0733    79.5000    96.2000
+  8                   4    91.0250     4.5770    84.8000    95.3000
+
+vuln_db_cache_hours:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -8.49603            1    91.3000     0.0000    91.3000    91.3000
+  1                   4    91.3750     3.4951    87.0000    95.3000
+  12.5               12    88.8583     5.3289    79.5000    96.2000
+  24                  4    90.0000     3.6760    84.8000    93.4000
+  33.496              1    94.9000     0.0000    94.9000    94.9000
+
+max_image_size_gb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -2.71584            1    91.2000     0.0000    91.2000    91.2000
+  1                   4    91.7500     3.5632    87.0000    95.3000
+  10                  4    89.6250     3.3589    84.8000    92.6000
+  13.7158             1    80.9000     0.0000    80.9000    80.9000
+  5.5                12    90.0333     4.9493    79.5000    96.2000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: scan_time_sec ===
+Direction: minimize
+
+Best observed run: #16
+  layer_parallelism = 4.5
+  vuln_db_cache_hours = 12.5
+  max_image_size_gb = 5.5
+  Value: 14.7
+
+RSM Model (linear, R² = 0.0493, Adj R² = -0.1091):
+  Coefficients:
+    intercept                      +50.7409
+    layer_parallelism              +0.4041
+    vuln_db_cache_hours            +3.5507
+    max_image_size_gb              -4.8371
+
+RSM Model (quadratic, R² = 0.3763, Adj R² = -0.0914):
+  Coefficients:
+    intercept                      +47.1001
+    layer_parallelism              +0.4041
+    vuln_db_cache_hours            +3.5507
+    max_image_size_gb              -4.8372
+    layer_parallelism*vuln_db_cache_hours -13.9375
+    layer_parallelism*max_image_size_gb +1.7125
+    vuln_db_cache_hours*max_image_size_gb -1.7375
+    layer_parallelism^2            +0.7654
+    vuln_db_cache_hours^2          +8.5504
+    max_image_size_gb^2            -3.8546
+
+  Curvature analysis:
+    vuln_db_cache_hours            coef=+8.5504  convex (has a minimum)
+    max_image_size_gb              coef=-3.8546  concave (has a maximum)
+    layer_parallelism              coef=+0.7654  convex (has a minimum)
+
+  Notable interactions:
+    layer_parallelism*vuln_db_cache_hours coef=-13.9375  (antagonistic)
+    vuln_db_cache_hours*max_image_size_gb coef=-1.7375  (antagonistic)
+    layer_parallelism*max_image_size_gb coef=+1.7125  (synergistic)
+
+  Predicted optimum (from quadratic model):
+    layer_parallelism = 4.5
+    vuln_db_cache_hours = 33.496
+    max_image_size_gb = 5.5
+    Predicted value: 82.0840
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. vuln_db_cache_hours  (effect: 48.6, contribution: 48.3%)
+  2. max_image_size_gb  (effect: 38.7, contribution: 38.4%)
+  3. layer_parallelism  (effect: 13.4, contribution: 13.3%)
+
+=== Optimization: cve_detection_rate ===
+Direction: maximize
+
+Best observed run: #2
+  layer_parallelism = 4.5
+  vuln_db_cache_hours = -8.49603
+  max_image_size_gb = 5.5
+  Value: 96.2
+
+RSM Model (linear, R² = 0.0209, Adj R² = -0.1423):
+  Coefficients:
+    intercept                      +89.9091
+    layer_parallelism              +0.0478
+    vuln_db_cache_hours            -0.2689
+    max_image_size_gb              +0.7406
+
+RSM Model (quadratic, R² = 0.3812, Adj R² = -0.0829):
+  Coefficients:
+    intercept                      +87.7394
+    layer_parallelism              +0.0478
+    vuln_db_cache_hours            -0.2689
+    max_image_size_gb              +0.7406
+    layer_parallelism*vuln_db_cache_hours +1.1375
+    layer_parallelism*max_image_size_gb -2.0875
+    vuln_db_cache_hours*max_image_size_gb +1.0125
+    layer_parallelism^2            +1.0749
+    vuln_db_cache_hours^2          +2.0949
+    max_image_size_gb^2            +0.0849
+
+  Curvature analysis:
+    vuln_db_cache_hours            coef=+2.0949  convex (has a minimum)
+    layer_parallelism              coef=+1.0749  convex (has a minimum)
+    max_image_size_gb              coef=+0.0849  negligible curvature
+
+  Notable interactions:
+    layer_parallelism*max_image_size_gb coef=-2.0875  (antagonistic)
+    layer_parallelism*vuln_db_cache_hours coef=+1.1375  (synergistic)
+    vuln_db_cache_hours*max_image_size_gb coef=+1.0125  (synergistic)
+
+  Predicted optimum (from quadratic model):
+    layer_parallelism = 4.5
+    vuln_db_cache_hours = -8.49603
+    max_image_size_gb = 5.5
+    Predicted value: 95.2131
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. vuln_db_cache_hours  (effect: 7.4, contribution: 39.7%)
+  2. max_image_size_gb  (effect: 7.1, contribution: 38.0%)
+  3. layer_parallelism  (effect: 4.1, contribution: 22.2%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="65-audit-log-pipeline.html">&larr; Previous: Audit Log Pipeline</a>
+    <a href="67-smart-sensor-sampling.html">Next: Smart Sensor Sampling &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

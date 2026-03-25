@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Certificate Rotation Strategy &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #fee2e2, #fecaca);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F6E1;</div>
+    <div class="uc-badge" style="background:rgba(220,38,38,.12);color:#dc2626;">Full Factorial Design</div>
+    <h1>Certificate Rotation Strategy</h1>
+    <p class="uc-subtitle">Full factorial of cert lifetime, renewal window, and stapling cache for rotation success and downtime</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>cert_lifetime_days</code></td><td>30</td><td>90</td><td>days</td></tr>
+            <tr><td><code>renewal_window_pct</code></td><td>10</td><td>30</td><td>%</td></tr>
+            <tr><td><code>stapling_cache_sec</code></td><td>300</td><td>3600</td><td>sec</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> ca = letsencrypt, key_type = ecdsa_p256</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>rotation_success_rate</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+            <tr><td><code>downtime_sec</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>sec</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/62_certificate_rotation/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Certificate Rotation Strategy&quot;,
+    &quot;description&quot;: &quot;Full factorial of cert lifetime, renewal window, and stapling cache for rotation success and downtime&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;cert_lifetime_days&quot;,
+      &quot;levels&quot;: [
+        &quot;30&quot;,
+        &quot;90&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;days&quot;
+    },
+    {
+      &quot;name&quot;: &quot;renewal_window_pct&quot;,
+      &quot;levels&quot;: [
+        &quot;10&quot;,
+        &quot;30&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;stapling_cache_sec&quot;,
+      &quot;levels&quot;: [
+        &quot;300&quot;,
+        &quot;3600&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;sec&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;ca&quot;: &quot;letsencrypt&quot;,
+    &quot;key_type&quot;: &quot;ecdsa_p256&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;rotation_success_rate&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;downtime_sec&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;sec&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;full_factorial&quot;,
+    &quot;test_script&quot;: &quot;use_cases/62_certificate_rotation/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Full Factorial Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>cert_lifetime_days</code></th><th><code>renewal_window_pct</code></th><th><code>stapling_cache_sec</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>30</td><td>30</td><td>3600</td></tr>
+        <tr><td>2</td><td>90</td><td>10</td><td>300</td></tr>
+        <tr><td>3</td><td>90</td><td>30</td><td>300</td></tr>
+        <tr><td>4</td><td>90</td><td>30</td><td>3600</td></tr>
+        <tr><td>5</td><td>30</td><td>30</td><td>300</td></tr>
+        <tr><td>6</td><td>90</td><td>10</td><td>3600</td></tr>
+        <tr><td>7</td><td>30</td><td>10</td><td>300</td></tr>
+        <tr><td>8</td><td>30</td><td>10</td><td>3600</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/62_certificate_rotation/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/62_certificate_rotation/config.json \
+    <span class="flag">--output</span> use_cases/62_certificate_rotation/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/62_certificate_rotation/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/62_certificate_rotation/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/62_certificate_rotation/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/62_certificate_rotation/config.json \
+    <span class="flag">--output</span> use_cases/62_certificate_rotation/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>full_factorial</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (rotation_success_rate &#x2191;, downtime_sec &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>8</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: rotation_success_rate</h3>
+    <p>Top factors: stapling_cache_sec (71.1%), renewal_window_pct (21.6%), cert_lifetime_days (7.3%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/62_pareto_rotation_success_rate.png" alt="Pareto chart for rotation_success_rate">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/62_main_effects_rotation_success_rate.png" alt="Main effects plot for rotation_success_rate">
+      </div>
+    </div>
+
+    <h3>Response: downtime_sec</h3>
+    <p>Top factors: stapling_cache_sec (75.5%), cert_lifetime_days (15.6%), renewal_window_pct (8.8%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/62_pareto_downtime_sec.png" alt="Pareto chart for downtime_sec">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/62_main_effects_downtime_sec.png" alt="Main effects plot for downtime_sec">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">downtime sec cert lifetime days vs renewal window pct</p>
+      <img src="../images/62_rsm_downtime_sec_cert_lifetime_days_vs_renewal_window_pct.png" alt="RSM surface: downtime sec cert lifetime days vs renewal window pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">downtime sec cert lifetime days vs stapling cache sec</p>
+      <img src="../images/62_rsm_downtime_sec_cert_lifetime_days_vs_stapling_cache_sec.png" alt="RSM surface: downtime sec cert lifetime days vs stapling cache sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">downtime sec renewal window pct vs stapling cache sec</p>
+      <img src="../images/62_rsm_downtime_sec_renewal_window_pct_vs_stapling_cache_sec.png" alt="RSM surface: downtime sec renewal window pct vs stapling cache sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rotation success rate cert lifetime days vs renewal window pct</p>
+      <img src="../images/62_rsm_rotation_success_rate_cert_lifetime_days_vs_renewal_window_pct.png" alt="RSM surface: rotation success rate cert lifetime days vs renewal window pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rotation success rate cert lifetime days vs stapling cache sec</p>
+      <img src="../images/62_rsm_rotation_success_rate_cert_lifetime_days_vs_stapling_cache_sec.png" alt="RSM surface: rotation success rate cert lifetime days vs stapling cache sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rotation success rate renewal window pct vs stapling cache sec</p>
+      <img src="../images/62_rsm_rotation_success_rate_renewal_window_pct_vs_stapling_cache_sec.png" alt="RSM surface: rotation success rate renewal window pct vs stapling cache sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: rotation_success_rate ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+stapling_cache_sec       4.1675       1.3670            71.1%
+renewal_window_pct       1.2625       1.3670            21.6%
+cert_lifetime_days       0.4275       1.3670             7.3%
+
+=== Interaction Effects: rotation_success_rate ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+renewal_window_pct   stapling_cache_sec         4.9975            55.7%
+cert_lifetime_days   stapling_cache_sec         2.0425            22.8%
+cert_lifetime_days   renewal_window_pct        -1.9325            21.5%
+
+=== Summary Statistics: rotation_success_rate ===
+
+cert_lifetime_days:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  30                  4    94.2175     3.8932    90.9100    99.6500
+  90                  4    94.6450     4.4278    88.9800    99.6400
+
+renewal_window_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4    93.8000     2.0790    90.9100    95.8600
+  30                  4    95.0625     5.4313    88.9800    99.6500
+
+stapling_cache_sec:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  300                 4    92.3475     2.4817    88.9800    94.3300
+  3600                4    96.5150     4.1408    90.9100    99.6500
+
+=== Main Effects: downtime_sec ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+stapling_cache_sec      -2.7750       0.9938            75.5%
+cert_lifetime_days      -0.5750       0.9938            15.6%
+renewal_window_pct      -0.3250       0.9938             8.8%
+
+=== Interaction Effects: downtime_sec ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+renewal_window_pct   stapling_cache_sec        -3.2250            43.7%
+cert_lifetime_days   stapling_cache_sec        -2.5750            34.9%
+cert_lifetime_days   renewal_window_pct         1.5750            21.4%
+
+=== Summary Statistics: downtime_sec ===
+
+cert_lifetime_days:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  30                  4     6.0000     2.2015     3.3000     8.5000
+  90                  4     5.4250     3.6564     1.8000    10.3000
+
+renewal_window_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4     5.8750     1.9873     3.7000     8.5000
+  30                  4     5.5500     3.7969     1.8000    10.3000
+
+stapling_cache_sec:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  300                 4     7.1000     2.2106     5.4000    10.3000
+  3600                4     4.3250     2.9010     1.8000     8.5000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: rotation_success_rate ===
+Direction: maximize
+
+Best observed run: #3
+  cert_lifetime_days = 30
+  renewal_window_pct = 10
+  stapling_cache_sec = 3600
+  Value: 99.65
+
+RSM Model (linear, R² = 0.7740, Adj R² = 0.6045):
+  Coefficients:
+    intercept                      +94.4312
+    cert_lifetime_days             -2.8812
+    renewal_window_pct             -1.2188
+    stapling_cache_sec             -0.5813
+
+  Predicted optimum (from linear model):
+    cert_lifetime_days = 30
+    renewal_window_pct = 10
+    stapling_cache_sec = 300
+    Predicted value: 99.1125
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. cert_lifetime_days  (effect: -5.8, contribution: 61.5%)
+  2. renewal_window_pct  (effect: -2.4, contribution: 26.0%)
+  3. stapling_cache_sec  (effect: -1.2, contribution: 12.4%)
+
+=== Optimization: downtime_sec ===
+Direction: minimize
+
+Best observed run: #4
+  cert_lifetime_days = 30
+  renewal_window_pct = 10
+  stapling_cache_sec = 300
+  Value: 1.8
+
+RSM Model (linear, R² = 0.7171, Adj R² = 0.5050):
+  Coefficients:
+    intercept                      +5.7125
+    cert_lifetime_days             +2.0375
+    renewal_window_pct             +0.5125
+    stapling_cache_sec             +0.7375
+
+  Predicted optimum (from linear model):
+    cert_lifetime_days = 90
+    renewal_window_pct = 30
+    stapling_cache_sec = 3600
+    Predicted value: 9.0000
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. cert_lifetime_days  (effect: 4.1, contribution: 62.0%)
+  2. stapling_cache_sec  (effect: 1.5, contribution: 22.4%)
+  3. renewal_window_pct  (effect: 1.0, contribution: 15.6%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="61-zero-trust-policy-eval.html">&larr; Previous: Zero Trust Policy Evaluation</a>
+    <a href="63-ids-signature-tuning.html">Next: IDS Signature Tuning &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

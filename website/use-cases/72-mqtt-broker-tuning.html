@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MQTT Broker Tuning &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #cffafe, #a5f3fc);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F4E1;</div>
+    <div class="uc-badge" style="background:rgba(8,145,178,.12);color:#0891b2;">Latin Hypercube Design</div>
+    <h1>MQTT Broker Tuning</h1>
+    <p class="uc-subtitle">Latin Hypercube exploration of 4 MQTT broker parameters for message throughput and memory usage</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>max_connections</code></td><td>100</td><td>10000</td><td>conns</td></tr>
+            <tr><td><code>message_queue_depth</code></td><td>100</td><td>5000</td><td>msgs</td></tr>
+            <tr><td><code>keepalive_sec</code></td><td>15</td><td>300</td><td>sec</td></tr>
+            <tr><td><code>qos_level</code></td><td>0</td><td>2</td><td></td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> broker = mosquitto, protocol = mqtt_v5</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>message_throughput_kps</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>kmsg/s</td></tr>
+            <tr><td><code>memory_usage_mb</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>MB</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/72_mqtt_broker_tuning/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;MQTT Broker Tuning&quot;,
+    &quot;description&quot;: &quot;Latin Hypercube exploration of 4 MQTT broker parameters for message throughput and memory usage&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;max_connections&quot;,
+      &quot;levels&quot;: [
+        &quot;100&quot;,
+        &quot;10000&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;conns&quot;
+    },
+    {
+      &quot;name&quot;: &quot;message_queue_depth&quot;,
+      &quot;levels&quot;: [
+        &quot;100&quot;,
+        &quot;5000&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;msgs&quot;
+    },
+    {
+      &quot;name&quot;: &quot;keepalive_sec&quot;,
+      &quot;levels&quot;: [
+        &quot;15&quot;,
+        &quot;300&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;sec&quot;
+    },
+    {
+      &quot;name&quot;: &quot;qos_level&quot;,
+      &quot;levels&quot;: [
+        &quot;0&quot;,
+        &quot;2&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;broker&quot;: &quot;mosquitto&quot;,
+    &quot;protocol&quot;: &quot;mqtt_v5&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;message_throughput_kps&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;kmsg/s&quot;
+    },
+    {
+      &quot;name&quot;: &quot;memory_usage_mb&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;MB&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;latin_hypercube&quot;,
+    &quot;test_script&quot;: &quot;use_cases/72_mqtt_broker_tuning/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Latin Hypercube Design produces <strong>10 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>max_connections</code></th><th><code>message_queue_depth</code></th><th><code>keepalive_sec</code></th><th><code>qos_level</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>7208.93</td><td>3401.77</td><td>252.098</td><td>2</td></tr>
+        <tr><td>2</td><td>8209.38</td><td>1818.2</td><td>196.137</td><td>0</td></tr>
+        <tr><td>3</td><td>3369.84</td><td>3942.86</td><td>289.957</td><td>2</td></tr>
+        <tr><td>4</td><td>3052.87</td><td>2182.95</td><td>31.4922</td><td>2</td></tr>
+        <tr><td>5</td><td>901.8</td><td>1028.73</td><td>106.053</td><td>2</td></tr>
+        <tr><td>6</td><td>6277.07</td><td>452.931</td><td>76.0073</td><td>0</td></tr>
+        <tr><td>7</td><td>5238.57</td><td>4512.96</td><td>44.5922</td><td>0</td></tr>
+        <tr><td>8</td><td>1137.45</td><td>2662.19</td><td>215.828</td><td>0</td></tr>
+        <tr><td>9</td><td>9407.07</td><td>1469.54</td><td>166.997</td><td>2</td></tr>
+        <tr><td>10</td><td>4743.19</td><td>4493.73</td><td>146.415</td><td>0</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/72_mqtt_broker_tuning/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/72_mqtt_broker_tuning/config.json \
+    <span class="flag">--output</span> use_cases/72_mqtt_broker_tuning/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/72_mqtt_broker_tuning/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/72_mqtt_broker_tuning/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/72_mqtt_broker_tuning/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/72_mqtt_broker_tuning/config.json \
+    <span class="flag">--output</span> use_cases/72_mqtt_broker_tuning/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>latin_hypercube</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (3), <code>categorical</code> (1)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (message_throughput_kps &#x2191;, memory_usage_mb &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>10</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: message_throughput_kps</h3>
+    <p>Top factors: max_connections (29.7%), message_queue_depth (29.7%), keepalive_sec (29.7%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/72_pareto_message_throughput_kps.png" alt="Pareto chart for message_throughput_kps">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/72_main_effects_message_throughput_kps.png" alt="Main effects plot for message_throughput_kps">
+      </div>
+    </div>
+
+    <h3>Response: memory_usage_mb</h3>
+    <p>Top factors: max_connections (32.7%), message_queue_depth (32.7%), keepalive_sec (32.7%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/72_pareto_memory_usage_mb.png" alt="Pareto chart for memory_usage_mb">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/72_main_effects_memory_usage_mb.png" alt="Main effects plot for memory_usage_mb">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">memory usage mb max connections vs keepalive sec</p>
+      <img src="../images/72_rsm_memory_usage_mb_max_connections_vs_keepalive_sec.png" alt="RSM surface: memory usage mb max connections vs keepalive sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">memory usage mb max connections vs message queue depth</p>
+      <img src="../images/72_rsm_memory_usage_mb_max_connections_vs_message_queue_depth.png" alt="RSM surface: memory usage mb max connections vs message queue depth" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">memory usage mb message queue depth vs keepalive sec</p>
+      <img src="../images/72_rsm_memory_usage_mb_message_queue_depth_vs_keepalive_sec.png" alt="RSM surface: memory usage mb message queue depth vs keepalive sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">message throughput kps max connections vs keepalive sec</p>
+      <img src="../images/72_rsm_message_throughput_kps_max_connections_vs_keepalive_sec.png" alt="RSM surface: message throughput kps max connections vs keepalive sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">message throughput kps max connections vs message queue depth</p>
+      <img src="../images/72_rsm_message_throughput_kps_max_connections_vs_message_queue_depth.png" alt="RSM surface: message throughput kps max connections vs message queue depth" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">message throughput kps message queue depth vs keepalive sec</p>
+      <img src="../images/72_rsm_message_throughput_kps_message_queue_depth_vs_keepalive_sec.png" alt="RSM surface: message throughput kps message queue depth vs keepalive sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: message_throughput_kps ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+max_connections         49.9000       5.0258            29.7%
+message_queue_depth     49.9000       5.0258            29.7%
+keepalive_sec           49.9000       5.0258            29.7%
+qos_level               18.4600       5.0258            11.0%
+
+=== Summary Statistics: message_throughput_kps ===
+
+max_connections:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1584.45             1    45.3000     0.0000    45.3000    45.3000
+  2103.58             1    38.5000     0.0000    38.5000    38.5000
+  3109.24             1    42.4000     0.0000    42.4000    42.4000
+  4498                1    43.1000     0.0000    43.1000    43.1000
+  5171.23             1    70.2000     0.0000    70.2000    70.2000
+  6848.96             1    32.8000     0.0000    32.8000    32.8000
+  7997.3              1    58.2000     0.0000    58.2000    58.2000
+  8682.08             1    23.5000     0.0000    23.5000    23.5000
+  869.065             1    73.4000     0.0000    73.4000    73.4000
+  9278.27             1    54.9000     0.0000    54.9000    54.9000
+
+message_queue_depth:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1441.98             1    23.5000     0.0000    23.5000    23.5000
+  2055.4              1    45.3000     0.0000    45.3000    45.3000
+  2166.68             1    73.4000     0.0000    73.4000    73.4000
+  2820.06             1    54.9000     0.0000    54.9000    54.9000
+  295.725             1    43.1000     0.0000    43.1000    43.1000
+  3312.39             1    58.2000     0.0000    58.2000    58.2000
+  4007.3              1    70.2000     0.0000    70.2000    70.2000
+  4058.61             1    38.5000     0.0000    38.5000    38.5000
+  4732.22             1    32.8000     0.0000    32.8000    32.8000
+  688.661             1    42.4000     0.0000    42.4000    42.4000
+
+keepalive_sec:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  125.928             1    58.2000     0.0000    58.2000    58.2000
+  130.24              1    38.5000     0.0000    38.5000    38.5000
+  183.978             1    73.4000     0.0000    73.4000    73.4000
+  187.916             1    42.4000     0.0000    42.4000    42.4000
+  222.617             1    23.5000     0.0000    23.5000    23.5000
+  263.295             1    54.9000     0.0000    54.9000    54.9000
+  296.084             1    43.1000     0.0000    43.1000    43.1000
+  41.1216             1    32.8000     0.0000    32.8000    32.8000
+  54.7859             1    45.3000     0.0000    45.3000    45.3000
+  97.0432             1    70.2000     0.0000    70.2000    70.2000
+
+qos_level:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   5    39.0000    11.9524    23.5000    54.9000
+  2                   5    57.4600    14.5770    42.4000    73.4000
+
+=== Main Effects: memory_usage_mb ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+max_connections        309.0000      28.6955            32.7%
+message_queue_depth    309.0000      28.6955            32.7%
+keepalive_sec          309.0000      28.6955            32.7%
+qos_level              -17.8000      28.6955             1.9%
+
+=== Summary Statistics: memory_usage_mb ===
+
+max_connections:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1584.45             1   401.0000     0.0000   401.0000   401.0000
+  2103.58             1   239.0000     0.0000   239.0000   239.0000
+  3109.24             1    92.0000     0.0000    92.0000    92.0000
+  4498                1   323.0000     0.0000   323.0000   323.0000
+  5171.23             1   351.0000     0.0000   351.0000   351.0000
+  6848.96             1   264.0000     0.0000   264.0000   264.0000
+  7997.3              1   182.0000     0.0000   182.0000   182.0000
+  8682.08             1   253.0000     0.0000   253.0000   253.0000
+  869.065             1   318.0000     0.0000   318.0000   318.0000
+  9278.27             1   198.0000     0.0000   198.0000   198.0000
+
+message_queue_depth:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1441.98             1   253.0000     0.0000   253.0000   253.0000
+  2055.4              1   401.0000     0.0000   401.0000   401.0000
+  2166.68             1   318.0000     0.0000   318.0000   318.0000
+  2820.06             1   198.0000     0.0000   198.0000   198.0000
+  295.725             1   323.0000     0.0000   323.0000   323.0000
+  3312.39             1   182.0000     0.0000   182.0000   182.0000
+  4007.3              1   351.0000     0.0000   351.0000   351.0000
+  4058.61             1   239.0000     0.0000   239.0000   239.0000
+  4732.22             1   264.0000     0.0000   264.0000   264.0000
+  688.661             1    92.0000     0.0000    92.0000    92.0000
+
+keepalive_sec:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  125.928             1   182.0000     0.0000   182.0000   182.0000
+  130.24              1   239.0000     0.0000   239.0000   239.0000
+  183.978             1   318.0000     0.0000   318.0000   318.0000
+  187.916             1    92.0000     0.0000    92.0000    92.0000
+  222.617             1   253.0000     0.0000   253.0000   253.0000
+  263.295             1   198.0000     0.0000   198.0000   198.0000
+  296.084             1   323.0000     0.0000   323.0000   323.0000
+  41.1216             1   264.0000     0.0000   264.0000   264.0000
+  54.7859             1   401.0000     0.0000   401.0000   401.0000
+  97.0432             1   351.0000     0.0000   351.0000   351.0000
+
+qos_level:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   5   271.0000    76.8538   198.0000   401.0000
+  2                   5   253.2000   111.4572    92.0000   351.0000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: message_throughput_kps ===
+Direction: maximize
+
+Best observed run: #3
+  max_connections = 2707.32
+  message_queue_depth = 1757.25
+  keepalive_sec = 87.8713
+  qos_level = 0
+  Value: 73.4
+
+RSM Model (linear, R² = 0.5953, Adj R² = 0.2716):
+  Coefficients:
+    intercept                      +48.5191
+    max_connections                -18.5342
+    message_queue_depth            -9.9919
+    keepalive_sec                  +8.5204
+    qos_level                      +1.5520
+
+  Predicted optimum (from linear model):
+    max_connections = 1029.49
+    message_queue_depth = 405.848
+    keepalive_sec = 42.9059
+    qos_level = 2
+    Predicted value: 67.0176
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
+
+Factor importance:
+  1. max_connections  (effect: 49.9, contribution: 32.9%)
+  2. message_queue_depth  (effect: 49.9, contribution: 32.9%)
+  3. keepalive_sec  (effect: 49.9, contribution: 32.9%)
+  4. qos_level  (effect: -1.9, contribution: 1.3%)
+
+=== Optimization: memory_usage_mb ===
+Direction: minimize
+
+Best observed run: #4
+  max_connections = 9728.75
+  message_queue_depth = 4272.94
+  keepalive_sec = 278.759
+  qos_level = 2
+  Value: 92.0
+
+RSM Model (linear, R² = 0.9133, Adj R² = 0.8440):
+  Coefficients:
+    intercept                      +263.2576
+    max_connections                +13.5255
+    message_queue_depth            -11.2421
+    keepalive_sec                  -151.6075
+    qos_level                      -10.0318
+
+  Predicted optimum (from linear model):
+    max_connections = 1029.49
+    message_queue_depth = 405.848
+    keepalive_sec = 42.9059
+    qos_level = 2
+    Predicted value: 373.9969
+
+  Model quality: Excellent fit — surface predictions are reliable.
+
+Factor importance:
+  1. max_connections  (effect: 309.0, contribution: 33.1%)
+  2. message_queue_depth  (effect: 309.0, contribution: 33.1%)
+  3. keepalive_sec  (effect: 309.0, contribution: 33.1%)
+  4. qos_level  (effect: -6.2, contribution: 0.7%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="71-edge-inference-quantization.html">&larr; Previous: Edge Inference Quantization</a>
+    <a href="73-pwm-motor-control.html">Next: PWM Motor Control &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

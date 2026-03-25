@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drip Irrigation Scheduling &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #d9f99d, #bef264);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F331;</div>
+    <div class="uc-badge" style="background:rgba(101,163,13,.12);color:#65a30d;">Central Composite Design</div>
+    <h1>Drip Irrigation Scheduling</h1>
+    <p class="uc-subtitle">Central composite design to minimize water usage and maximize crop yield by tuning drip rate, interval, and emitter spacing</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>drip_rate</code></td><td>1</td><td>4</td><td>L/hr</td></tr>
+            <tr><td><code>interval_hrs</code></td><td>6</td><td>48</td><td>hrs</td></tr>
+            <tr><td><code>emitter_spacing</code></td><td>20</td><td>50</td><td>cm</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> crop = strawberry, season = summer</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>water_use_L</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>L/m2/wk</td></tr>
+            <tr><td><code>crop_yield</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>kg/m2</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/104_irrigation_scheduling/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Drip Irrigation Scheduling&quot;,
+    &quot;description&quot;: &quot;Central composite design to minimize water usage and maximize crop yield by tuning drip rate, interval, and emitter spacing&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;drip_rate&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;4&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;L/hr&quot;
+    },
+    {
+      &quot;name&quot;: &quot;interval_hrs&quot;,
+      &quot;levels&quot;: [
+        &quot;6&quot;,
+        &quot;48&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;hrs&quot;
+    },
+    {
+      &quot;name&quot;: &quot;emitter_spacing&quot;,
+      &quot;levels&quot;: [
+        &quot;20&quot;,
+        &quot;50&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;cm&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;crop&quot;: &quot;strawberry&quot;,
+    &quot;season&quot;: &quot;summer&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;water_use_L&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;L/m2/wk&quot;
+    },
+    {
+      &quot;name&quot;: &quot;crop_yield&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;kg/m2&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;central_composite&quot;,
+    &quot;test_script&quot;: &quot;use_cases/104_irrigation_scheduling/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Central Composite Design produces <strong>22 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>drip_rate</code></th><th><code>interval_hrs</code></th><th><code>emitter_spacing</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>2.5</td><td>27</td><td>35</td></tr>
+        <tr><td>2</td><td>4</td><td>6</td><td>50</td></tr>
+        <tr><td>3</td><td>1</td><td>48</td><td>20</td></tr>
+        <tr><td>4</td><td>2.5</td><td>65.3406</td><td>35</td></tr>
+        <tr><td>5</td><td>2.5</td><td>27</td><td>35</td></tr>
+        <tr><td>6</td><td>-0.238613</td><td>27</td><td>35</td></tr>
+        <tr><td>7</td><td>2.5</td><td>27</td><td>7.61387</td></tr>
+        <tr><td>8</td><td>2.5</td><td>27</td><td>35</td></tr>
+        <tr><td>9</td><td>4</td><td>48</td><td>20</td></tr>
+        <tr><td>10</td><td>5.23861</td><td>27</td><td>35</td></tr>
+        <tr><td>11</td><td>2.5</td><td>27</td><td>35</td></tr>
+        <tr><td>12</td><td>2.5</td><td>-11.3406</td><td>35</td></tr>
+        <tr><td>13</td><td>2.5</td><td>27</td><td>35</td></tr>
+        <tr><td>14</td><td>1</td><td>6</td><td>50</td></tr>
+        <tr><td>15</td><td>2.5</td><td>27</td><td>35</td></tr>
+        <tr><td>16</td><td>4</td><td>6</td><td>20</td></tr>
+        <tr><td>17</td><td>2.5</td><td>27</td><td>62.3861</td></tr>
+        <tr><td>18</td><td>4</td><td>48</td><td>50</td></tr>
+        <tr><td>19</td><td>2.5</td><td>27</td><td>35</td></tr>
+        <tr><td>20</td><td>1</td><td>6</td><td>20</td></tr>
+        <tr><td>21</td><td>1</td><td>48</td><td>50</td></tr>
+        <tr><td>22</td><td>2.5</td><td>27</td><td>35</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/104_irrigation_scheduling/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/104_irrigation_scheduling/config.json \
+    <span class="flag">--output</span> use_cases/104_irrigation_scheduling/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/104_irrigation_scheduling/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/104_irrigation_scheduling/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/104_irrigation_scheduling/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/104_irrigation_scheduling/config.json \
+    <span class="flag">--output</span> use_cases/104_irrigation_scheduling/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>central_composite</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (water_use_L &#x2193;, crop_yield &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>22</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: water_use_L</h3>
+    <p>Top factors: emitter_spacing (48.4%), interval_hrs (36.2%), drip_rate (15.4%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/104_pareto_water_use_L.png" alt="Pareto chart for water_use_L">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/104_main_effects_water_use_L.png" alt="Main effects plot for water_use_L">
+      </div>
+    </div>
+
+    <h3>Response: crop_yield</h3>
+    <p>Top factors: emitter_spacing (43.6%), interval_hrs (34.1%), drip_rate (22.4%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/104_pareto_crop_yield.png" alt="Pareto chart for crop_yield">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/104_main_effects_crop_yield.png" alt="Main effects plot for crop_yield">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">crop yield drip rate vs emitter spacing</p>
+      <img src="../images/104_rsm_crop_yield_drip_rate_vs_emitter_spacing.png" alt="RSM surface: crop yield drip rate vs emitter spacing" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">crop yield drip rate vs interval hrs</p>
+      <img src="../images/104_rsm_crop_yield_drip_rate_vs_interval_hrs.png" alt="RSM surface: crop yield drip rate vs interval hrs" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">crop yield interval hrs vs emitter spacing</p>
+      <img src="../images/104_rsm_crop_yield_interval_hrs_vs_emitter_spacing.png" alt="RSM surface: crop yield interval hrs vs emitter spacing" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">water use L drip rate vs emitter spacing</p>
+      <img src="../images/104_rsm_water_use_L_drip_rate_vs_emitter_spacing.png" alt="RSM surface: water use L drip rate vs emitter spacing" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">water use L drip rate vs interval hrs</p>
+      <img src="../images/104_rsm_water_use_L_drip_rate_vs_interval_hrs.png" alt="RSM surface: water use L drip rate vs interval hrs" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">water use L interval hrs vs emitter spacing</p>
+      <img src="../images/104_rsm_water_use_L_interval_hrs_vs_emitter_spacing.png" alt="RSM surface: water use L interval hrs vs emitter spacing" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_water_use_L_drip_rate_vs_interval_hrs.png
+  RSM surface: rsm_water_use_L_drip_rate_vs_emitter_spacing.png
+  RSM surface: rsm_water_use_L_interval_hrs_vs_emitter_spacing.png
+  RSM surface: rsm_crop_yield_drip_rate_vs_interval_hrs.png
+  RSM surface: rsm_crop_yield_drip_rate_vs_emitter_spacing.png
+  RSM surface: rsm_crop_yield_interval_hrs_vs_emitter_spacing.png
+
+=== Main Effects: water_use_L ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+emitter_spacing         21.6000       1.9368            48.4%
+interval_hrs            16.1500       1.9368            36.2%
+drip_rate                6.8750       1.9368            15.4%
+
+=== Summary Statistics: water_use_L ===
+
+drip_rate:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -0.238613           1    21.1000     0.0000    21.1000    21.1000
+  1                   4    27.0750    13.9560    10.5000    44.6000
+  2.5                12    27.5083     8.0831    15.0000    45.5000
+  4                   4    27.9750    11.3828    16.2000    43.1000
+  5.23861             1    26.5000     0.0000    26.5000    26.5000
+
+interval_hrs:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -11.3406            1    35.1000     0.0000    35.1000    35.1000
+  27                 12    26.7500     7.7539    15.0000    45.5000
+  48                  4    35.6000     9.6523    25.6000    44.6000
+  6                   4    19.4500     7.6046    10.5000    27.6000
+  65.3406             1    21.6000     0.0000    21.6000    21.6000
+
+emitter_spacing:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  20                  4    24.6250     5.7968    16.2000    29.1000
+  35                 12    27.1750     6.8778    21.1000    45.5000
+  50                  4    30.4250    16.3966    10.5000    44.6000
+  62.3861             1    15.0000     0.0000    15.0000    15.0000
+  7.61387             1    36.6000     0.0000    36.6000    36.6000
+
+=== Main Effects: crop_yield ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+emitter_spacing          2.2200       0.1759            43.6%
+interval_hrs             1.7375       0.1759            34.1%
+drip_rate                1.1400       0.1759            22.4%
+
+=== Summary Statistics: crop_yield ===
+
+drip_rate:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -0.238613           1     1.3700     0.0000     1.3700     1.3700
+  1                   4     1.5525     0.9403     0.3800     2.3900
+  2.5                12     2.0275     0.8443     0.6000     2.9700
+  4                   4     1.9600     0.9080     0.6000     2.4700
+  5.23861             1     2.5100     0.0000     2.5100     2.5100
+
+interval_hrs:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -11.3406            1     1.3400     0.0000     1.3400     1.3400
+  27                 12     2.1883     0.7207     0.6000     2.9700
+  48                  4     2.3475     0.0834     2.2300     2.4200
+  6                   4     1.1650     0.9382     0.3800     2.4700
+  65.3406             1     0.6100     0.0000     0.6100     0.6100
+
+emitter_spacing:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  20                  4     1.6550     0.9012     0.6000     2.4200
+  35                 12     2.0658     0.7276     0.6100     2.9700
+  50                  4     1.8575     0.9899     0.3800     2.4700
+  62.3861             1     0.6000     0.0000     0.6000     0.6000
+  7.61387             1     2.8200     0.0000     2.8200     2.8200
+
+Pareto chart (water_use_L): use_cases/104_irrigation_scheduling/results/analysis/pareto_water_use_L.png
+
+Pareto chart (crop_yield): use_cases/104_irrigation_scheduling/results/analysis/pareto_crop_yield.png
+Main effects (water_use_L): use_cases/104_irrigation_scheduling/results/analysis/main_effects_water_use_L.png
+Main effects (crop_yield): use_cases/104_irrigation_scheduling/results/analysis/main_effects_crop_yield.png</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: water_use_L ===
+Direction: minimize
+
+Best observed run: #21
+  drip_rate = 2.5
+  interval_hrs = 27
+  emitter_spacing = 35
+  Value: 10.5
+
+RSM Model (linear, R² = 0.0518, Adj R² = -0.1063):
+  Coefficients:
+    intercept                      +27.1773
+    drip_rate                      -1.9860
+    interval_hrs                   +1.4199
+    emitter_spacing                +0.3933
+
+RSM Model (quadratic, R² = 0.3081, Adj R² = -0.2108):
+  Coefficients:
+    intercept                      +24.4141
+    drip_rate                      -1.9860
+    interval_hrs                   +1.4199
+    emitter_spacing                +0.3933
+    drip_rate*interval_hrs         +2.7000
+    drip_rate*emitter_spacing      -2.8250
+    interval_hrs*emitter_spacing   -1.2250
+    drip_rate^2                    -0.6884
+    interval_hrs^2                 +1.1566
+    emitter_spacing^2              +3.6766
+
+  Curvature analysis:
+    emitter_spacing                coef=+3.6766  convex (has a minimum)
+    interval_hrs                   coef=+1.1566  convex (has a minimum)
+    drip_rate                      coef=-0.6884  concave (has a maximum)
+
+  Notable interactions:
+    drip_rate*emitter_spacing      coef=-2.8250  (antagonistic)
+    drip_rate*interval_hrs         coef=+2.7000  (synergistic)
+    interval_hrs*emitter_spacing   coef=-1.2250  (antagonistic)
+
+  Predicted optimum (from linear model):
+    drip_rate = 1
+    interval_hrs = 48
+    emitter_spacing = 50
+    Predicted value: 30.9765
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. emitter_spacing  (effect: 19.3, contribution: 44.7%)
+  2. drip_rate  (effect: 16.2, contribution: 37.6%)
+  3. interval_hrs  (effect: 7.6, contribution: 17.7%)
+
+=== Optimization: crop_yield ===
+Direction: maximize
+
+Best observed run: #16
+  drip_rate = 4
+  interval_hrs = 48
+  emitter_spacing = 20
+  Value: 2.97
+
+RSM Model (linear, R² = 0.1404, Adj R² = -0.0028):
+  Coefficients:
+    intercept                      +1.9209
+    drip_rate                      -0.2341
+    interval_hrs                   -0.0353
+    emitter_spacing                -0.2844
+
+RSM Model (quadratic, R² = 0.3224, Adj R² = -0.1858):
+  Coefficients:
+    intercept                      +1.6622
+    drip_rate                      -0.2341
+    interval_hrs                   -0.0353
+    emitter_spacing                -0.2844
+    drip_rate*interval_hrs         -0.0425
+    drip_rate*emitter_spacing      -0.0775
+    interval_hrs*emitter_spacing   -0.3500
+    drip_rate^2                    +0.0103
+    interval_hrs^2                 +0.1153
+    emitter_spacing^2              +0.2623
+
+  Curvature analysis:
+    emitter_spacing                coef=+0.2623  convex (has a minimum)
+    interval_hrs                   coef=+0.1153  convex (has a minimum)
+    drip_rate                      coef=+0.0103  negligible curvature
+
+  Notable interactions:
+    interval_hrs*emitter_spacing   coef=-0.3500  (antagonistic)
+
+  Predicted optimum (from linear model):
+    drip_rate = 1
+    interval_hrs = 6
+    emitter_spacing = 20
+    Predicted value: 2.4748
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. drip_rate  (effect: 1.9, contribution: 44.8%)
+  2. interval_hrs  (effect: 1.3, contribution: 30.6%)
+  3. emitter_spacing  (effect: 1.0, contribution: 24.6%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="103-soil-amendment.html">&larr; Previous: Soil Amendment Blend</a>
+    <a href="105-greenhouse-climate.html">Next: Greenhouse Climate Control &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

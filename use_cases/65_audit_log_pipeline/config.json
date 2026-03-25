@@ -1,0 +1,86 @@
+{
+    "metadata": {
+        "name": "Audit Log Pipeline",
+        "description": "Fractional factorial of 5 audit log pipeline parameters for ingest rate and latency"
+    },
+    "factors": [
+        {
+            "name": "batch_size",
+            "levels": [
+                "100",
+                "10000"
+            ],
+            "type": "continuous",
+            "unit": "events",
+            "description": "Events per batch"
+        },
+        {
+            "name": "flush_interval_ms",
+            "levels": [
+                "100",
+                "5000"
+            ],
+            "type": "continuous",
+            "unit": "ms",
+            "description": "Flush interval"
+        },
+        {
+            "name": "compression_level",
+            "levels": [
+                "1",
+                "9"
+            ],
+            "type": "continuous",
+            "unit": "level",
+            "description": "Compression level"
+        },
+        {
+            "name": "buffer_pool_mb",
+            "levels": [
+                "32",
+                "512"
+            ],
+            "type": "continuous",
+            "unit": "MB",
+            "description": "In-memory buffer pool size"
+        },
+        {
+            "name": "writer_threads",
+            "levels": [
+                "1",
+                "8"
+            ],
+            "type": "continuous",
+            "unit": "threads",
+            "description": "Parallel writer threads"
+        }
+    ],
+    "fixed_factors": {
+        "storage": "s3",
+        "format": "json_lines"
+    },
+    "responses": [
+        {
+            "name": "ingest_rate_eps",
+            "optimize": "maximize",
+            "unit": "events/s",
+            "description": "Event ingestion rate"
+        },
+        {
+            "name": "end_to_end_latency_ms",
+            "optimize": "minimize",
+            "unit": "ms",
+            "description": "End-to-end event latency"
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "use_cases/65_audit_log_pipeline/sim.sh",
+        "operation": "fractional_factorial",
+        "processed_directory": "use_cases/65_audit_log_pipeline/results/analysis",
+        "out_directory": "use_cases/65_audit_log_pipeline/results"
+    }
+}

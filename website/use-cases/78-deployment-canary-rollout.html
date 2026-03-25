@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deployment Canary Rollout &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #fae8ff, #f0abfc);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x2699;</div>
+    <div class="uc-badge" style="background:rgba(192,38,211,.12);color:#c026d3;">Box-Behnken Design</div>
+    <h1>Deployment Canary Rollout</h1>
+    <p class="uc-subtitle">Box-Behnken design to tune canary percentage, evaluation window, and error threshold for rollout safety</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>canary_pct</code></td><td>5</td><td>25</td><td>%</td></tr>
+            <tr><td><code>evaluation_window_min</code></td><td>5</td><td>30</td><td>min</td></tr>
+            <tr><td><code>error_threshold_pct</code></td><td>0.5</td><td>5.0</td><td>%</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> orchestrator = kubernetes, strategy = canary</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>rollout_safety_score</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>score</td></tr>
+            <tr><td><code>deployment_time_min</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>min</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/78_deployment_canary_rollout/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Deployment Canary Rollout&quot;,
+    &quot;description&quot;: &quot;Box-Behnken design to tune canary percentage, evaluation window, and error threshold for rollout safety&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;canary_pct&quot;,
+      &quot;levels&quot;: [
+        &quot;5&quot;,
+        &quot;25&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;evaluation_window_min&quot;,
+      &quot;levels&quot;: [
+        &quot;5&quot;,
+        &quot;30&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;min&quot;
+    },
+    {
+      &quot;name&quot;: &quot;error_threshold_pct&quot;,
+      &quot;levels&quot;: [
+        &quot;0.5&quot;,
+        &quot;5.0&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;orchestrator&quot;: &quot;kubernetes&quot;,
+    &quot;strategy&quot;: &quot;canary&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;rollout_safety_score&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;score&quot;
+    },
+    {
+      &quot;name&quot;: &quot;deployment_time_min&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;min&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;box_behnken&quot;,
+    &quot;test_script&quot;: &quot;use_cases/78_deployment_canary_rollout/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Box-Behnken Design produces <strong>15 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>canary_pct</code></th><th><code>evaluation_window_min</code></th><th><code>error_threshold_pct</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>15</td><td>5</td><td>0.5</td></tr>
+        <tr><td>2</td><td>15</td><td>17.5</td><td>2.75</td></tr>
+        <tr><td>3</td><td>25</td><td>17.5</td><td>5</td></tr>
+        <tr><td>4</td><td>25</td><td>17.5</td><td>0.5</td></tr>
+        <tr><td>5</td><td>15</td><td>17.5</td><td>2.75</td></tr>
+        <tr><td>6</td><td>15</td><td>17.5</td><td>2.75</td></tr>
+        <tr><td>7</td><td>5</td><td>17.5</td><td>5</td></tr>
+        <tr><td>8</td><td>25</td><td>5</td><td>2.75</td></tr>
+        <tr><td>9</td><td>15</td><td>5</td><td>5</td></tr>
+        <tr><td>10</td><td>25</td><td>30</td><td>2.75</td></tr>
+        <tr><td>11</td><td>5</td><td>17.5</td><td>0.5</td></tr>
+        <tr><td>12</td><td>15</td><td>30</td><td>5</td></tr>
+        <tr><td>13</td><td>5</td><td>5</td><td>2.75</td></tr>
+        <tr><td>14</td><td>5</td><td>30</td><td>2.75</td></tr>
+        <tr><td>15</td><td>15</td><td>30</td><td>0.5</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/78_deployment_canary_rollout/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/78_deployment_canary_rollout/config.json \
+    <span class="flag">--output</span> use_cases/78_deployment_canary_rollout/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/78_deployment_canary_rollout/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/78_deployment_canary_rollout/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/78_deployment_canary_rollout/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/78_deployment_canary_rollout/config.json \
+    <span class="flag">--output</span> use_cases/78_deployment_canary_rollout/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>box_behnken</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (rollout_safety_score &#x2191;, deployment_time_min &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>15</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: rollout_safety_score</h3>
+    <p>Top factors: error_threshold_pct (54.7%), canary_pct (25.4%), evaluation_window_min (19.9%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/78_pareto_rollout_safety_score.png" alt="Pareto chart for rollout_safety_score">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/78_main_effects_rollout_safety_score.png" alt="Main effects plot for rollout_safety_score">
+      </div>
+    </div>
+
+    <h3>Response: deployment_time_min</h3>
+    <p>Top factors: canary_pct (58.4%), error_threshold_pct (22.0%), evaluation_window_min (19.6%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/78_pareto_deployment_time_min.png" alt="Pareto chart for deployment_time_min">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/78_main_effects_deployment_time_min.png" alt="Main effects plot for deployment_time_min">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">deployment time min canary pct vs error threshold pct</p>
+      <img src="../images/78_rsm_deployment_time_min_canary_pct_vs_error_threshold_pct.png" alt="RSM surface: deployment time min canary pct vs error threshold pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">deployment time min canary pct vs evaluation window min</p>
+      <img src="../images/78_rsm_deployment_time_min_canary_pct_vs_evaluation_window_min.png" alt="RSM surface: deployment time min canary pct vs evaluation window min" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">deployment time min evaluation window min vs error threshold pct</p>
+      <img src="../images/78_rsm_deployment_time_min_evaluation_window_min_vs_error_threshold_pct.png" alt="RSM surface: deployment time min evaluation window min vs error threshold pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rollout safety score canary pct vs error threshold pct</p>
+      <img src="../images/78_rsm_rollout_safety_score_canary_pct_vs_error_threshold_pct.png" alt="RSM surface: rollout safety score canary pct vs error threshold pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rollout safety score canary pct vs evaluation window min</p>
+      <img src="../images/78_rsm_rollout_safety_score_canary_pct_vs_evaluation_window_min.png" alt="RSM surface: rollout safety score canary pct vs evaluation window min" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">rollout safety score evaluation window min vs error threshold pct</p>
+      <img src="../images/78_rsm_rollout_safety_score_evaluation_window_min_vs_error_threshold_pct.png" alt="RSM surface: rollout safety score evaluation window min vs error threshold pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: rollout_safety_score ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+error_threshold_pct     10.9679       2.8303            54.7%
+canary_pct               5.1000       2.8303            25.4%
+evaluation_window_min     3.9893       2.8303            19.9%
+
+=== Summary Statistics: rollout_safety_score ===
+
+canary_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  15                  7    70.5286     8.9453    57.1000    84.4000
+  25                  4    66.2500    13.3827    46.2000    73.7000
+  5                   4    71.3500    14.1620    54.6000    84.3000
+
+evaluation_window_min:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  17.5                7    68.0857    12.7675    46.2000    81.8000
+  30                  4    69.8000    11.7004    57.1000    84.4000
+  5                   4    72.0750     9.1798    63.6000    84.3000
+
+error_threshold_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.5                 4    62.9750    16.5776    46.2000    84.4000
+  2.75                7    73.9429     5.8152    64.7000    84.3000
+  5                   4    68.6500    10.7040    57.1000    81.8000
+
+=== Main Effects: deployment_time_min ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+canary_pct               5.2607       1.5394            58.4%
+error_threshold_pct      1.9786       1.5394            22.0%
+evaluation_window_min     1.7679       1.5394            19.6%
+
+=== Summary Statistics: deployment_time_min ===
+
+canary_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  15                  7    12.4857     7.1128     3.1000    21.8000
+  25                  4     7.2250     3.3500     3.1000    10.1000
+  5                   4    10.3000     5.4693     3.3000    16.4000
+
+evaluation_window_min:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  17.5                7    11.3429     4.9514     3.1000    19.1000
+  30                  4     9.5750     8.7755     3.1000    21.8000
+  5                   4     9.9500     6.0523     3.8000    16.4000
+
+error_threshold_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.5                 4     9.5500     8.6551     3.1000    21.8000
+  2.75                7    11.5286     5.6882     3.3000    19.1000
+  5                   4     9.6500     4.6494     3.1000    13.7000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: rollout_safety_score ===
+Direction: maximize
+
+Best observed run: #10
+  canary_pct = 15
+  evaluation_window_min = 17.5
+  error_threshold_pct = 2.75
+  Value: 84.4
+
+RSM Model (linear, R² = 0.0963, Adj R² = -0.1502):
+  Coefficients:
+    intercept                      +69.6067
+    canary_pct                     -2.7750
+    evaluation_window_min          +0.4625
+    error_threshold_pct            -3.5125
+
+RSM Model (quadratic, R² = 0.5006, Adj R² = -0.3984):
+  Coefficients:
+    intercept                      +67.5333
+    canary_pct                     -2.7750
+    evaluation_window_min          +0.4625
+    error_threshold_pct            -3.5125
+    canary_pct*evaluation_window_min -4.5500
+    canary_pct*error_threshold_pct -0.2500
+    evaluation_window_min*error_threshold_pct -3.8250
+    canary_pct^2                   -4.9542
+    evaluation_window_min^2        -1.5792
+    error_threshold_pct^2          +10.4208
+
+  Curvature analysis:
+    error_threshold_pct            coef=+10.4208  convex (has a minimum)
+    canary_pct                     coef=-4.9542  concave (has a maximum)
+    evaluation_window_min          coef=-1.5792  concave (has a maximum)
+
+  Notable interactions:
+    canary_pct*evaluation_window_min coef=-4.5500  (antagonistic)
+    evaluation_window_min*error_threshold_pct coef=-3.8250  (antagonistic)
+
+  Predicted optimum (from linear model):
+    canary_pct = 5
+    evaluation_window_min = 17.5
+    error_threshold_pct = 0.5
+    Predicted value: 75.8942
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. error_threshold_pct  (effect: 14.4, contribution: 57.2%)
+  2. canary_pct  (effect: 8.4, contribution: 33.2%)
+  3. evaluation_window_min  (effect: 2.4, contribution: 9.7%)
+
+=== Optimization: deployment_time_min ===
+Direction: minimize
+
+Best observed run: #9
+  canary_pct = 25
+  evaluation_window_min = 30
+  error_threshold_pct = 2.75
+  Value: 3.1
+
+RSM Model (linear, R² = 0.0885, Adj R² = -0.1601):
+  Coefficients:
+    intercept                      +10.5000
+    canary_pct                     +1.1750
+    evaluation_window_min          +2.0250
+    error_threshold_pct            -0.1500
+
+RSM Model (quadratic, R² = 0.5105, Adj R² = -0.3707):
+  Coefficients:
+    intercept                      +15.0000
+    canary_pct                     +1.1750
+    evaluation_window_min          +2.0250
+    error_threshold_pct            -0.1500
+    canary_pct*evaluation_window_min -2.7750
+    canary_pct*error_threshold_pct +2.4250
+    evaluation_window_min*error_threshold_pct -1.8750
+    canary_pct^2                   -5.2625
+    evaluation_window_min^2        -3.5125
+    error_threshold_pct^2          +0.3375
+
+  Curvature analysis:
+    canary_pct                     coef=-5.2625  concave (has a maximum)
+    evaluation_window_min          coef=-3.5125  concave (has a maximum)
+    error_threshold_pct            coef=+0.3375  convex (has a minimum)
+
+  Notable interactions:
+    canary_pct*evaluation_window_min coef=-2.7750  (antagonistic)
+    canary_pct*error_threshold_pct coef=+2.4250  (synergistic)
+    evaluation_window_min*error_threshold_pct coef=-1.8750  (antagonistic)
+
+  Predicted optimum (from linear model):
+    canary_pct = 25
+    evaluation_window_min = 30
+    error_threshold_pct = 2.75
+    Predicted value: 13.7000
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. canary_pct  (effect: 6.2, contribution: 49.6%)
+  2. evaluation_window_min  (effect: 5.2, contribution: 41.5%)
+  3. error_threshold_pct  (effect: 1.1, contribution: 8.9%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="77-cicd-pipeline-parallelism.html">&larr; Previous: CI/CD Pipeline Parallelism</a>
+    <a href="79-terraform-plan-optimization.html">Next: Terraform Plan Optimization &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

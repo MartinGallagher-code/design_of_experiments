@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Study Session Optimization &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #fce7f3, #fbcfe8);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F3CB;</div>
+    <div class="uc-badge" style="background:rgba(219,39,119,.12);color:#db2777;">Full Factorial Design</div>
+    <h1>Study Session Optimization</h1>
+    <p class="uc-subtitle">Full factorial of study block length, break duration, technique, and environment noise level for retention and attention span</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>block_min</code></td><td>15</td><td>50</td><td>min</td></tr>
+            <tr><td><code>break_min</code></td><td>3</td><td>15</td><td>min</td></tr>
+            <tr><td><code>active_recall_pct</code></td><td>0</td><td>100</td><td>%</td></tr>
+            <tr><td><code>noise_db</code></td><td>25</td><td>65</td><td>dB</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> subject = biology, total_hours = 3</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>retention_pct</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+            <tr><td><code>attention_score</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>pts</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/113_study_habit/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Study Session Optimization&quot;,
+    &quot;description&quot;: &quot;Full factorial of study block length, break duration, technique, and environment noise level for retention and attention span&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;block_min&quot;,
+      &quot;levels&quot;: [
+        &quot;15&quot;,
+        &quot;50&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;min&quot;
+    },
+    {
+      &quot;name&quot;: &quot;break_min&quot;,
+      &quot;levels&quot;: [
+        &quot;3&quot;,
+        &quot;15&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;min&quot;
+    },
+    {
+      &quot;name&quot;: &quot;active_recall_pct&quot;,
+      &quot;levels&quot;: [
+        &quot;0&quot;,
+        &quot;100&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;noise_db&quot;,
+      &quot;levels&quot;: [
+        &quot;25&quot;,
+        &quot;65&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;dB&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;subject&quot;: &quot;biology&quot;,
+    &quot;total_hours&quot;: &quot;3&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;retention_pct&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;attention_score&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;pts&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;full_factorial&quot;,
+    &quot;test_script&quot;: &quot;use_cases/113_study_habit/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Full Factorial Design produces <strong>16 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>block_min</code></th><th><code>break_min</code></th><th><code>active_recall_pct</code></th><th><code>noise_db</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>15</td><td>15</td><td>100</td><td>65</td></tr>
+        <tr><td>2</td><td>50</td><td>3</td><td>0</td><td>65</td></tr>
+        <tr><td>3</td><td>15</td><td>15</td><td>0</td><td>65</td></tr>
+        <tr><td>4</td><td>15</td><td>15</td><td>100</td><td>25</td></tr>
+        <tr><td>5</td><td>50</td><td>15</td><td>100</td><td>25</td></tr>
+        <tr><td>6</td><td>50</td><td>3</td><td>100</td><td>25</td></tr>
+        <tr><td>7</td><td>50</td><td>15</td><td>0</td><td>25</td></tr>
+        <tr><td>8</td><td>50</td><td>3</td><td>0</td><td>25</td></tr>
+        <tr><td>9</td><td>15</td><td>3</td><td>0</td><td>65</td></tr>
+        <tr><td>10</td><td>15</td><td>3</td><td>100</td><td>25</td></tr>
+        <tr><td>11</td><td>50</td><td>15</td><td>0</td><td>65</td></tr>
+        <tr><td>12</td><td>50</td><td>15</td><td>100</td><td>65</td></tr>
+        <tr><td>13</td><td>15</td><td>15</td><td>0</td><td>25</td></tr>
+        <tr><td>14</td><td>50</td><td>3</td><td>100</td><td>65</td></tr>
+        <tr><td>15</td><td>15</td><td>3</td><td>0</td><td>25</td></tr>
+        <tr><td>16</td><td>15</td><td>3</td><td>100</td><td>65</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/113_study_habit/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/113_study_habit/config.json \
+    <span class="flag">--output</span> use_cases/113_study_habit/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/113_study_habit/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/113_study_habit/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/113_study_habit/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/113_study_habit/config.json \
+    <span class="flag">--output</span> use_cases/113_study_habit/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>full_factorial</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 4)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (retention_pct &#x2191;, attention_score &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>16</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: retention_pct</h3>
+    <p>Top factors: block_min (33.7%), active_recall_pct (25.6%), break_min (22.1%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/113_pareto_retention_pct.png" alt="Pareto chart for retention_pct">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/113_main_effects_retention_pct.png" alt="Main effects plot for retention_pct">
+      </div>
+    </div>
+
+    <h3>Response: attention_score</h3>
+    <p>Top factors: active_recall_pct (46.1%), block_min (30.5%), noise_db (13.6%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/113_pareto_attention_score.png" alt="Pareto chart for attention_score">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/113_main_effects_attention_score.png" alt="Main effects plot for attention_score">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">attention score active recall pct vs noise db</p>
+      <img src="../images/113_rsm_attention_score_active_recall_pct_vs_noise_db.png" alt="RSM surface: attention score active recall pct vs noise db" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">attention score block min vs active recall pct</p>
+      <img src="../images/113_rsm_attention_score_block_min_vs_active_recall_pct.png" alt="RSM surface: attention score block min vs active recall pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">attention score block min vs break min</p>
+      <img src="../images/113_rsm_attention_score_block_min_vs_break_min.png" alt="RSM surface: attention score block min vs break min" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">attention score block min vs noise db</p>
+      <img src="../images/113_rsm_attention_score_block_min_vs_noise_db.png" alt="RSM surface: attention score block min vs noise db" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">attention score break min vs active recall pct</p>
+      <img src="../images/113_rsm_attention_score_break_min_vs_active_recall_pct.png" alt="RSM surface: attention score break min vs active recall pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">attention score break min vs noise db</p>
+      <img src="../images/113_rsm_attention_score_break_min_vs_noise_db.png" alt="RSM surface: attention score break min vs noise db" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">retention pct active recall pct vs noise db</p>
+      <img src="../images/113_rsm_retention_pct_active_recall_pct_vs_noise_db.png" alt="RSM surface: retention pct active recall pct vs noise db" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">retention pct block min vs active recall pct</p>
+      <img src="../images/113_rsm_retention_pct_block_min_vs_active_recall_pct.png" alt="RSM surface: retention pct block min vs active recall pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">retention pct block min vs break min</p>
+      <img src="../images/113_rsm_retention_pct_block_min_vs_break_min.png" alt="RSM surface: retention pct block min vs break min" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">retention pct block min vs noise db</p>
+      <img src="../images/113_rsm_retention_pct_block_min_vs_noise_db.png" alt="RSM surface: retention pct block min vs noise db" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">retention pct break min vs active recall pct</p>
+      <img src="../images/113_rsm_retention_pct_break_min_vs_active_recall_pct.png" alt="RSM surface: retention pct break min vs active recall pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">retention pct break min vs noise db</p>
+      <img src="../images/113_rsm_retention_pct_break_min_vs_noise_db.png" alt="RSM surface: retention pct break min vs noise db" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_retention_pct_block_min_vs_break_min.png
+  RSM surface: rsm_retention_pct_block_min_vs_active_recall_pct.png
+  RSM surface: rsm_retention_pct_block_min_vs_noise_db.png
+  RSM surface: rsm_retention_pct_break_min_vs_active_recall_pct.png
+  RSM surface: rsm_retention_pct_break_min_vs_noise_db.png
+  RSM surface: rsm_retention_pct_active_recall_pct_vs_noise_db.png
+  RSM surface: rsm_attention_score_block_min_vs_break_min.png
+  RSM surface: rsm_attention_score_block_min_vs_active_recall_pct.png
+  RSM surface: rsm_attention_score_block_min_vs_noise_db.png
+  RSM surface: rsm_attention_score_break_min_vs_active_recall_pct.png
+  RSM surface: rsm_attention_score_break_min_vs_noise_db.png
+  RSM surface: rsm_attention_score_active_recall_pct_vs_noise_db.png
+
+=== Main Effects: retention_pct ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+block_min               -7.2500       2.7109            33.7%
+active_recall_pct        5.5000       2.7109            25.6%
+break_min               -4.7500       2.7109            22.1%
+noise_db                -4.0000       2.7109            18.6%
+
+=== Interaction Effects: retention_pct ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+break_min            active_recall_pct         11.0000            34.9%
+block_min            break_min                 -5.2500            16.7%
+break_min            noise_db                   5.0000            15.9%
+active_recall_pct    noise_db                   4.7500            15.1%
+block_min            noise_db                  -3.5000            11.1%
+block_min            active_recall_pct         -2.0000             6.3%
+
+=== Summary Statistics: retention_pct ===
+
+block_min:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  15                  8    59.7500    10.5526    48.0000    74.0000
+  50                  8    52.5000    10.5153    42.0000    70.0000
+
+break_min:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  15                  8    58.5000     9.6954    47.0000    70.0000
+  3                   8    53.7500    12.0446    42.0000    74.0000
+
+active_recall_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   8    53.3750    11.0575    42.0000    70.0000
+  100                 8    58.8750    10.6024    47.0000    74.0000
+
+noise_db:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  25                  8    58.1250    12.5178    43.0000    74.0000
+  65                  8    54.1250     9.2804    42.0000    69.0000
+
+=== Main Effects: attention_score ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+active_recall_pct        0.8875       0.3343            46.1%
+block_min               -0.5875       0.3343            30.5%
+noise_db                -0.2625       0.3343            13.6%
+break_min               -0.1875       0.3343             9.7%
+
+=== Interaction Effects: attention_score ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+break_min            active_recall_pct          1.0125            24.0%
+block_min            break_min                 -0.9125            21.6%
+active_recall_pct    noise_db                  -0.9125            21.6%
+break_min            noise_db                   0.7125            16.9%
+block_min            noise_db                  -0.6375            15.1%
+block_min            active_recall_pct         -0.0375             0.9%
+
+=== Summary Statistics: attention_score ===
+
+block_min:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  15                  8     7.1375     1.3638     5.2000     9.1000
+  50                  8     6.5500     1.3320     4.4000     8.7000
+
+break_min:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  15                  8     6.9375     1.3027     5.2000     8.7000
+  3                   8     6.7500     1.4541     4.4000     9.1000
+
+active_recall_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   8     6.4000     1.1263     4.4000     7.7000
+  100                 8     7.2875     1.4535     5.2000     9.1000
+
+noise_db:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  25                  8     6.9750     1.1585     5.7000     8.7000
+  65                  8     6.7125     1.5652     4.4000     9.1000
+
+Pareto chart (retention_pct): use_cases/113_study_habit/results/analysis/pareto_retention_pct.png
+
+Pareto chart (attention_score): use_cases/113_study_habit/results/analysis/pareto_attention_score.png
+Main effects (retention_pct): use_cases/113_study_habit/results/analysis/main_effects_retention_pct.png
+Main effects (attention_score): use_cases/113_study_habit/results/analysis/main_effects_attention_score.png</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: retention_pct ===
+Direction: maximize
+
+Best observed run: #5
+  block_min = 15
+  break_min = 15
+  active_recall_pct = 0
+  noise_db = 25
+  Value: 74.0
+
+RSM Model (linear, R² = 0.5328, Adj R² = 0.3629):
+  Coefficients:
+    intercept                      +56.1250
+    block_min                      -1.7500
+    break_min                      +4.6250
+    active_recall_pct              -5.6250
+    noise_db                       +1.6250
+
+RSM Model (quadratic, R² = 0.7827, Adj R² = -2.2594):
+  Coefficients:
+    intercept                      +11.2250
+    block_min                      -1.7500
+    break_min                      +4.6250
+    active_recall_pct              -5.6250
+    noise_db                       +1.6250
+    block_min*break_min            -2.0000
+    block_min*active_recall_pct    +0.2500
+    block_min*noise_db             -1.7500
+    break_min*active_recall_pct    -4.1250
+    break_min*noise_db             -0.8750
+    active_recall_pct*noise_db     -1.6250
+    block_min^2                    +11.2250
+    break_min^2                    +11.2250
+    active_recall_pct^2            +11.2250
+    noise_db^2                     +11.2250
+
+  Curvature analysis:
+    block_min                      coef=+11.2250  convex (has a minimum)
+    break_min                      coef=+11.2250  convex (has a minimum)
+    active_recall_pct              coef=+11.2250  convex (has a minimum)
+    noise_db                       coef=+11.2250  convex (has a minimum)
+
+  Notable interactions:
+    break_min*active_recall_pct    coef=-4.1250  (antagonistic)
+    block_min*break_min            coef=-2.0000  (antagonistic)
+    block_min*noise_db             coef=-1.7500  (antagonistic)
+    active_recall_pct*noise_db     coef=-1.6250  (antagonistic)
+    break_min*noise_db             coef=-0.8750  (antagonistic)
+
+  Predicted optimum (from linear model):
+    block_min = 15
+    break_min = 15
+    active_recall_pct = 0
+    noise_db = 65
+    Predicted value: 69.7500
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
+
+Factor importance:
+  1. active_recall_pct  (effect: -11.2, contribution: 41.3%)
+  2. break_min  (effect: -9.2, contribution: 33.9%)
+  3. block_min  (effect: -3.5, contribution: 12.8%)
+  4. noise_db  (effect: 3.2, contribution: 11.9%)
+
+=== Optimization: attention_score ===
+Direction: maximize
+
+Best observed run: #4
+  block_min = 50
+  break_min = 15
+  active_recall_pct = 0
+  noise_db = 25
+  Value: 9.1
+
+RSM Model (linear, R² = 0.0439, Adj R² = -0.3038):
+  Coefficients:
+    intercept                      +6.8438
+    block_min                      +0.1063
+    break_min                      +0.1437
+    active_recall_pct              -0.1563
+    noise_db                       -0.1312
+
+RSM Model (quadratic, R² = 0.4331, Adj R² = -7.5031):
+  Coefficients:
+    intercept                      +1.3688
+    block_min                      +0.1062
+    break_min                      +0.1437
+    active_recall_pct              -0.1563
+    noise_db                       -0.1312
+    block_min*break_min            -0.3938
+    block_min*active_recall_pct    -0.0438
+    block_min*noise_db             -0.2437
+    break_min*active_recall_pct    -0.3062
+    break_min*noise_db             -0.3813
+    active_recall_pct*noise_db     +0.4437
+    block_min^2                    +1.3688
+    break_min^2                    +1.3688
+    active_recall_pct^2            +1.3688
+    noise_db^2                     +1.3688
+
+  Curvature analysis:
+    block_min                      coef=+1.3688  convex (has a minimum)
+    break_min                      coef=+1.3688  convex (has a minimum)
+    active_recall_pct              coef=+1.3688  convex (has a minimum)
+    noise_db                       coef=+1.3688  convex (has a minimum)
+
+  Notable interactions:
+    active_recall_pct*noise_db     coef=+0.4437  (synergistic)
+    block_min*break_min            coef=-0.3938  (antagonistic)
+    break_min*noise_db             coef=-0.3813  (antagonistic)
+    break_min*active_recall_pct    coef=-0.3062  (antagonistic)
+
+  Predicted optimum (from linear model):
+    block_min = 50
+    break_min = 15
+    active_recall_pct = 0
+    noise_db = 25
+    Predicted value: 7.3813
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. active_recall_pct  (effect: -0.3, contribution: 29.1%)
+  2. break_min  (effect: -0.3, contribution: 26.7%)
+  3. noise_db  (effect: -0.3, contribution: 24.4%)
+  4. block_min  (effect: 0.2, contribution: 19.8%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="112-hydration-strategy.html">&larr; Previous: Athletic Hydration Strategy</a>
+    <a href="114-meal-timing.html">Next: Meal Timing and Energy Levels &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

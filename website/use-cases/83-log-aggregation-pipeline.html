@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log Aggregation Pipeline &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #fae8ff, #f0abfc);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x2699;</div>
+    <div class="uc-badge" style="background:rgba(192,38,211,.12);color:#c026d3;">Latin Hypercube Design</div>
+    <h1>Log Aggregation Pipeline</h1>
+    <p class="uc-subtitle">Latin Hypercube exploration of 4 log aggregation parameters for ingestion rate and query latency</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>batch_size_kb</code></td><td>64</td><td>2048</td><td>KB</td></tr>
+            <tr><td><code>flush_interval_sec</code></td><td>1</td><td>30</td><td>sec</td></tr>
+            <tr><td><code>parser_threads</code></td><td>1</td><td>16</td><td>threads</td></tr>
+            <tr><td><code>compression_ratio</code></td><td>1</td><td>9</td><td>level</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> stack = elk, retention_days = 30</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>ingestion_rate_gbps</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>Gbps</td></tr>
+            <tr><td><code>query_latency_ms</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>ms</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/83_log_aggregation_pipeline/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Log Aggregation Pipeline&quot;,
+    &quot;description&quot;: &quot;Latin Hypercube exploration of 4 log aggregation parameters for ingestion rate and query latency&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;batch_size_kb&quot;,
+      &quot;levels&quot;: [
+        &quot;64&quot;,
+        &quot;2048&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;KB&quot;
+    },
+    {
+      &quot;name&quot;: &quot;flush_interval_sec&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;30&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;sec&quot;
+    },
+    {
+      &quot;name&quot;: &quot;parser_threads&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;16&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;threads&quot;
+    },
+    {
+      &quot;name&quot;: &quot;compression_ratio&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;9&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;level&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;stack&quot;: &quot;elk&quot;,
+    &quot;retention_days&quot;: &quot;30&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;ingestion_rate_gbps&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;Gbps&quot;
+    },
+    {
+      &quot;name&quot;: &quot;query_latency_ms&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;ms&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;latin_hypercube&quot;,
+    &quot;test_script&quot;: &quot;use_cases/83_log_aggregation_pipeline/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Latin Hypercube Design produces <strong>10 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>batch_size_kb</code></th><th><code>flush_interval_sec</code></th><th><code>parser_threads</code></th><th><code>compression_ratio</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>86.1007</td><td>6.55913</td><td>2.69699</td><td>7.23039</td></tr>
+        <tr><td>2</td><td>922.695</td><td>7.80155</td><td>9.62893</td><td>2.04115</td></tr>
+        <tr><td>3</td><td>1525.52</td><td>15.9052</td><td>10.3569</td><td>1.57749</td></tr>
+        <tr><td>4</td><td>600.578</td><td>28</td><td>8.32899</td><td>8.88778</td></tr>
+        <tr><td>5</td><td>1369.56</td><td>12.535</td><td>1.41034</td><td>2.95294</td></tr>
+        <tr><td>6</td><td>2021.6</td><td>2.53856</td><td>12.9839</td><td>3.86469</td></tr>
+        <tr><td>7</td><td>1219.89</td><td>22.6788</td><td>6.12594</td><td>5.25029</td></tr>
+        <tr><td>8</td><td>424.407</td><td>25.2583</td><td>14.0216</td><td>4.27643</td></tr>
+        <tr><td>9</td><td>1679.53</td><td>14.9317</td><td>14.5614</td><td>6.00537</td></tr>
+        <tr><td>10</td><td>746.095</td><td>19.6303</td><td>4.03437</td><td>7.72703</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/83_log_aggregation_pipeline/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/83_log_aggregation_pipeline/config.json \
+    <span class="flag">--output</span> use_cases/83_log_aggregation_pipeline/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/83_log_aggregation_pipeline/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/83_log_aggregation_pipeline/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/83_log_aggregation_pipeline/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/83_log_aggregation_pipeline/config.json \
+    <span class="flag">--output</span> use_cases/83_log_aggregation_pipeline/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>latin_hypercube</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 4)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (ingestion_rate_gbps &#x2191;, query_latency_ms &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>10</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: ingestion_rate_gbps</h3>
+    <p>Top factors: batch_size_kb (25.0%), flush_interval_sec (25.0%), parser_threads (25.0%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/83_pareto_ingestion_rate_gbps.png" alt="Pareto chart for ingestion_rate_gbps">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/83_main_effects_ingestion_rate_gbps.png" alt="Main effects plot for ingestion_rate_gbps">
+      </div>
+    </div>
+
+    <h3>Response: query_latency_ms</h3>
+    <p>Top factors: batch_size_kb (25.0%), flush_interval_sec (25.0%), parser_threads (25.0%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/83_pareto_query_latency_ms.png" alt="Pareto chart for query_latency_ms">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/83_main_effects_query_latency_ms.png" alt="Main effects plot for query_latency_ms">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">ingestion rate gbps batch size kb vs compression ratio</p>
+      <img src="../images/83_rsm_ingestion_rate_gbps_batch_size_kb_vs_compression_ratio.png" alt="RSM surface: ingestion rate gbps batch size kb vs compression ratio" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">ingestion rate gbps batch size kb vs flush interval sec</p>
+      <img src="../images/83_rsm_ingestion_rate_gbps_batch_size_kb_vs_flush_interval_sec.png" alt="RSM surface: ingestion rate gbps batch size kb vs flush interval sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">ingestion rate gbps batch size kb vs parser threads</p>
+      <img src="../images/83_rsm_ingestion_rate_gbps_batch_size_kb_vs_parser_threads.png" alt="RSM surface: ingestion rate gbps batch size kb vs parser threads" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">ingestion rate gbps flush interval sec vs compression ratio</p>
+      <img src="../images/83_rsm_ingestion_rate_gbps_flush_interval_sec_vs_compression_ratio.png" alt="RSM surface: ingestion rate gbps flush interval sec vs compression ratio" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">ingestion rate gbps flush interval sec vs parser threads</p>
+      <img src="../images/83_rsm_ingestion_rate_gbps_flush_interval_sec_vs_parser_threads.png" alt="RSM surface: ingestion rate gbps flush interval sec vs parser threads" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">ingestion rate gbps parser threads vs compression ratio</p>
+      <img src="../images/83_rsm_ingestion_rate_gbps_parser_threads_vs_compression_ratio.png" alt="RSM surface: ingestion rate gbps parser threads vs compression ratio" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">query latency ms batch size kb vs compression ratio</p>
+      <img src="../images/83_rsm_query_latency_ms_batch_size_kb_vs_compression_ratio.png" alt="RSM surface: query latency ms batch size kb vs compression ratio" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">query latency ms batch size kb vs flush interval sec</p>
+      <img src="../images/83_rsm_query_latency_ms_batch_size_kb_vs_flush_interval_sec.png" alt="RSM surface: query latency ms batch size kb vs flush interval sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">query latency ms batch size kb vs parser threads</p>
+      <img src="../images/83_rsm_query_latency_ms_batch_size_kb_vs_parser_threads.png" alt="RSM surface: query latency ms batch size kb vs parser threads" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">query latency ms flush interval sec vs compression ratio</p>
+      <img src="../images/83_rsm_query_latency_ms_flush_interval_sec_vs_compression_ratio.png" alt="RSM surface: query latency ms flush interval sec vs compression ratio" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">query latency ms flush interval sec vs parser threads</p>
+      <img src="../images/83_rsm_query_latency_ms_flush_interval_sec_vs_parser_threads.png" alt="RSM surface: query latency ms flush interval sec vs parser threads" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">query latency ms parser threads vs compression ratio</p>
+      <img src="../images/83_rsm_query_latency_ms_parser_threads_vs_compression_ratio.png" alt="RSM surface: query latency ms parser threads vs compression ratio" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: ingestion_rate_gbps ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+batch_size_kb            2.3000       0.2231            25.0%
+flush_interval_sec       2.3000       0.2231            25.0%
+parser_threads           2.3000       0.2231            25.0%
+compression_ratio        2.3000       0.2231            25.0%
+
+=== Summary Statistics: ingestion_rate_gbps ===
+
+batch_size_kb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1058.25             1     3.7000     0.0000     3.7000     3.7000
+  115.551             1     1.7900     0.0000     1.7900     1.7900
+  1387.54             1     1.8200     0.0000     1.8200     1.8200
+  1554.79             1     2.0100     0.0000     2.0100     2.0100
+  1757.93             1     1.9500     0.0000     1.9500     1.9500
+  2023.45             1     2.1700     0.0000     2.1700     2.1700
+  346.209             1     2.6600     0.0000     2.6600     2.6600
+  640.162             1     1.4000     0.0000     1.4000     1.4000
+  793.458             1     2.6700     0.0000     2.6700     2.6700
+  962.747             1     3.1600     0.0000     3.1600     3.1600
+
+flush_interval_sec:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10.0293             1     1.7900     0.0000     1.7900     1.7900
+  13.0781             1     2.6700     0.0000     2.6700     2.6700
+  17.0062             1     1.8200     0.0000     1.8200     1.8200
+  18.8652             1     1.4000     0.0000     1.4000     1.4000
+  2.65821             1     1.9500     0.0000     1.9500     1.9500
+  22.4972             1     2.6600     0.0000     2.6600     2.6600
+  27.0315             1     3.7000     0.0000     3.7000     3.7000
+  28.0363             1     2.1700     0.0000     2.1700     2.1700
+  6.66297             1     3.1600     0.0000     3.1600     3.1600
+  8.38251             1     2.0100     0.0000     2.0100     2.0100
+
+parser_threads:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10.606              1     1.4000     0.0000     1.4000     1.4000
+  12.9749             1     1.8200     0.0000     1.8200     1.8200
+  13.0217             1     1.9500     0.0000     1.9500     1.9500
+  14.5598             1     2.1700     0.0000     2.1700     2.1700
+  2.08645             1     3.7000     0.0000     3.7000     3.7000
+  3.42079             1     2.6600     0.0000     2.6600     2.6600
+  4.9194              1     2.0100     0.0000     2.0100     2.0100
+  6.98928             1     1.7900     0.0000     1.7900     1.7900
+  8.31735             1     3.1600     0.0000     3.1600     3.1600
+  9.55269             1     2.6700     0.0000     2.6700     2.6700
+
+compression_ratio:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1.04475             1     1.7900     0.0000     1.7900     1.7900
+  2.08511             1     1.9500     0.0000     1.9500     1.9500
+  3.32756             1     3.7000     0.0000     3.7000     3.7000
+  3.72141             1     2.6700     0.0000     2.6700     2.6700
+  4.8464              1     2.1700     0.0000     2.1700     2.1700
+  5.34162             1     2.0100     0.0000     2.0100     2.0100
+  6.5077              1     2.6600     0.0000     2.6600     2.6600
+  7.2492              1     1.4000     0.0000     1.4000     1.4000
+  7.52598             1     3.1600     0.0000     3.1600     3.1600
+  8.93904             1     1.8200     0.0000     1.8200     1.8200
+
+=== Main Effects: query_latency_ms ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+batch_size_kb           37.0000       3.5628            25.0%
+flush_interval_sec      37.0000       3.5628            25.0%
+parser_threads          37.0000       3.5628            25.0%
+compression_ratio       37.0000       3.5628            25.0%
+
+=== Summary Statistics: query_latency_ms ===
+
+batch_size_kb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1058.25             1    68.0000     0.0000    68.0000    68.0000
+  115.551             1    82.0000     0.0000    82.0000    82.0000
+  1387.54             1    92.0000     0.0000    92.0000    92.0000
+  1554.79             1   105.0000     0.0000   105.0000   105.0000
+  1757.93             1    93.0000     0.0000    93.0000    93.0000
+  2023.45             1    84.0000     0.0000    84.0000    84.0000
+  346.209             1    75.0000     0.0000    75.0000    75.0000
+  640.162             1    92.0000     0.0000    92.0000    92.0000
+  793.458             1    72.0000     0.0000    72.0000    72.0000
+  962.747             1    81.0000     0.0000    81.0000    81.0000
+
+flush_interval_sec:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10.0293             1    82.0000     0.0000    82.0000    82.0000
+  13.0781             1    72.0000     0.0000    72.0000    72.0000
+  17.0062             1    92.0000     0.0000    92.0000    92.0000
+  18.8652             1    92.0000     0.0000    92.0000    92.0000
+  2.65821             1    93.0000     0.0000    93.0000    93.0000
+  22.4972             1    75.0000     0.0000    75.0000    75.0000
+  27.0315             1    68.0000     0.0000    68.0000    68.0000
+  28.0363             1    84.0000     0.0000    84.0000    84.0000
+  6.66297             1    81.0000     0.0000    81.0000    81.0000
+  8.38251             1   105.0000     0.0000   105.0000   105.0000
+
+parser_threads:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10.606              1    92.0000     0.0000    92.0000    92.0000
+  12.9749             1    92.0000     0.0000    92.0000    92.0000
+  13.0217             1    93.0000     0.0000    93.0000    93.0000
+  14.5598             1    84.0000     0.0000    84.0000    84.0000
+  2.08645             1    68.0000     0.0000    68.0000    68.0000
+  3.42079             1    75.0000     0.0000    75.0000    75.0000
+  4.9194              1   105.0000     0.0000   105.0000   105.0000
+  6.98928             1    82.0000     0.0000    82.0000    82.0000
+  8.31735             1    81.0000     0.0000    81.0000    81.0000
+  9.55269             1    72.0000     0.0000    72.0000    72.0000
+
+compression_ratio:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1.04475             1    82.0000     0.0000    82.0000    82.0000
+  2.08511             1    93.0000     0.0000    93.0000    93.0000
+  3.32756             1    68.0000     0.0000    68.0000    68.0000
+  3.72141             1    72.0000     0.0000    72.0000    72.0000
+  4.8464              1    84.0000     0.0000    84.0000    84.0000
+  5.34162             1   105.0000     0.0000   105.0000   105.0000
+  6.5077              1    75.0000     0.0000    75.0000    75.0000
+  7.2492              1    92.0000     0.0000    92.0000    92.0000
+  7.52598             1    81.0000     0.0000    81.0000    81.0000
+  8.93904             1    92.0000     0.0000    92.0000    92.0000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: ingestion_rate_gbps ===
+Direction: maximize
+
+Best observed run: #5
+  batch_size_kb = 1201.87
+  flush_interval_sec = 18.3335
+  parser_threads = 1.39971
+  compression_ratio = 5.93328
+  Value: 3.7
+
+RSM Model (linear, R² = 0.3944, Adj R² = -0.0901):
+  Coefficients:
+    intercept                      +2.3225
+    batch_size_kb                  -0.1387
+    flush_interval_sec             -0.6429
+    parser_threads                 -0.5054
+    compression_ratio              +0.1244
+
+  Predicted optimum (from linear model):
+    batch_size_kb = 67.8555
+    flush_interval_sec = 12.4164
+    parser_threads = 6.27341
+    compression_ratio = 4.23788
+    Predicted value: 2.7237
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. batch_size_kb  (effect: 2.3, contribution: 25.0%)
+  2. flush_interval_sec  (effect: 2.3, contribution: 25.0%)
+  3. parser_threads  (effect: 2.3, contribution: 25.0%)
+  4. compression_ratio  (effect: 2.3, contribution: 25.0%)
+
+=== Optimization: query_latency_ms ===
+Direction: minimize
+
+Best observed run: #5
+  batch_size_kb = 1201.87
+  flush_interval_sec = 18.3335
+  parser_threads = 1.39971
+  compression_ratio = 5.93328
+  Value: 68.0
+
+RSM Model (linear, R² = 0.2052, Adj R² = -0.4306):
+  Coefficients:
+    intercept                      +84.3198
+    batch_size_kb                  -1.7666
+    flush_interval_sec             +7.5298
+    parser_threads                 -2.0559
+    compression_ratio              -9.8720
+
+  Predicted optimum (from linear model):
+    batch_size_kb = 1284.53
+    flush_interval_sec = 23.1474
+    parser_threads = 5.27823
+    compression_ratio = 3.37817
+    Predicted value: 92.7700
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. batch_size_kb  (effect: 37.0, contribution: 25.0%)
+  2. flush_interval_sec  (effect: 37.0, contribution: 25.0%)
+  3. parser_threads  (effect: 37.0, contribution: 25.0%)
+  4. compression_ratio  (effect: 37.0, contribution: 25.0%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="82-gitops-sync-interval.html">&larr; Previous: GitOps Sync Interval</a>
+    <a href="84-feature-flag-evaluation.html">Next: Feature Flag Evaluation &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

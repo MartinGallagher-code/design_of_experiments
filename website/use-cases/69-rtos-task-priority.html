@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RTOS Task Priority &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #cffafe, #a5f3fc);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F4E1;</div>
+    <div class="uc-badge" style="background:rgba(8,145,178,.12);color:#0891b2;">Full Factorial Design</div>
+    <h1>RTOS Task Priority</h1>
+    <p class="uc-subtitle">Full factorial of task priority levels, tick rate, stack size, and preemption threshold for latency and utilization</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>task_priority_levels</code></td><td>4</td><td>16</td><td>levels</td></tr>
+            <tr><td><code>tick_rate_hz</code></td><td>100</td><td>1000</td><td>Hz</td></tr>
+            <tr><td><code>stack_size_bytes</code></td><td>512</td><td>4096</td><td>bytes</td></tr>
+            <tr><td><code>preemption_threshold</code></td><td>1</td><td>8</td><td>level</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> rtos = freertos, mcu_clock = 240MHz</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>worst_case_latency_us</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>us</td></tr>
+            <tr><td><code>cpu_utilization_pct</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/69_rtos_task_priority/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;RTOS Task Priority&quot;,
+    &quot;description&quot;: &quot;Full factorial of task priority levels, tick rate, stack size, and preemption threshold for latency and utilization&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;task_priority_levels&quot;,
+      &quot;levels&quot;: [
+        &quot;4&quot;,
+        &quot;16&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;levels&quot;
+    },
+    {
+      &quot;name&quot;: &quot;tick_rate_hz&quot;,
+      &quot;levels&quot;: [
+        &quot;100&quot;,
+        &quot;1000&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;Hz&quot;
+    },
+    {
+      &quot;name&quot;: &quot;stack_size_bytes&quot;,
+      &quot;levels&quot;: [
+        &quot;512&quot;,
+        &quot;4096&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;bytes&quot;
+    },
+    {
+      &quot;name&quot;: &quot;preemption_threshold&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;8&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;level&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;rtos&quot;: &quot;freertos&quot;,
+    &quot;mcu_clock&quot;: &quot;240MHz&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;worst_case_latency_us&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;us&quot;
+    },
+    {
+      &quot;name&quot;: &quot;cpu_utilization_pct&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;full_factorial&quot;,
+    &quot;test_script&quot;: &quot;use_cases/69_rtos_task_priority/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Full Factorial Design produces <strong>16 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>task_priority_levels</code></th><th><code>tick_rate_hz</code></th><th><code>stack_size_bytes</code></th><th><code>preemption_threshold</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>4</td><td>1000</td><td>4096</td><td>8</td></tr>
+        <tr><td>2</td><td>16</td><td>100</td><td>512</td><td>8</td></tr>
+        <tr><td>3</td><td>4</td><td>1000</td><td>512</td><td>8</td></tr>
+        <tr><td>4</td><td>4</td><td>1000</td><td>4096</td><td>1</td></tr>
+        <tr><td>5</td><td>16</td><td>1000</td><td>4096</td><td>1</td></tr>
+        <tr><td>6</td><td>16</td><td>100</td><td>4096</td><td>1</td></tr>
+        <tr><td>7</td><td>16</td><td>1000</td><td>512</td><td>1</td></tr>
+        <tr><td>8</td><td>16</td><td>100</td><td>512</td><td>1</td></tr>
+        <tr><td>9</td><td>4</td><td>100</td><td>512</td><td>8</td></tr>
+        <tr><td>10</td><td>4</td><td>100</td><td>4096</td><td>1</td></tr>
+        <tr><td>11</td><td>16</td><td>1000</td><td>512</td><td>8</td></tr>
+        <tr><td>12</td><td>16</td><td>1000</td><td>4096</td><td>8</td></tr>
+        <tr><td>13</td><td>4</td><td>1000</td><td>512</td><td>1</td></tr>
+        <tr><td>14</td><td>16</td><td>100</td><td>4096</td><td>8</td></tr>
+        <tr><td>15</td><td>4</td><td>100</td><td>512</td><td>1</td></tr>
+        <tr><td>16</td><td>4</td><td>100</td><td>4096</td><td>8</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/69_rtos_task_priority/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/69_rtos_task_priority/config.json \
+    <span class="flag">--output</span> use_cases/69_rtos_task_priority/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/69_rtos_task_priority/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/69_rtos_task_priority/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/69_rtos_task_priority/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/69_rtos_task_priority/config.json \
+    <span class="flag">--output</span> use_cases/69_rtos_task_priority/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>full_factorial</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 4)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (worst_case_latency_us &#x2193;, cpu_utilization_pct &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>16</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: worst_case_latency_us</h3>
+    <p>Top factors: stack_size_bytes (51.2%), preemption_threshold (23.8%), task_priority_levels (18.8%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/69_pareto_worst_case_latency_us.png" alt="Pareto chart for worst_case_latency_us">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/69_main_effects_worst_case_latency_us.png" alt="Main effects plot for worst_case_latency_us">
+      </div>
+    </div>
+
+    <h3>Response: cpu_utilization_pct</h3>
+    <p>Top factors: task_priority_levels (53.2%), preemption_threshold (21.9%), stack_size_bytes (17.5%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/69_pareto_cpu_utilization_pct.png" alt="Pareto chart for cpu_utilization_pct">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/69_main_effects_cpu_utilization_pct.png" alt="Main effects plot for cpu_utilization_pct">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cpu utilization pct stack size bytes vs preemption threshold</p>
+      <img src="../images/69_rsm_cpu_utilization_pct_stack_size_bytes_vs_preemption_threshold.png" alt="RSM surface: cpu utilization pct stack size bytes vs preemption threshold" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cpu utilization pct task priority levels vs preemption threshold</p>
+      <img src="../images/69_rsm_cpu_utilization_pct_task_priority_levels_vs_preemption_threshold.png" alt="RSM surface: cpu utilization pct task priority levels vs preemption threshold" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cpu utilization pct task priority levels vs stack size bytes</p>
+      <img src="../images/69_rsm_cpu_utilization_pct_task_priority_levels_vs_stack_size_bytes.png" alt="RSM surface: cpu utilization pct task priority levels vs stack size bytes" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cpu utilization pct task priority levels vs tick rate hz</p>
+      <img src="../images/69_rsm_cpu_utilization_pct_task_priority_levels_vs_tick_rate_hz.png" alt="RSM surface: cpu utilization pct task priority levels vs tick rate hz" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cpu utilization pct tick rate hz vs preemption threshold</p>
+      <img src="../images/69_rsm_cpu_utilization_pct_tick_rate_hz_vs_preemption_threshold.png" alt="RSM surface: cpu utilization pct tick rate hz vs preemption threshold" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cpu utilization pct tick rate hz vs stack size bytes</p>
+      <img src="../images/69_rsm_cpu_utilization_pct_tick_rate_hz_vs_stack_size_bytes.png" alt="RSM surface: cpu utilization pct tick rate hz vs stack size bytes" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">worst case latency us stack size bytes vs preemption threshold</p>
+      <img src="../images/69_rsm_worst_case_latency_us_stack_size_bytes_vs_preemption_threshold.png" alt="RSM surface: worst case latency us stack size bytes vs preemption threshold" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">worst case latency us task priority levels vs preemption threshold</p>
+      <img src="../images/69_rsm_worst_case_latency_us_task_priority_levels_vs_preemption_threshold.png" alt="RSM surface: worst case latency us task priority levels vs preemption threshold" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">worst case latency us task priority levels vs stack size bytes</p>
+      <img src="../images/69_rsm_worst_case_latency_us_task_priority_levels_vs_stack_size_bytes.png" alt="RSM surface: worst case latency us task priority levels vs stack size bytes" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">worst case latency us task priority levels vs tick rate hz</p>
+      <img src="../images/69_rsm_worst_case_latency_us_task_priority_levels_vs_tick_rate_hz.png" alt="RSM surface: worst case latency us task priority levels vs tick rate hz" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">worst case latency us tick rate hz vs preemption threshold</p>
+      <img src="../images/69_rsm_worst_case_latency_us_tick_rate_hz_vs_preemption_threshold.png" alt="RSM surface: worst case latency us tick rate hz vs preemption threshold" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">worst case latency us tick rate hz vs stack size bytes</p>
+      <img src="../images/69_rsm_worst_case_latency_us_tick_rate_hz_vs_stack_size_bytes.png" alt="RSM surface: worst case latency us tick rate hz vs stack size bytes" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: worst_case_latency_us ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+stack_size_bytes        -5.1250       6.2058            51.2%
+preemption_threshold     2.3750       6.2058            23.8%
+task_priority_levels    -1.8750       6.2058            18.8%
+tick_rate_hz            -0.6250       6.2058             6.2%
+
+=== Interaction Effects: worst_case_latency_us ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+task_priority_levels preemption_threshold      20.6250            35.1%
+tick_rate_hz         preemption_threshold      10.8750            18.5%
+stack_size_bytes     preemption_threshold      10.3750            17.7%
+task_priority_levels stack_size_bytes           7.6250            13.0%
+task_priority_levels tick_rate_hz              -6.8750            11.7%
+tick_rate_hz         stack_size_bytes           2.3750             4.0%
+
+=== Summary Statistics: worst_case_latency_us ===
+
+task_priority_levels:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  16                  8    64.8750    22.8813    34.0000    94.0000
+  4                   8    63.0000    28.1932    26.0000   105.0000
+
+tick_rate_hz:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 8    64.2500    24.1232    34.0000    96.0000
+  1000                8    63.6250    27.1711    26.0000   105.0000
+
+stack_size_bytes:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  4096                8    66.5000    26.8435    26.0000    96.0000
+  512                 8    61.3750    24.1835    34.0000   105.0000
+
+preemption_threshold:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   8    62.7500    19.0619    34.0000    89.0000
+  8                   8    65.1250    30.8843    26.0000   105.0000
+
+=== Main Effects: cpu_utilization_pct ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+task_priority_levels    11.4250       3.8683            53.2%
+preemption_threshold    -4.7000       3.8683            21.9%
+stack_size_bytes         3.7500       3.8683            17.5%
+tick_rate_hz            -1.6000       3.8683             7.5%
+
+=== Interaction Effects: cpu_utilization_pct ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+tick_rate_hz         preemption_threshold      -6.1250            25.8%
+task_priority_levels stack_size_bytes           5.8500            24.7%
+task_priority_levels preemption_threshold      -5.5000            23.2%
+stack_size_bytes     preemption_threshold      -4.0250            17.0%
+tick_rate_hz         stack_size_bytes           1.8250             7.7%
+task_priority_levels tick_rate_hz              -0.4000             1.7%
+
+=== Summary Statistics: cpu_utilization_pct ===
+
+task_priority_levels:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  16                  8    52.1250    10.6505    34.4000    63.6000
+  4                   8    63.5500    18.0280    40.1000    90.0000
+
+tick_rate_hz:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 8    58.6375    12.2688    37.9000    74.1000
+  1000                8    57.0375    19.0012    34.4000    90.0000
+
+stack_size_bytes:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  4096                8    55.9625    14.1493    34.4000    77.1000
+  512                 8    59.7125    17.4583    37.9000    90.0000
+
+preemption_threshold:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   8    60.1875    17.0368    37.9000    90.0000
+  8                   8    55.4875    14.4967    34.4000    77.1000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: worst_case_latency_us ===
+Direction: minimize
+
+Best observed run: #12
+  task_priority_levels = 16
+  tick_rate_hz = 1000
+  stack_size_bytes = 512
+  preemption_threshold = 8
+  Value: 26.0
+
+RSM Model (linear, R² = 0.1192, Adj R² = -0.2011):
+  Coefficients:
+    intercept                      +63.9375
+    task_priority_levels           -2.5625
+    tick_rate_hz                   -4.0625
+    stack_size_bytes               +2.4375
+    preemption_threshold           -6.3125
+
+RSM Model (quadratic, R² = 0.8836, Adj R² = -0.7459):
+  Coefficients:
+    intercept                      +12.7875
+    task_priority_levels           -2.5625
+    tick_rate_hz                   -4.0625
+    stack_size_bytes               +2.4375
+    preemption_threshold           -6.3125
+    task_priority_levels*tick_rate_hz -2.0625
+    task_priority_levels*stack_size_bytes -5.8125
+    task_priority_levels*preemption_threshold -12.8125
+    tick_rate_hz*stack_size_bytes  -6.8125
+    tick_rate_hz*preemption_threshold +6.1875
+    stack_size_bytes*preemption_threshold +12.4375
+    task_priority_levels^2         +12.7875
+    tick_rate_hz^2                 +12.7875
+    stack_size_bytes^2             +12.7875
+    preemption_threshold^2         +12.7875
+
+  Curvature analysis:
+    stack_size_bytes               coef=+12.7875  convex (has a minimum)
+    tick_rate_hz                   coef=+12.7875  convex (has a minimum)
+    preemption_threshold           coef=+12.7875  convex (has a minimum)
+    task_priority_levels           coef=+12.7875  convex (has a minimum)
+
+  Notable interactions:
+    task_priority_levels*preemption_threshold coef=-12.8125  (antagonistic)
+    stack_size_bytes*preemption_threshold coef=+12.4375  (synergistic)
+    tick_rate_hz*stack_size_bytes  coef=-6.8125  (antagonistic)
+    tick_rate_hz*preemption_threshold coef=+6.1875  (synergistic)
+    task_priority_levels*stack_size_bytes coef=-5.8125  (antagonistic)
+    task_priority_levels*tick_rate_hz coef=-2.0625  (antagonistic)
+
+  Predicted optimum (from linear model):
+    task_priority_levels = 4
+    tick_rate_hz = 100
+    stack_size_bytes = 4096
+    preemption_threshold = 1
+    Predicted value: 79.3125
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. preemption_threshold  (effect: -12.6, contribution: 41.1%)
+  2. tick_rate_hz  (effect: -8.1, contribution: 26.4%)
+  3. task_priority_levels  (effect: 5.1, contribution: 16.7%)
+  4. stack_size_bytes  (effect: -4.9, contribution: 15.9%)
+
+=== Optimization: cpu_utilization_pct ===
+Direction: maximize
+
+Best observed run: #11
+  task_priority_levels = 16
+  tick_rate_hz = 100
+  stack_size_bytes = 512
+  preemption_threshold = 8
+  Value: 90.0
+
+RSM Model (linear, R² = 0.0539, Adj R² = -0.2902):
+  Coefficients:
+    intercept                      +57.8375
+    task_priority_levels           +2.1375
+    tick_rate_hz                   -2.2125
+    stack_size_bytes               +0.5125
+    preemption_threshold           +1.5375
+
+RSM Model (quadratic, R² = 0.9509, Adj R² = 0.2637):
+  Coefficients:
+    intercept                      +11.5675
+    task_priority_levels           +2.1375
+    tick_rate_hz                   -2.2125
+    stack_size_bytes               +0.5125
+    preemption_threshold           +1.5375
+    task_priority_levels*tick_rate_hz +1.1625
+    task_priority_levels*stack_size_bytes -0.9375
+    task_priority_levels*preemption_threshold +10.8625
+    tick_rate_hz*stack_size_bytes  +1.4875
+    tick_rate_hz*preemption_threshold -3.9375
+    stack_size_bytes*preemption_threshold -7.9625
+    task_priority_levels^2         +11.5675
+    tick_rate_hz^2                 +11.5675
+    stack_size_bytes^2             +11.5675
+    preemption_threshold^2         +11.5675
+
+  Curvature analysis:
+    preemption_threshold           coef=+11.5675  convex (has a minimum)
+    task_priority_levels           coef=+11.5675  convex (has a minimum)
+    tick_rate_hz                   coef=+11.5675  convex (has a minimum)
+    stack_size_bytes               coef=+11.5675  convex (has a minimum)
+
+  Notable interactions:
+    task_priority_levels*preemption_threshold coef=+10.8625  (synergistic)
+    stack_size_bytes*preemption_threshold coef=-7.9625  (antagonistic)
+    tick_rate_hz*preemption_threshold coef=-3.9375  (antagonistic)
+    tick_rate_hz*stack_size_bytes  coef=+1.4875  (synergistic)
+    task_priority_levels*tick_rate_hz coef=+1.1625  (synergistic)
+    task_priority_levels*stack_size_bytes coef=-0.9375  (antagonistic)
+
+  Predicted optimum (from quadratic model):
+    task_priority_levels = 16
+    tick_rate_hz = 100
+    stack_size_bytes = 512
+    preemption_threshold = 8
+    Predicted value: 87.2375
+
+  Model quality: Excellent fit — surface predictions are reliable.
+
+Factor importance:
+  1. tick_rate_hz  (effect: -4.4, contribution: 34.6%)
+  2. task_priority_levels  (effect: -4.3, contribution: 33.4%)
+  3. preemption_threshold  (effect: 3.1, contribution: 24.0%)
+  4. stack_size_bytes  (effect: -1.0, contribution: 8.0%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="68-ble-mesh-topology.html">&larr; Previous: BLE Mesh Topology</a>
+    <a href="70-lorawan-parameters.html">Next: LoRaWAN Parameters &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

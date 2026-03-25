@@ -1,0 +1,66 @@
+{
+    "metadata": {
+        "name": "Container Image Scanning",
+        "description": "Central Composite design to optimize layer parallelism, vuln DB cache, and max image size for scan time and CVE detection"
+    },
+    "factors": [
+        {
+            "name": "layer_parallelism",
+            "levels": [
+                "1",
+                "8"
+            ],
+            "type": "continuous",
+            "unit": "threads",
+            "description": "Parallel layer scan threads"
+        },
+        {
+            "name": "vuln_db_cache_hours",
+            "levels": [
+                "1",
+                "24"
+            ],
+            "type": "continuous",
+            "unit": "hours",
+            "description": "Vulnerability DB cache freshness"
+        },
+        {
+            "name": "max_image_size_gb",
+            "levels": [
+                "1",
+                "10"
+            ],
+            "type": "continuous",
+            "unit": "GB",
+            "description": "Maximum image size to scan"
+        }
+    ],
+    "fixed_factors": {
+        "scanner": "trivy",
+        "registry": "ecr"
+    },
+    "responses": [
+        {
+            "name": "scan_time_sec",
+            "optimize": "minimize",
+            "unit": "sec",
+            "description": "Per-image scan time"
+        },
+        {
+            "name": "cve_detection_rate",
+            "optimize": "maximize",
+            "unit": "%",
+            "description": "CVE detection rate"
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "use_cases/66_container_image_scanning/sim.sh",
+        "operation": "central_composite",
+        "processed_directory": "use_cases/66_container_image_scanning/results/analysis",
+        "out_directory": "use_cases/66_container_image_scanning/results"
+    }
+}

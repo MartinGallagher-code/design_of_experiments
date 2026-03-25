@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edge Inference Quantization &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #cffafe, #a5f3fc);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F4E1;</div>
+    <div class="uc-badge" style="background:rgba(8,145,178,.12);color:#0891b2;">Plackett-Burman Design</div>
+    <h1>Edge Inference Quantization</h1>
+    <p class="uc-subtitle">Plackett-Burman screening of 6 edge ML inference parameters for latency and accuracy loss</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>weight_bits</code></td><td>4</td><td>16</td><td>bits</td></tr>
+            <tr><td><code>activation_bits</code></td><td>4</td><td>16</td><td>bits</td></tr>
+            <tr><td><code>batch_size</code></td><td>1</td><td>32</td><td>samples</td></tr>
+            <tr><td><code>num_threads</code></td><td>1</td><td>4</td><td>threads</td></tr>
+            <tr><td><code>cache_size_kb</code></td><td>64</td><td>512</td><td>KB</td></tr>
+            <tr><td><code>memory_pool_mb</code></td><td>16</td><td>128</td><td>MB</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> framework = tflite, model = mobilenet_v2</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>inference_latency_ms</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>ms</td></tr>
+            <tr><td><code>accuracy_loss_pct</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/71_edge_inference_quantization/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Edge Inference Quantization&quot;,
+    &quot;description&quot;: &quot;Plackett-Burman screening of 6 edge ML inference parameters for latency and accuracy loss&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;weight_bits&quot;,
+      &quot;levels&quot;: [
+        &quot;4&quot;,
+        &quot;16&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;bits&quot;
+    },
+    {
+      &quot;name&quot;: &quot;activation_bits&quot;,
+      &quot;levels&quot;: [
+        &quot;4&quot;,
+        &quot;16&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;bits&quot;
+    },
+    {
+      &quot;name&quot;: &quot;batch_size&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;32&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;samples&quot;
+    },
+    {
+      &quot;name&quot;: &quot;num_threads&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;4&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;threads&quot;
+    },
+    {
+      &quot;name&quot;: &quot;cache_size_kb&quot;,
+      &quot;levels&quot;: [
+        &quot;64&quot;,
+        &quot;512&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;KB&quot;
+    },
+    {
+      &quot;name&quot;: &quot;memory_pool_mb&quot;,
+      &quot;levels&quot;: [
+        &quot;16&quot;,
+        &quot;128&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;MB&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;framework&quot;: &quot;tflite&quot;,
+    &quot;model&quot;: &quot;mobilenet_v2&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;inference_latency_ms&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;name&quot;: &quot;accuracy_loss_pct&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;plackett_burman&quot;,
+    &quot;test_script&quot;: &quot;use_cases/71_edge_inference_quantization/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Plackett-Burman Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>weight_bits</code></th><th><code>activation_bits</code></th><th><code>batch_size</code></th><th><code>num_threads</code></th><th><code>cache_size_kb</code></th><th><code>memory_pool_mb</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>16</td><td>16</td><td>32</td><td>1</td><td>64</td><td>16</td></tr>
+        <tr><td>2</td><td>4</td><td>4</td><td>32</td><td>4</td><td>64</td><td>16</td></tr>
+        <tr><td>3</td><td>4</td><td>16</td><td>1</td><td>4</td><td>64</td><td>128</td></tr>
+        <tr><td>4</td><td>16</td><td>16</td><td>32</td><td>4</td><td>512</td><td>128</td></tr>
+        <tr><td>5</td><td>4</td><td>16</td><td>1</td><td>1</td><td>512</td><td>16</td></tr>
+        <tr><td>6</td><td>16</td><td>4</td><td>1</td><td>4</td><td>512</td><td>16</td></tr>
+        <tr><td>7</td><td>4</td><td>4</td><td>32</td><td>1</td><td>512</td><td>128</td></tr>
+        <tr><td>8</td><td>16</td><td>4</td><td>1</td><td>1</td><td>64</td><td>128</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/71_edge_inference_quantization/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/71_edge_inference_quantization/config.json \
+    <span class="flag">--output</span> use_cases/71_edge_inference_quantization/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/71_edge_inference_quantization/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/71_edge_inference_quantization/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/71_edge_inference_quantization/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/71_edge_inference_quantization/config.json \
+    <span class="flag">--output</span> use_cases/71_edge_inference_quantization/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>plackett_burman</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 6)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (inference_latency_ms &#x2193;, accuracy_loss_pct &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>8</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: inference_latency_ms</h3>
+    <p>Top factors: batch_size (38.7%), memory_pool_mb (19.3%), cache_size_kb (16.1%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/71_pareto_inference_latency_ms.png" alt="Pareto chart for inference_latency_ms">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/71_main_effects_inference_latency_ms.png" alt="Main effects plot for inference_latency_ms">
+      </div>
+    </div>
+
+    <h3>Response: accuracy_loss_pct</h3>
+    <p>Top factors: batch_size (48.1%), num_threads (32.0%), memory_pool_mb (8.0%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/71_pareto_accuracy_loss_pct.png" alt="Pareto chart for accuracy_loss_pct">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/71_main_effects_accuracy_loss_pct.png" alt="Main effects plot for accuracy_loss_pct">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">accuracy loss pct activation bits vs batch size</p>
+      <img src="../images/71_rsm_accuracy_loss_pct_activation_bits_vs_batch_size.png" alt="RSM surface: accuracy loss pct activation bits vs batch size" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">accuracy loss pct activation bits vs cache size kb</p>
+      <img src="../images/71_rsm_accuracy_loss_pct_activation_bits_vs_cache_size_kb.png" alt="RSM surface: accuracy loss pct activation bits vs cache size kb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">accuracy loss pct activation bits vs memory pool mb</p>
+      <img src="../images/71_rsm_accuracy_loss_pct_activation_bits_vs_memory_pool_mb.png" alt="RSM surface: accuracy loss pct activation bits vs memory pool mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">accuracy loss pct activation bits vs num threads</p>
+      <img src="../images/71_rsm_accuracy_loss_pct_activation_bits_vs_num_threads.png" alt="RSM surface: accuracy loss pct activation bits vs num threads" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">accuracy loss pct batch size vs cache size kb</p>
+      <img src="../images/71_rsm_accuracy_loss_pct_batch_size_vs_cache_size_kb.png" alt="RSM surface: accuracy loss pct batch size vs cache size kb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">accuracy loss pct batch size vs memory pool mb</p>
+      <img src="../images/71_rsm_accuracy_loss_pct_batch_size_vs_memory_pool_mb.png" alt="RSM surface: accuracy loss pct batch size vs memory pool mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">accuracy loss pct batch size vs num threads</p>
+      <img src="../images/71_rsm_accuracy_loss_pct_batch_size_vs_num_threads.png" alt="RSM surface: accuracy loss pct batch size vs num threads" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">accuracy loss pct cache size kb vs memory pool mb</p>
+      <img src="../images/71_rsm_accuracy_loss_pct_cache_size_kb_vs_memory_pool_mb.png" alt="RSM surface: accuracy loss pct cache size kb vs memory pool mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">accuracy loss pct num threads vs cache size kb</p>
+      <img src="../images/71_rsm_accuracy_loss_pct_num_threads_vs_cache_size_kb.png" alt="RSM surface: accuracy loss pct num threads vs cache size kb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">accuracy loss pct num threads vs memory pool mb</p>
+      <img src="../images/71_rsm_accuracy_loss_pct_num_threads_vs_memory_pool_mb.png" alt="RSM surface: accuracy loss pct num threads vs memory pool mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">accuracy loss pct weight bits vs activation bits</p>
+      <img src="../images/71_rsm_accuracy_loss_pct_weight_bits_vs_activation_bits.png" alt="RSM surface: accuracy loss pct weight bits vs activation bits" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">accuracy loss pct weight bits vs batch size</p>
+      <img src="../images/71_rsm_accuracy_loss_pct_weight_bits_vs_batch_size.png" alt="RSM surface: accuracy loss pct weight bits vs batch size" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">accuracy loss pct weight bits vs cache size kb</p>
+      <img src="../images/71_rsm_accuracy_loss_pct_weight_bits_vs_cache_size_kb.png" alt="RSM surface: accuracy loss pct weight bits vs cache size kb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">accuracy loss pct weight bits vs memory pool mb</p>
+      <img src="../images/71_rsm_accuracy_loss_pct_weight_bits_vs_memory_pool_mb.png" alt="RSM surface: accuracy loss pct weight bits vs memory pool mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">accuracy loss pct weight bits vs num threads</p>
+      <img src="../images/71_rsm_accuracy_loss_pct_weight_bits_vs_num_threads.png" alt="RSM surface: accuracy loss pct weight bits vs num threads" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">inference latency ms activation bits vs batch size</p>
+      <img src="../images/71_rsm_inference_latency_ms_activation_bits_vs_batch_size.png" alt="RSM surface: inference latency ms activation bits vs batch size" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">inference latency ms activation bits vs cache size kb</p>
+      <img src="../images/71_rsm_inference_latency_ms_activation_bits_vs_cache_size_kb.png" alt="RSM surface: inference latency ms activation bits vs cache size kb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">inference latency ms activation bits vs memory pool mb</p>
+      <img src="../images/71_rsm_inference_latency_ms_activation_bits_vs_memory_pool_mb.png" alt="RSM surface: inference latency ms activation bits vs memory pool mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">inference latency ms activation bits vs num threads</p>
+      <img src="../images/71_rsm_inference_latency_ms_activation_bits_vs_num_threads.png" alt="RSM surface: inference latency ms activation bits vs num threads" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">inference latency ms batch size vs cache size kb</p>
+      <img src="../images/71_rsm_inference_latency_ms_batch_size_vs_cache_size_kb.png" alt="RSM surface: inference latency ms batch size vs cache size kb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">inference latency ms batch size vs memory pool mb</p>
+      <img src="../images/71_rsm_inference_latency_ms_batch_size_vs_memory_pool_mb.png" alt="RSM surface: inference latency ms batch size vs memory pool mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">inference latency ms batch size vs num threads</p>
+      <img src="../images/71_rsm_inference_latency_ms_batch_size_vs_num_threads.png" alt="RSM surface: inference latency ms batch size vs num threads" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">inference latency ms cache size kb vs memory pool mb</p>
+      <img src="../images/71_rsm_inference_latency_ms_cache_size_kb_vs_memory_pool_mb.png" alt="RSM surface: inference latency ms cache size kb vs memory pool mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">inference latency ms num threads vs cache size kb</p>
+      <img src="../images/71_rsm_inference_latency_ms_num_threads_vs_cache_size_kb.png" alt="RSM surface: inference latency ms num threads vs cache size kb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">inference latency ms num threads vs memory pool mb</p>
+      <img src="../images/71_rsm_inference_latency_ms_num_threads_vs_memory_pool_mb.png" alt="RSM surface: inference latency ms num threads vs memory pool mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">inference latency ms weight bits vs activation bits</p>
+      <img src="../images/71_rsm_inference_latency_ms_weight_bits_vs_activation_bits.png" alt="RSM surface: inference latency ms weight bits vs activation bits" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">inference latency ms weight bits vs batch size</p>
+      <img src="../images/71_rsm_inference_latency_ms_weight_bits_vs_batch_size.png" alt="RSM surface: inference latency ms weight bits vs batch size" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">inference latency ms weight bits vs cache size kb</p>
+      <img src="../images/71_rsm_inference_latency_ms_weight_bits_vs_cache_size_kb.png" alt="RSM surface: inference latency ms weight bits vs cache size kb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">inference latency ms weight bits vs memory pool mb</p>
+      <img src="../images/71_rsm_inference_latency_ms_weight_bits_vs_memory_pool_mb.png" alt="RSM surface: inference latency ms weight bits vs memory pool mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">inference latency ms weight bits vs num threads</p>
+      <img src="../images/71_rsm_inference_latency_ms_weight_bits_vs_num_threads.png" alt="RSM surface: inference latency ms weight bits vs num threads" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: inference_latency_ms ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+batch_size             -17.7500       5.2989            38.7%
+memory_pool_mb          -8.8500       5.2989            19.3%
+cache_size_kb           -7.4000       5.2989            16.1%
+num_threads              4.8500       5.2989            10.6%
+activation_bits          4.1000       5.2989             8.9%
+weight_bits              2.9500       5.2989             6.4%
+
+=== Interaction Effects: inference_latency_ms ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+weight_bits          activation_bits          -17.7500            12.4%
+cache_size_kb        memory_pool_mb           -17.7500            12.4%
+weight_bits          memory_pool_mb           -17.0000            11.9%
+activation_bits      cache_size_kb            -17.0000            11.9%
+batch_size           num_threads              -17.0000            11.9%
+activation_bits      num_threads               -8.8500             6.2%
+batch_size           cache_size_kb             -8.8500             6.2%
+weight_bits          num_threads               -7.4000             5.2%
+batch_size           memory_pool_mb            -7.4000             5.2%
+weight_bits          cache_size_kb              4.8500             3.4%
+activation_bits      memory_pool_mb             4.8500             3.4%
+weight_bits          batch_size                 4.1000             2.9%
+num_threads          memory_pool_mb             4.1000             2.9%
+activation_bits      batch_size                 2.9500             2.1%
+num_threads          cache_size_kb              2.9500             2.1%
+
+=== Summary Statistics: inference_latency_ms ===
+
+weight_bits:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  16                  4    23.3750    15.2086    10.4000    44.5000
+  4                   4    26.3250    16.9415     5.3000    44.8000
+
+activation_bits:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  16                  4    22.8000    15.3660    10.4000    44.8000
+  4                   4    26.9000    16.6373     5.3000    44.5000
+
+batch_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    33.7250    12.6603    21.5000    44.8000
+  32                  4    15.9750    12.4014     5.3000    33.7000
+
+num_threads:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    22.4250     9.5810    10.4000    33.7000
+  4                   4    27.2750    20.4118     5.3000    44.8000
+
+cache_size_kb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  512                 4    28.5500    13.2669    14.5000    44.5000
+  64                  4    21.1500    17.6523     5.3000    44.8000
+
+memory_pool_mb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  128                 4    29.2750    12.9832    14.5000    44.8000
+  16                  4    20.4250    17.4167     5.3000    44.5000
+
+=== Main Effects: accuracy_loss_pct ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+batch_size              -5.7475       1.6299            48.1%
+num_threads              3.8325       1.6299            32.0%
+memory_pool_mb           0.9575       1.6299             8.0%
+cache_size_kb            0.9175       1.6299             7.7%
+activation_bits         -0.4725       1.6299             4.0%
+weight_bits             -0.0325       1.6299             0.3%
+
+=== Interaction Effects: accuracy_loss_pct ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+weight_bits          activation_bits           -5.7475            14.8%
+cache_size_kb        memory_pool_mb            -5.7475            14.8%
+weight_bits          memory_pool_mb            -4.9675            12.8%
+activation_bits      cache_size_kb             -4.9675            12.8%
+batch_size           num_threads               -4.9675            12.8%
+weight_bits          cache_size_kb              3.8325             9.9%
+activation_bits      memory_pool_mb             3.8325             9.9%
+activation_bits      num_threads                0.9575             2.5%
+batch_size           cache_size_kb              0.9575             2.5%
+weight_bits          num_threads                0.9175             2.4%
+batch_size           memory_pool_mb             0.9175             2.4%
+weight_bits          batch_size                -0.4725             1.2%
+num_threads          memory_pool_mb            -0.4725             1.2%
+activation_bits      batch_size                -0.0325             0.1%
+num_threads          cache_size_kb             -0.0325             0.1%
+
+=== Summary Statistics: accuracy_loss_pct ===
+
+weight_bits:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  16                  4     5.5625     4.8795     1.4200    12.6200
+  4                   4     5.5300     5.0771     2.0500    13.0200
+
+activation_bits:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  16                  4     5.7825     5.0186     1.4200    13.0200
+  4                   4     5.3100     4.9246     2.0500    12.6200
+
+batch_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4     8.4200     5.0871     3.7800    13.0200
+  32                  4     2.6725     1.2986     1.4200     4.4300
+
+num_threads:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4     3.6300     1.0887     2.0500     4.4300
+  4                   4     7.4625     6.2137     1.4200    13.0200
+
+cache_size_kb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  512                 4     5.0875     5.1672     1.4200    12.6200
+  64                  4     6.0050     4.7250     2.7900    13.0200
+
+memory_pool_mb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  128                 4     5.0675     5.3947     1.4200    13.0200
+  16                  4     6.0250     4.4579     2.7900    12.6200</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: inference_latency_ms ===
+Direction: minimize
+
+Best observed run: #6
+  weight_bits = 4
+  activation_bits = 16
+  batch_size = 1
+  num_threads = 1
+  cache_size_kb = 512
+  memory_pool_mb = 16
+  Value: 5.3
+
+RSM Model (linear, R² = 0.9786, Adj R² = 0.8503):
+  Coefficients:
+    intercept                      +24.8500
+    weight_bits                    +7.1250
+    activation_bits                +1.4000
+    batch_size                     +11.2750
+    num_threads                    +0.9250
+    cache_size_kb                  -3.4000
+    memory_pool_mb                 +0.2750
+
+  Predicted optimum (from linear model):
+    weight_bits = 16
+    activation_bits = 16
+    batch_size = 32
+    num_threads = 1
+    cache_size_kb = 64
+    memory_pool_mb = 16
+    Predicted value: 46.8500
+
+  Model quality: Excellent fit — surface predictions are reliable.
+
+Factor importance:
+  1. batch_size  (effect: 22.5, contribution: 46.2%)
+  2. weight_bits  (effect: -14.2, contribution: 29.2%)
+  3. cache_size_kb  (effect: 6.8, contribution: 13.9%)
+  4. activation_bits  (effect: -2.8, contribution: 5.7%)
+  5. num_threads  (effect: 1.9, contribution: 3.8%)
+  6. memory_pool_mb  (effect: -0.6, contribution: 1.1%)
+
+=== Optimization: accuracy_loss_pct ===
+Direction: minimize
+
+Best observed run: #4
+  weight_bits = 16
+  activation_bits = 4
+  batch_size = 1
+  num_threads = 4
+  cache_size_kb = 512
+  memory_pool_mb = 16
+  Value: 1.42
+
+RSM Model (linear, R² = 0.9970, Adj R² = 0.9790):
+  Coefficients:
+    intercept                      +5.5462
+    weight_bits                    +2.1638
+    activation_bits                +2.6687
+    batch_size                     +2.4413
+    num_threads                    -0.4163
+    cache_size_kb                  -0.2737
+    memory_pool_mb                 +0.7262
+
+  Predicted optimum (from linear model):
+    weight_bits = 16
+    activation_bits = 16
+    batch_size = 32
+    num_threads = 4
+    cache_size_kb = 512
+    memory_pool_mb = 128
+    Predicted value: 12.8562
+
+  Model quality: Excellent fit — surface predictions are reliable.
+
+Factor importance:
+  1. activation_bits  (effect: -5.3, contribution: 30.7%)
+  2. batch_size  (effect: 4.9, contribution: 28.1%)
+  3. weight_bits  (effect: -4.3, contribution: 24.9%)
+  4. memory_pool_mb  (effect: -1.5, contribution: 8.4%)
+  5. num_threads  (effect: -0.8, contribution: 4.8%)
+  6. cache_size_kb  (effect: 0.5, contribution: 3.2%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="70-lorawan-parameters.html">&larr; Previous: LoRaWAN Parameters</a>
+    <a href="72-mqtt-broker-tuning.html">Next: MQTT Broker Tuning &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

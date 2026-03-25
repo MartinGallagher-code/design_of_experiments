@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Encryption Pipeline Optimization &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #fee2e2, #fecaca);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F6E1;</div>
+    <div class="uc-badge" style="background:rgba(220,38,38,.12);color:#dc2626;">Full Factorial Design</div>
+    <h1>Encryption Pipeline Optimization</h1>
+    <p class="uc-subtitle">Full factorial of cipher suite, key size, compression, and hardware acceleration for throughput and CPU overhead</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>cipher_suite</code></td><td>aes128</td><td>aes256</td><td></td></tr>
+            <tr><td><code>key_size</code></td><td>128</td><td>256</td><td>bits</td></tr>
+            <tr><td><code>compression_before_encrypt</code></td><td>off</td><td>on</td><td></td></tr>
+            <tr><td><code>hardware_acceleration</code></td><td>off</td><td>on</td><td></td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> protocol = tls1.3, mode = gcm</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>throughput_mbps</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>Mbps</td></tr>
+            <tr><td><code>cpu_overhead_pct</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/58_encryption_pipeline/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Encryption Pipeline Optimization&quot;,
+    &quot;description&quot;: &quot;Full factorial of cipher suite, key size, compression, and hardware acceleration for throughput and CPU overhead&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;cipher_suite&quot;,
+      &quot;levels&quot;: [
+        &quot;aes128&quot;,
+        &quot;aes256&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    },
+    {
+      &quot;name&quot;: &quot;key_size&quot;,
+      &quot;levels&quot;: [
+        &quot;128&quot;,
+        &quot;256&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;bits&quot;
+    },
+    {
+      &quot;name&quot;: &quot;compression_before_encrypt&quot;,
+      &quot;levels&quot;: [
+        &quot;off&quot;,
+        &quot;on&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    },
+    {
+      &quot;name&quot;: &quot;hardware_acceleration&quot;,
+      &quot;levels&quot;: [
+        &quot;off&quot;,
+        &quot;on&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;protocol&quot;: &quot;tls1.3&quot;,
+    &quot;mode&quot;: &quot;gcm&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;throughput_mbps&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;Mbps&quot;
+    },
+    {
+      &quot;name&quot;: &quot;cpu_overhead_pct&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;full_factorial&quot;,
+    &quot;test_script&quot;: &quot;use_cases/58_encryption_pipeline/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Full Factorial Design produces <strong>16 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>cipher_suite</code></th><th><code>key_size</code></th><th><code>compression_before_encrypt</code></th><th><code>hardware_acceleration</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>aes128</td><td>256</td><td>on</td><td>on</td></tr>
+        <tr><td>2</td><td>aes256</td><td>128</td><td>off</td><td>on</td></tr>
+        <tr><td>3</td><td>aes128</td><td>256</td><td>off</td><td>on</td></tr>
+        <tr><td>4</td><td>aes128</td><td>256</td><td>on</td><td>off</td></tr>
+        <tr><td>5</td><td>aes256</td><td>256</td><td>on</td><td>off</td></tr>
+        <tr><td>6</td><td>aes256</td><td>128</td><td>on</td><td>off</td></tr>
+        <tr><td>7</td><td>aes256</td><td>256</td><td>off</td><td>off</td></tr>
+        <tr><td>8</td><td>aes256</td><td>128</td><td>off</td><td>off</td></tr>
+        <tr><td>9</td><td>aes128</td><td>128</td><td>off</td><td>on</td></tr>
+        <tr><td>10</td><td>aes128</td><td>128</td><td>on</td><td>off</td></tr>
+        <tr><td>11</td><td>aes256</td><td>256</td><td>off</td><td>on</td></tr>
+        <tr><td>12</td><td>aes256</td><td>256</td><td>on</td><td>on</td></tr>
+        <tr><td>13</td><td>aes128</td><td>256</td><td>off</td><td>off</td></tr>
+        <tr><td>14</td><td>aes256</td><td>128</td><td>on</td><td>on</td></tr>
+        <tr><td>15</td><td>aes128</td><td>128</td><td>off</td><td>off</td></tr>
+        <tr><td>16</td><td>aes128</td><td>128</td><td>on</td><td>on</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/58_encryption_pipeline/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/58_encryption_pipeline/config.json \
+    <span class="flag">--output</span> use_cases/58_encryption_pipeline/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/58_encryption_pipeline/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/58_encryption_pipeline/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/58_encryption_pipeline/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/58_encryption_pipeline/config.json \
+    <span class="flag">--output</span> use_cases/58_encryption_pipeline/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>full_factorial</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (1), <code>categorical</code> (3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (throughput_mbps &#x2191;, cpu_overhead_pct &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>16</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: throughput_mbps</h3>
+    <p>Top factors: key_size (50.3%), cipher_suite (24.9%), compression_before_encrypt (18.1%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/58_pareto_throughput_mbps.png" alt="Pareto chart for throughput_mbps">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/58_main_effects_throughput_mbps.png" alt="Main effects plot for throughput_mbps">
+      </div>
+    </div>
+
+    <h3>Response: cpu_overhead_pct</h3>
+    <p>Top factors: key_size (47.7%), compression_before_encrypt (22.9%), cipher_suite (22.2%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/58_pareto_cpu_overhead_pct.png" alt="Pareto chart for cpu_overhead_pct">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/58_main_effects_cpu_overhead_pct.png" alt="Main effects plot for cpu_overhead_pct">
+      </div>
+    </div>
+
+  </section>
+
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: throughput_mbps ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+key_size              -212.2500      73.4784            50.3%
+cipher_suite          -105.0000      73.4784            24.9%
+compression_before_encrypt    76.5000      73.4784            18.1%
+hardware_acceleration   -28.0000      73.4784             6.6%
+
+=== Interaction Effects: throughput_mbps ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+compression_before_encrypt hardware_acceleration     264.7500            51.1%
+cipher_suite         compression_before_encrypt     179.2500            34.6%
+cipher_suite         hardware_acceleration      33.2500             6.4%
+key_size             hardware_acceleration      20.0000             3.9%
+cipher_suite         key_size                  15.0000             2.9%
+key_size             compression_before_encrypt       6.0000             1.2%
+
+=== Summary Statistics: throughput_mbps ===
+
+cipher_suite:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  aes128              8   862.6250   324.1547   484.0000  1329.0000
+  aes256              8   757.6250   271.5421   387.0000  1219.0000
+
+key_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  128                 8   916.2500   291.7454   564.0000  1329.0000
+  256                 8   704.0000   272.4943   387.0000  1108.0000
+
+compression_before_encrypt:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 8   771.8750   321.6748   387.0000  1329.0000
+  on                  8   848.3750   279.8081   487.0000  1219.0000
+
+hardware_acceleration:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 8   824.1250   336.7247   487.0000  1329.0000
+  on                  8   796.1250   266.9828   387.0000  1192.0000
+
+=== Main Effects: cpu_overhead_pct ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+key_size                13.2500       4.7194            47.7%
+compression_before_encrypt    -6.3750       4.7194            22.9%
+cipher_suite             6.1750       4.7194            22.2%
+hardware_acceleration     2.0000       4.7194             7.2%
+
+=== Interaction Effects: cpu_overhead_pct ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+compression_before_encrypt hardware_acceleration     -16.8000            40.9%
+cipher_suite         compression_before_encrypt     -14.0250            34.2%
+cipher_suite         hardware_acceleration      -3.3000             8.0%
+key_size             hardware_acceleration      -3.1250             7.6%
+cipher_suite         key_size                  -2.8000             6.8%
+key_size             compression_before_encrypt       1.0000             2.4%
+
+=== Summary Statistics: cpu_overhead_pct ===
+
+cipher_suite:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  aes128              8    31.5250    20.7519     2.7000    60.5000
+  aes256              8    37.7000    17.6411     7.3000    59.7000
+
+key_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  128                 8    27.9875    17.2587     2.7000    53.3000
+  256                 8    41.2375    19.1168    13.9000    60.5000
+
+compression_before_encrypt:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 8    37.8000    20.6835     2.7000    59.7000
+  on                  8    31.4250    17.6806     7.3000    60.5000
+
+hardware_acceleration:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 8    33.6125    22.3977     2.7000    60.5000
+  on                  8    35.6125    16.1151    17.1000    59.7000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: throughput_mbps ===
+Direction: maximize
+
+Best observed run: #16
+  cipher_suite = aes128
+  key_size = 256
+  compression_before_encrypt = on
+  hardware_acceleration = off
+  Value: 1329.0
+
+RSM Model (linear, R² = 0.0491, Adj R² = -0.2967):
+  Coefficients:
+    intercept                      +810.1250
+    cipher_suite                   -30.2500
+    key_size                       +44.3750
+    compression_before_encrypt     +32.0000
+    hardware_acceleration          -8.1250
+
+RSM Model (quadratic, R² = 0.8807, Adj R² = -0.7888):
+  Coefficients:
+    intercept                      +162.0250
+    cipher_suite                   -30.2500
+    key_size                       +44.3750
+    compression_before_encrypt     +32.0000
+    hardware_acceleration          -8.1250
+    cipher_suite*key_size          -71.0000
+    cipher_suite*compression_before_encrypt -178.8750
+    cipher_suite*hardware_acceleration +19.7500
+    key_size*compression_before_encrypt +26.2500
+    key_size*hardware_acceleration +81.6250
+    compression_before_encrypt*hardware_acceleration -150.2500
+    cipher_suite^2                 +162.0250
+    key_size^2                     +162.0250
+    compression_before_encrypt^2   +162.0250
+    hardware_acceleration^2        +162.0250
+
+  Curvature analysis:
+    compression_before_encrypt     coef=+162.0250  convex (has a minimum)
+    hardware_acceleration          coef=+162.0250  convex (has a minimum)
+    key_size                       coef=+162.0250  convex (has a minimum)
+    cipher_suite                   coef=+162.0250  convex (has a minimum)
+
+  Notable interactions:
+    cipher_suite*compression_before_encrypt coef=-178.8750  (antagonistic)
+    compression_before_encrypt*hardware_acceleration coef=-150.2500  (antagonistic)
+    key_size*hardware_acceleration coef=+81.6250  (synergistic)
+    cipher_suite*key_size          coef=-71.0000  (antagonistic)
+    key_size*compression_before_encrypt coef=+26.2500  (synergistic)
+    cipher_suite*hardware_acceleration coef=+19.7500  (synergistic)
+
+  Predicted optimum (from linear model):
+    cipher_suite = aes128
+    key_size = 256
+    compression_before_encrypt = on
+    hardware_acceleration = off
+    Predicted value: 924.8750
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. key_size  (effect: 88.8, contribution: 38.7%)
+  2. compression_before_encrypt  (effect: 64.0, contribution: 27.9%)
+  3. cipher_suite  (effect: -60.5, contribution: 26.4%)
+  4. hardware_acceleration  (effect: -16.2, contribution: 7.1%)
+
+=== Optimization: cpu_overhead_pct ===
+Direction: minimize
+
+Best observed run: #16
+  cipher_suite = aes128
+  key_size = 256
+  compression_before_encrypt = on
+  hardware_acceleration = off
+  Value: 2.7
+
+RSM Model (linear, R² = 0.0626, Adj R² = -0.2783):
+  Coefficients:
+    intercept                      +34.6125
+    cipher_suite                   +2.7000
+    key_size                       -3.3875
+    compression_before_encrypt     -1.2750
+    hardware_acceleration          +0.7250
+
+RSM Model (quadratic, R² = 0.8422, Adj R² = -1.3674):
+  Coefficients:
+    intercept                      +6.9225
+    cipher_suite                   +2.7000
+    key_size                       -3.3875
+    compression_before_encrypt     -1.2750
+    hardware_acceleration          +0.7250
+    cipher_suite*key_size          +4.4250
+    cipher_suite*compression_before_encrypt +9.9625
+    cipher_suite*hardware_acceleration +0.9625
+    key_size*compression_before_encrypt -2.5500
+    key_size*hardware_acceleration -5.6500
+    compression_before_encrypt*hardware_acceleration +10.1125
+    cipher_suite^2                 +6.9225
+    key_size^2                     +6.9225
+    compression_before_encrypt^2   +6.9225
+    hardware_acceleration^2        +6.9225
+
+  Curvature analysis:
+    cipher_suite                   coef=+6.9225  convex (has a minimum)
+    key_size                       coef=+6.9225  convex (has a minimum)
+    hardware_acceleration          coef=+6.9225  convex (has a minimum)
+    compression_before_encrypt     coef=+6.9225  convex (has a minimum)
+
+  Notable interactions:
+    compression_before_encrypt*hardware_acceleration coef=+10.1125  (synergistic)
+    cipher_suite*compression_before_encrypt coef=+9.9625  (synergistic)
+    key_size*hardware_acceleration coef=-5.6500  (antagonistic)
+    cipher_suite*key_size          coef=+4.4250  (synergistic)
+    key_size*compression_before_encrypt coef=-2.5500  (antagonistic)
+    cipher_suite*hardware_acceleration coef=+0.9625  (synergistic)
+
+  Predicted optimum (from linear model):
+    cipher_suite = aes256
+    key_size = 128
+    compression_before_encrypt = off
+    hardware_acceleration = on
+    Predicted value: 42.7000
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. key_size  (effect: -6.8, contribution: 41.9%)
+  2. cipher_suite  (effect: 5.4, contribution: 33.4%)
+  3. compression_before_encrypt  (effect: -2.6, contribution: 15.8%)
+  4. hardware_acceleration  (effect: 1.4, contribution: 9.0%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="57-waf-rule-threshold.html">&larr; Previous: WAF Rule Threshold Tuning</a>
+    <a href="59-siem-alert-correlation.html">Next: SIEM Alert Correlation &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

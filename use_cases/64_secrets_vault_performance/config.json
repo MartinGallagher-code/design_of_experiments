@@ -1,0 +1,66 @@
+{
+    "metadata": {
+        "name": "Secrets Vault Performance",
+        "description": "Box-Behnken design to optimize vault seal wrap threads, cache size, and lease TTL for latency and throughput"
+    },
+    "factors": [
+        {
+            "name": "seal_wrap_threads",
+            "levels": [
+                "1",
+                "8"
+            ],
+            "type": "continuous",
+            "unit": "threads",
+            "description": "Seal wrap worker threads"
+        },
+        {
+            "name": "cache_size_mb",
+            "levels": [
+                "64",
+                "512"
+            ],
+            "type": "continuous",
+            "unit": "MB",
+            "description": "Secret cache size"
+        },
+        {
+            "name": "lease_ttl_sec",
+            "levels": [
+                "30",
+                "600"
+            ],
+            "type": "continuous",
+            "unit": "sec",
+            "description": "Secret lease time-to-live"
+        }
+    ],
+    "fixed_factors": {
+        "vault_backend": "consul",
+        "seal_type": "awskms"
+    },
+    "responses": [
+        {
+            "name": "read_latency_ms",
+            "optimize": "minimize",
+            "unit": "ms",
+            "description": "Secret read latency"
+        },
+        {
+            "name": "throughput_ops",
+            "optimize": "maximize",
+            "unit": "ops/s",
+            "description": "Secret operations throughput"
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "use_cases/64_secrets_vault_performance/sim.sh",
+        "operation": "box_behnken",
+        "processed_directory": "use_cases/64_secrets_vault_performance/results/analysis",
+        "out_directory": "use_cases/64_secrets_vault_performance/results"
+    }
+}

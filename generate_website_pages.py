@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate website HTML pages for use cases 27-56 and inject experimental matrices into all use case pages (1-56)."""
+"""Generate website HTML pages for use cases 27-86 and inject experimental matrices into all use case pages (1-86)."""
 import json, os, glob, html, subprocess, re
 
 from doe.config import load_config
@@ -18,6 +18,12 @@ HERO_STYLES = {
     "cloud": ("linear-gradient(135deg, #dbeafe, #bfdbfe)", "rgba(29,78,216,.12)", "#1d4ed8", "&#x2601;"),
     "data": ("linear-gradient(135deg, #d1fae5, #a7f3d0)", "rgba(5,150,105,.12)", "#059669", "&#x1F4CA;"),
     "networking": ("linear-gradient(135deg, #ede9fe, #ddd6fe)", "rgba(124,58,237,.12)", "#7c3aed", "&#x1F310;"),
+    "security": ("linear-gradient(135deg, #fee2e2, #fecaca)", "rgba(220,38,38,.12)", "#dc2626", "&#x1F6E1;"),
+    "iot": ("linear-gradient(135deg, #cffafe, #a5f3fc)", "rgba(8,145,178,.12)", "#0891b2", "&#x1F4E1;"),
+    "devops": ("linear-gradient(135deg, #fae8ff, #f0abfc)", "rgba(192,38,211,.12)", "#c026d3", "&#x2699;"),
+    "food": ("linear-gradient(135deg, #fef3c7, #fde68a)", "rgba(217,119,6,.12)", "#d97706", "&#x1F373;"),
+    "agriculture": ("linear-gradient(135deg, #d9f99d, #bef264)", "rgba(101,163,13,.12)", "#65a30d", "&#x1F331;"),
+    "health": ("linear-gradient(135deg, #fce7f3, #fbcfe8)", "rgba(219,39,119,.12)", "#db2777", "&#x1F3CB;"),
 }
 
 CATEGORIES = {
@@ -28,6 +34,19 @@ CATEGORIES = {
     47: "networking", 48: "networking", 49: "networking", 50: "networking",
     51: "networking", 52: "networking", 53: "networking", 54: "networking",
     55: "networking", 56: "networking",
+    57: "security", 58: "security", 59: "security", 60: "security", 61: "security",
+    62: "security", 63: "security", 64: "security", 65: "security", 66: "security",
+    67: "iot", 68: "iot", 69: "iot", 70: "iot", 71: "iot",
+    72: "iot", 73: "iot", 74: "iot", 75: "iot", 76: "iot",
+    77: "devops", 78: "devops", 79: "devops", 80: "devops", 81: "devops",
+    82: "devops", 83: "devops", 84: "devops", 85: "devops", 86: "devops",
+    87: "food", 88: "food", 89: "food", 90: "food", 91: "food",
+    92: "food", 93: "food", 94: "food", 95: "food", 96: "food",
+    97: "agriculture", 98: "agriculture", 99: "agriculture", 100: "agriculture",
+    101: "agriculture", 102: "agriculture", 103: "agriculture", 104: "agriculture",
+    105: "agriculture", 106: "agriculture",
+    107: "health", 108: "health", 109: "health", 110: "health", 111: "health",
+    112: "health", 113: "health", 114: "health", 115: "health", 116: "health",
 }
 
 def slug_to_web(slug):
@@ -256,7 +275,7 @@ def build_page(num, uc_dir):
             prev_name = prev_cfg["metadata"]["name"]
             prev_link = f'<a href="{prev_num:02d}-{prev_web}.html">&larr; Previous: {escape(prev_name)}</a>'
 
-    if next_num <= 56:
+    if next_num <= 116:
         next_dirs = glob.glob(f"use_cases/{next_num:02d}_*")
         if next_dirs:
             next_slug = os.path.basename(next_dirs[0]).split("_", 1)[1]
@@ -545,12 +564,13 @@ def inject_matrix_into_existing(num, uc_dir):
 
 
 def main():
-    # Generate pages for use cases 27-56
-    for num in range(27, 57):
-        dirs = glob.glob(f"use_cases/{num:02d}_*")
+    # Generate pages for use cases 27-116
+    for num in range(27, 117):
+        pattern = f"use_cases/{num:02d}_*" if num < 100 else f"use_cases/{num}_*"
+        dirs = glob.glob(pattern)
         if dirs:
             build_page(num, dirs[0])
-    print(f"\n  30 HTML pages generated (27-56).")
+    print(f"\n  90 HTML pages generated (27-116).")
 
     # Inject experimental matrix into existing pages for use cases 1-26
     print("\nInjecting experimental matrices into use cases 1-26...")

@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zero Trust Policy Evaluation &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #fee2e2, #fecaca);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F6E1;</div>
+    <div class="uc-badge" style="background:rgba(220,38,38,.12);color:#dc2626;">Fractional Factorial Design</div>
+    <h1>Zero Trust Policy Evaluation</h1>
+    <p class="uc-subtitle">Fractional factorial of 5 zero trust parameters for auth latency and security score</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>policy_cache_ttl</code></td><td>10</td><td>300</td><td>sec</td></tr>
+            <tr><td><code>context_attributes</code></td><td>3</td><td>12</td><td>count</td></tr>
+            <tr><td><code>risk_score_weight</code></td><td>0.1</td><td>0.9</td><td>weight</td></tr>
+            <tr><td><code>session_timeout</code></td><td>300</td><td>3600</td><td>sec</td></tr>
+            <tr><td><code>mfa_frequency</code></td><td>1</td><td>24</td><td>hours</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> identity_provider = okta, policy_engine = opa</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>auth_latency_ms</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>ms</td></tr>
+            <tr><td><code>security_score</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>score</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/61_zero_trust_policy_eval/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Zero Trust Policy Evaluation&quot;,
+    &quot;description&quot;: &quot;Fractional factorial of 5 zero trust parameters for auth latency and security score&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;policy_cache_ttl&quot;,
+      &quot;levels&quot;: [
+        &quot;10&quot;,
+        &quot;300&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;sec&quot;
+    },
+    {
+      &quot;name&quot;: &quot;context_attributes&quot;,
+      &quot;levels&quot;: [
+        &quot;3&quot;,
+        &quot;12&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;count&quot;
+    },
+    {
+      &quot;name&quot;: &quot;risk_score_weight&quot;,
+      &quot;levels&quot;: [
+        &quot;0.1&quot;,
+        &quot;0.9&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;weight&quot;
+    },
+    {
+      &quot;name&quot;: &quot;session_timeout&quot;,
+      &quot;levels&quot;: [
+        &quot;300&quot;,
+        &quot;3600&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;sec&quot;
+    },
+    {
+      &quot;name&quot;: &quot;mfa_frequency&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;24&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;hours&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;identity_provider&quot;: &quot;okta&quot;,
+    &quot;policy_engine&quot;: &quot;opa&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;auth_latency_ms&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;name&quot;: &quot;security_score&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;score&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;fractional_factorial&quot;,
+    &quot;test_script&quot;: &quot;use_cases/61_zero_trust_policy_eval/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Fractional Factorial Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>policy_cache_ttl</code></th><th><code>context_attributes</code></th><th><code>risk_score_weight</code></th><th><code>session_timeout</code></th><th><code>mfa_frequency</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>10</td><td>12</td><td>0.9</td><td>300</td><td>1</td></tr>
+        <tr><td>2</td><td>300</td><td>3</td><td>0.1</td><td>300</td><td>1</td></tr>
+        <tr><td>3</td><td>300</td><td>12</td><td>0.1</td><td>3600</td><td>1</td></tr>
+        <tr><td>4</td><td>300</td><td>12</td><td>0.9</td><td>3600</td><td>24</td></tr>
+        <tr><td>5</td><td>10</td><td>12</td><td>0.1</td><td>300</td><td>24</td></tr>
+        <tr><td>6</td><td>300</td><td>3</td><td>0.9</td><td>300</td><td>24</td></tr>
+        <tr><td>7</td><td>10</td><td>3</td><td>0.1</td><td>3600</td><td>24</td></tr>
+        <tr><td>8</td><td>10</td><td>3</td><td>0.9</td><td>3600</td><td>1</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/61_zero_trust_policy_eval/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/61_zero_trust_policy_eval/config.json \
+    <span class="flag">--output</span> use_cases/61_zero_trust_policy_eval/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/61_zero_trust_policy_eval/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/61_zero_trust_policy_eval/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/61_zero_trust_policy_eval/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/61_zero_trust_policy_eval/config.json \
+    <span class="flag">--output</span> use_cases/61_zero_trust_policy_eval/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>fractional_factorial</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 5)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (auth_latency_ms &#x2193;, security_score &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>8</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: auth_latency_ms</h3>
+    <p>Top factors: session_timeout (64.1%), mfa_frequency (24.3%), policy_cache_ttl (6.1%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/61_pareto_auth_latency_ms.png" alt="Pareto chart for auth_latency_ms">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/61_main_effects_auth_latency_ms.png" alt="Main effects plot for auth_latency_ms">
+      </div>
+    </div>
+
+    <h3>Response: security_score</h3>
+    <p>Top factors: session_timeout (44.6%), policy_cache_ttl (26.2%), risk_score_weight (16.6%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/61_pareto_security_score.png" alt="Pareto chart for security_score">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/61_main_effects_security_score.png" alt="Main effects plot for security_score">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">auth latency ms context attributes vs mfa frequency</p>
+      <img src="../images/61_rsm_auth_latency_ms_context_attributes_vs_mfa_frequency.png" alt="RSM surface: auth latency ms context attributes vs mfa frequency" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">auth latency ms context attributes vs risk score weight</p>
+      <img src="../images/61_rsm_auth_latency_ms_context_attributes_vs_risk_score_weight.png" alt="RSM surface: auth latency ms context attributes vs risk score weight" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">auth latency ms context attributes vs session timeout</p>
+      <img src="../images/61_rsm_auth_latency_ms_context_attributes_vs_session_timeout.png" alt="RSM surface: auth latency ms context attributes vs session timeout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">auth latency ms policy cache ttl vs context attributes</p>
+      <img src="../images/61_rsm_auth_latency_ms_policy_cache_ttl_vs_context_attributes.png" alt="RSM surface: auth latency ms policy cache ttl vs context attributes" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">auth latency ms policy cache ttl vs mfa frequency</p>
+      <img src="../images/61_rsm_auth_latency_ms_policy_cache_ttl_vs_mfa_frequency.png" alt="RSM surface: auth latency ms policy cache ttl vs mfa frequency" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">auth latency ms policy cache ttl vs risk score weight</p>
+      <img src="../images/61_rsm_auth_latency_ms_policy_cache_ttl_vs_risk_score_weight.png" alt="RSM surface: auth latency ms policy cache ttl vs risk score weight" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">auth latency ms policy cache ttl vs session timeout</p>
+      <img src="../images/61_rsm_auth_latency_ms_policy_cache_ttl_vs_session_timeout.png" alt="RSM surface: auth latency ms policy cache ttl vs session timeout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">auth latency ms risk score weight vs mfa frequency</p>
+      <img src="../images/61_rsm_auth_latency_ms_risk_score_weight_vs_mfa_frequency.png" alt="RSM surface: auth latency ms risk score weight vs mfa frequency" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">auth latency ms risk score weight vs session timeout</p>
+      <img src="../images/61_rsm_auth_latency_ms_risk_score_weight_vs_session_timeout.png" alt="RSM surface: auth latency ms risk score weight vs session timeout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">auth latency ms session timeout vs mfa frequency</p>
+      <img src="../images/61_rsm_auth_latency_ms_session_timeout_vs_mfa_frequency.png" alt="RSM surface: auth latency ms session timeout vs mfa frequency" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">security score context attributes vs mfa frequency</p>
+      <img src="../images/61_rsm_security_score_context_attributes_vs_mfa_frequency.png" alt="RSM surface: security score context attributes vs mfa frequency" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">security score context attributes vs risk score weight</p>
+      <img src="../images/61_rsm_security_score_context_attributes_vs_risk_score_weight.png" alt="RSM surface: security score context attributes vs risk score weight" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">security score context attributes vs session timeout</p>
+      <img src="../images/61_rsm_security_score_context_attributes_vs_session_timeout.png" alt="RSM surface: security score context attributes vs session timeout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">security score policy cache ttl vs context attributes</p>
+      <img src="../images/61_rsm_security_score_policy_cache_ttl_vs_context_attributes.png" alt="RSM surface: security score policy cache ttl vs context attributes" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">security score policy cache ttl vs mfa frequency</p>
+      <img src="../images/61_rsm_security_score_policy_cache_ttl_vs_mfa_frequency.png" alt="RSM surface: security score policy cache ttl vs mfa frequency" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">security score policy cache ttl vs risk score weight</p>
+      <img src="../images/61_rsm_security_score_policy_cache_ttl_vs_risk_score_weight.png" alt="RSM surface: security score policy cache ttl vs risk score weight" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">security score policy cache ttl vs session timeout</p>
+      <img src="../images/61_rsm_security_score_policy_cache_ttl_vs_session_timeout.png" alt="RSM surface: security score policy cache ttl vs session timeout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">security score risk score weight vs mfa frequency</p>
+      <img src="../images/61_rsm_security_score_risk_score_weight_vs_mfa_frequency.png" alt="RSM surface: security score risk score weight vs mfa frequency" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">security score risk score weight vs session timeout</p>
+      <img src="../images/61_rsm_security_score_risk_score_weight_vs_session_timeout.png" alt="RSM surface: security score risk score weight vs session timeout" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">security score session timeout vs mfa frequency</p>
+      <img src="../images/61_rsm_security_score_session_timeout_vs_mfa_frequency.png" alt="RSM surface: security score session timeout vs mfa frequency" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: auth_latency_ms ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+session_timeout        -21.4250       5.6169            64.1%
+mfa_frequency           -8.1250       5.6169            24.3%
+policy_cache_ttl        -2.0250       5.6169             6.1%
+context_attributes       1.0250       5.6169             3.1%
+risk_score_weight       -0.8250       5.6169             2.5%
+
+=== Interaction Effects: auth_latency_ms ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+policy_cache_ttl     context_attributes        21.4250            24.6%
+context_attributes   mfa_frequency            -15.8750            18.2%
+risk_score_weight    session_timeout           15.8750            18.2%
+context_attributes   risk_score_weight         10.0250            11.5%
+session_timeout      mfa_frequency            -10.0250            11.5%
+policy_cache_ttl     risk_score_weight         -8.1250             9.3%
+context_attributes   session_timeout            2.0250             2.3%
+risk_score_weight    mfa_frequency             -2.0250             2.3%
+policy_cache_ttl     session_timeout           -1.0250             1.2%
+policy_cache_ttl     mfa_frequency             -0.8250             0.9%
+
+=== Summary Statistics: auth_latency_ms ===
+
+policy_cache_ttl:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4    30.6000    19.4958     3.8000    50.1000
+  300                 4    28.5750    14.3565    15.8000    47.2000
+
+context_attributes:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  12                  4    29.0750    15.5744    15.8000    50.1000
+  3                   4    30.1000    18.5921     3.8000    47.2000
+
+risk_score_weight:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.1                 4    30.0000    22.4314     3.8000    50.1000
+  0.9                 4    29.1750     9.2363    15.8000    37.0000
+
+session_timeout:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  300                 4    40.3000     9.7211    31.5000    50.1000
+  3600                4    18.8750    13.7262     3.8000    37.0000
+
+mfa_frequency:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    33.6500    11.7900    18.9000    47.2000
+  24                  4    25.5250    20.1474     3.8000    50.1000
+
+=== Main Effects: security_score ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+session_timeout        -21.2750       5.2823            44.6%
+policy_cache_ttl        12.5250       5.2823            26.2%
+risk_score_weight       -7.9250       5.2823            16.6%
+context_attributes       4.6250       5.2823             9.7%
+mfa_frequency           -1.3750       5.2823             2.9%
+
+=== Interaction Effects: security_score ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+policy_cache_ttl     context_attributes        21.2750            26.2%
+context_attributes   session_timeout          -12.5250            15.5%
+risk_score_weight    mfa_frequency             12.5250            15.5%
+context_attributes   risk_score_weight         -9.1750            11.3%
+session_timeout      mfa_frequency              9.1750            11.3%
+policy_cache_ttl     mfa_frequency             -7.9250             9.8%
+policy_cache_ttl     session_timeout           -4.6250             5.7%
+policy_cache_ttl     risk_score_weight         -1.3750             1.7%
+context_attributes   mfa_frequency             -1.2250             1.5%
+risk_score_weight    session_timeout            1.2250             1.5%
+
+=== Summary Statistics: security_score ===
+
+policy_cache_ttl:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4    64.0750    11.3038    48.5000    73.1000
+  300                 4    76.6000    16.9849    63.1000    99.4000
+
+context_attributes:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  12                  4    68.0250     5.1038    63.1000    73.1000
+  3                   4    72.6500    21.9211    48.5000    99.4000
+
+risk_score_weight:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.1                 4    74.3000    17.2230    63.0000    99.4000
+  0.9                 4    66.3750    13.5034    48.5000    79.7000
+
+session_timeout:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  300                 4    80.9750    12.7691    71.7000    99.4000
+  3600                4    59.7000     7.4864    48.5000    64.2000
+
+mfa_frequency:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    71.0250    21.4447    48.5000    99.4000
+  24                  4    69.6500     7.7272    63.0000    79.7000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: auth_latency_ms ===
+Direction: minimize
+
+Best observed run: #2
+  policy_cache_ttl = 10
+  context_attributes = 12
+  risk_score_weight = 0.1
+  session_timeout = 300
+  mfa_frequency = 24
+  Value: 3.8
+
+RSM Model (linear, R² = 0.6494, Adj R² = -0.2273):
+  Coefficients:
+    intercept                      +29.5875
+    policy_cache_ttl               +4.0125
+    context_attributes             +3.5625
+    risk_score_weight              +7.4375
+    session_timeout                +3.6375
+    mfa_frequency                  -6.7875
+
+  Predicted optimum (from linear model):
+    policy_cache_ttl = 300
+    context_attributes = 12
+    risk_score_weight = 0.9
+    session_timeout = 3600
+    mfa_frequency = 24
+    Predicted value: 41.4500
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
+
+Factor importance:
+  1. risk_score_weight  (effect: 14.9, contribution: 29.2%)
+  2. mfa_frequency  (effect: -13.6, contribution: 26.7%)
+  3. policy_cache_ttl  (effect: 8.0, contribution: 15.8%)
+  4. session_timeout  (effect: 7.3, contribution: 14.3%)
+  5. context_attributes  (effect: -7.1, contribution: 14.0%)
+
+=== Optimization: security_score ===
+Direction: maximize
+
+Best observed run: #1
+  policy_cache_ttl = 10
+  context_attributes = 12
+  risk_score_weight = 0.9
+  session_timeout = 300
+  mfa_frequency = 1
+  Value: 99.4
+
+RSM Model (linear, R² = 0.8905, Adj R² = 0.6167):
+  Coefficients:
+    intercept                      +70.3375
+    policy_cache_ttl               -5.9625
+    context_attributes             +6.4625
+    risk_score_weight              +4.8375
+    session_timeout                +1.5625
+    mfa_frequency                  -8.4125
+
+  Predicted optimum (from linear model):
+    policy_cache_ttl = 10
+    context_attributes = 12
+    risk_score_weight = 0.9
+    session_timeout = 300
+    mfa_frequency = 1
+    Predicted value: 94.4500
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. mfa_frequency  (effect: -16.8, contribution: 30.9%)
+  2. context_attributes  (effect: -12.9, contribution: 23.7%)
+  3. policy_cache_ttl  (effect: -11.9, contribution: 21.9%)
+  4. risk_score_weight  (effect: 9.7, contribution: 17.8%)
+  5. session_timeout  (effect: 3.1, contribution: 5.7%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="60-vulnerability-scan-scheduling.html">&larr; Previous: Vulnerability Scan Scheduling</a>
+    <a href="62-certificate-rotation.html">Next: Certificate Rotation Strategy &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

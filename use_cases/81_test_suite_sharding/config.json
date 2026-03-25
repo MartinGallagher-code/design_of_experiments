@@ -1,0 +1,66 @@
+{
+    "metadata": {
+        "name": "Test Suite Sharding",
+        "description": "Central Composite design to optimize shard count, retry count, and timeout multiplier for wall time and flaky failures"
+    },
+    "factors": [
+        {
+            "name": "shard_count",
+            "levels": [
+                "2",
+                "16"
+            ],
+            "type": "continuous",
+            "unit": "shards",
+            "description": "Number of test shards"
+        },
+        {
+            "name": "retry_flaky_count",
+            "levels": [
+                "0",
+                "3"
+            ],
+            "type": "continuous",
+            "unit": "retries",
+            "description": "Flaky test retry count"
+        },
+        {
+            "name": "timeout_multiplier",
+            "levels": [
+                "1.0",
+                "3.0"
+            ],
+            "type": "continuous",
+            "unit": "x",
+            "description": "Test timeout multiplier"
+        }
+    ],
+    "fixed_factors": {
+        "framework": "pytest",
+        "test_count": "4500"
+    },
+    "responses": [
+        {
+            "name": "total_wall_time_min",
+            "optimize": "minimize",
+            "unit": "min",
+            "description": "Total wall clock time"
+        },
+        {
+            "name": "flaky_failure_rate",
+            "optimize": "minimize",
+            "unit": "%",
+            "description": "Flaky test failure rate"
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "use_cases/81_test_suite_sharding/sim.sh",
+        "operation": "central_composite",
+        "processed_directory": "use_cases/81_test_suite_sharding/results/analysis",
+        "out_directory": "use_cases/81_test_suite_sharding/results"
+    }
+}

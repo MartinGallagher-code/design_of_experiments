@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audit Log Pipeline &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #fee2e2, #fecaca);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F6E1;</div>
+    <div class="uc-badge" style="background:rgba(220,38,38,.12);color:#dc2626;">Fractional Factorial Design</div>
+    <h1>Audit Log Pipeline</h1>
+    <p class="uc-subtitle">Fractional factorial of 5 audit log pipeline parameters for ingest rate and latency</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>batch_size</code></td><td>100</td><td>10000</td><td>events</td></tr>
+            <tr><td><code>flush_interval_ms</code></td><td>100</td><td>5000</td><td>ms</td></tr>
+            <tr><td><code>compression_level</code></td><td>1</td><td>9</td><td>level</td></tr>
+            <tr><td><code>buffer_pool_mb</code></td><td>32</td><td>512</td><td>MB</td></tr>
+            <tr><td><code>writer_threads</code></td><td>1</td><td>8</td><td>threads</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> storage = s3, format = json_lines</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>ingest_rate_eps</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>events/s</td></tr>
+            <tr><td><code>end_to_end_latency_ms</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>ms</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/65_audit_log_pipeline/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Audit Log Pipeline&quot;,
+    &quot;description&quot;: &quot;Fractional factorial of 5 audit log pipeline parameters for ingest rate and latency&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;batch_size&quot;,
+      &quot;levels&quot;: [
+        &quot;100&quot;,
+        &quot;10000&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;events&quot;
+    },
+    {
+      &quot;name&quot;: &quot;flush_interval_ms&quot;,
+      &quot;levels&quot;: [
+        &quot;100&quot;,
+        &quot;5000&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;name&quot;: &quot;compression_level&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;9&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;level&quot;
+    },
+    {
+      &quot;name&quot;: &quot;buffer_pool_mb&quot;,
+      &quot;levels&quot;: [
+        &quot;32&quot;,
+        &quot;512&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;MB&quot;
+    },
+    {
+      &quot;name&quot;: &quot;writer_threads&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;8&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;threads&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;storage&quot;: &quot;s3&quot;,
+    &quot;format&quot;: &quot;json_lines&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;ingest_rate_eps&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;events/s&quot;
+    },
+    {
+      &quot;name&quot;: &quot;end_to_end_latency_ms&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;ms&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;fractional_factorial&quot;,
+    &quot;test_script&quot;: &quot;use_cases/65_audit_log_pipeline/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Fractional Factorial Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>batch_size</code></th><th><code>flush_interval_ms</code></th><th><code>compression_level</code></th><th><code>buffer_pool_mb</code></th><th><code>writer_threads</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>100</td><td>5000</td><td>9</td><td>32</td><td>1</td></tr>
+        <tr><td>2</td><td>10000</td><td>100</td><td>1</td><td>32</td><td>1</td></tr>
+        <tr><td>3</td><td>10000</td><td>5000</td><td>1</td><td>512</td><td>1</td></tr>
+        <tr><td>4</td><td>10000</td><td>5000</td><td>9</td><td>512</td><td>8</td></tr>
+        <tr><td>5</td><td>100</td><td>5000</td><td>1</td><td>32</td><td>8</td></tr>
+        <tr><td>6</td><td>10000</td><td>100</td><td>9</td><td>32</td><td>8</td></tr>
+        <tr><td>7</td><td>100</td><td>100</td><td>1</td><td>512</td><td>8</td></tr>
+        <tr><td>8</td><td>100</td><td>100</td><td>9</td><td>512</td><td>1</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/65_audit_log_pipeline/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/65_audit_log_pipeline/config.json \
+    <span class="flag">--output</span> use_cases/65_audit_log_pipeline/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/65_audit_log_pipeline/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/65_audit_log_pipeline/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/65_audit_log_pipeline/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/65_audit_log_pipeline/config.json \
+    <span class="flag">--output</span> use_cases/65_audit_log_pipeline/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>fractional_factorial</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 5)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (ingest_rate_eps &#x2191;, end_to_end_latency_ms &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>8</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: ingest_rate_eps</h3>
+    <p>Top factors: compression_level (37.1%), batch_size (32.4%), writer_threads (18.2%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/65_pareto_ingest_rate_eps.png" alt="Pareto chart for ingest_rate_eps">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/65_main_effects_ingest_rate_eps.png" alt="Main effects plot for ingest_rate_eps">
+      </div>
+    </div>
+
+    <h3>Response: end_to_end_latency_ms</h3>
+    <p>Top factors: batch_size (32.4%), buffer_pool_mb (22.1%), writer_threads (19.8%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/65_pareto_end_to_end_latency_ms.png" alt="Pareto chart for end_to_end_latency_ms">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/65_main_effects_end_to_end_latency_ms.png" alt="Main effects plot for end_to_end_latency_ms">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">end to end latency ms batch size vs buffer pool mb</p>
+      <img src="../images/65_rsm_end_to_end_latency_ms_batch_size_vs_buffer_pool_mb.png" alt="RSM surface: end to end latency ms batch size vs buffer pool mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">end to end latency ms batch size vs compression level</p>
+      <img src="../images/65_rsm_end_to_end_latency_ms_batch_size_vs_compression_level.png" alt="RSM surface: end to end latency ms batch size vs compression level" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">end to end latency ms batch size vs flush interval ms</p>
+      <img src="../images/65_rsm_end_to_end_latency_ms_batch_size_vs_flush_interval_ms.png" alt="RSM surface: end to end latency ms batch size vs flush interval ms" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">end to end latency ms batch size vs writer threads</p>
+      <img src="../images/65_rsm_end_to_end_latency_ms_batch_size_vs_writer_threads.png" alt="RSM surface: end to end latency ms batch size vs writer threads" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">end to end latency ms buffer pool mb vs writer threads</p>
+      <img src="../images/65_rsm_end_to_end_latency_ms_buffer_pool_mb_vs_writer_threads.png" alt="RSM surface: end to end latency ms buffer pool mb vs writer threads" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">end to end latency ms compression level vs buffer pool mb</p>
+      <img src="../images/65_rsm_end_to_end_latency_ms_compression_level_vs_buffer_pool_mb.png" alt="RSM surface: end to end latency ms compression level vs buffer pool mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">end to end latency ms compression level vs writer threads</p>
+      <img src="../images/65_rsm_end_to_end_latency_ms_compression_level_vs_writer_threads.png" alt="RSM surface: end to end latency ms compression level vs writer threads" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">end to end latency ms flush interval ms vs buffer pool mb</p>
+      <img src="../images/65_rsm_end_to_end_latency_ms_flush_interval_ms_vs_buffer_pool_mb.png" alt="RSM surface: end to end latency ms flush interval ms vs buffer pool mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">end to end latency ms flush interval ms vs compression level</p>
+      <img src="../images/65_rsm_end_to_end_latency_ms_flush_interval_ms_vs_compression_level.png" alt="RSM surface: end to end latency ms flush interval ms vs compression level" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">end to end latency ms flush interval ms vs writer threads</p>
+      <img src="../images/65_rsm_end_to_end_latency_ms_flush_interval_ms_vs_writer_threads.png" alt="RSM surface: end to end latency ms flush interval ms vs writer threads" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">ingest rate eps batch size vs buffer pool mb</p>
+      <img src="../images/65_rsm_ingest_rate_eps_batch_size_vs_buffer_pool_mb.png" alt="RSM surface: ingest rate eps batch size vs buffer pool mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">ingest rate eps batch size vs compression level</p>
+      <img src="../images/65_rsm_ingest_rate_eps_batch_size_vs_compression_level.png" alt="RSM surface: ingest rate eps batch size vs compression level" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">ingest rate eps batch size vs flush interval ms</p>
+      <img src="../images/65_rsm_ingest_rate_eps_batch_size_vs_flush_interval_ms.png" alt="RSM surface: ingest rate eps batch size vs flush interval ms" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">ingest rate eps batch size vs writer threads</p>
+      <img src="../images/65_rsm_ingest_rate_eps_batch_size_vs_writer_threads.png" alt="RSM surface: ingest rate eps batch size vs writer threads" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">ingest rate eps buffer pool mb vs writer threads</p>
+      <img src="../images/65_rsm_ingest_rate_eps_buffer_pool_mb_vs_writer_threads.png" alt="RSM surface: ingest rate eps buffer pool mb vs writer threads" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">ingest rate eps compression level vs buffer pool mb</p>
+      <img src="../images/65_rsm_ingest_rate_eps_compression_level_vs_buffer_pool_mb.png" alt="RSM surface: ingest rate eps compression level vs buffer pool mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">ingest rate eps compression level vs writer threads</p>
+      <img src="../images/65_rsm_ingest_rate_eps_compression_level_vs_writer_threads.png" alt="RSM surface: ingest rate eps compression level vs writer threads" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">ingest rate eps flush interval ms vs buffer pool mb</p>
+      <img src="../images/65_rsm_ingest_rate_eps_flush_interval_ms_vs_buffer_pool_mb.png" alt="RSM surface: ingest rate eps flush interval ms vs buffer pool mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">ingest rate eps flush interval ms vs compression level</p>
+      <img src="../images/65_rsm_ingest_rate_eps_flush_interval_ms_vs_compression_level.png" alt="RSM surface: ingest rate eps flush interval ms vs compression level" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">ingest rate eps flush interval ms vs writer threads</p>
+      <img src="../images/65_rsm_ingest_rate_eps_flush_interval_ms_vs_writer_threads.png" alt="RSM surface: ingest rate eps flush interval ms vs writer threads" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: ingest_rate_eps ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+compression_level    -22940.7500    8065.3991            37.1%
+batch_size           20022.2500    8065.3991            32.4%
+writer_threads       -11235.7500    8065.3991            18.2%
+buffer_pool_mb        4008.7500    8065.3991             6.5%
+flush_interval_ms    -3611.2500    8065.3991             5.8%
+
+=== Interaction Effects: ingest_rate_eps ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+flush_interval_ms    compression_level     -23383.2500            15.0%
+buffer_pool_mb       writer_threads        -23383.2500            15.0%
+batch_size           writer_threads        -22940.7500            14.7%
+flush_interval_ms    buffer_pool_mb         20022.2500            12.8%
+compression_level    writer_threads         20022.2500            12.8%
+flush_interval_ms    writer_threads         13860.7500             8.9%
+compression_level    buffer_pool_mb         13860.7500             8.9%
+batch_size           compression_level     -11235.7500             7.2%
+batch_size           flush_interval_ms       4008.7500             2.6%
+batch_size           buffer_pool_mb         -3611.2500             2.3%
+
+=== Summary Statistics: ingest_rate_eps ===
+
+batch_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4 36560.5000 22965.0964  8276.0000 57225.0000
+  10000               4 56582.7500 20484.7029 34932.0000 78631.0000
+
+flush_interval_ms:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4 48377.2500 17189.7479 27601.0000 68711.0000
+  5000                4 44766.0000 30167.8226  8276.0000 78631.0000
+
+compression_level:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4 58042.0000 22098.6912 27601.0000 78631.0000
+  9                   4 35101.2500 19366.8501  8276.0000 53140.0000
+
+buffer_pool_mb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  32                  4 44567.2500 26207.2158  8276.0000 68711.0000
+  512                 4 48576.0000 22732.0807 27601.0000 78631.0000
+
+writer_threads:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4 52189.5000 31098.8307  8276.0000 78631.0000
+  8                   4 40953.7500 12766.3770 27601.0000 57225.0000
+
+=== Main Effects: end_to_end_latency_ms ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+batch_size             -96.0000      36.5860            32.4%
+buffer_pool_mb          65.5000      36.5860            22.1%
+writer_threads         -58.5000      36.5860            19.8%
+compression_level       56.5000      36.5860            19.1%
+flush_interval_ms       19.5000      36.5860             6.6%
+
+=== Interaction Effects: end_to_end_latency_ms ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+flush_interval_ms    writer_threads           -97.0000            12.8%
+compression_level    buffer_pool_mb           -97.0000            12.8%
+flush_interval_ms    buffer_pool_mb           -96.0000            12.6%
+compression_level    writer_threads           -96.0000            12.6%
+flush_interval_ms    compression_level         87.0000            11.4%
+buffer_pool_mb       writer_threads            87.0000            11.4%
+batch_size           flush_interval_ms         65.5000             8.6%
+batch_size           compression_level        -58.5000             7.7%
+batch_size           writer_threads            56.5000             7.4%
+batch_size           buffer_pool_mb            19.5000             2.6%
+
+=== Summary Statistics: end_to_end_latency_ms ===
+
+batch_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4   261.5000   128.0586    89.0000   388.0000
+  10000               4   165.5000    49.4267   119.0000   214.0000
+
+flush_interval_ms:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4   203.7500    97.4590   119.0000   319.0000
+  5000                4   223.2500   123.4271    89.0000   388.0000
+
+compression_level:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4   185.2500   103.8729    89.0000   319.0000
+  9                   4   241.7500   109.8556   127.0000   388.0000
+
+buffer_pool_mb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  32                  4   180.7500   139.1315    89.0000   388.0000
+  512                 4   246.2500    52.6142   202.0000   319.0000
+
+writer_threads:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4   242.7500   111.4910   119.0000   388.0000
+  8                   4   184.2500   101.3620    89.0000   319.0000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: ingest_rate_eps ===
+Direction: maximize
+
+Best observed run: #4
+  batch_size = 100
+  flush_interval_ms = 5000
+  compression_level = 1
+  buffer_pool_mb = 32
+  writer_threads = 8
+  Value: 78631.0
+
+RSM Model (linear, R² = 0.9682, Adj R² = 0.8888):
+  Coefficients:
+    intercept                      +46571.6250
+    batch_size                     +4659.6250
+    flush_interval_ms              +6118.3750
+    compression_level              -5306.8750
+    buffer_pool_mb                 -17855.1250
+    writer_threads                 +5897.1250
+
+  Predicted optimum (from linear model):
+    batch_size = 100
+    flush_interval_ms = 5000
+    compression_level = 1
+    buffer_pool_mb = 32
+    writer_threads = 8
+    Predicted value: 77089.5000
+
+  Model quality: Excellent fit — surface predictions are reliable.
+
+Factor importance:
+  1. buffer_pool_mb  (effect: -35710.2, contribution: 44.8%)
+  2. flush_interval_ms  (effect: 12236.8, contribution: 15.4%)
+  3. writer_threads  (effect: 11794.2, contribution: 14.8%)
+  4. compression_level  (effect: -10613.8, contribution: 13.3%)
+  5. batch_size  (effect: 9319.2, contribution: 11.7%)
+
+=== Optimization: end_to_end_latency_ms ===
+Direction: minimize
+
+Best observed run: #7
+  batch_size = 10000
+  flush_interval_ms = 100
+  compression_level = 1
+  buffer_pool_mb = 32
+  writer_threads = 1
+  Value: 89.0
+
+RSM Model (linear, R² = 0.9896, Adj R² = 0.9636):
+  Coefficients:
+    intercept                      +213.5000
+    batch_size                     -79.2500
+    flush_interval_ms              -15.2500
+    compression_level              +26.2500
+    buffer_pool_mb                 +45.5000
+    writer_threads                 +0.0000
+
+  Predicted optimum (from linear model):
+    batch_size = 100
+    flush_interval_ms = 100
+    compression_level = 9
+    buffer_pool_mb = 512
+    writer_threads = 1
+    Predicted value: 379.7500
+
+  Model quality: Excellent fit — surface predictions are reliable.
+
+Factor importance:
+  1. batch_size  (effect: -158.5, contribution: 47.7%)
+  2. buffer_pool_mb  (effect: 91.0, contribution: 27.4%)
+  3. compression_level  (effect: 52.5, contribution: 15.8%)
+  4. flush_interval_ms  (effect: -30.5, contribution: 9.2%)
+  5. writer_threads  (effect: 0.0, contribution: 0.0%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="64-secrets-vault-performance.html">&larr; Previous: Secrets Vault Performance</a>
+    <a href="66-container-image-scanning.html">Next: Container Image Scanning &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chaos Engineering Blast Radius &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #fae8ff, #f0abfc);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x2699;</div>
+    <div class="uc-badge" style="background:rgba(192,38,211,.12);color:#c026d3;">Central Composite Design</div>
+    <h1>Chaos Engineering Blast Radius</h1>
+    <p class="uc-subtitle">Central Composite design to optimize failure injection, experiment duration, and steady state threshold for resilience</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>failure_injection_pct</code></td><td>5</td><td>50</td><td>%</td></tr>
+            <tr><td><code>experiment_duration_min</code></td><td>5</td><td>30</td><td>min</td></tr>
+            <tr><td><code>steady_state_threshold</code></td><td>0.9</td><td>0.99</td><td>ratio</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> tool = litmus, target = microservices</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>resilience_score</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>score</td></tr>
+            <tr><td><code>blast_radius_services</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>count</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/86_chaos_engineering_blast_radius/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Chaos Engineering Blast Radius&quot;,
+    &quot;description&quot;: &quot;Central Composite design to optimize failure injection, experiment duration, and steady state threshold for resilience&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;failure_injection_pct&quot;,
+      &quot;levels&quot;: [
+        &quot;5&quot;,
+        &quot;50&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;experiment_duration_min&quot;,
+      &quot;levels&quot;: [
+        &quot;5&quot;,
+        &quot;30&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;min&quot;
+    },
+    {
+      &quot;name&quot;: &quot;steady_state_threshold&quot;,
+      &quot;levels&quot;: [
+        &quot;0.9&quot;,
+        &quot;0.99&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;ratio&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;tool&quot;: &quot;litmus&quot;,
+    &quot;target&quot;: &quot;microservices&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;resilience_score&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;score&quot;
+    },
+    {
+      &quot;name&quot;: &quot;blast_radius_services&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;count&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;central_composite&quot;,
+    &quot;test_script&quot;: &quot;use_cases/86_chaos_engineering_blast_radius/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Central Composite Design produces <strong>22 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>failure_injection_pct</code></th><th><code>experiment_duration_min</code></th><th><code>steady_state_threshold</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>27.5</td><td>17.5</td><td>0.945</td></tr>
+        <tr><td>2</td><td>50</td><td>5</td><td>0.99</td></tr>
+        <tr><td>3</td><td>5</td><td>30</td><td>0.9</td></tr>
+        <tr><td>4</td><td>27.5</td><td>40.3218</td><td>0.945</td></tr>
+        <tr><td>5</td><td>27.5</td><td>17.5</td><td>0.945</td></tr>
+        <tr><td>6</td><td>-13.5792</td><td>17.5</td><td>0.945</td></tr>
+        <tr><td>7</td><td>27.5</td><td>17.5</td><td>0.862842</td></tr>
+        <tr><td>8</td><td>27.5</td><td>17.5</td><td>0.945</td></tr>
+        <tr><td>9</td><td>50</td><td>30</td><td>0.9</td></tr>
+        <tr><td>10</td><td>68.5792</td><td>17.5</td><td>0.945</td></tr>
+        <tr><td>11</td><td>27.5</td><td>17.5</td><td>0.945</td></tr>
+        <tr><td>12</td><td>27.5</td><td>-5.32177</td><td>0.945</td></tr>
+        <tr><td>13</td><td>27.5</td><td>17.5</td><td>0.945</td></tr>
+        <tr><td>14</td><td>5</td><td>5</td><td>0.99</td></tr>
+        <tr><td>15</td><td>27.5</td><td>17.5</td><td>0.945</td></tr>
+        <tr><td>16</td><td>50</td><td>5</td><td>0.9</td></tr>
+        <tr><td>17</td><td>27.5</td><td>17.5</td><td>1.02716</td></tr>
+        <tr><td>18</td><td>50</td><td>30</td><td>0.99</td></tr>
+        <tr><td>19</td><td>27.5</td><td>17.5</td><td>0.945</td></tr>
+        <tr><td>20</td><td>5</td><td>5</td><td>0.9</td></tr>
+        <tr><td>21</td><td>5</td><td>30</td><td>0.99</td></tr>
+        <tr><td>22</td><td>27.5</td><td>17.5</td><td>0.945</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/86_chaos_engineering_blast_radius/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/86_chaos_engineering_blast_radius/config.json \
+    <span class="flag">--output</span> use_cases/86_chaos_engineering_blast_radius/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/86_chaos_engineering_blast_radius/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/86_chaos_engineering_blast_radius/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/86_chaos_engineering_blast_radius/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/86_chaos_engineering_blast_radius/config.json \
+    <span class="flag">--output</span> use_cases/86_chaos_engineering_blast_radius/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>central_composite</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (resilience_score &#x2191;, blast_radius_services &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>22</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: resilience_score</h3>
+    <p>Top factors: steady_state_threshold (49.2%), failure_injection_pct (37.6%), experiment_duration_min (13.3%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/86_pareto_resilience_score.png" alt="Pareto chart for resilience_score">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/86_main_effects_resilience_score.png" alt="Main effects plot for resilience_score">
+      </div>
+    </div>
+
+    <h3>Response: blast_radius_services</h3>
+    <p>Top factors: steady_state_threshold (39.0%), failure_injection_pct (31.7%), experiment_duration_min (29.3%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/86_pareto_blast_radius_services.png" alt="Pareto chart for blast_radius_services">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/86_main_effects_blast_radius_services.png" alt="Main effects plot for blast_radius_services">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">blast radius services experiment duration min vs steady state threshold</p>
+      <img src="../images/86_rsm_blast_radius_services_experiment_duration_min_vs_steady_state_threshold.png" alt="RSM surface: blast radius services experiment duration min vs steady state threshold" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">blast radius services failure injection pct vs experiment duration min</p>
+      <img src="../images/86_rsm_blast_radius_services_failure_injection_pct_vs_experiment_duration_min.png" alt="RSM surface: blast radius services failure injection pct vs experiment duration min" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">blast radius services failure injection pct vs steady state threshold</p>
+      <img src="../images/86_rsm_blast_radius_services_failure_injection_pct_vs_steady_state_threshold.png" alt="RSM surface: blast radius services failure injection pct vs steady state threshold" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">resilience score experiment duration min vs steady state threshold</p>
+      <img src="../images/86_rsm_resilience_score_experiment_duration_min_vs_steady_state_threshold.png" alt="RSM surface: resilience score experiment duration min vs steady state threshold" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">resilience score failure injection pct vs experiment duration min</p>
+      <img src="../images/86_rsm_resilience_score_failure_injection_pct_vs_experiment_duration_min.png" alt="RSM surface: resilience score failure injection pct vs experiment duration min" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">resilience score failure injection pct vs steady state threshold</p>
+      <img src="../images/86_rsm_resilience_score_failure_injection_pct_vs_steady_state_threshold.png" alt="RSM surface: resilience score failure injection pct vs steady state threshold" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: resilience_score ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+steady_state_threshold    31.6500       2.5368            49.2%
+failure_injection_pct    24.1750       2.5368            37.6%
+experiment_duration_min     8.5500       2.5368            13.3%
+
+=== Summary Statistics: resilience_score ===
+
+failure_injection_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -13.5792            1    48.4000     0.0000    48.4000    48.4000
+  27.5               12    63.8000    10.6445    39.5000    75.5000
+  5                   4    72.5750    11.9182    57.6000    86.7000
+  50                  4    58.2000    13.9099    45.6000    72.2000
+  68.5792             1    70.9000     0.0000    70.9000    70.9000
+
+experiment_duration_min:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -5.32177            1    62.6000     0.0000    62.6000    62.6000
+  17.5               12    62.7167    11.6135    39.5000    75.5000
+  30                  4    69.6250    17.2678    45.6000    86.7000
+  40.3218             1    69.7000     0.0000    69.7000    69.7000
+  5                   4    61.1500    11.2796    46.9000    72.0000
+
+steady_state_threshold:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.862842            1    68.9000     0.0000    68.9000    68.9000
+  0.9                 4    71.1500    12.0528    57.6000    86.7000
+  0.945              12    64.7083     9.0831    48.4000    75.5000
+  0.99                4    59.6250    15.4748    45.6000    74.0000
+  1.02716             1    39.5000     0.0000    39.5000    39.5000
+
+=== Main Effects: blast_radius_services ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+steady_state_threshold     4.0000       0.8424            39.0%
+failure_injection_pct     3.2500       0.8424            31.7%
+experiment_duration_min     3.0000       0.8424            29.3%
+
+=== Summary Statistics: blast_radius_services ===
+
+failure_injection_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -13.5792            1     3.0000     0.0000     3.0000     3.0000
+  27.5               12     4.8333     4.6677     1.0000    14.0000
+  5                   4     5.2500     4.1130     0.0000     9.0000
+  50                  4     2.0000     1.4142     0.0000     3.0000
+  68.5792             1     3.0000     0.0000     3.0000     3.0000
+
+experiment_duration_min:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -5.32177            1     2.0000     0.0000     2.0000     2.0000
+  17.5               12     5.0000     4.5726     1.0000    14.0000
+  30                  4     4.5000     3.1091     2.0000     9.0000
+  40.3218             1     2.0000     0.0000     2.0000     2.0000
+  5                   4     2.7500     3.7749     0.0000     8.0000
+
+steady_state_threshold:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.862842            1     2.0000     0.0000     2.0000     2.0000
+  0.9                 4     3.7500     3.7749     0.0000     9.0000
+  0.945              12     4.6667     4.6384     1.0000    14.0000
+  0.99                4     3.5000     3.4157     0.0000     8.0000
+  1.02716             1     6.0000     0.0000     6.0000     6.0000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: resilience_score ===
+Direction: maximize
+
+Best observed run: #18
+  failure_injection_pct = 5
+  experiment_duration_min = 5
+  steady_state_threshold = 0.99
+  Value: 86.7
+
+RSM Model (linear, R² = 0.1059, Adj R² = -0.0431):
+  Coefficients:
+    intercept                      +64.0000
+    failure_injection_pct          -1.1268
+    experiment_duration_min        -2.6931
+    steady_state_threshold         +3.5981
+
+RSM Model (quadratic, R² = 0.5122, Adj R² = 0.1464):
+  Coefficients:
+    intercept                      +55.6369
+    failure_injection_pct          -1.1268
+    experiment_duration_min        -2.6931
+    steady_state_threshold         +3.5980
+    failure_injection_pct*experiment_duration_min -1.5250
+    failure_injection_pct*steady_state_threshold -3.1250
+    experiment_duration_min*steady_state_threshold -4.9000
+    failure_injection_pct^2        +4.0216
+    experiment_duration_min^2      +3.4066
+    steady_state_threshold^2       +5.1165
+
+  Curvature analysis:
+    steady_state_threshold         coef=+5.1165  convex (has a minimum)
+    failure_injection_pct          coef=+4.0216  convex (has a minimum)
+    experiment_duration_min        coef=+3.4066  convex (has a minimum)
+
+  Notable interactions:
+    experiment_duration_min*steady_state_threshold coef=-4.9000  (antagonistic)
+    failure_injection_pct*steady_state_threshold coef=-3.1250  (antagonistic)
+    failure_injection_pct*experiment_duration_min coef=-1.5250  (antagonistic)
+
+  Predicted optimum (from quadratic model):
+    failure_injection_pct = 5
+    experiment_duration_min = 5
+    steady_state_threshold = 0.99
+    Predicted value: 82.0994
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
+
+Factor importance:
+  1. steady_state_threshold  (effect: 15.7, contribution: 35.9%)
+  2. experiment_duration_min  (effect: 15.5, contribution: 35.5%)
+  3. failure_injection_pct  (effect: 12.5, contribution: 28.6%)
+
+=== Optimization: blast_radius_services ===
+Direction: minimize
+
+Best observed run: #6
+  failure_injection_pct = 27.5
+  experiment_duration_min = 17.5
+  steady_state_threshold = 0.945
+  Value: 0.0
+
+RSM Model (linear, R² = 0.1327, Adj R² = -0.0119):
+  Coefficients:
+    intercept                      +4.2273
+    failure_injection_pct          -0.1927
+    experiment_duration_min        -1.5382
+    steady_state_threshold         -0.7500
+
+RSM Model (quadratic, R² = 0.6078, Adj R² = 0.3136):
+  Coefficients:
+    intercept                      +3.1615
+    failure_injection_pct          -0.1927
+    experiment_duration_min        -1.5382
+    steady_state_threshold         -0.7500
+    failure_injection_pct*experiment_duration_min +3.1250
+    failure_injection_pct*steady_state_threshold -1.6250
+    experiment_duration_min*steady_state_threshold -1.6250
+    failure_injection_pct^2        -0.0671
+    experiment_duration_min^2      +1.2829
+    steady_state_threshold^2       +0.3829
+
+  Curvature analysis:
+    experiment_duration_min        coef=+1.2829  convex (has a minimum)
+    steady_state_threshold         coef=+0.3829  convex (has a minimum)
+    failure_injection_pct          coef=-0.0671  negligible curvature
+
+  Notable interactions:
+    failure_injection_pct*experiment_duration_min coef=+3.1250  (synergistic)
+    failure_injection_pct*steady_state_threshold coef=-1.6250  (antagonistic)
+    experiment_duration_min*steady_state_threshold coef=-1.6250  (antagonistic)
+
+  Predicted optimum (from quadratic model):
+    failure_injection_pct = 5
+    experiment_duration_min = 5
+    steady_state_threshold = 0.99
+    Predicted value: 12.1160
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
+
+Factor importance:
+  1. experiment_duration_min  (effect: 14.0, contribution: 69.7%)
+  2. failure_injection_pct  (effect: 3.2, contribution: 16.2%)
+  3. steady_state_threshold  (effect: 2.8, contribution: 14.1%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="85-incident-response-automation.html">&larr; Previous: Incident Response Automation</a>
+    <a href="87-bread-baking.html">Next: Bread Baking Optimization &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

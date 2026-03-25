@@ -1,0 +1,66 @@
+{
+    "metadata": {
+        "name": "Certificate Rotation Strategy",
+        "description": "Full factorial of cert lifetime, renewal window, and stapling cache for rotation success and downtime"
+    },
+    "factors": [
+        {
+            "name": "cert_lifetime_days",
+            "levels": [
+                "30",
+                "90"
+            ],
+            "type": "continuous",
+            "unit": "days",
+            "description": "Certificate validity lifetime"
+        },
+        {
+            "name": "renewal_window_pct",
+            "levels": [
+                "10",
+                "30"
+            ],
+            "type": "continuous",
+            "unit": "%",
+            "description": "Renewal window as percentage of lifetime"
+        },
+        {
+            "name": "stapling_cache_sec",
+            "levels": [
+                "300",
+                "3600"
+            ],
+            "type": "continuous",
+            "unit": "sec",
+            "description": "OCSP stapling cache duration"
+        }
+    ],
+    "fixed_factors": {
+        "ca": "letsencrypt",
+        "key_type": "ecdsa_p256"
+    },
+    "responses": [
+        {
+            "name": "rotation_success_rate",
+            "optimize": "maximize",
+            "unit": "%",
+            "description": "Certificate rotation success rate"
+        },
+        {
+            "name": "downtime_sec",
+            "optimize": "minimize",
+            "unit": "sec",
+            "description": "Downtime during rotation"
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "use_cases/62_certificate_rotation/sim.sh",
+        "operation": "full_factorial",
+        "processed_directory": "use_cases/62_certificate_rotation/results/analysis",
+        "out_directory": "use_cases/62_certificate_rotation/results"
+    }
+}

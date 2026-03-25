@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Incident Response Automation &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #fae8ff, #f0abfc);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x2699;</div>
+    <div class="uc-badge" style="background:rgba(192,38,211,.12);color:#c026d3;">Fractional Factorial Design</div>
+    <h1>Incident Response Automation</h1>
+    <p class="uc-subtitle">Fractional factorial of 5 incident response parameters for MTTR and false escalation rate</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>alert_threshold_severity</code></td><td>1</td><td>5</td><td>level</td></tr>
+            <tr><td><code>escalation_delay_min</code></td><td>1</td><td>15</td><td>min</td></tr>
+            <tr><td><code>auto_remediation_enabled</code></td><td>off</td><td>on</td><td></td></tr>
+            <tr><td><code>runbook_timeout_sec</code></td><td>30</td><td>300</td><td>sec</td></tr>
+            <tr><td><code>notification_channels</code></td><td>1</td><td>5</td><td>channels</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> platform = pagerduty, integration = slack</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>mttr_min</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>min</td></tr>
+            <tr><td><code>false_escalation_pct</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/85_incident_response_automation/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Incident Response Automation&quot;,
+    &quot;description&quot;: &quot;Fractional factorial of 5 incident response parameters for MTTR and false escalation rate&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;alert_threshold_severity&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;5&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;level&quot;
+    },
+    {
+      &quot;name&quot;: &quot;escalation_delay_min&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;15&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;min&quot;
+    },
+    {
+      &quot;name&quot;: &quot;auto_remediation_enabled&quot;,
+      &quot;levels&quot;: [
+        &quot;off&quot;,
+        &quot;on&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    },
+    {
+      &quot;name&quot;: &quot;runbook_timeout_sec&quot;,
+      &quot;levels&quot;: [
+        &quot;30&quot;,
+        &quot;300&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;sec&quot;
+    },
+    {
+      &quot;name&quot;: &quot;notification_channels&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;5&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;channels&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;platform&quot;: &quot;pagerduty&quot;,
+    &quot;integration&quot;: &quot;slack&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;mttr_min&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;min&quot;
+    },
+    {
+      &quot;name&quot;: &quot;false_escalation_pct&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;fractional_factorial&quot;,
+    &quot;test_script&quot;: &quot;use_cases/85_incident_response_automation/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Fractional Factorial Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>alert_threshold_severity</code></th><th><code>escalation_delay_min</code></th><th><code>auto_remediation_enabled</code></th><th><code>runbook_timeout_sec</code></th><th><code>notification_channels</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>1</td><td>15</td><td>on</td><td>30</td><td>1</td></tr>
+        <tr><td>2</td><td>5</td><td>1</td><td>off</td><td>30</td><td>1</td></tr>
+        <tr><td>3</td><td>5</td><td>15</td><td>off</td><td>300</td><td>1</td></tr>
+        <tr><td>4</td><td>5</td><td>15</td><td>on</td><td>300</td><td>5</td></tr>
+        <tr><td>5</td><td>1</td><td>15</td><td>off</td><td>30</td><td>5</td></tr>
+        <tr><td>6</td><td>5</td><td>1</td><td>on</td><td>30</td><td>5</td></tr>
+        <tr><td>7</td><td>1</td><td>1</td><td>off</td><td>300</td><td>5</td></tr>
+        <tr><td>8</td><td>1</td><td>1</td><td>on</td><td>300</td><td>1</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/85_incident_response_automation/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/85_incident_response_automation/config.json \
+    <span class="flag">--output</span> use_cases/85_incident_response_automation/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/85_incident_response_automation/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/85_incident_response_automation/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/85_incident_response_automation/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/85_incident_response_automation/config.json \
+    <span class="flag">--output</span> use_cases/85_incident_response_automation/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>fractional_factorial</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (4), <code>categorical</code> (1)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (mttr_min &#x2193;, false_escalation_pct &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>8</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: mttr_min</h3>
+    <p>Top factors: escalation_delay_min (39.1%), auto_remediation_enabled (34.0%), alert_threshold_severity (13.6%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/85_pareto_mttr_min.png" alt="Pareto chart for mttr_min">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/85_main_effects_mttr_min.png" alt="Main effects plot for mttr_min">
+      </div>
+    </div>
+
+    <h3>Response: false_escalation_pct</h3>
+    <p>Top factors: alert_threshold_severity (40.4%), runbook_timeout_sec (25.4%), notification_channels (18.3%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/85_pareto_false_escalation_pct.png" alt="Pareto chart for false_escalation_pct">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/85_main_effects_false_escalation_pct.png" alt="Main effects plot for false_escalation_pct">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">false escalation pct alert threshold severity vs escalation delay min</p>
+      <img src="../images/85_rsm_false_escalation_pct_alert_threshold_severity_vs_escalation_delay_min.png" alt="RSM surface: false escalation pct alert threshold severity vs escalation delay min" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">false escalation pct alert threshold severity vs notification channels</p>
+      <img src="../images/85_rsm_false_escalation_pct_alert_threshold_severity_vs_notification_channels.png" alt="RSM surface: false escalation pct alert threshold severity vs notification channels" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">false escalation pct alert threshold severity vs runbook timeout sec</p>
+      <img src="../images/85_rsm_false_escalation_pct_alert_threshold_severity_vs_runbook_timeout_sec.png" alt="RSM surface: false escalation pct alert threshold severity vs runbook timeout sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">false escalation pct escalation delay min vs notification channels</p>
+      <img src="../images/85_rsm_false_escalation_pct_escalation_delay_min_vs_notification_channels.png" alt="RSM surface: false escalation pct escalation delay min vs notification channels" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">false escalation pct escalation delay min vs runbook timeout sec</p>
+      <img src="../images/85_rsm_false_escalation_pct_escalation_delay_min_vs_runbook_timeout_sec.png" alt="RSM surface: false escalation pct escalation delay min vs runbook timeout sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">false escalation pct runbook timeout sec vs notification channels</p>
+      <img src="../images/85_rsm_false_escalation_pct_runbook_timeout_sec_vs_notification_channels.png" alt="RSM surface: false escalation pct runbook timeout sec vs notification channels" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">mttr min alert threshold severity vs escalation delay min</p>
+      <img src="../images/85_rsm_mttr_min_alert_threshold_severity_vs_escalation_delay_min.png" alt="RSM surface: mttr min alert threshold severity vs escalation delay min" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">mttr min alert threshold severity vs notification channels</p>
+      <img src="../images/85_rsm_mttr_min_alert_threshold_severity_vs_notification_channels.png" alt="RSM surface: mttr min alert threshold severity vs notification channels" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">mttr min alert threshold severity vs runbook timeout sec</p>
+      <img src="../images/85_rsm_mttr_min_alert_threshold_severity_vs_runbook_timeout_sec.png" alt="RSM surface: mttr min alert threshold severity vs runbook timeout sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">mttr min escalation delay min vs notification channels</p>
+      <img src="../images/85_rsm_mttr_min_escalation_delay_min_vs_notification_channels.png" alt="RSM surface: mttr min escalation delay min vs notification channels" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">mttr min escalation delay min vs runbook timeout sec</p>
+      <img src="../images/85_rsm_mttr_min_escalation_delay_min_vs_runbook_timeout_sec.png" alt="RSM surface: mttr min escalation delay min vs runbook timeout sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">mttr min runbook timeout sec vs notification channels</p>
+      <img src="../images/85_rsm_mttr_min_runbook_timeout_sec_vs_notification_channels.png" alt="RSM surface: mttr min runbook timeout sec vs notification channels" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: mttr_min ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+escalation_delay_min    19.2750       8.2491            39.1%
+auto_remediation_enabled    16.7750       8.2491            34.0%
+alert_threshold_severity     6.7250       8.2491            13.6%
+runbook_timeout_sec      4.6750       8.2491             9.5%
+notification_channels    -1.8250       8.2491             3.7%
+
+=== Interaction Effects: mttr_min ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+escalation_delay_min notification_channels      30.8250            20.8%
+auto_remediation_enabled runbook_timeout_sec       30.8250            20.8%
+alert_threshold_severity runbook_timeout_sec       19.2750            13.0%
+alert_threshold_severity notification_channels      16.7750            11.3%
+escalation_delay_min auto_remediation_enabled      15.2250            10.3%
+runbook_timeout_sec  notification_channels      15.2250            10.3%
+escalation_delay_min runbook_timeout_sec        6.7250             4.5%
+auto_remediation_enabled notification_channels       6.7250             4.5%
+alert_threshold_severity escalation_delay_min       4.6750             3.2%
+alert_threshold_severity auto_remediation_enabled      -1.8250             1.2%
+
+=== Summary Statistics: mttr_min ===
+
+alert_threshold_severity:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    29.6000    16.3552     5.2000    39.4000
+  5                   4    36.3250    31.1860     8.8000    78.8000
+
+escalation_delay_min:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    23.3250    18.9088     5.2000    39.9000
+  15                  4    42.6000    25.7873    17.8000    78.8000
+
+auto_remediation_enabled:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4    24.5750    16.0554     5.2000    39.9000
+  on                  4    41.3500    28.7200     8.8000    78.8000
+
+runbook_timeout_sec:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  30                  4    30.6250    14.6698     8.8000    39.9000
+  300                 4    35.3000    32.2559     5.2000    78.8000
+
+notification_channels:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    33.8750    10.7348    17.8000    39.9000
+  5                   4    32.0500    33.9523     5.2000    78.8000
+
+=== Main Effects: false_escalation_pct ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+alert_threshold_severity    -5.1250       2.2120            40.4%
+runbook_timeout_sec      3.2250       2.2120            25.4%
+notification_channels    -2.3250       2.2120            18.3%
+escalation_delay_min     1.7250       2.2120            13.6%
+auto_remediation_enabled     0.2750       2.2120             2.2%
+
+=== Interaction Effects: false_escalation_pct ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+escalation_delay_min notification_channels      -6.9750            15.5%
+auto_remediation_enabled runbook_timeout_sec       -6.9750            15.5%
+escalation_delay_min auto_remediation_enabled      -6.5750            14.6%
+runbook_timeout_sec  notification_channels      -6.5750            14.6%
+escalation_delay_min runbook_timeout_sec       -5.1250            11.4%
+auto_remediation_enabled notification_channels      -5.1250            11.4%
+alert_threshold_severity escalation_delay_min       3.2250             7.2%
+alert_threshold_severity auto_remediation_enabled      -2.3250             5.2%
+alert_threshold_severity runbook_timeout_sec        1.7250             3.8%
+alert_threshold_severity notification_channels       0.2750             0.6%
+
+=== Summary Statistics: false_escalation_pct ===
+
+alert_threshold_severity:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    12.7500     1.7483    10.5000    14.6000
+  5                   4     7.6250     8.4124    -0.6000    17.9000
+
+escalation_delay_min:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4     9.3250     6.7889    -0.6000    14.6000
+  15                  4    11.0500     6.5775     2.3000    17.9000
+
+auto_remediation_enabled:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4    10.0500     7.7625    -0.6000    17.9000
+  on                  4    10.3250     5.5704     2.3000    14.6000
+
+runbook_timeout_sec:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  30                  4     8.5750     6.2596    -0.6000    13.5000
+  300                 4    11.8000     6.7246     2.3000    17.9000
+
+notification_channels:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    11.3500     8.1831    -0.6000    17.9000
+  5                   4     9.0250     4.5573     2.3000    12.4000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: mttr_min ===
+Direction: minimize
+
+Best observed run: #6
+  alert_threshold_severity = 1
+  escalation_delay_min = 15
+  auto_remediation_enabled = off
+  runbook_timeout_sec = 30
+  notification_channels = 5
+  Value: 5.2
+
+RSM Model (linear, R² = 0.3632, Adj R² = -1.2287):
+  Coefficients:
+    intercept                      +32.9625
+    alert_threshold_severity       +2.9875
+    escalation_delay_min           +2.4625
+    auto_remediation_enabled       +7.7625
+    runbook_timeout_sec            +9.8875
+    notification_channels          +0.0875
+
+  Predicted optimum (from linear model):
+    alert_threshold_severity = 5
+    escalation_delay_min = 15
+    auto_remediation_enabled = on
+    runbook_timeout_sec = 300
+    notification_channels = 5
+    Predicted value: 56.1500
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. runbook_timeout_sec  (effect: 19.8, contribution: 42.6%)
+  2. auto_remediation_enabled  (effect: 15.5, contribution: 33.5%)
+  3. alert_threshold_severity  (effect: 6.0, contribution: 12.9%)
+  4. escalation_delay_min  (effect: 4.9, contribution: 10.6%)
+  5. notification_channels  (effect: 0.2, contribution: 0.4%)
+
+=== Optimization: false_escalation_pct ===
+Direction: minimize
+
+Best observed run: #2
+  alert_threshold_severity = 1
+  escalation_delay_min = 15
+  auto_remediation_enabled = on
+  runbook_timeout_sec = 30
+  notification_channels = 1
+  Value: -0.6
+
+RSM Model (linear, R² = 0.7735, Adj R² = 0.2074):
+  Coefficients:
+    intercept                      +10.1875
+    alert_threshold_severity       +0.9625
+    escalation_delay_min           -2.1875
+    auto_remediation_enabled       -4.4125
+    runbook_timeout_sec            +1.1375
+    notification_channels          -0.1375
+
+  Predicted optimum (from linear model):
+    alert_threshold_severity = 1
+    escalation_delay_min = 1
+    auto_remediation_enabled = off
+    runbook_timeout_sec = 300
+    notification_channels = 5
+    Predicted value: 16.8250
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. auto_remediation_enabled  (effect: -8.8, contribution: 49.9%)
+  2. escalation_delay_min  (effect: -4.4, contribution: 24.8%)
+  3. runbook_timeout_sec  (effect: 2.3, contribution: 12.9%)
+  4. alert_threshold_severity  (effect: 1.9, contribution: 10.9%)
+  5. notification_channels  (effect: -0.3, contribution: 1.6%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="84-feature-flag-evaluation.html">&larr; Previous: Feature Flag Evaluation</a>
+    <a href="86-chaos-engineering-blast-radius.html">Next: Chaos Engineering Blast Radius &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

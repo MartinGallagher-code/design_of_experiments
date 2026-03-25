@@ -1,0 +1,66 @@
+{
+    "metadata": {
+        "name": "Feature Flag Evaluation",
+        "description": "Box-Behnken design to tune cache TTL, rule complexity, and SDK polling interval for evaluation latency and cache hits"
+    },
+    "factors": [
+        {
+            "name": "cache_ttl_sec",
+            "levels": [
+                "5",
+                "120"
+            ],
+            "type": "continuous",
+            "unit": "sec",
+            "description": "Feature flag cache TTL"
+        },
+        {
+            "name": "rule_complexity_score",
+            "levels": [
+                "1",
+                "10"
+            ],
+            "type": "continuous",
+            "unit": "score",
+            "description": "Targeting rule complexity score"
+        },
+        {
+            "name": "sdk_polling_interval_sec",
+            "levels": [
+                "10",
+                "300"
+            ],
+            "type": "continuous",
+            "unit": "sec",
+            "description": "SDK polling interval"
+        }
+    ],
+    "fixed_factors": {
+        "platform": "launchdarkly",
+        "sdk": "server_side"
+    },
+    "responses": [
+        {
+            "name": "evaluation_latency_us",
+            "optimize": "minimize",
+            "unit": "us",
+            "description": "Flag evaluation latency"
+        },
+        {
+            "name": "cache_hit_rate_pct",
+            "optimize": "maximize",
+            "unit": "%",
+            "description": "Cache hit rate"
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "use_cases/84_feature_flag_evaluation/sim.sh",
+        "operation": "box_behnken",
+        "processed_directory": "use_cases/84_feature_flag_evaluation/results/analysis",
+        "out_directory": "use_cases/84_feature_flag_evaluation/results"
+    }
+}

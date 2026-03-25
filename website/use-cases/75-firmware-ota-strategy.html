@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Firmware OTA Strategy &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #cffafe, #a5f3fc);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F4E1;</div>
+    <div class="uc-badge" style="background:rgba(8,145,178,.12);color:#0891b2;">Full Factorial Design</div>
+    <h1>Firmware OTA Strategy</h1>
+    <p class="uc-subtitle">Full factorial of chunk size, retry count, and delta encoding for update time and success rate</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>chunk_size_kb</code></td><td>1</td><td>64</td><td>KB</td></tr>
+            <tr><td><code>retry_count</code></td><td>1</td><td>5</td><td>retries</td></tr>
+            <tr><td><code>delta_encoding</code></td><td>off</td><td>on</td><td></td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> transport = coap, compression = lz4</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>update_time_sec</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>sec</td></tr>
+            <tr><td><code>success_rate_pct</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/75_firmware_ota_strategy/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Firmware OTA Strategy&quot;,
+    &quot;description&quot;: &quot;Full factorial of chunk size, retry count, and delta encoding for update time and success rate&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;chunk_size_kb&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;64&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;KB&quot;
+    },
+    {
+      &quot;name&quot;: &quot;retry_count&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;5&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;retries&quot;
+    },
+    {
+      &quot;name&quot;: &quot;delta_encoding&quot;,
+      &quot;levels&quot;: [
+        &quot;off&quot;,
+        &quot;on&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;transport&quot;: &quot;coap&quot;,
+    &quot;compression&quot;: &quot;lz4&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;update_time_sec&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;sec&quot;
+    },
+    {
+      &quot;name&quot;: &quot;success_rate_pct&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;full_factorial&quot;,
+    &quot;test_script&quot;: &quot;use_cases/75_firmware_ota_strategy/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Full Factorial Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>chunk_size_kb</code></th><th><code>retry_count</code></th><th><code>delta_encoding</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>1</td><td>5</td><td>on</td></tr>
+        <tr><td>2</td><td>64</td><td>1</td><td>off</td></tr>
+        <tr><td>3</td><td>64</td><td>5</td><td>off</td></tr>
+        <tr><td>4</td><td>64</td><td>5</td><td>on</td></tr>
+        <tr><td>5</td><td>1</td><td>5</td><td>off</td></tr>
+        <tr><td>6</td><td>64</td><td>1</td><td>on</td></tr>
+        <tr><td>7</td><td>1</td><td>1</td><td>off</td></tr>
+        <tr><td>8</td><td>1</td><td>1</td><td>on</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/75_firmware_ota_strategy/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/75_firmware_ota_strategy/config.json \
+    <span class="flag">--output</span> use_cases/75_firmware_ota_strategy/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/75_firmware_ota_strategy/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/75_firmware_ota_strategy/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/75_firmware_ota_strategy/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/75_firmware_ota_strategy/config.json \
+    <span class="flag">--output</span> use_cases/75_firmware_ota_strategy/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>full_factorial</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (2), <code>categorical</code> (1)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (update_time_sec &#x2193;, success_rate_pct &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>8</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: update_time_sec</h3>
+    <p>Top factors: chunk_size_kb (57.0%), retry_count (35.1%), delta_encoding (7.9%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/75_pareto_update_time_sec.png" alt="Pareto chart for update_time_sec">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/75_main_effects_update_time_sec.png" alt="Main effects plot for update_time_sec">
+      </div>
+    </div>
+
+    <h3>Response: success_rate_pct</h3>
+    <p>Top factors: chunk_size_kb (59.1%), retry_count (26.0%), delta_encoding (14.9%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/75_pareto_success_rate_pct.png" alt="Pareto chart for success_rate_pct">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/75_main_effects_success_rate_pct.png" alt="Main effects plot for success_rate_pct">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">success rate pct chunk size kb vs retry count</p>
+      <img src="../images/75_rsm_success_rate_pct_chunk_size_kb_vs_retry_count.png" alt="RSM surface: success rate pct chunk size kb vs retry count" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">update time sec chunk size kb vs retry count</p>
+      <img src="../images/75_rsm_update_time_sec_chunk_size_kb_vs_retry_count.png" alt="RSM surface: update time sec chunk size kb vs retry count" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: update_time_sec ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+chunk_size_kb          -43.0000      21.3358            57.0%
+retry_count             26.5000      21.3358            35.1%
+delta_encoding          -6.0000      21.3358             7.9%
+
+=== Interaction Effects: update_time_sec ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+chunk_size_kb        retry_count              -73.5000            44.3%
+retry_count          delta_encoding            54.5000            32.8%
+chunk_size_kb        delta_encoding            38.0000            22.9%
+
+=== Summary Statistics: update_time_sec ===
+
+chunk_size_kb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4   149.0000    66.4129    59.0000   203.0000
+  64                  4   106.0000    53.4228    30.0000   150.0000
+
+retry_count:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4   114.2500    40.7052    59.0000   150.0000
+  5                   4   140.7500    79.8264    30.0000   203.0000
+
+delta_encoding:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4   130.5000    72.5925    30.0000   203.0000
+  on                  4   124.5000    56.6009    59.0000   195.0000
+
+=== Main Effects: success_rate_pct ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+chunk_size_kb           -8.2250       2.3415            59.1%
+retry_count             -3.6250       2.3415            26.0%
+delta_encoding          -2.0750       2.3415            14.9%
+
+=== Interaction Effects: success_rate_pct ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+chunk_size_kb        retry_count                5.8750            61.0%
+retry_count          delta_encoding             2.4250            25.2%
+chunk_size_kb        delta_encoding             1.3250            13.8%
+
+=== Summary Statistics: success_rate_pct ===
+
+chunk_size_kb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    94.6000     6.0305    86.8000    99.7000
+  64                  4    86.3750     4.5690    81.1000    90.9000
+
+retry_count:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    92.3000     8.8223    81.1000    99.7000
+  5                   4    88.6750     3.9685    84.1000    92.9000
+
+delta_encoding:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4    91.5250     6.5413    84.1000    99.7000
+  on                  4    89.4500     7.5288    81.1000    99.0000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: update_time_sec ===
+Direction: minimize
+
+Best observed run: #6
+  chunk_size_kb = 1
+  retry_count = 1
+  delta_encoding = off
+  Value: 30.0
+
+RSM Model (linear, R² = 0.3450, Adj R² = -0.1463):
+  Coefficients:
+    intercept                      +127.5000
+    chunk_size_kb                  -17.0000
+    retry_count                    +19.7500
+    delta_encoding                 +20.5000
+
+  Predicted optimum (from linear model):
+    chunk_size_kb = 1
+    retry_count = 5
+    delta_encoding = on
+    Predicted value: 184.7500
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. delta_encoding  (effect: 41.0, contribution: 35.8%)
+  2. retry_count  (effect: 39.5, contribution: 34.5%)
+  3. chunk_size_kb  (effect: -34.0, contribution: 29.7%)
+
+=== Optimization: success_rate_pct ===
+Direction: maximize
+
+Best observed run: #1
+  chunk_size_kb = 64
+  retry_count = 1
+  delta_encoding = off
+  Value: 99.7
+
+RSM Model (linear, R² = 0.5279, Adj R² = 0.1738):
+  Coefficients:
+    intercept                      +90.4875
+    chunk_size_kb                  +2.1875
+    retry_count                    -3.4375
+    delta_encoding                 +1.9125
+
+  Predicted optimum (from linear model):
+    chunk_size_kb = 64
+    retry_count = 1
+    delta_encoding = on
+    Predicted value: 98.0250
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
+
+Factor importance:
+  1. retry_count  (effect: -6.9, contribution: 45.6%)
+  2. chunk_size_kb  (effect: 4.4, contribution: 29.0%)
+  3. delta_encoding  (effect: 3.8, contribution: 25.4%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="74-zigbee-network-formation.html">&larr; Previous: Zigbee Network Formation</a>
+    <a href="76-battery-management-charging.html">Next: Battery Management Charging &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

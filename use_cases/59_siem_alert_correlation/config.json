@@ -1,0 +1,66 @@
+{
+    "metadata": {
+        "name": "SIEM Alert Correlation",
+        "description": "Box-Behnken design to tune alert correlation window, similarity threshold, and event count for alert reduction"
+    },
+    "factors": [
+        {
+            "name": "correlation_window_sec",
+            "levels": [
+                "30",
+                "600"
+            ],
+            "type": "continuous",
+            "unit": "sec",
+            "description": "Time window for correlating alerts"
+        },
+        {
+            "name": "similarity_threshold",
+            "levels": [
+                "0.3",
+                "0.9"
+            ],
+            "type": "continuous",
+            "unit": "ratio",
+            "description": "Similarity threshold for grouping"
+        },
+        {
+            "name": "min_event_count",
+            "levels": [
+                "2",
+                "10"
+            ],
+            "type": "continuous",
+            "unit": "events",
+            "description": "Minimum events to trigger correlation"
+        }
+    ],
+    "fixed_factors": {
+        "siem_platform": "elastic_security",
+        "log_sources": "12"
+    },
+    "responses": [
+        {
+            "name": "alert_reduction_pct",
+            "optimize": "maximize",
+            "unit": "%",
+            "description": "Percentage of alerts reduced by correlation"
+        },
+        {
+            "name": "missed_incident_rate",
+            "optimize": "minimize",
+            "unit": "%",
+            "description": "Rate of missed real incidents"
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "use_cases/59_siem_alert_correlation/sim.sh",
+        "operation": "box_behnken",
+        "processed_directory": "use_cases/59_siem_alert_correlation/results/analysis",
+        "out_directory": "use_cases/59_siem_alert_correlation/results"
+    }
+}

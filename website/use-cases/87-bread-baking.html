@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bread Baking Optimization &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F373;</div>
+    <div class="uc-badge" style="background:rgba(217,119,6,.12);color:#d97706;">Box-Behnken Design</div>
+    <h1>Bread Baking Optimization</h1>
+    <p class="uc-subtitle">Box-Behnken design to optimize crust color, crumb texture, and rise height by tuning oven temperature, hydration, and proofing time</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>oven_temp</code></td><td>200</td><td>260</td><td>C</td></tr>
+            <tr><td><code>hydration_pct</code></td><td>60</td><td>80</td><td>%</td></tr>
+            <tr><td><code>proof_time</code></td><td>30</td><td>120</td><td>min</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> flour_type = bread_flour, salt_pct = 2</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>crust_score</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>pts</td></tr>
+            <tr><td><code>crumb_score</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>pts</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/87_bread_baking/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Bread Baking Optimization&quot;,
+    &quot;description&quot;: &quot;Box-Behnken design to optimize crust color, crumb texture, and rise height by tuning oven temperature, hydration, and proofing time&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;oven_temp&quot;,
+      &quot;levels&quot;: [
+        &quot;200&quot;,
+        &quot;260&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;C&quot;
+    },
+    {
+      &quot;name&quot;: &quot;hydration_pct&quot;,
+      &quot;levels&quot;: [
+        &quot;60&quot;,
+        &quot;80&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;proof_time&quot;,
+      &quot;levels&quot;: [
+        &quot;30&quot;,
+        &quot;120&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;min&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;flour_type&quot;: &quot;bread_flour&quot;,
+    &quot;salt_pct&quot;: &quot;2&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;crust_score&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;pts&quot;
+    },
+    {
+      &quot;name&quot;: &quot;crumb_score&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;pts&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;box_behnken&quot;,
+    &quot;test_script&quot;: &quot;use_cases/87_bread_baking/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Box-Behnken Design produces <strong>15 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>oven_temp</code></th><th><code>hydration_pct</code></th><th><code>proof_time</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>230</td><td>60</td><td>30</td></tr>
+        <tr><td>2</td><td>230</td><td>70</td><td>75</td></tr>
+        <tr><td>3</td><td>260</td><td>70</td><td>120</td></tr>
+        <tr><td>4</td><td>260</td><td>70</td><td>30</td></tr>
+        <tr><td>5</td><td>230</td><td>70</td><td>75</td></tr>
+        <tr><td>6</td><td>230</td><td>70</td><td>75</td></tr>
+        <tr><td>7</td><td>200</td><td>70</td><td>120</td></tr>
+        <tr><td>8</td><td>260</td><td>60</td><td>75</td></tr>
+        <tr><td>9</td><td>230</td><td>60</td><td>120</td></tr>
+        <tr><td>10</td><td>260</td><td>80</td><td>75</td></tr>
+        <tr><td>11</td><td>200</td><td>70</td><td>30</td></tr>
+        <tr><td>12</td><td>230</td><td>80</td><td>120</td></tr>
+        <tr><td>13</td><td>200</td><td>60</td><td>75</td></tr>
+        <tr><td>14</td><td>200</td><td>80</td><td>75</td></tr>
+        <tr><td>15</td><td>230</td><td>80</td><td>30</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/87_bread_baking/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/87_bread_baking/config.json \
+    <span class="flag">--output</span> use_cases/87_bread_baking/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/87_bread_baking/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/87_bread_baking/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/87_bread_baking/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/87_bread_baking/config.json \
+    <span class="flag">--output</span> use_cases/87_bread_baking/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>box_behnken</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (crust_score &#x2191;, crumb_score &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>15</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: crust_score</h3>
+    <p>Top factors: hydration_pct (42.7%), proof_time (34.2%), oven_temp (23.1%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/87_pareto_crust_score.png" alt="Pareto chart for crust_score">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/87_main_effects_crust_score.png" alt="Main effects plot for crust_score">
+      </div>
+    </div>
+
+    <h3>Response: crumb_score</h3>
+    <p>Top factors: hydration_pct (50.2%), proof_time (26.6%), oven_temp (23.3%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/87_pareto_crumb_score.png" alt="Pareto chart for crumb_score">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/87_main_effects_crumb_score.png" alt="Main effects plot for crumb_score">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">crumb score hydration pct vs proof time</p>
+      <img src="../images/87_rsm_crumb_score_hydration_pct_vs_proof_time.png" alt="RSM surface: crumb score hydration pct vs proof time" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">crumb score oven temp vs hydration pct</p>
+      <img src="../images/87_rsm_crumb_score_oven_temp_vs_hydration_pct.png" alt="RSM surface: crumb score oven temp vs hydration pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">crumb score oven temp vs proof time</p>
+      <img src="../images/87_rsm_crumb_score_oven_temp_vs_proof_time.png" alt="RSM surface: crumb score oven temp vs proof time" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">crust score hydration pct vs proof time</p>
+      <img src="../images/87_rsm_crust_score_hydration_pct_vs_proof_time.png" alt="RSM surface: crust score hydration pct vs proof time" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">crust score oven temp vs hydration pct</p>
+      <img src="../images/87_rsm_crust_score_oven_temp_vs_hydration_pct.png" alt="RSM surface: crust score oven temp vs hydration pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">crust score oven temp vs proof time</p>
+      <img src="../images/87_rsm_crust_score_oven_temp_vs_proof_time.png" alt="RSM surface: crust score oven temp vs proof time" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_crust_score_oven_temp_vs_hydration_pct.png
+  RSM surface: rsm_crust_score_oven_temp_vs_proof_time.png
+  RSM surface: rsm_crust_score_hydration_pct_vs_proof_time.png
+  RSM surface: rsm_crumb_score_oven_temp_vs_hydration_pct.png
+  RSM surface: rsm_crumb_score_oven_temp_vs_proof_time.png
+  RSM surface: rsm_crumb_score_hydration_pct_vs_proof_time.png
+
+=== Main Effects: crust_score ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+hydration_pct            1.1607       0.3162            42.7%
+proof_time               0.9286       0.3162            34.2%
+oven_temp                0.6286       0.3162            23.1%
+
+=== Summary Statistics: crust_score ===
+
+oven_temp:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  200                 4     6.3000     1.1576     4.7000     7.4000
+  230                 7     5.6714     1.0259     4.0000     6.8000
+  260                 4     6.2250     1.7652     3.7000     7.7000
+
+hydration_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  60                  4     6.6750     0.3500     6.3000     7.1000
+  70                  7     5.5143     1.2668     3.7000     7.4000
+  80                  4     6.1250     1.5777     4.0000     7.7000
+
+proof_time:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  120                 4     5.9750     0.9106     4.7000     6.8000
+  30                  4     5.4000     1.8312     3.7000     7.4000
+  75                  7     6.3286     1.0210     4.9000     7.7000
+
+=== Main Effects: crumb_score ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+hydration_pct            1.7250       0.3891            50.2%
+proof_time               0.9143       0.3891            26.6%
+oven_temp                0.8000       0.3891            23.3%
+
+=== Summary Statistics: crumb_score ===
+
+oven_temp:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  200                 4     6.1750     0.8539     5.1000     7.0000
+  230                 7     6.2143     1.8234     3.7000     8.9000
+  260                 4     6.9750     1.6215     4.7000     8.4000
+
+hydration_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  60                  4     7.5500     1.0279     6.7000     8.9000
+  70                  7     6.0857     1.5269     4.7000     8.4000
+  80                  4     5.8250     1.5628     3.7000     7.0000
+
+proof_time:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  120                 4     5.8000     2.2539     3.7000     8.9000
+  30                  4     6.4750     1.4683     5.1000     8.4000
+  75                  7     6.7143     1.1495     5.0000     8.1000
+
+Pareto chart (crust_score): use_cases/87_bread_baking/results/analysis/pareto_crust_score.png
+
+Pareto chart (crumb_score): use_cases/87_bread_baking/results/analysis/pareto_crumb_score.png
+Main effects (crust_score): use_cases/87_bread_baking/results/analysis/main_effects_crust_score.png
+Main effects (crumb_score): use_cases/87_bread_baking/results/analysis/main_effects_crumb_score.png</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: crust_score ===
+Direction: maximize
+
+Best observed run: #3
+  oven_temp = 230
+  hydration_pct = 60
+  proof_time = 120
+  Value: 7.7
+
+RSM Model (linear, R² = 0.0898, Adj R² = -0.1585):
+  Coefficients:
+    intercept                      +5.9867
+    oven_temp                      -0.2000
+    hydration_pct                  +0.3250
+    proof_time                     +0.3000
+
+RSM Model (quadratic, R² = 0.6690, Adj R² = 0.0732):
+  Coefficients:
+    intercept                      +6.1000
+    oven_temp                      -0.2000
+    hydration_pct                  +0.3250
+    proof_time                     +0.3000
+    oven_temp*hydration_pct        -0.1250
+    oven_temp*proof_time           -0.3250
+    hydration_pct*proof_time       -0.4750
+    oven_temp^2                    -1.0375
+    hydration_pct^2                +1.2125
+    proof_time^2                   -0.3875
+
+  Curvature analysis:
+    hydration_pct                  coef=+1.2125  convex (has a minimum)
+    oven_temp                      coef=-1.0375  concave (has a maximum)
+    proof_time                     coef=-0.3875  concave (has a maximum)
+
+  Notable interactions:
+    hydration_pct*proof_time       coef=-0.4750  (antagonistic)
+    oven_temp*proof_time           coef=-0.3250  (antagonistic)
+
+  Predicted optimum (from quadratic model):
+    oven_temp = 230
+    hydration_pct = 80
+    proof_time = 30
+    Predicted value: 7.4250
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
+
+Factor importance:
+  1. hydration_pct  (effect: 1.6, contribution: 45.1%)
+  2. oven_temp  (effect: 1.3, contribution: 35.7%)
+  3. proof_time  (effect: 0.7, contribution: 19.3%)
+
+=== Optimization: crumb_score ===
+Direction: maximize
+
+Best observed run: #12
+  oven_temp = 230
+  hydration_pct = 70
+  proof_time = 75
+  Value: 8.9
+
+RSM Model (linear, R² = 0.1180, Adj R² = -0.1226):
+  Coefficients:
+    intercept                      +6.4067
+    oven_temp                      -0.2750
+    hydration_pct                  +0.2500
+    proof_time                     -0.5750
+
+RSM Model (quadratic, R² = 0.5245, Adj R² = -0.3315):
+  Coefficients:
+    intercept                      +7.2333
+    oven_temp                      -0.2750
+    hydration_pct                  +0.2500
+    proof_time                     -0.5750
+    oven_temp*hydration_pct        -0.0500
+    oven_temp*proof_time           -0.9000
+    hydration_pct*proof_time       -0.7500
+    oven_temp^2                    -0.9667
+    hydration_pct^2                -0.9667
+    proof_time^2                   +0.3833
+
+  Curvature analysis:
+    oven_temp                      coef=-0.9667  concave (has a maximum)
+    hydration_pct                  coef=-0.9667  concave (has a maximum)
+    proof_time                     coef=+0.3833  convex (has a minimum)
+
+  Notable interactions:
+    oven_temp*proof_time           coef=-0.9000  (antagonistic)
+    hydration_pct*proof_time       coef=-0.7500  (antagonistic)
+
+  Predicted optimum (from linear model):
+    oven_temp = 200
+    hydration_pct = 70
+    proof_time = 30
+    Predicted value: 7.2567
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. oven_temp  (effect: 1.2, contribution: 34.0%)
+  2. hydration_pct  (effect: 1.2, contribution: 33.3%)
+  3. proof_time  (effect: 1.1, contribution: 32.6%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="86-chaos-engineering-blast-radius.html">&larr; Previous: Chaos Engineering Blast Radius</a>
+    <a href="88-coffee-brewing.html">Next: Coffee Brewing Extraction &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

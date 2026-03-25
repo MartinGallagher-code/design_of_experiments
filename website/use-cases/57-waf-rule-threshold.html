@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WAF Rule Threshold Tuning &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #fee2e2, #fecaca);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F6E1;</div>
+    <div class="uc-badge" style="background:rgba(220,38,38,.12);color:#dc2626;">Plackett-Burman Design</div>
+    <h1>WAF Rule Threshold Tuning</h1>
+    <p class="uc-subtitle">Plackett-Burman screening of 6 WAF parameters for detection rate and false positive rate</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>rate_limit_rps</code></td><td>100</td><td>10000</td><td>rps</td></tr>
+            <tr><td><code>body_inspection_depth</code></td><td>1000</td><td>65536</td><td>bytes</td></tr>
+            <tr><td><code>anomaly_score_threshold</code></td><td>3</td><td>15</td><td>score</td></tr>
+            <tr><td><code>paranoia_level</code></td><td>1</td><td>4</td><td>level</td></tr>
+            <tr><td><code>sql_injection_sensitivity</code></td><td>1</td><td>9</td><td>level</td></tr>
+            <tr><td><code>xss_detection_level</code></td><td>1</td><td>5</td><td>level</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> waf_engine = modsecurity, ruleset = owasp_crs</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>detection_rate</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+            <tr><td><code>false_positive_rate</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/57_waf_rule_threshold/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;WAF Rule Threshold Tuning&quot;,
+    &quot;description&quot;: &quot;Plackett-Burman screening of 6 WAF parameters for detection rate and false positive rate&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;rate_limit_rps&quot;,
+      &quot;levels&quot;: [
+        &quot;100&quot;,
+        &quot;10000&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;rps&quot;
+    },
+    {
+      &quot;name&quot;: &quot;body_inspection_depth&quot;,
+      &quot;levels&quot;: [
+        &quot;1000&quot;,
+        &quot;65536&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;bytes&quot;
+    },
+    {
+      &quot;name&quot;: &quot;anomaly_score_threshold&quot;,
+      &quot;levels&quot;: [
+        &quot;3&quot;,
+        &quot;15&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;score&quot;
+    },
+    {
+      &quot;name&quot;: &quot;paranoia_level&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;4&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;level&quot;
+    },
+    {
+      &quot;name&quot;: &quot;sql_injection_sensitivity&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;9&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;level&quot;
+    },
+    {
+      &quot;name&quot;: &quot;xss_detection_level&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;5&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;level&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;waf_engine&quot;: &quot;modsecurity&quot;,
+    &quot;ruleset&quot;: &quot;owasp_crs&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;detection_rate&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;false_positive_rate&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;plackett_burman&quot;,
+    &quot;test_script&quot;: &quot;use_cases/57_waf_rule_threshold/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Plackett-Burman Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>rate_limit_rps</code></th><th><code>body_inspection_depth</code></th><th><code>anomaly_score_threshold</code></th><th><code>paranoia_level</code></th><th><code>sql_injection_sensitivity</code></th><th><code>xss_detection_level</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>10000</td><td>65536</td><td>15</td><td>1</td><td>1</td><td>1</td></tr>
+        <tr><td>2</td><td>100</td><td>1000</td><td>15</td><td>4</td><td>1</td><td>1</td></tr>
+        <tr><td>3</td><td>100</td><td>65536</td><td>3</td><td>4</td><td>1</td><td>5</td></tr>
+        <tr><td>4</td><td>10000</td><td>65536</td><td>15</td><td>4</td><td>9</td><td>5</td></tr>
+        <tr><td>5</td><td>100</td><td>65536</td><td>3</td><td>1</td><td>9</td><td>1</td></tr>
+        <tr><td>6</td><td>10000</td><td>1000</td><td>3</td><td>4</td><td>9</td><td>1</td></tr>
+        <tr><td>7</td><td>100</td><td>1000</td><td>15</td><td>1</td><td>9</td><td>5</td></tr>
+        <tr><td>8</td><td>10000</td><td>1000</td><td>3</td><td>1</td><td>1</td><td>5</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/57_waf_rule_threshold/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/57_waf_rule_threshold/config.json \
+    <span class="flag">--output</span> use_cases/57_waf_rule_threshold/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/57_waf_rule_threshold/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/57_waf_rule_threshold/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/57_waf_rule_threshold/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/57_waf_rule_threshold/config.json \
+    <span class="flag">--output</span> use_cases/57_waf_rule_threshold/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>plackett_burman</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 6)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (detection_rate &#x2191;, false_positive_rate &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>8</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: detection_rate</h3>
+    <p>Top factors: xss_detection_level (33.2%), anomaly_score_threshold (25.5%), body_inspection_depth (20.2%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/57_pareto_detection_rate.png" alt="Pareto chart for detection_rate">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/57_main_effects_detection_rate.png" alt="Main effects plot for detection_rate">
+      </div>
+    </div>
+
+    <h3>Response: false_positive_rate</h3>
+    <p>Top factors: xss_detection_level (29.1%), body_inspection_depth (23.5%), rate_limit_rps (23.0%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/57_pareto_false_positive_rate.png" alt="Pareto chart for false_positive_rate">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/57_main_effects_false_positive_rate.png" alt="Main effects plot for false_positive_rate">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">detection rate anomaly score threshold vs paranoia level</p>
+      <img src="../images/57_rsm_detection_rate_anomaly_score_threshold_vs_paranoia_level.png" alt="RSM surface: detection rate anomaly score threshold vs paranoia level" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">detection rate anomaly score threshold vs sql injection sensitivity</p>
+      <img src="../images/57_rsm_detection_rate_anomaly_score_threshold_vs_sql_injection_sensitivity.png" alt="RSM surface: detection rate anomaly score threshold vs sql injection sensitivity" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">detection rate anomaly score threshold vs xss detection level</p>
+      <img src="../images/57_rsm_detection_rate_anomaly_score_threshold_vs_xss_detection_level.png" alt="RSM surface: detection rate anomaly score threshold vs xss detection level" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">detection rate body inspection depth vs anomaly score threshold</p>
+      <img src="../images/57_rsm_detection_rate_body_inspection_depth_vs_anomaly_score_threshold.png" alt="RSM surface: detection rate body inspection depth vs anomaly score threshold" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">detection rate body inspection depth vs paranoia level</p>
+      <img src="../images/57_rsm_detection_rate_body_inspection_depth_vs_paranoia_level.png" alt="RSM surface: detection rate body inspection depth vs paranoia level" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">detection rate body inspection depth vs sql injection sensitivity</p>
+      <img src="../images/57_rsm_detection_rate_body_inspection_depth_vs_sql_injection_sensitivity.png" alt="RSM surface: detection rate body inspection depth vs sql injection sensitivity" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">detection rate body inspection depth vs xss detection level</p>
+      <img src="../images/57_rsm_detection_rate_body_inspection_depth_vs_xss_detection_level.png" alt="RSM surface: detection rate body inspection depth vs xss detection level" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">detection rate paranoia level vs sql injection sensitivity</p>
+      <img src="../images/57_rsm_detection_rate_paranoia_level_vs_sql_injection_sensitivity.png" alt="RSM surface: detection rate paranoia level vs sql injection sensitivity" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">detection rate paranoia level vs xss detection level</p>
+      <img src="../images/57_rsm_detection_rate_paranoia_level_vs_xss_detection_level.png" alt="RSM surface: detection rate paranoia level vs xss detection level" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">detection rate rate limit rps vs anomaly score threshold</p>
+      <img src="../images/57_rsm_detection_rate_rate_limit_rps_vs_anomaly_score_threshold.png" alt="RSM surface: detection rate rate limit rps vs anomaly score threshold" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">detection rate rate limit rps vs body inspection depth</p>
+      <img src="../images/57_rsm_detection_rate_rate_limit_rps_vs_body_inspection_depth.png" alt="RSM surface: detection rate rate limit rps vs body inspection depth" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">detection rate rate limit rps vs paranoia level</p>
+      <img src="../images/57_rsm_detection_rate_rate_limit_rps_vs_paranoia_level.png" alt="RSM surface: detection rate rate limit rps vs paranoia level" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">detection rate rate limit rps vs sql injection sensitivity</p>
+      <img src="../images/57_rsm_detection_rate_rate_limit_rps_vs_sql_injection_sensitivity.png" alt="RSM surface: detection rate rate limit rps vs sql injection sensitivity" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">detection rate rate limit rps vs xss detection level</p>
+      <img src="../images/57_rsm_detection_rate_rate_limit_rps_vs_xss_detection_level.png" alt="RSM surface: detection rate rate limit rps vs xss detection level" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">detection rate sql injection sensitivity vs xss detection level</p>
+      <img src="../images/57_rsm_detection_rate_sql_injection_sensitivity_vs_xss_detection_level.png" alt="RSM surface: detection rate sql injection sensitivity vs xss detection level" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">false positive rate anomaly score threshold vs paranoia level</p>
+      <img src="../images/57_rsm_false_positive_rate_anomaly_score_threshold_vs_paranoia_level.png" alt="RSM surface: false positive rate anomaly score threshold vs paranoia level" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">false positive rate anomaly score threshold vs sql injection sensitivity</p>
+      <img src="../images/57_rsm_false_positive_rate_anomaly_score_threshold_vs_sql_injection_sensitivity.png" alt="RSM surface: false positive rate anomaly score threshold vs sql injection sensitivity" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">false positive rate anomaly score threshold vs xss detection level</p>
+      <img src="../images/57_rsm_false_positive_rate_anomaly_score_threshold_vs_xss_detection_level.png" alt="RSM surface: false positive rate anomaly score threshold vs xss detection level" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">false positive rate body inspection depth vs anomaly score threshold</p>
+      <img src="../images/57_rsm_false_positive_rate_body_inspection_depth_vs_anomaly_score_threshold.png" alt="RSM surface: false positive rate body inspection depth vs anomaly score threshold" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">false positive rate body inspection depth vs paranoia level</p>
+      <img src="../images/57_rsm_false_positive_rate_body_inspection_depth_vs_paranoia_level.png" alt="RSM surface: false positive rate body inspection depth vs paranoia level" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">false positive rate body inspection depth vs sql injection sensitivity</p>
+      <img src="../images/57_rsm_false_positive_rate_body_inspection_depth_vs_sql_injection_sensitivity.png" alt="RSM surface: false positive rate body inspection depth vs sql injection sensitivity" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">false positive rate body inspection depth vs xss detection level</p>
+      <img src="../images/57_rsm_false_positive_rate_body_inspection_depth_vs_xss_detection_level.png" alt="RSM surface: false positive rate body inspection depth vs xss detection level" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">false positive rate paranoia level vs sql injection sensitivity</p>
+      <img src="../images/57_rsm_false_positive_rate_paranoia_level_vs_sql_injection_sensitivity.png" alt="RSM surface: false positive rate paranoia level vs sql injection sensitivity" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">false positive rate paranoia level vs xss detection level</p>
+      <img src="../images/57_rsm_false_positive_rate_paranoia_level_vs_xss_detection_level.png" alt="RSM surface: false positive rate paranoia level vs xss detection level" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">false positive rate rate limit rps vs anomaly score threshold</p>
+      <img src="../images/57_rsm_false_positive_rate_rate_limit_rps_vs_anomaly_score_threshold.png" alt="RSM surface: false positive rate rate limit rps vs anomaly score threshold" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">false positive rate rate limit rps vs body inspection depth</p>
+      <img src="../images/57_rsm_false_positive_rate_rate_limit_rps_vs_body_inspection_depth.png" alt="RSM surface: false positive rate rate limit rps vs body inspection depth" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">false positive rate rate limit rps vs paranoia level</p>
+      <img src="../images/57_rsm_false_positive_rate_rate_limit_rps_vs_paranoia_level.png" alt="RSM surface: false positive rate rate limit rps vs paranoia level" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">false positive rate rate limit rps vs sql injection sensitivity</p>
+      <img src="../images/57_rsm_false_positive_rate_rate_limit_rps_vs_sql_injection_sensitivity.png" alt="RSM surface: false positive rate rate limit rps vs sql injection sensitivity" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">false positive rate rate limit rps vs xss detection level</p>
+      <img src="../images/57_rsm_false_positive_rate_rate_limit_rps_vs_xss_detection_level.png" alt="RSM surface: false positive rate rate limit rps vs xss detection level" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">false positive rate sql injection sensitivity vs xss detection level</p>
+      <img src="../images/57_rsm_false_positive_rate_sql_injection_sensitivity_vs_xss_detection_level.png" alt="RSM surface: false positive rate sql injection sensitivity vs xss detection level" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: detection_rate ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+xss_detection_level    -10.3000       5.4749            33.2%
+anomaly_score_threshold     7.9000       5.4749            25.5%
+body_inspection_depth    -6.2500       5.4749            20.2%
+rate_limit_rps          -3.3000       5.4749            10.6%
+sql_injection_sensitivity    -2.8500       5.4749             9.2%
+paranoia_level           0.4000       5.4749             1.3%
+
+=== Interaction Effects: detection_rate ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+rate_limit_rps       xss_detection_level       24.7500            18.2%
+body_inspection_depth sql_injection_sensitivity      24.7500            18.2%
+anomaly_score_threshold paranoia_level           -24.7500            18.2%
+body_inspection_depth paranoia_level           -10.3000             7.6%
+anomaly_score_threshold sql_injection_sensitivity      10.3000             7.6%
+rate_limit_rps       body_inspection_depth      -7.9000             5.8%
+sql_injection_sensitivity xss_detection_level       -7.9000             5.8%
+rate_limit_rps       anomaly_score_threshold       6.2500             4.6%
+paranoia_level       xss_detection_level       -6.2500             4.6%
+body_inspection_depth anomaly_score_threshold       3.3000             2.4%
+paranoia_level       sql_injection_sensitivity      -3.3000             2.4%
+rate_limit_rps       paranoia_level            -2.8500             2.1%
+anomaly_score_threshold xss_detection_level        2.8500             2.1%
+rate_limit_rps       sql_injection_sensitivity       0.4000             0.3%
+body_inspection_depth xss_detection_level        0.4000             0.3%
+
+=== Summary Statistics: detection_rate ===
+
+rate_limit_rps:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4    82.8750    20.3452    62.9000   101.2000
+  10000               4    79.5750    11.7619    66.5000    95.1000
+
+body_inspection_depth:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1000                4    84.3500    17.2956    62.9000   101.2000
+  65536               4    78.1000    15.3086    66.5000    99.6000
+
+anomaly_score_threshold:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  15                  4    77.2750    17.2882    62.9000   101.2000
+  3                   4    85.1750    14.8001    67.8000    99.6000
+
+paranoia_level:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    81.0250    18.9967    62.9000    99.6000
+  4                   4    81.4250    14.0907    67.8000   101.2000
+
+sql_injection_sensitivity:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    82.6500    18.0781    66.5000   101.2000
+  9                   4    79.8000    15.0765    62.9000    99.6000
+
+xss_detection_level:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    86.3750    16.8970    66.5000   101.2000
+  5                   4    76.0750    14.2582    62.9000    95.1000
+
+=== Main Effects: false_positive_rate ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+xss_detection_level     -4.3150       2.1841            29.1%
+body_inspection_depth    -3.4800       2.1841            23.5%
+rate_limit_rps          -3.4050       2.1841            23.0%
+sql_injection_sensitivity    -2.2000       2.1841            14.9%
+anomaly_score_threshold     1.1550       2.1841             7.8%
+paranoia_level          -0.2550       2.1841             1.7%
+
+=== Interaction Effects: false_positive_rate ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+rate_limit_rps       xss_detection_level        9.2200            16.1%
+body_inspection_depth sql_injection_sensitivity       9.2200            16.1%
+anomaly_score_threshold paranoia_level            -9.2200            16.1%
+body_inspection_depth paranoia_level            -4.3150             7.5%
+anomaly_score_threshold sql_injection_sensitivity       4.3150             7.5%
+rate_limit_rps       anomaly_score_threshold       3.4800             6.1%
+paranoia_level       xss_detection_level       -3.4800             6.1%
+body_inspection_depth anomaly_score_threshold       3.4050             5.9%
+paranoia_level       sql_injection_sensitivity      -3.4050             5.9%
+rate_limit_rps       paranoia_level            -2.2000             3.8%
+anomaly_score_threshold xss_detection_level        2.2000             3.8%
+rate_limit_rps       body_inspection_depth      -1.1550             2.0%
+sql_injection_sensitivity xss_detection_level       -1.1550             2.0%
+rate_limit_rps       sql_injection_sensitivity      -0.2550             0.4%
+body_inspection_depth xss_detection_level       -0.2550             0.4%
+
+=== Summary Statistics: false_positive_rate ===
+
+rate_limit_rps:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4     7.0475     8.0080     0.0900    15.9500
+  10000               4     3.6425     4.1461     0.1000     9.6400
+
+body_inspection_depth:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1000                4     7.0850     7.1172     0.4700    15.9500
+  65536               4     3.6050     5.5063     0.0900    11.6800
+
+anomaly_score_threshold:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  15                  4     4.7675     7.5326     0.1000    15.9500
+  3                   4     5.9225     5.6052     0.0900    11.6800
+
+paranoia_level:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4     5.4725     6.0495     0.1000    11.6800
+  4                   4     5.2175     7.2393     0.0900    15.9500
+
+sql_injection_sensitivity:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4     6.4450     7.7717     0.0900    15.9500
+  9                   4     4.2450     5.0420     0.4700    11.6800
+
+xss_detection_level:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4     7.5025     7.5473     0.1000    15.9500
+  5                   4     3.1875     4.4355     0.0900     9.6400</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: detection_rate ===
+Direction: maximize
+
+Best observed run: #4
+  rate_limit_rps = 100
+  body_inspection_depth = 65536
+  anomaly_score_threshold = 3
+  paranoia_level = 4
+  sql_injection_sensitivity = 1
+  xss_detection_level = 5
+  Value: 101.2
+
+RSM Model (linear, R² = 0.9228, Adj R² = 0.4595):
+  Coefficients:
+    intercept                      +81.2250
+    rate_limit_rps                 +2.7250
+    body_inspection_depth          +5.4750
+    anomaly_score_threshold        -0.5250
+    paranoia_level                 +12.3750
+    sql_injection_sensitivity      +1.0250
+    xss_detection_level            +1.3250
+
+  Predicted optimum (from linear model):
+    rate_limit_rps = 10000
+    body_inspection_depth = 65536
+    anomaly_score_threshold = 15
+    paranoia_level = 4
+    sql_injection_sensitivity = 9
+    xss_detection_level = 5
+    Predicted value: 103.6250
+
+  Model quality: Excellent fit — surface predictions are reliable.
+
+Factor importance:
+  1. paranoia_level  (effect: 24.8, contribution: 52.8%)
+  2. body_inspection_depth  (effect: 11.0, contribution: 23.3%)
+  3. rate_limit_rps  (effect: 5.5, contribution: 11.6%)
+  4. xss_detection_level  (effect: 2.6, contribution: 5.7%)
+  5. sql_injection_sensitivity  (effect: 2.0, contribution: 4.4%)
+  6. anomaly_score_threshold  (effect: 1.0, contribution: 2.2%)
+
+=== Optimization: false_positive_rate ===
+Direction: minimize
+
+Best observed run: #1
+  rate_limit_rps = 100
+  body_inspection_depth = 65536
+  anomaly_score_threshold = 3
+  paranoia_level = 1
+  sql_injection_sensitivity = 9
+  xss_detection_level = 1
+  Value: 0.09
+
+RSM Model (linear, R² = 0.9187, Adj R² = 0.4310):
+  Coefficients:
+    intercept                      +5.3450
+    rate_limit_rps                 +0.6725
+    body_inspection_depth          +2.1550
+    anomaly_score_threshold        -1.1925
+    paranoia_level                 +4.6100
+    sql_injection_sensitivity      +0.0325
+    xss_detection_level            +1.7050
+
+  Predicted optimum (from linear model):
+    rate_limit_rps = 100
+    body_inspection_depth = 65536
+    anomaly_score_threshold = 3
+    paranoia_level = 4
+    sql_injection_sensitivity = 1
+    xss_detection_level = 5
+    Predicted value: 14.3025
+
+  Model quality: Excellent fit — surface predictions are reliable.
+
+Factor importance:
+  1. paranoia_level  (effect: 9.2, contribution: 44.5%)
+  2. body_inspection_depth  (effect: 4.3, contribution: 20.8%)
+  3. xss_detection_level  (effect: 3.4, contribution: 16.4%)
+  4. anomaly_score_threshold  (effect: 2.4, contribution: 11.5%)
+  5. rate_limit_rps  (effect: 1.3, contribution: 6.5%)
+  6. sql_injection_sensitivity  (effect: 0.1, contribution: 0.3%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="56-wifi-channel-power.html">&larr; Previous: WiFi Channel &amp; Power</a>
+    <a href="58-encryption-pipeline.html">Next: Encryption Pipeline Optimization &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Compost Maturity Optimization &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #d9f99d, #bef264);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F331;</div>
+    <div class="uc-badge" style="background:rgba(101,163,13,.12);color:#65a30d;">Box-Behnken Design</div>
+    <h1>Compost Maturity Optimization</h1>
+    <p class="uc-subtitle">Box-Behnken design to minimize maturation time and maximize nutrient content by tuning C:N ratio, moisture, and turning frequency</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>cn_ratio</code></td><td>20</td><td>40</td><td>ratio</td></tr>
+            <tr><td><code>moisture_pct</code></td><td>40</td><td>65</td><td>%</td></tr>
+            <tr><td><code>turn_freq</code></td><td>1</td><td>7</td><td>per_week</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> pile_volume = 1m3, initial_material = mixed_greens_browns</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>maturity_weeks</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>weeks</td></tr>
+            <tr><td><code>nutrient_score</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>pts</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/98_compost_maturity/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Compost Maturity Optimization&quot;,
+    &quot;description&quot;: &quot;Box-Behnken design to minimize maturation time and maximize nutrient content by tuning C:N ratio, moisture, and turning frequency&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;cn_ratio&quot;,
+      &quot;levels&quot;: [
+        &quot;20&quot;,
+        &quot;40&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;ratio&quot;
+    },
+    {
+      &quot;name&quot;: &quot;moisture_pct&quot;,
+      &quot;levels&quot;: [
+        &quot;40&quot;,
+        &quot;65&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;turn_freq&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;7&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;per_week&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;pile_volume&quot;: &quot;1m3&quot;,
+    &quot;initial_material&quot;: &quot;mixed_greens_browns&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;maturity_weeks&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;weeks&quot;
+    },
+    {
+      &quot;name&quot;: &quot;nutrient_score&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;pts&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;box_behnken&quot;,
+    &quot;test_script&quot;: &quot;use_cases/98_compost_maturity/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Box-Behnken Design produces <strong>15 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>cn_ratio</code></th><th><code>moisture_pct</code></th><th><code>turn_freq</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>30</td><td>40</td><td>1</td></tr>
+        <tr><td>2</td><td>30</td><td>52.5</td><td>4</td></tr>
+        <tr><td>3</td><td>40</td><td>52.5</td><td>7</td></tr>
+        <tr><td>4</td><td>40</td><td>52.5</td><td>1</td></tr>
+        <tr><td>5</td><td>30</td><td>52.5</td><td>4</td></tr>
+        <tr><td>6</td><td>30</td><td>52.5</td><td>4</td></tr>
+        <tr><td>7</td><td>20</td><td>52.5</td><td>7</td></tr>
+        <tr><td>8</td><td>40</td><td>40</td><td>4</td></tr>
+        <tr><td>9</td><td>30</td><td>40</td><td>7</td></tr>
+        <tr><td>10</td><td>40</td><td>65</td><td>4</td></tr>
+        <tr><td>11</td><td>20</td><td>52.5</td><td>1</td></tr>
+        <tr><td>12</td><td>30</td><td>65</td><td>7</td></tr>
+        <tr><td>13</td><td>20</td><td>40</td><td>4</td></tr>
+        <tr><td>14</td><td>20</td><td>65</td><td>4</td></tr>
+        <tr><td>15</td><td>30</td><td>65</td><td>1</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/98_compost_maturity/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/98_compost_maturity/config.json \
+    <span class="flag">--output</span> use_cases/98_compost_maturity/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/98_compost_maturity/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/98_compost_maturity/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/98_compost_maturity/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/98_compost_maturity/config.json \
+    <span class="flag">--output</span> use_cases/98_compost_maturity/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>box_behnken</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (maturity_weeks &#x2193;, nutrient_score &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>15</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: maturity_weeks</h3>
+    <p>Top factors: moisture_pct (41.2%), cn_ratio (34.9%), turn_freq (24.0%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/98_pareto_maturity_weeks.png" alt="Pareto chart for maturity_weeks">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/98_main_effects_maturity_weeks.png" alt="Main effects plot for maturity_weeks">
+      </div>
+    </div>
+
+    <h3>Response: nutrient_score</h3>
+    <p>Top factors: moisture_pct (53.3%), cn_ratio (35.7%), turn_freq (11.0%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/98_pareto_nutrient_score.png" alt="Pareto chart for nutrient_score">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/98_main_effects_nutrient_score.png" alt="Main effects plot for nutrient_score">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">maturity weeks cn ratio vs moisture pct</p>
+      <img src="../images/98_rsm_maturity_weeks_cn_ratio_vs_moisture_pct.png" alt="RSM surface: maturity weeks cn ratio vs moisture pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">maturity weeks cn ratio vs turn freq</p>
+      <img src="../images/98_rsm_maturity_weeks_cn_ratio_vs_turn_freq.png" alt="RSM surface: maturity weeks cn ratio vs turn freq" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">maturity weeks moisture pct vs turn freq</p>
+      <img src="../images/98_rsm_maturity_weeks_moisture_pct_vs_turn_freq.png" alt="RSM surface: maturity weeks moisture pct vs turn freq" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">nutrient score cn ratio vs moisture pct</p>
+      <img src="../images/98_rsm_nutrient_score_cn_ratio_vs_moisture_pct.png" alt="RSM surface: nutrient score cn ratio vs moisture pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">nutrient score cn ratio vs turn freq</p>
+      <img src="../images/98_rsm_nutrient_score_cn_ratio_vs_turn_freq.png" alt="RSM surface: nutrient score cn ratio vs turn freq" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">nutrient score moisture pct vs turn freq</p>
+      <img src="../images/98_rsm_nutrient_score_moisture_pct_vs_turn_freq.png" alt="RSM surface: nutrient score moisture pct vs turn freq" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_maturity_weeks_cn_ratio_vs_moisture_pct.png
+  RSM surface: rsm_maturity_weeks_cn_ratio_vs_turn_freq.png
+  RSM surface: rsm_maturity_weeks_moisture_pct_vs_turn_freq.png
+  RSM surface: rsm_nutrient_score_cn_ratio_vs_moisture_pct.png
+  RSM surface: rsm_nutrient_score_cn_ratio_vs_turn_freq.png
+  RSM surface: rsm_nutrient_score_moisture_pct_vs_turn_freq.png
+
+=== Main Effects: maturity_weeks ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+moisture_pct             4.2536       0.8441            41.2%
+cn_ratio                 3.6000       0.8441            34.9%
+turn_freq                2.4750       0.8441            24.0%
+
+=== Summary Statistics: maturity_weeks ===
+
+cn_ratio:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  20                  4    11.9250     4.0533     8.4000    16.1000
+  30                  7    12.6143     2.7107    10.3000    18.5000
+  40                  4    15.5250     2.9285    12.7000    18.2000
+
+moisture_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  40                  4    11.3500     1.9279     8.5000    12.7000
+  52.5                7    15.4286     3.1175    11.2000    18.5000
+  65                  4    11.1750     2.2589     8.4000    13.3000
+
+turn_freq:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    14.4750     2.6961    12.3000    18.2000
+  4                   7    12.0000     3.4312     8.4000    18.5000
+  7                   4    14.0500     3.5454    10.3000    17.9000
+
+=== Main Effects: nutrient_score ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+moisture_pct             1.0893       0.2382            53.3%
+cn_ratio                 0.7286       0.2382            35.7%
+turn_freq                0.2250       0.2382            11.0%
+
+=== Summary Statistics: nutrient_score ===
+
+cn_ratio:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  20                  4     5.7500     1.0344     4.6000     7.1000
+  30                  7     5.8286     1.0259     3.9000     7.1000
+  40                  4     5.1000     0.5598     4.4000     5.6000
+
+moisture_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  40                  4     6.2750     0.7500     5.5000     7.1000
+  52.5                7     5.1857     0.7515     3.9000     6.0000
+  65                  4     5.7000     1.1225     4.4000     7.1000
+
+turn_freq:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4     5.7000     0.8679     4.6000     6.7000
+  4                   7     5.5000     1.0614     3.9000     7.1000
+  7                   4     5.7250     0.9535     4.9000     7.1000
+
+Pareto chart (maturity_weeks): use_cases/98_compost_maturity/results/analysis/pareto_maturity_weeks.png
+
+Pareto chart (nutrient_score): use_cases/98_compost_maturity/results/analysis/pareto_nutrient_score.png
+Main effects (maturity_weeks): use_cases/98_compost_maturity/results/analysis/main_effects_maturity_weeks.png
+Main effects (nutrient_score): use_cases/98_compost_maturity/results/analysis/main_effects_nutrient_score.png</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: maturity_weeks ===
+Direction: minimize
+
+Best observed run: #3
+  cn_ratio = 30
+  moisture_pct = 40
+  turn_freq = 7
+  Value: 8.4
+
+RSM Model (linear, R² = 0.0864, Adj R² = -0.1627):
+  Coefficients:
+    intercept                      +13.2067
+    cn_ratio                       -1.0000
+    moisture_pct                   +0.7750
+    turn_freq                      -0.1250
+
+RSM Model (quadratic, R² = 0.4126, Adj R² = -0.6446):
+  Coefficients:
+    intercept                      +14.6000
+    cn_ratio                       -1.0000
+    moisture_pct                   +0.7750
+    turn_freq                      -0.1250
+    cn_ratio*moisture_pct          +1.6250
+    cn_ratio*turn_freq             +0.6750
+    moisture_pct*turn_freq         -1.8750
+    cn_ratio^2                     +0.7125
+    moisture_pct^2                 -1.7375
+    turn_freq^2                    -1.5875
+
+  Curvature analysis:
+    moisture_pct                   coef=-1.7375  concave (has a maximum)
+    turn_freq                      coef=-1.5875  concave (has a maximum)
+    cn_ratio                       coef=+0.7125  convex (has a minimum)
+
+  Notable interactions:
+    moisture_pct*turn_freq         coef=-1.8750  (antagonistic)
+    cn_ratio*moisture_pct          coef=+1.6250  (synergistic)
+    cn_ratio*turn_freq             coef=+0.6750  (synergistic)
+
+  Predicted optimum (from linear model):
+    cn_ratio = 20
+    moisture_pct = 65
+    turn_freq = 4
+    Predicted value: 14.9817
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. moisture_pct  (effect: 2.4, contribution: 40.2%)
+  2. cn_ratio  (effect: 2.0, contribution: 32.8%)
+  3. turn_freq  (effect: 1.6, contribution: 26.9%)
+
+=== Optimization: nutrient_score ===
+Direction: maximize
+
+Best observed run: #3
+  cn_ratio = 30
+  moisture_pct = 40
+  turn_freq = 7
+  Value: 7.1
+
+RSM Model (linear, R² = 0.2192, Adj R² = 0.0063):
+  Coefficients:
+    intercept                      +5.6133
+    cn_ratio                       +0.5625
+    moisture_pct                   +0.0875
+    turn_freq                      +0.0500
+
+RSM Model (quadratic, R² = 0.2751, Adj R² = -1.0298):
+  Coefficients:
+    intercept                      +5.5667
+    cn_ratio                       +0.5625
+    moisture_pct                   +0.0875
+    turn_freq                      +0.0500
+    cn_ratio*moisture_pct          -0.1750
+    cn_ratio*turn_freq             +0.1000
+    moisture_pct*turn_freq         -0.2000
+    cn_ratio^2                     -0.1458
+    moisture_pct^2                 +0.2542
+    turn_freq^2                    -0.0208
+
+  Curvature analysis:
+    moisture_pct                   coef=+0.2542  convex (has a minimum)
+    cn_ratio                       coef=-0.1458  concave (has a maximum)
+    turn_freq                      coef=-0.0208  negligible curvature
+
+  Predicted optimum (from linear model):
+    cn_ratio = 40
+    moisture_pct = 65
+    turn_freq = 4
+    Predicted value: 6.2633
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. cn_ratio  (effect: 1.1, contribution: 71.3%)
+  2. moisture_pct  (effect: 0.4, contribution: 22.4%)
+  3. turn_freq  (effect: 0.1, contribution: 6.3%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="97-tomato-greenhouse.html">&larr; Previous: Tomato Greenhouse Yield</a>
+    <a href="99-seed-germination.html">Next: Seed Germination Rate &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>
