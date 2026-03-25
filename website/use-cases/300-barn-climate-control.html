@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Livestock Barn Climate Control &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #fce7f3, #f9a8d4);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F404;</div>
+    <div class="uc-badge" style="background:rgba(219,39,119,.12);color:#db2777;">Box-Behnken Design</div>
+    <h1>Livestock Barn Climate Control</h1>
+    <p class="uc-subtitle">Box-Behnken design to maximize animal comfort index and minimize energy cost by tuning ventilation rate, radiant heater coverage, and misting frequency</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>vent_ach</code></td><td>4</td><td>20</td><td>ACH</td></tr>
+            <tr><td><code>heater_pct</code></td><td>0</td><td>50</td><td>%</td></tr>
+            <tr><td><code>mist_freq</code></td><td>0</td><td>6</td><td>per_hr</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> barn = dairy_freestall, capacity = 200</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>comfort_index</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>pts</td></tr>
+            <tr><td><code>energy_kwh_day</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>kWh/day</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/300_barn_climate_control/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Livestock Barn Climate Control&quot;,
+    &quot;description&quot;: &quot;Box-Behnken design to maximize animal comfort index and minimize energy cost by tuning ventilation rate, radiant heater coverage, and misting frequency&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;vent_ach&quot;,
+      &quot;levels&quot;: [
+        &quot;4&quot;,
+        &quot;20&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;ACH&quot;
+    },
+    {
+      &quot;name&quot;: &quot;heater_pct&quot;,
+      &quot;levels&quot;: [
+        &quot;0&quot;,
+        &quot;50&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;mist_freq&quot;,
+      &quot;levels&quot;: [
+        &quot;0&quot;,
+        &quot;6&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;per_hr&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;barn&quot;: &quot;dairy_freestall&quot;,
+    &quot;capacity&quot;: &quot;200&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;comfort_index&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;pts&quot;
+    },
+    {
+      &quot;name&quot;: &quot;energy_kwh_day&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;kWh/day&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;box_behnken&quot;,
+    &quot;test_script&quot;: &quot;use_cases/300_barn_climate_control/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Box-Behnken Design produces <strong>15 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>vent_ach</code></th><th><code>heater_pct</code></th><th><code>mist_freq</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>12</td><td>0</td><td>0</td></tr>
+        <tr><td>2</td><td>12</td><td>25</td><td>3</td></tr>
+        <tr><td>3</td><td>20</td><td>25</td><td>6</td></tr>
+        <tr><td>4</td><td>20</td><td>25</td><td>0</td></tr>
+        <tr><td>5</td><td>12</td><td>25</td><td>3</td></tr>
+        <tr><td>6</td><td>12</td><td>25</td><td>3</td></tr>
+        <tr><td>7</td><td>4</td><td>25</td><td>6</td></tr>
+        <tr><td>8</td><td>20</td><td>0</td><td>3</td></tr>
+        <tr><td>9</td><td>12</td><td>0</td><td>6</td></tr>
+        <tr><td>10</td><td>20</td><td>50</td><td>3</td></tr>
+        <tr><td>11</td><td>4</td><td>25</td><td>0</td></tr>
+        <tr><td>12</td><td>12</td><td>50</td><td>6</td></tr>
+        <tr><td>13</td><td>4</td><td>0</td><td>3</td></tr>
+        <tr><td>14</td><td>4</td><td>50</td><td>3</td></tr>
+        <tr><td>15</td><td>12</td><td>50</td><td>0</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/300_barn_climate_control/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/300_barn_climate_control/config.json \
+    <span class="flag">--output</span> use_cases/300_barn_climate_control/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/300_barn_climate_control/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/300_barn_climate_control/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/300_barn_climate_control/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/300_barn_climate_control/config.json \
+    <span class="flag">--output</span> use_cases/300_barn_climate_control/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>box_behnken</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (comfort_index &#x2191;, energy_kwh_day &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>15</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: comfort_index</h3>
+    <p>Top factors: vent_ach (35.6%), heater_pct (34.5%), mist_freq (29.9%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/300_pareto_comfort_index.png" alt="Pareto chart for comfort_index">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/300_main_effects_comfort_index.png" alt="Main effects plot for comfort_index">
+      </div>
+    </div>
+
+    <h3>Response: energy_kwh_day</h3>
+    <p>Top factors: mist_freq (39.7%), heater_pct (36.5%), vent_ach (23.8%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/300_pareto_energy_kwh_day.png" alt="Pareto chart for energy_kwh_day">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/300_main_effects_energy_kwh_day.png" alt="Main effects plot for energy_kwh_day">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">comfort index heater pct vs mist freq</p>
+      <img src="../images/300_rsm_comfort_index_heater_pct_vs_mist_freq.png" alt="RSM surface: comfort index heater pct vs mist freq" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">comfort index vent ach vs heater pct</p>
+      <img src="../images/300_rsm_comfort_index_vent_ach_vs_heater_pct.png" alt="RSM surface: comfort index vent ach vs heater pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">comfort index vent ach vs mist freq</p>
+      <img src="../images/300_rsm_comfort_index_vent_ach_vs_mist_freq.png" alt="RSM surface: comfort index vent ach vs mist freq" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">energy kwh day heater pct vs mist freq</p>
+      <img src="../images/300_rsm_energy_kwh_day_heater_pct_vs_mist_freq.png" alt="RSM surface: energy kwh day heater pct vs mist freq" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">energy kwh day vent ach vs heater pct</p>
+      <img src="../images/300_rsm_energy_kwh_day_vent_ach_vs_heater_pct.png" alt="RSM surface: energy kwh day vent ach vs heater pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">energy kwh day vent ach vs mist freq</p>
+      <img src="../images/300_rsm_energy_kwh_day_vent_ach_vs_mist_freq.png" alt="RSM surface: energy kwh day vent ach vs mist freq" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_comfort_index_vent_ach_vs_heater_pct.png
+  RSM surface: rsm_comfort_index_vent_ach_vs_mist_freq.png
+  RSM surface: rsm_comfort_index_heater_pct_vs_mist_freq.png
+  RSM surface: rsm_energy_kwh_day_vent_ach_vs_heater_pct.png
+  RSM surface: rsm_energy_kwh_day_vent_ach_vs_mist_freq.png
+  RSM surface: rsm_energy_kwh_day_heater_pct_vs_mist_freq.png
+
+=== Main Effects: comfort_index ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+vent_ach                 0.6071       0.2281            35.6%
+heater_pct               0.5893       0.2281            34.5%
+mist_freq                0.5107       0.2281            29.9%
+
+=== Summary Statistics: comfort_index ===
+
+vent_ach:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  12                  7     5.2429     1.0147     3.9000     6.7000
+  20                  4     5.8500     0.5447     5.1000     6.3000
+  4                   4     5.5250     0.9845     4.7000     6.8000
+
+heater_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4     5.8750     0.6185     5.2000     6.7000
+  25                  7     5.2857     1.1127     3.9000     6.8000
+  50                  4     5.4250     0.6946     4.7000     6.2000
+
+mist_freq:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4     5.7000     0.9416     4.8000     6.7000
+  3                   7     5.2143     0.9582     3.9000     6.2000
+  6                   4     5.7250     0.7805     5.1000     6.8000
+
+=== Main Effects: energy_kwh_day ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+mist_freq               20.3571       5.0147            39.7%
+heater_pct              18.7500       5.0147            36.5%
+vent_ach                12.2143       5.0147            23.8%
+
+=== Summary Statistics: energy_kwh_day ===
+
+vent_ach:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  12                  7    98.2857    21.0215    69.0000   132.0000
+  20                  4   102.7500    14.0089    91.0000   123.0000
+  4                   4   110.5000    23.5301    86.0000   141.0000
+
+heater_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4   114.2500    13.3760   100.0000   132.0000
+  25                  7   100.2857    24.8107    69.0000   141.0000
+  50                  4    95.5000     9.4692    86.0000   108.0000
+
+mist_freq:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4   111.5000    19.1920    91.0000   132.0000
+  3                   7    92.1429    15.2799    69.0000   115.0000
+  6                   4   112.5000    20.8247    91.0000   141.0000
+
+Pareto chart (comfort_index): use_cases/300_barn_climate_control/results/analysis/pareto_comfort_index.png
+
+Pareto chart (energy_kwh_day): use_cases/300_barn_climate_control/results/analysis/pareto_energy_kwh_day.png
+Main effects (comfort_index): use_cases/300_barn_climate_control/results/analysis/main_effects_comfort_index.png
+Main effects (energy_kwh_day): use_cases/300_barn_climate_control/results/analysis/main_effects_energy_kwh_day.png</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: comfort_index ===
+Direction: maximize
+
+Best observed run: #10
+  vent_ach = 12
+  heater_pct = 0
+  mist_freq = 6
+  Value: 6.8
+
+RSM Model (linear, R² = 0.1616, Adj R² = -0.0671):
+  Coefficients:
+    intercept                      +5.4800
+    vent_ach                       -0.2250
+    heater_pct                     -0.4000
+    mist_freq                      +0.1000
+
+RSM Model (quadratic, R² = 0.2973, Adj R² = -0.9677):
+  Coefficients:
+    intercept                      +5.0333
+    vent_ach                       -0.2250
+    heater_pct                     -0.4000
+    mist_freq                      +0.1000
+    vent_ach*heater_pct            +0.1250
+    vent_ach*mist_freq             -0.3750
+    heater_pct*mist_freq           +0.1250
+    vent_ach^2                     +0.2958
+    heater_pct^2                   +0.3458
+    mist_freq^2                    +0.1958
+
+  Curvature analysis:
+    heater_pct                     coef=+0.3458  convex (has a minimum)
+    vent_ach                       coef=+0.2958  convex (has a minimum)
+    mist_freq                      coef=+0.1958  convex (has a minimum)
+
+  Notable interactions:
+    vent_ach*mist_freq             coef=-0.3750  (antagonistic)
+
+  Predicted optimum (from linear model):
+    vent_ach = 4
+    heater_pct = 0
+    mist_freq = 3
+    Predicted value: 6.1050
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. heater_pct  (effect: 0.8, contribution: 52.2%)
+  2. vent_ach  (effect: 0.5, contribution: 31.5%)
+  3. mist_freq  (effect: 0.3, contribution: 16.3%)
+
+=== Optimization: energy_kwh_day ===
+Direction: minimize
+
+Best observed run: #13
+  vent_ach = 12
+  heater_pct = 25
+  mist_freq = 3
+  Value: 69.0
+
+RSM Model (linear, R² = 0.2406, Adj R² = 0.0335):
+  Coefficients:
+    intercept                      +102.7333
+    vent_ach                       -4.2500
+    heater_pct                     -11.6250
+    mist_freq                      -2.3750
+
+RSM Model (quadratic, R² = 0.4795, Adj R² = -0.4575):
+  Coefficients:
+    intercept                      +85.6667
+    vent_ach                       -4.2500
+    heater_pct                     -11.6250
+    mist_freq                      -2.3750
+    vent_ach*heater_pct            -3.7500
+    vent_ach*mist_freq             -3.2500
+    heater_pct*mist_freq           -0.5000
+    vent_ach^2                     +8.1667
+    heater_pct^2                   +13.9167
+    mist_freq^2                    +9.9167
+
+  Curvature analysis:
+    heater_pct                     coef=+13.9167  convex (has a minimum)
+    mist_freq                      coef=+9.9167  convex (has a minimum)
+    vent_ach                       coef=+8.1667  convex (has a minimum)
+
+  Notable interactions:
+    vent_ach*heater_pct            coef=-3.7500  (antagonistic)
+    vent_ach*mist_freq             coef=-3.2500  (antagonistic)
+    heater_pct*mist_freq           coef=-0.5000  (antagonistic)
+
+  Predicted optimum (from linear model):
+    vent_ach = 4
+    heater_pct = 0
+    mist_freq = 3
+    Predicted value: 118.6083
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. heater_pct  (effect: 24.2, contribution: 53.1%)
+  2. vent_ach  (effect: 10.7, contribution: 23.5%)
+  3. mist_freq  (effect: 10.7, contribution: 23.5%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="299-aquaculture-shrimp.html">&larr; Previous: Shrimp Pond Management</a>
+    <a href="index.html">All Use Cases &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

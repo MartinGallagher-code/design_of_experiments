@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DIY Antenna Tuning &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #ecfdf5, #a7f3d0);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F50C;</div>
+    <div class="uc-badge" style="background:rgba(5,150,105,.12);color:#059669;">Box-Behnken Design</div>
+    <h1>DIY Antenna Tuning</h1>
+    <p class="uc-subtitle">Box-Behnken design to maximize signal strength and minimize SWR by tuning element length, height above ground, and feed point impedance</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>element_pct</code></td><td>90</td><td>110</td><td>%</td></tr>
+            <tr><td><code>height_m</code></td><td>3</td><td>10</td><td>m</td></tr>
+            <tr><td><code>feedpoint_ohm</code></td><td>25</td><td>75</td><td>ohm</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> band = 2m_VHF, type = ground_plane</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>gain_dbi</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>dBi</td></tr>
+            <tr><td><code>swr</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>ratio</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/273_antenna_tuning/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;DIY Antenna Tuning&quot;,
+    &quot;description&quot;: &quot;Box-Behnken design to maximize signal strength and minimize SWR by tuning element length, height above ground, and feed point impedance&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;element_pct&quot;,
+      &quot;levels&quot;: [
+        &quot;90&quot;,
+        &quot;110&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;height_m&quot;,
+      &quot;levels&quot;: [
+        &quot;3&quot;,
+        &quot;10&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;m&quot;
+    },
+    {
+      &quot;name&quot;: &quot;feedpoint_ohm&quot;,
+      &quot;levels&quot;: [
+        &quot;25&quot;,
+        &quot;75&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;ohm&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;band&quot;: &quot;2m_VHF&quot;,
+    &quot;type&quot;: &quot;ground_plane&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;gain_dbi&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;dBi&quot;
+    },
+    {
+      &quot;name&quot;: &quot;swr&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;ratio&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;box_behnken&quot;,
+    &quot;test_script&quot;: &quot;use_cases/273_antenna_tuning/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Box-Behnken Design produces <strong>15 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>element_pct</code></th><th><code>height_m</code></th><th><code>feedpoint_ohm</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>100</td><td>3</td><td>25</td></tr>
+        <tr><td>2</td><td>100</td><td>6.5</td><td>50</td></tr>
+        <tr><td>3</td><td>110</td><td>6.5</td><td>75</td></tr>
+        <tr><td>4</td><td>110</td><td>6.5</td><td>25</td></tr>
+        <tr><td>5</td><td>100</td><td>6.5</td><td>50</td></tr>
+        <tr><td>6</td><td>100</td><td>6.5</td><td>50</td></tr>
+        <tr><td>7</td><td>90</td><td>6.5</td><td>75</td></tr>
+        <tr><td>8</td><td>110</td><td>3</td><td>50</td></tr>
+        <tr><td>9</td><td>100</td><td>3</td><td>75</td></tr>
+        <tr><td>10</td><td>110</td><td>10</td><td>50</td></tr>
+        <tr><td>11</td><td>90</td><td>6.5</td><td>25</td></tr>
+        <tr><td>12</td><td>100</td><td>10</td><td>75</td></tr>
+        <tr><td>13</td><td>90</td><td>3</td><td>50</td></tr>
+        <tr><td>14</td><td>90</td><td>10</td><td>50</td></tr>
+        <tr><td>15</td><td>100</td><td>10</td><td>25</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/273_antenna_tuning/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/273_antenna_tuning/config.json \
+    <span class="flag">--output</span> use_cases/273_antenna_tuning/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/273_antenna_tuning/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/273_antenna_tuning/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/273_antenna_tuning/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/273_antenna_tuning/config.json \
+    <span class="flag">--output</span> use_cases/273_antenna_tuning/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>box_behnken</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (gain_dbi &#x2191;, swr &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>15</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: gain_dbi</h3>
+    <p>Top factors: feedpoint_ohm (38.5%), height_m (35.4%), element_pct (26.0%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/273_pareto_gain_dbi.png" alt="Pareto chart for gain_dbi">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/273_main_effects_gain_dbi.png" alt="Main effects plot for gain_dbi">
+      </div>
+    </div>
+
+    <h3>Response: swr</h3>
+    <p>Top factors: feedpoint_ohm (40.4%), element_pct (30.5%), height_m (29.0%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/273_pareto_swr.png" alt="Pareto chart for swr">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/273_main_effects_swr.png" alt="Main effects plot for swr">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">gain dbi element pct vs feedpoint ohm</p>
+      <img src="../images/273_rsm_gain_dbi_element_pct_vs_feedpoint_ohm.png" alt="RSM surface: gain dbi element pct vs feedpoint ohm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">gain dbi element pct vs height m</p>
+      <img src="../images/273_rsm_gain_dbi_element_pct_vs_height_m.png" alt="RSM surface: gain dbi element pct vs height m" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">gain dbi height m vs feedpoint ohm</p>
+      <img src="../images/273_rsm_gain_dbi_height_m_vs_feedpoint_ohm.png" alt="RSM surface: gain dbi height m vs feedpoint ohm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">swr element pct vs feedpoint ohm</p>
+      <img src="../images/273_rsm_swr_element_pct_vs_feedpoint_ohm.png" alt="RSM surface: swr element pct vs feedpoint ohm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">swr element pct vs height m</p>
+      <img src="../images/273_rsm_swr_element_pct_vs_height_m.png" alt="RSM surface: swr element pct vs height m" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">swr height m vs feedpoint ohm</p>
+      <img src="../images/273_rsm_swr_height_m_vs_feedpoint_ohm.png" alt="RSM surface: swr height m vs feedpoint ohm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_gain_dbi_element_pct_vs_height_m.png
+  RSM surface: rsm_gain_dbi_element_pct_vs_feedpoint_ohm.png
+  RSM surface: rsm_gain_dbi_height_m_vs_feedpoint_ohm.png
+  RSM surface: rsm_swr_element_pct_vs_height_m.png
+  RSM surface: rsm_swr_element_pct_vs_feedpoint_ohm.png
+  RSM surface: rsm_swr_height_m_vs_feedpoint_ohm.png
+
+=== Main Effects: gain_dbi ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+feedpoint_ohm            0.9250       0.2214            38.5%
+height_m                 0.8500       0.2214            35.4%
+element_pct              0.6250       0.2214            26.0%
+
+=== Summary Statistics: gain_dbi ===
+
+element_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 7     4.2143     0.9227     2.9000     5.3000
+  110                 4     3.9000     0.3162     3.6000     4.3000
+  90                  4     4.5250     1.1701     2.8000     5.3000
+
+height_m:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4     3.9250     0.6344     3.3000     4.8000
+  3                   4     4.7750     0.8057     3.6000     5.3000
+  6.5                 7     4.0571     0.9467     2.8000     5.2000
+
+feedpoint_ohm:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  25                  4     3.7500     0.9110     2.8000     4.9000
+  50                  7     4.2143     0.8840     2.9000     5.3000
+  75                  4     4.6750     0.6850     3.9000     5.3000
+
+=== Main Effects: swr ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+feedpoint_ohm            1.0057       0.2036            40.4%
+element_pct              0.7593       0.2036            30.5%
+height_m                 0.7214       0.2036            29.0%
+
+=== Summary Statistics: swr ===
+
+element_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 7     1.5257     0.4737     1.0800     2.4700
+  110                 4     2.2850     1.1071     1.0800     3.7600
+  90                  4     2.1475     0.7881     1.4300     3.0100
+
+height_m:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4     1.4500     0.2753     1.0800     1.7400
+  3                   4     1.8525     0.5090     1.4300     2.4700
+  6.5                 7     2.1714     1.0300     1.0800     3.7600
+
+feedpoint_ohm:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  25                  4     2.3900     1.0416     1.4400     3.7600
+  50                  7     1.3843     0.3558     1.0800     2.0700
+  75                  4     2.2900     0.6481     1.4500     3.0100
+
+Pareto chart (gain_dbi): use_cases/273_antenna_tuning/results/analysis/pareto_gain_dbi.png
+
+Pareto chart (swr): use_cases/273_antenna_tuning/results/analysis/pareto_swr.png
+Main effects (gain_dbi): use_cases/273_antenna_tuning/results/analysis/main_effects_gain_dbi.png
+Main effects (swr): use_cases/273_antenna_tuning/results/analysis/main_effects_swr.png</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: gain_dbi ===
+Direction: maximize
+
+Best observed run: #12
+  element_pct = 90
+  height_m = 6.5
+  feedpoint_ohm = 75
+  Value: 5.3
+
+RSM Model (linear, R² = 0.2899, Adj R² = 0.0962):
+  Coefficients:
+    intercept                      +4.2133
+    element_pct                    -0.3500
+    height_m                       +0.0250
+    feedpoint_ohm                  -0.5000
+
+RSM Model (quadratic, R² = 0.7342, Adj R² = 0.2559):
+  Coefficients:
+    intercept                      +4.4333
+    element_pct                    -0.3500
+    height_m                       +0.0250
+    feedpoint_ohm                  -0.5000
+    element_pct*height_m           +0.4750
+    element_pct*feedpoint_ohm      -0.6250
+    height_m*feedpoint_ohm         -0.2750
+    element_pct^2                  +0.2958
+    height_m^2                     -0.6042
+    feedpoint_ohm^2                -0.1042
+
+  Curvature analysis:
+    height_m                       coef=-0.6042  concave (has a maximum)
+    element_pct                    coef=+0.2958  convex (has a minimum)
+    feedpoint_ohm                  coef=-0.1042  concave (has a maximum)
+
+  Notable interactions:
+    element_pct*feedpoint_ohm      coef=-0.6250  (antagonistic)
+    element_pct*height_m           coef=+0.4750  (synergistic)
+
+  Predicted optimum (from quadratic model):
+    element_pct = 110
+    height_m = 6.5
+    feedpoint_ohm = 25
+    Predicted value: 5.4000
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. feedpoint_ohm  (effect: 1.0, contribution: 42.7%)
+  2. element_pct  (effect: 0.7, contribution: 29.9%)
+  3. height_m  (effect: 0.6, contribution: 27.4%)
+
+=== Optimization: swr ===
+Direction: minimize
+
+Best observed run: #11
+  element_pct = 110
+  height_m = 6.5
+  feedpoint_ohm = 75
+  Value: 1.08
+
+RSM Model (linear, R² = 0.3175, Adj R² = 0.1313):
+  Coefficients:
+    intercept                      +1.8940
+    element_pct                    -0.3263
+    height_m                       +0.4850
+    feedpoint_ohm                  -0.0612
+
+RSM Model (quadratic, R² = 0.8251, Adj R² = 0.5102):
+  Coefficients:
+    intercept                      +1.6800
+    element_pct                    -0.3263
+    height_m                       +0.4850
+    feedpoint_ohm                  -0.0612
+    element_pct*height_m           -0.6550
+    element_pct*feedpoint_ohm      -0.5425
+    height_m*feedpoint_ohm         +0.3100
+    element_pct^2                  +0.5313
+    height_m^2                     -0.1163
+    feedpoint_ohm^2                -0.0138
+
+  Curvature analysis:
+    element_pct                    coef=+0.5313  convex (has a minimum)
+    height_m                       coef=-0.1163  concave (has a maximum)
+    feedpoint_ohm                  coef=-0.0138  negligible curvature
+
+  Notable interactions:
+    element_pct*height_m           coef=-0.6550  (antagonistic)
+    element_pct*feedpoint_ohm      coef=-0.5425  (antagonistic)
+    height_m*feedpoint_ohm         coef=+0.3100  (synergistic)
+
+  Predicted optimum (from quadratic model):
+    element_pct = 90
+    height_m = 10
+    feedpoint_ohm = 50
+    Predicted value: 3.5613
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. height_m  (effect: 1.0, contribution: 49.5%)
+  2. element_pct  (effect: 0.9, contribution: 44.2%)
+  3. feedpoint_ohm  (effect: 0.1, contribution: 6.3%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="272-pcb-soldering.html">&larr; Previous: PCB Soldering Parameters</a>
+    <a href="274-battery-charger.html">Next: Battery Charger Settings &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

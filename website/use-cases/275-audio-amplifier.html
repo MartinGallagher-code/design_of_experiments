@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio Amplifier Biasing &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #ecfdf5, #a7f3d0);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F50C;</div>
+    <div class="uc-badge" style="background:rgba(5,150,105,.12);color:#059669;">Box-Behnken Design</div>
+    <h1>Audio Amplifier Biasing</h1>
+    <p class="uc-subtitle">Box-Behnken design to maximize THD+N and headroom by tuning bias current, supply voltage, and feedback ratio</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>bias_ma</code></td><td>10</td><td>100</td><td>mA</td></tr>
+            <tr><td><code>supply_v</code></td><td>15</td><td>35</td><td>V</td></tr>
+            <tr><td><code>feedback_db</code></td><td>10</td><td>30</td><td>dB</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> topology = class_AB, load = 8ohm</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>thd_pct</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>%</td></tr>
+            <tr><td><code>headroom_db</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>dB</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/275_audio_amplifier/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Audio Amplifier Biasing&quot;,
+    &quot;description&quot;: &quot;Box-Behnken design to maximize THD+N and headroom by tuning bias current, supply voltage, and feedback ratio&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;bias_ma&quot;,
+      &quot;levels&quot;: [
+        &quot;10&quot;,
+        &quot;100&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;mA&quot;
+    },
+    {
+      &quot;name&quot;: &quot;supply_v&quot;,
+      &quot;levels&quot;: [
+        &quot;15&quot;,
+        &quot;35&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;V&quot;
+    },
+    {
+      &quot;name&quot;: &quot;feedback_db&quot;,
+      &quot;levels&quot;: [
+        &quot;10&quot;,
+        &quot;30&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;dB&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;topology&quot;: &quot;class_AB&quot;,
+    &quot;load&quot;: &quot;8ohm&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;thd_pct&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;headroom_db&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;dB&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;box_behnken&quot;,
+    &quot;test_script&quot;: &quot;use_cases/275_audio_amplifier/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Box-Behnken Design produces <strong>15 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>bias_ma</code></th><th><code>supply_v</code></th><th><code>feedback_db</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>55</td><td>15</td><td>10</td></tr>
+        <tr><td>2</td><td>55</td><td>25</td><td>20</td></tr>
+        <tr><td>3</td><td>100</td><td>25</td><td>30</td></tr>
+        <tr><td>4</td><td>100</td><td>25</td><td>10</td></tr>
+        <tr><td>5</td><td>55</td><td>25</td><td>20</td></tr>
+        <tr><td>6</td><td>55</td><td>25</td><td>20</td></tr>
+        <tr><td>7</td><td>10</td><td>25</td><td>30</td></tr>
+        <tr><td>8</td><td>100</td><td>15</td><td>20</td></tr>
+        <tr><td>9</td><td>55</td><td>15</td><td>30</td></tr>
+        <tr><td>10</td><td>100</td><td>35</td><td>20</td></tr>
+        <tr><td>11</td><td>10</td><td>25</td><td>10</td></tr>
+        <tr><td>12</td><td>55</td><td>35</td><td>30</td></tr>
+        <tr><td>13</td><td>10</td><td>15</td><td>20</td></tr>
+        <tr><td>14</td><td>10</td><td>35</td><td>20</td></tr>
+        <tr><td>15</td><td>55</td><td>35</td><td>10</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/275_audio_amplifier/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/275_audio_amplifier/config.json \
+    <span class="flag">--output</span> use_cases/275_audio_amplifier/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/275_audio_amplifier/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/275_audio_amplifier/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/275_audio_amplifier/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/275_audio_amplifier/config.json \
+    <span class="flag">--output</span> use_cases/275_audio_amplifier/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>box_behnken</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (thd_pct &#x2193;, headroom_db &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>15</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: thd_pct</h3>
+    <p>Top factors: bias_ma (42.6%), feedback_db (31.4%), supply_v (25.9%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/275_pareto_thd_pct.png" alt="Pareto chart for thd_pct">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/275_main_effects_thd_pct.png" alt="Main effects plot for thd_pct">
+      </div>
+    </div>
+
+    <h3>Response: headroom_db</h3>
+    <p>Top factors: feedback_db (44.5%), bias_ma (29.7%), supply_v (25.8%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/275_pareto_headroom_db.png" alt="Pareto chart for headroom_db">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/275_main_effects_headroom_db.png" alt="Main effects plot for headroom_db">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">headroom db bias ma vs feedback db</p>
+      <img src="../images/275_rsm_headroom_db_bias_ma_vs_feedback_db.png" alt="RSM surface: headroom db bias ma vs feedback db" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">headroom db bias ma vs supply v</p>
+      <img src="../images/275_rsm_headroom_db_bias_ma_vs_supply_v.png" alt="RSM surface: headroom db bias ma vs supply v" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">headroom db supply v vs feedback db</p>
+      <img src="../images/275_rsm_headroom_db_supply_v_vs_feedback_db.png" alt="RSM surface: headroom db supply v vs feedback db" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">thd pct bias ma vs feedback db</p>
+      <img src="../images/275_rsm_thd_pct_bias_ma_vs_feedback_db.png" alt="RSM surface: thd pct bias ma vs feedback db" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">thd pct bias ma vs supply v</p>
+      <img src="../images/275_rsm_thd_pct_bias_ma_vs_supply_v.png" alt="RSM surface: thd pct bias ma vs supply v" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">thd pct supply v vs feedback db</p>
+      <img src="../images/275_rsm_thd_pct_supply_v_vs_feedback_db.png" alt="RSM surface: thd pct supply v vs feedback db" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_thd_pct_bias_ma_vs_supply_v.png
+  RSM surface: rsm_thd_pct_bias_ma_vs_feedback_db.png
+  RSM surface: rsm_thd_pct_supply_v_vs_feedback_db.png
+  RSM surface: rsm_headroom_db_bias_ma_vs_supply_v.png
+  RSM surface: rsm_headroom_db_bias_ma_vs_feedback_db.png
+  RSM surface: rsm_headroom_db_supply_v_vs_feedback_db.png
+
+=== Main Effects: thd_pct ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+bias_ma                  0.0698       0.0118            42.6%
+feedback_db              0.0514       0.0118            31.4%
+supply_v                 0.0424       0.0118            25.9%
+
+=== Summary Statistics: thd_pct ===
+
+bias_ma:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4     0.0940     0.0247     0.0590     0.1170
+  100                 4     0.1638     0.0155     0.1480     0.1830
+  55                  7     0.1110     0.0515     0.0450     0.1960
+
+supply_v:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  15                  4     0.0978     0.0421     0.0450     0.1480
+  25                  7     0.1401     0.0501     0.0590     0.1960
+  35                  4     0.1090     0.0351     0.0770     0.1550
+
+feedback_db:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4     0.0900     0.0555     0.0450     0.1690
+  20                  7     0.1414     0.0332     0.1000     0.1960
+  30                  4     0.1145     0.0468     0.0770     0.1830
+
+=== Main Effects: headroom_db ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+feedback_db              2.8500       0.6233            44.5%
+bias_ma                  1.9036       0.6233            29.7%
+supply_v                 1.6536       0.6233            25.8%
+
+=== Summary Statistics: headroom_db ===
+
+bias_ma:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4     4.3250     2.1562     1.5000     6.2000
+  100                 4     5.0750     3.5065     1.3000     9.0000
+  55                  7     6.2286     1.8670     3.3000     8.8000
+
+supply_v:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  15                  4     4.8250     2.3557     1.3000     6.2000
+  25                  7     6.2286     2.5585     1.5000     9.0000
+  35                  4     4.5750     2.3684     3.1000     8.1000
+
+feedback_db:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4     4.3750     2.4377     1.5000     6.9000
+  20                  7     4.9714     2.5005     1.3000     8.8000
+  30                  4     7.2250     1.5756     5.8000     9.0000
+
+Pareto chart (thd_pct): use_cases/275_audio_amplifier/results/analysis/pareto_thd_pct.png
+
+Pareto chart (headroom_db): use_cases/275_audio_amplifier/results/analysis/pareto_headroom_db.png
+Main effects (thd_pct): use_cases/275_audio_amplifier/results/analysis/main_effects_thd_pct.png
+Main effects (headroom_db): use_cases/275_audio_amplifier/results/analysis/main_effects_headroom_db.png</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: thd_pct ===
+Direction: minimize
+
+Best observed run: #3
+  bias_ma = 100
+  supply_v = 15
+  feedback_db = 20
+  Value: 0.045
+
+RSM Model (linear, R² = 0.1384, Adj R² = -0.0966):
+  Coefficients:
+    intercept                      +0.1205
+    bias_ma                        -0.0176
+    supply_v                       -0.0137
+    feedback_db                    +0.0029
+
+RSM Model (quadratic, R² = 0.3660, Adj R² = -0.7751):
+  Coefficients:
+    intercept                      +0.1430
+    bias_ma                        -0.0176
+    supply_v                       -0.0138
+    feedback_db                    +0.0029
+    bias_ma*supply_v               +0.0070
+    bias_ma*feedback_db            +0.0283
+    supply_v*feedback_db           +0.0090
+    bias_ma^2                      -0.0086
+    supply_v^2                     -0.0274
+    feedback_db^2                  -0.0061
+
+  Curvature analysis:
+    supply_v                       coef=-0.0274  negligible curvature
+    bias_ma                        coef=-0.0086  negligible curvature
+    feedback_db                    coef=-0.0061  negligible curvature
+
+  Predicted optimum (from linear model):
+    bias_ma = 10
+    supply_v = 15
+    feedback_db = 20
+    Predicted value: 0.1519
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. supply_v  (effect: 0.0, contribution: 49.0%)
+  2. bias_ma  (effect: 0.0, contribution: 43.1%)
+  3. feedback_db  (effect: 0.0, contribution: 7.9%)
+
+=== Optimization: headroom_db ===
+Direction: maximize
+
+Best observed run: #15
+  bias_ma = 55
+  supply_v = 25
+  feedback_db = 20
+  Value: 9.0
+
+RSM Model (linear, R² = 0.3187, Adj R² = 0.1329):
+  Coefficients:
+    intercept                      +5.4133
+    bias_ma                        -0.1500
+    supply_v                       -1.5250
+    feedback_db                    +0.9500
+
+RSM Model (quadratic, R² = 0.5204, Adj R² = -0.3430):
+  Coefficients:
+    intercept                      +5.4333
+    bias_ma                        -0.1500
+    supply_v                       -1.5250
+    feedback_db                    +0.9500
+    bias_ma*supply_v               -0.1250
+    bias_ma*feedback_db            -0.8250
+    supply_v*feedback_db           +0.6750
+    bias_ma^2                      -1.3292
+    supply_v^2                     +0.2208
+    feedback_db^2                  +1.0708
+
+  Curvature analysis:
+    bias_ma                        coef=-1.3292  concave (has a maximum)
+    feedback_db                    coef=+1.0708  convex (has a minimum)
+    supply_v                       coef=+0.2208  convex (has a minimum)
+
+  Notable interactions:
+    bias_ma*feedback_db            coef=-0.8250  (antagonistic)
+    supply_v*feedback_db           coef=+0.6750  (synergistic)
+
+  Predicted optimum (from linear model):
+    bias_ma = 55
+    supply_v = 15
+    feedback_db = 30
+    Predicted value: 7.8883
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. supply_v  (effect: 3.1, contribution: 45.4%)
+  2. feedback_db  (effect: 2.1, contribution: 31.2%)
+  3. bias_ma  (effect: 1.6, contribution: 23.4%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="274-battery-charger.html">&larr; Previous: Battery Charger Settings</a>
+    <a href="276-solar-charge-controller.html">Next: Solar Charge Controller Setup &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

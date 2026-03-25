@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Linear Power Supply Regulation &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #ecfdf5, #a7f3d0);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F50C;</div>
+    <div class="uc-badge" style="background:rgba(5,150,105,.12);color:#059669;">Central Composite Design</div>
+    <h1>Linear Power Supply Regulation</h1>
+    <p class="uc-subtitle">Central composite design to maximize load regulation and minimize ripple by tuning transformer tap, filter capacitance, and regulator dropout</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>transformer_v</code></td><td>12</td><td>24</td><td>V</td></tr>
+            <tr><td><code>filter_uf</code></td><td>1000</td><td>10000</td><td>uF</td></tr>
+            <tr><td><code>dropout_v</code></td><td>1</td><td>4</td><td>V</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> regulator = LM317, output = 12V</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>load_reg_pct</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>%</td></tr>
+            <tr><td><code>ripple_mv</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>mV_pp</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/280_power_supply_design/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Linear Power Supply Regulation&quot;,
+    &quot;description&quot;: &quot;Central composite design to maximize load regulation and minimize ripple by tuning transformer tap, filter capacitance, and regulator dropout&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;transformer_v&quot;,
+      &quot;levels&quot;: [
+        &quot;12&quot;,
+        &quot;24&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;V&quot;
+    },
+    {
+      &quot;name&quot;: &quot;filter_uf&quot;,
+      &quot;levels&quot;: [
+        &quot;1000&quot;,
+        &quot;10000&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;uF&quot;
+    },
+    {
+      &quot;name&quot;: &quot;dropout_v&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;4&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;V&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;regulator&quot;: &quot;LM317&quot;,
+    &quot;output&quot;: &quot;12V&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;load_reg_pct&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;ripple_mv&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;mV_pp&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;central_composite&quot;,
+    &quot;test_script&quot;: &quot;use_cases/280_power_supply_design/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Central Composite Design produces <strong>22 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>transformer_v</code></th><th><code>filter_uf</code></th><th><code>dropout_v</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>18</td><td>5500</td><td>2.5</td></tr>
+        <tr><td>2</td><td>24</td><td>1000</td><td>4</td></tr>
+        <tr><td>3</td><td>12</td><td>10000</td><td>1</td></tr>
+        <tr><td>4</td><td>18</td><td>13715.8</td><td>2.5</td></tr>
+        <tr><td>5</td><td>18</td><td>5500</td><td>2.5</td></tr>
+        <tr><td>6</td><td>7.04555</td><td>5500</td><td>2.5</td></tr>
+        <tr><td>7</td><td>18</td><td>5500</td><td>-0.238613</td></tr>
+        <tr><td>8</td><td>18</td><td>5500</td><td>2.5</td></tr>
+        <tr><td>9</td><td>24</td><td>10000</td><td>1</td></tr>
+        <tr><td>10</td><td>28.9545</td><td>5500</td><td>2.5</td></tr>
+        <tr><td>11</td><td>18</td><td>5500</td><td>2.5</td></tr>
+        <tr><td>12</td><td>18</td><td>-2715.84</td><td>2.5</td></tr>
+        <tr><td>13</td><td>18</td><td>5500</td><td>2.5</td></tr>
+        <tr><td>14</td><td>12</td><td>1000</td><td>4</td></tr>
+        <tr><td>15</td><td>18</td><td>5500</td><td>2.5</td></tr>
+        <tr><td>16</td><td>24</td><td>1000</td><td>1</td></tr>
+        <tr><td>17</td><td>18</td><td>5500</td><td>5.23861</td></tr>
+        <tr><td>18</td><td>24</td><td>10000</td><td>4</td></tr>
+        <tr><td>19</td><td>18</td><td>5500</td><td>2.5</td></tr>
+        <tr><td>20</td><td>12</td><td>1000</td><td>1</td></tr>
+        <tr><td>21</td><td>12</td><td>10000</td><td>4</td></tr>
+        <tr><td>22</td><td>18</td><td>5500</td><td>2.5</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/280_power_supply_design/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/280_power_supply_design/config.json \
+    <span class="flag">--output</span> use_cases/280_power_supply_design/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/280_power_supply_design/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/280_power_supply_design/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/280_power_supply_design/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/280_power_supply_design/config.json \
+    <span class="flag">--output</span> use_cases/280_power_supply_design/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>central_composite</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (load_reg_pct &#x2193;, ripple_mv &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>22</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: load_reg_pct</h3>
+    <p>Top factors: filter_uf (41.1%), transformer_v (36.0%), dropout_v (22.9%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/280_pareto_load_reg_pct.png" alt="Pareto chart for load_reg_pct">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/280_main_effects_load_reg_pct.png" alt="Main effects plot for load_reg_pct">
+      </div>
+    </div>
+
+    <h3>Response: ripple_mv</h3>
+    <p>Top factors: filter_uf (44.8%), transformer_v (30.2%), dropout_v (25.0%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/280_pareto_ripple_mv.png" alt="Pareto chart for ripple_mv">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/280_main_effects_ripple_mv.png" alt="Main effects plot for ripple_mv">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">load reg pct filter uf vs dropout v</p>
+      <img src="../images/280_rsm_load_reg_pct_filter_uf_vs_dropout_v.png" alt="RSM surface: load reg pct filter uf vs dropout v" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">load reg pct transformer v vs dropout v</p>
+      <img src="../images/280_rsm_load_reg_pct_transformer_v_vs_dropout_v.png" alt="RSM surface: load reg pct transformer v vs dropout v" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">load reg pct transformer v vs filter uf</p>
+      <img src="../images/280_rsm_load_reg_pct_transformer_v_vs_filter_uf.png" alt="RSM surface: load reg pct transformer v vs filter uf" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">ripple mv filter uf vs dropout v</p>
+      <img src="../images/280_rsm_ripple_mv_filter_uf_vs_dropout_v.png" alt="RSM surface: ripple mv filter uf vs dropout v" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">ripple mv transformer v vs dropout v</p>
+      <img src="../images/280_rsm_ripple_mv_transformer_v_vs_dropout_v.png" alt="RSM surface: ripple mv transformer v vs dropout v" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">ripple mv transformer v vs filter uf</p>
+      <img src="../images/280_rsm_ripple_mv_transformer_v_vs_filter_uf.png" alt="RSM surface: ripple mv transformer v vs filter uf" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_load_reg_pct_transformer_v_vs_filter_uf.png
+  RSM surface: rsm_load_reg_pct_transformer_v_vs_dropout_v.png
+  RSM surface: rsm_load_reg_pct_filter_uf_vs_dropout_v.png
+  RSM surface: rsm_ripple_mv_transformer_v_vs_filter_uf.png
+  RSM surface: rsm_ripple_mv_transformer_v_vs_dropout_v.png
+  RSM surface: rsm_ripple_mv_filter_uf_vs_dropout_v.png
+
+=== Main Effects: load_reg_pct ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+filter_uf                0.4317       0.0432            41.1%
+transformer_v            0.3775       0.0432            36.0%
+dropout_v                0.2400       0.0432            22.9%
+
+=== Summary Statistics: load_reg_pct ===
+
+transformer_v:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  12                  4     0.6375     0.2566     0.4900     1.0200
+  18                 12     0.6033     0.2137     0.2800     0.9600
+  24                  4     0.5375     0.0768     0.4800     0.6500
+  28.9545             1     0.4600     0.0000     0.4600     0.4600
+  7.04555             1     0.2600     0.0000     0.2600     0.2600
+
+filter_uf:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -2715.84            1     0.9600     0.0000     0.9600     0.9600
+  1000                4     0.5425     0.0780     0.4800     0.6500
+  10000               4     0.6325     0.2586     0.4900     1.0200
+  13715.8             1     0.6600     0.0000     0.6600     0.6600
+  5500               12     0.5283     0.2007     0.2600     0.8700
+
+dropout_v:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -0.238613           1     0.5100     0.0000     0.5100     0.5100
+  1                   4     0.6225     0.2651     0.4800     1.0200
+  2.5                12     0.5583     0.2309     0.2600     0.9600
+  4                   4     0.5525     0.0695     0.4900     0.6500
+  5.23861             1     0.7500     0.0000     0.7500     0.7500
+
+=== Main Effects: ripple_mv ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+filter_uf               40.0000       3.0826            44.8%
+transformer_v           27.0000       3.0826            30.2%
+dropout_v               22.3333       3.0826            25.0%
+
+=== Summary Statistics: ripple_mv ===
+
+transformer_v:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  12                  4    59.0000    10.8628    51.0000    74.0000
+  18                 12    53.5833    13.7607    31.0000    78.0000
+  24                  4    58.5000    19.7062    47.0000    88.0000
+  28.9545             1    43.0000     0.0000    43.0000    43.0000
+  7.04555             1    32.0000     0.0000    32.0000    32.0000
+
+filter_uf:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -2715.84            1    78.0000     0.0000    78.0000    78.0000
+  1000                4    65.0000    19.4079    47.0000    88.0000
+  10000               4    52.5000     5.0662    49.0000    60.0000
+  13715.8             1    38.0000     0.0000    38.0000    38.0000
+  5500               12    50.1667    12.3644    31.0000    72.0000
+
+dropout_v:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -0.238613           1    50.0000     0.0000    50.0000    50.0000
+  1                   4    51.7500     5.7373    47.0000    60.0000
+  2.5                12    49.6667    13.8979    31.0000    78.0000
+  4                   4    65.7500    18.5180    50.0000    88.0000
+  5.23861             1    72.0000     0.0000    72.0000    72.0000
+
+Pareto chart (load_reg_pct): use_cases/280_power_supply_design/results/analysis/pareto_load_reg_pct.png
+
+Pareto chart (ripple_mv): use_cases/280_power_supply_design/results/analysis/pareto_ripple_mv.png
+Main effects (load_reg_pct): use_cases/280_power_supply_design/results/analysis/main_effects_load_reg_pct.png
+Main effects (ripple_mv): use_cases/280_power_supply_design/results/analysis/main_effects_ripple_mv.png</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: load_reg_pct ===
+Direction: minimize
+
+Best observed run: #9
+  transformer_v = 18
+  filter_uf = 5500
+  dropout_v = 2.5
+  Value: 0.26
+
+RSM Model (linear, R² = 0.3110, Adj R² = 0.1961):
+  Coefficients:
+    intercept                      +0.5755
+    transformer_v                  +0.0416
+    filter_uf                      +0.0273
+    dropout_v                      -0.1256
+
+RSM Model (quadratic, R² = 0.4589, Adj R² = 0.0531):
+  Coefficients:
+    intercept                      +0.4924
+    transformer_v                  +0.0416
+    filter_uf                      +0.0273
+    dropout_v                      -0.1256
+    transformer_v*filter_uf        -0.0112
+    transformer_v*dropout_v        -0.0412
+    filter_uf*dropout_v            -0.0012
+    transformer_v^2                +0.0140
+    filter_uf^2                    +0.0530
+    dropout_v^2                    +0.0575
+
+  Curvature analysis:
+    dropout_v                      coef=+0.0575  negligible curvature
+    filter_uf                      coef=+0.0530  negligible curvature
+    transformer_v                  coef=+0.0140  negligible curvature
+
+  Predicted optimum (from linear model):
+    transformer_v = 18
+    filter_uf = 5500
+    dropout_v = -0.238613
+    Predicted value: 0.8048
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. dropout_v  (effect: 0.4, contribution: 40.1%)
+  2. transformer_v  (effect: 0.4, contribution: 36.8%)
+  3. filter_uf  (effect: 0.2, contribution: 23.1%)
+
+=== Optimization: ripple_mv ===
+Direction: minimize
+
+Best observed run: #4
+  transformer_v = 18
+  filter_uf = 5500
+  dropout_v = 2.5
+  Value: 31.0
+
+RSM Model (linear, R² = 0.2228, Adj R² = 0.0933):
+  Coefficients:
+    intercept                      +54.0000
+    transformer_v                  -0.1302
+    filter_uf                      +7.8310
+    dropout_v                      -2.3125
+
+RSM Model (quadratic, R² = 0.6867, Adj R² = 0.4517):
+  Coefficients:
+    intercept                      +44.6579
+    transformer_v                  -0.1302
+    filter_uf                      +7.8311
+    dropout_v                      -2.3125
+    transformer_v*filter_uf        +5.7500
+    transformer_v*dropout_v        +3.0000
+    filter_uf*dropout_v            +1.5000
+    transformer_v^2                +4.5710
+    filter_uf^2                    +8.3211
+    dropout_v^2                    +1.1210
+
+  Curvature analysis:
+    filter_uf                      coef=+8.3211  convex (has a minimum)
+    transformer_v                  coef=+4.5710  convex (has a minimum)
+    dropout_v                      coef=+1.1210  convex (has a minimum)
+
+  Notable interactions:
+    transformer_v*filter_uf        coef=+5.7500  (synergistic)
+    transformer_v*dropout_v        coef=+3.0000  (synergistic)
+    filter_uf*dropout_v            coef=+1.5000  (synergistic)
+
+  Predicted optimum (from quadratic model):
+    transformer_v = 18
+    filter_uf = 13715.8
+    dropout_v = 2.5
+    Predicted value: 86.6921
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
+
+Factor importance:
+  1. filter_uf  (effect: 42.1, contribution: 46.3%)
+  2. dropout_v  (effect: 31.5, contribution: 34.7%)
+  3. transformer_v  (effect: 17.2, contribution: 19.0%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="279-oscilloscope-measurement.html">&larr; Previous: Oscilloscope Measurement Setup</a>
+    <a href="281-watercolor-wash.html">Next: Watercolor Wash Technique &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

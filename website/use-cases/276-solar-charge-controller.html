@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solar Charge Controller Setup &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #ecfdf5, #a7f3d0);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F50C;</div>
+    <div class="uc-badge" style="background:rgba(5,150,105,.12);color:#059669;">Central Composite Design</div>
+    <h1>Solar Charge Controller Setup</h1>
+    <p class="uc-subtitle">Central composite design to maximize battery charge efficiency and minimize overcharge risk by tuning absorption voltage, float voltage, and MPPT sweep interval</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>absorb_v</code></td><td>14.0</td><td>14.8</td><td>V</td></tr>
+            <tr><td><code>float_v</code></td><td>13.2</td><td>13.8</td><td>V</td></tr>
+            <tr><td><code>mppt_interval_sec</code></td><td>5</td><td>60</td><td>sec</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> panel_wp = 300, battery = 12V_100Ah</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>charge_efficiency_pct</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+            <tr><td><code>overcharge_risk</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>pts</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/276_solar_charge_controller/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Solar Charge Controller Setup&quot;,
+    &quot;description&quot;: &quot;Central composite design to maximize battery charge efficiency and minimize overcharge risk by tuning absorption voltage, float voltage, and MPPT sweep interval&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;absorb_v&quot;,
+      &quot;levels&quot;: [
+        &quot;14.0&quot;,
+        &quot;14.8&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;V&quot;
+    },
+    {
+      &quot;name&quot;: &quot;float_v&quot;,
+      &quot;levels&quot;: [
+        &quot;13.2&quot;,
+        &quot;13.8&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;V&quot;
+    },
+    {
+      &quot;name&quot;: &quot;mppt_interval_sec&quot;,
+      &quot;levels&quot;: [
+        &quot;5&quot;,
+        &quot;60&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;sec&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;panel_wp&quot;: &quot;300&quot;,
+    &quot;battery&quot;: &quot;12V_100Ah&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;charge_efficiency_pct&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;overcharge_risk&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;pts&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;central_composite&quot;,
+    &quot;test_script&quot;: &quot;use_cases/276_solar_charge_controller/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Central Composite Design produces <strong>22 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>absorb_v</code></th><th><code>float_v</code></th><th><code>mppt_interval_sec</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>14.4</td><td>13.5</td><td>32.5</td></tr>
+        <tr><td>2</td><td>14.8</td><td>13.2</td><td>60</td></tr>
+        <tr><td>3</td><td>14</td><td>13.8</td><td>5</td></tr>
+        <tr><td>4</td><td>14.4</td><td>14.0477</td><td>32.5</td></tr>
+        <tr><td>5</td><td>14.4</td><td>13.5</td><td>32.5</td></tr>
+        <tr><td>6</td><td>13.6697</td><td>13.5</td><td>32.5</td></tr>
+        <tr><td>7</td><td>14.4</td><td>13.5</td><td>-17.7079</td></tr>
+        <tr><td>8</td><td>14.4</td><td>13.5</td><td>32.5</td></tr>
+        <tr><td>9</td><td>14.8</td><td>13.8</td><td>5</td></tr>
+        <tr><td>10</td><td>15.1303</td><td>13.5</td><td>32.5</td></tr>
+        <tr><td>11</td><td>14.4</td><td>13.5</td><td>32.5</td></tr>
+        <tr><td>12</td><td>14.4</td><td>12.9523</td><td>32.5</td></tr>
+        <tr><td>13</td><td>14.4</td><td>13.5</td><td>32.5</td></tr>
+        <tr><td>14</td><td>14</td><td>13.2</td><td>60</td></tr>
+        <tr><td>15</td><td>14.4</td><td>13.5</td><td>32.5</td></tr>
+        <tr><td>16</td><td>14.8</td><td>13.2</td><td>5</td></tr>
+        <tr><td>17</td><td>14.4</td><td>13.5</td><td>82.7079</td></tr>
+        <tr><td>18</td><td>14.8</td><td>13.8</td><td>60</td></tr>
+        <tr><td>19</td><td>14.4</td><td>13.5</td><td>32.5</td></tr>
+        <tr><td>20</td><td>14</td><td>13.2</td><td>5</td></tr>
+        <tr><td>21</td><td>14</td><td>13.8</td><td>60</td></tr>
+        <tr><td>22</td><td>14.4</td><td>13.5</td><td>32.5</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/276_solar_charge_controller/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/276_solar_charge_controller/config.json \
+    <span class="flag">--output</span> use_cases/276_solar_charge_controller/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/276_solar_charge_controller/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/276_solar_charge_controller/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/276_solar_charge_controller/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/276_solar_charge_controller/config.json \
+    <span class="flag">--output</span> use_cases/276_solar_charge_controller/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>central_composite</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (charge_efficiency_pct &#x2191;, overcharge_risk &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>22</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: charge_efficiency_pct</h3>
+    <p>Top factors: float_v (71.9%), mppt_interval_sec (18.0%), absorb_v (10.1%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/276_pareto_charge_efficiency_pct.png" alt="Pareto chart for charge_efficiency_pct">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/276_main_effects_charge_efficiency_pct.png" alt="Main effects plot for charge_efficiency_pct">
+      </div>
+    </div>
+
+    <h3>Response: overcharge_risk</h3>
+    <p>Top factors: float_v (47.9%), absorb_v (33.2%), mppt_interval_sec (18.9%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/276_pareto_overcharge_risk.png" alt="Pareto chart for overcharge_risk">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/276_main_effects_overcharge_risk.png" alt="Main effects plot for overcharge_risk">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">charge efficiency pct absorb v vs float v</p>
+      <img src="../images/276_rsm_charge_efficiency_pct_absorb_v_vs_float_v.png" alt="RSM surface: charge efficiency pct absorb v vs float v" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">charge efficiency pct absorb v vs mppt interval sec</p>
+      <img src="../images/276_rsm_charge_efficiency_pct_absorb_v_vs_mppt_interval_sec.png" alt="RSM surface: charge efficiency pct absorb v vs mppt interval sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">charge efficiency pct float v vs mppt interval sec</p>
+      <img src="../images/276_rsm_charge_efficiency_pct_float_v_vs_mppt_interval_sec.png" alt="RSM surface: charge efficiency pct float v vs mppt interval sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">overcharge risk absorb v vs float v</p>
+      <img src="../images/276_rsm_overcharge_risk_absorb_v_vs_float_v.png" alt="RSM surface: overcharge risk absorb v vs float v" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">overcharge risk absorb v vs mppt interval sec</p>
+      <img src="../images/276_rsm_overcharge_risk_absorb_v_vs_mppt_interval_sec.png" alt="RSM surface: overcharge risk absorb v vs mppt interval sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">overcharge risk float v vs mppt interval sec</p>
+      <img src="../images/276_rsm_overcharge_risk_float_v_vs_mppt_interval_sec.png" alt="RSM surface: overcharge risk float v vs mppt interval sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_charge_efficiency_pct_absorb_v_vs_float_v.png
+  RSM surface: rsm_charge_efficiency_pct_absorb_v_vs_mppt_interval_sec.png
+  RSM surface: rsm_charge_efficiency_pct_float_v_vs_mppt_interval_sec.png
+  RSM surface: rsm_overcharge_risk_absorb_v_vs_float_v.png
+  RSM surface: rsm_overcharge_risk_absorb_v_vs_mppt_interval_sec.png
+  RSM surface: rsm_overcharge_risk_float_v_vs_mppt_interval_sec.png
+
+=== Main Effects: charge_efficiency_pct ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+float_v                 16.0000       0.8519            71.9%
+mppt_interval_sec        4.0000       0.8519            18.0%
+absorb_v                 2.2500       0.8519            10.1%
+
+=== Summary Statistics: charge_efficiency_pct ===
+
+absorb_v:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  13.6697             1    86.0000     0.0000    86.0000    86.0000
+  14                  4    84.5000     4.2032    80.0000    89.0000
+  14.4               12    85.8333     4.8399    76.0000    92.0000
+  14.8                4    86.2500     2.2174    83.0000    88.0000
+  15.1303             1    84.0000     0.0000    84.0000    84.0000
+
+float_v:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  12.9523             1    76.0000     0.0000    76.0000    76.0000
+  13.2                4    86.5000     2.5166    83.0000    89.0000
+  13.5               12    86.0000     3.3845    78.0000    89.0000
+  13.8                4    84.2500     3.8622    80.0000    88.0000
+  14.0477             1    92.0000     0.0000    92.0000    92.0000
+
+mppt_interval_sec:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -17.7079            1    89.0000     0.0000    89.0000    89.0000
+  32.5               12    85.2500     4.6928    76.0000    92.0000
+  5                   4    85.0000     2.9439    82.0000    88.0000
+  60                  4    85.7500     3.9476    80.0000    89.0000
+  82.7079             1    88.0000     0.0000    88.0000    88.0000
+
+=== Main Effects: overcharge_risk ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+float_v                  4.5000       0.4448            47.9%
+absorb_v                 3.1250       0.4448            33.2%
+mppt_interval_sec        1.7750       0.4448            18.9%
+
+=== Summary Statistics: overcharge_risk ===
+
+absorb_v:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  13.6697             1     5.0000     0.0000     5.0000     5.0000
+  14                  4     3.1000     0.4690     2.8000     3.8000
+  14.4               12     3.7000     1.9169     1.6000     7.6000
+  14.8                4     5.4250     3.3777     2.8000    10.1000
+  15.1303             1     2.3000     0.0000     2.3000     2.3000
+
+float_v:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  12.9523             1     2.5000     0.0000     2.5000     2.5000
+  13.2                4     5.3750     3.4248     2.8000    10.1000
+  13.5               12     3.5167     1.6878     1.6000     7.6000
+  13.8                4     3.1500     0.4509     2.8000     3.8000
+  14.0477             1     7.0000     0.0000     7.0000     7.0000
+
+mppt_interval_sec:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -17.7079            1     2.9000     0.0000     2.9000     2.9000
+  32.5               12     3.7917     1.9810     1.6000     7.6000
+  5                   4     3.8500     1.3026     2.8000     5.7000
+  60                  4     4.6750     3.6170     2.8000    10.1000
+  82.7079             1     3.3000     0.0000     3.3000     3.3000
+
+Pareto chart (charge_efficiency_pct): use_cases/276_solar_charge_controller/results/analysis/pareto_charge_efficiency_pct.png
+
+Pareto chart (overcharge_risk): use_cases/276_solar_charge_controller/results/analysis/pareto_overcharge_risk.png
+Main effects (charge_efficiency_pct): use_cases/276_solar_charge_controller/results/analysis/main_effects_charge_efficiency_pct.png
+Main effects (overcharge_risk): use_cases/276_solar_charge_controller/results/analysis/main_effects_overcharge_risk.png</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: charge_efficiency_pct ===
+Direction: maximize
+
+Best observed run: #9
+  absorb_v = 14
+  float_v = 13.8
+  mppt_interval_sec = 60
+  Value: 92.0
+
+RSM Model (linear, R² = 0.0702, Adj R² = -0.0848):
+  Coefficients:
+    intercept                      +85.5909
+    absorb_v                       -0.4210
+    float_v                        +1.0196
+    mppt_interval_sec              +0.6224
+
+RSM Model (quadratic, R² = 0.3619, Adj R² = -0.1167):
+  Coefficients:
+    intercept                      +83.2488
+    absorb_v                       -0.4210
+    float_v                        +1.0196
+    mppt_interval_sec              +0.6224
+    absorb_v*float_v               +0.0000
+    absorb_v*mppt_interval_sec     -1.0000
+    float_v*mppt_interval_sec      +1.5000
+    absorb_v^2                     +1.4210
+    float_v^2                      +0.9712
+    mppt_interval_sec^2            +1.1210
+
+  Curvature analysis:
+    absorb_v                       coef=+1.4210  convex (has a minimum)
+    mppt_interval_sec              coef=+1.1210  convex (has a minimum)
+    float_v                        coef=+0.9712  convex (has a minimum)
+
+  Notable interactions:
+    float_v*mppt_interval_sec      coef=+1.5000  (synergistic)
+    absorb_v*mppt_interval_sec     coef=-1.0000  (antagonistic)
+
+  Predicted optimum (from linear model):
+    absorb_v = 14
+    float_v = 13.8
+    mppt_interval_sec = 60
+    Predicted value: 87.6539
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. float_v  (effect: 6.5, contribution: 39.0%)
+  2. absorb_v  (effect: 5.2, contribution: 31.0%)
+  3. mppt_interval_sec  (effect: 5.0, contribution: 30.0%)
+
+=== Optimization: overcharge_risk ===
+Direction: minimize
+
+Best observed run: #20
+  absorb_v = 14.4
+  float_v = 13.5
+  mppt_interval_sec = 32.5
+  Value: 1.6
+
+RSM Model (linear, R² = 0.1243, Adj R² = -0.0216):
+  Coefficients:
+    intercept                      +3.9000
+    absorb_v                       -0.1684
+    float_v                        +0.2674
+    mppt_interval_sec              +0.8216
+
+RSM Model (quadratic, R² = 0.2754, Adj R² = -0.2681):
+  Coefficients:
+    intercept                      +3.8132
+    absorb_v                       -0.1684
+    float_v                        +0.2674
+    mppt_interval_sec              +0.8216
+    absorb_v*float_v               -0.5250
+    absorb_v*mppt_interval_sec     -0.6500
+    float_v*mppt_interval_sec      +0.6500
+    absorb_v^2                     +0.1934
+    float_v^2                      -0.3316
+    mppt_interval_sec^2            +0.2684
+
+  Curvature analysis:
+    float_v                        coef=-0.3316  concave (has a maximum)
+    mppt_interval_sec              coef=+0.2684  convex (has a minimum)
+    absorb_v                       coef=+0.1934  convex (has a minimum)
+
+  Notable interactions:
+    float_v*mppt_interval_sec      coef=+0.6500  (synergistic)
+    absorb_v*mppt_interval_sec     coef=-0.6500  (antagonistic)
+    absorb_v*float_v               coef=-0.5250  (antagonistic)
+
+  Predicted optimum (from linear model):
+    absorb_v = 14.4
+    float_v = 13.5
+    mppt_interval_sec = 82.7079
+    Predicted value: 5.4001
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. mppt_interval_sec  (effect: 4.8, contribution: 53.6%)
+  2. absorb_v  (effect: 2.5, contribution: 27.6%)
+  3. float_v  (effect: 1.7, contribution: 18.8%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="275-audio-amplifier.html">&larr; Previous: Audio Amplifier Biasing</a>
+    <a href="277-wire-gauge-selection.html">Next: Wire Gauge &amp; Run Length &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

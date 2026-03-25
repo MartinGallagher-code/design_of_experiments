@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DC Motor Speed Control &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #ecfdf5, #a7f3d0);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F50C;</div>
+    <div class="uc-badge" style="background:rgba(5,150,105,.12);color:#059669;">Fractional Factorial Design</div>
+    <h1>DC Motor Speed Control</h1>
+    <p class="uc-subtitle">Fractional factorial screening of PWM frequency, duty cycle, voltage, load inertia, and PID gain for speed accuracy and efficiency</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>pwm_khz</code></td><td>1</td><td>25</td><td>kHz</td></tr>
+            <tr><td><code>duty_pct</code></td><td>20</td><td>80</td><td>%</td></tr>
+            <tr><td><code>voltage_v</code></td><td>6</td><td>24</td><td>V</td></tr>
+            <tr><td><code>load_kg_cm2</code></td><td>1</td><td>10</td><td>kg*cm2</td></tr>
+            <tr><td><code>pid_kp</code></td><td>0.5</td><td>5.0</td><td>gain</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> motor = brushed_DC, encoder = 100ppr</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>speed_accuracy_pct</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+            <tr><td><code>efficiency_pct</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/278_motor_speed_control/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;DC Motor Speed Control&quot;,
+    &quot;description&quot;: &quot;Fractional factorial screening of PWM frequency, duty cycle, voltage, load inertia, and PID gain for speed accuracy and efficiency&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;pwm_khz&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;25&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;kHz&quot;
+    },
+    {
+      &quot;name&quot;: &quot;duty_pct&quot;,
+      &quot;levels&quot;: [
+        &quot;20&quot;,
+        &quot;80&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;voltage_v&quot;,
+      &quot;levels&quot;: [
+        &quot;6&quot;,
+        &quot;24&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;V&quot;
+    },
+    {
+      &quot;name&quot;: &quot;load_kg_cm2&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;10&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;kg*cm2&quot;
+    },
+    {
+      &quot;name&quot;: &quot;pid_kp&quot;,
+      &quot;levels&quot;: [
+        &quot;0.5&quot;,
+        &quot;5.0&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;gain&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;motor&quot;: &quot;brushed_DC&quot;,
+    &quot;encoder&quot;: &quot;100ppr&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;speed_accuracy_pct&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;efficiency_pct&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;fractional_factorial&quot;,
+    &quot;test_script&quot;: &quot;use_cases/278_motor_speed_control/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Fractional Factorial Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>pwm_khz</code></th><th><code>duty_pct</code></th><th><code>voltage_v</code></th><th><code>load_kg_cm2</code></th><th><code>pid_kp</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>1</td><td>80</td><td>24</td><td>1</td><td>0.5</td></tr>
+        <tr><td>2</td><td>25</td><td>20</td><td>6</td><td>1</td><td>0.5</td></tr>
+        <tr><td>3</td><td>25</td><td>80</td><td>6</td><td>10</td><td>0.5</td></tr>
+        <tr><td>4</td><td>25</td><td>80</td><td>24</td><td>10</td><td>5.0</td></tr>
+        <tr><td>5</td><td>1</td><td>80</td><td>6</td><td>1</td><td>5.0</td></tr>
+        <tr><td>6</td><td>25</td><td>20</td><td>24</td><td>1</td><td>5.0</td></tr>
+        <tr><td>7</td><td>1</td><td>20</td><td>6</td><td>10</td><td>5.0</td></tr>
+        <tr><td>8</td><td>1</td><td>20</td><td>24</td><td>10</td><td>0.5</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/278_motor_speed_control/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/278_motor_speed_control/config.json \
+    <span class="flag">--output</span> use_cases/278_motor_speed_control/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/278_motor_speed_control/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/278_motor_speed_control/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/278_motor_speed_control/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/278_motor_speed_control/config.json \
+    <span class="flag">--output</span> use_cases/278_motor_speed_control/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>fractional_factorial</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 5)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (speed_accuracy_pct &#x2191;, efficiency_pct &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>8</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: speed_accuracy_pct</h3>
+    <p>Top factors: voltage_v (30.9%), duty_pct (27.3%), load_kg_cm2 (16.4%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/278_pareto_speed_accuracy_pct.png" alt="Pareto chart for speed_accuracy_pct">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/278_main_effects_speed_accuracy_pct.png" alt="Main effects plot for speed_accuracy_pct">
+      </div>
+    </div>
+
+    <h3>Response: efficiency_pct</h3>
+    <p>Top factors: voltage_v (40.7%), pwm_khz (25.9%), pid_kp (18.5%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/278_pareto_efficiency_pct.png" alt="Pareto chart for efficiency_pct">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/278_main_effects_efficiency_pct.png" alt="Main effects plot for efficiency_pct">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">efficiency pct duty pct vs load kg cm2</p>
+      <img src="../images/278_rsm_efficiency_pct_duty_pct_vs_load_kg_cm2.png" alt="RSM surface: efficiency pct duty pct vs load kg cm2" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">efficiency pct duty pct vs pid kp</p>
+      <img src="../images/278_rsm_efficiency_pct_duty_pct_vs_pid_kp.png" alt="RSM surface: efficiency pct duty pct vs pid kp" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">efficiency pct duty pct vs voltage v</p>
+      <img src="../images/278_rsm_efficiency_pct_duty_pct_vs_voltage_v.png" alt="RSM surface: efficiency pct duty pct vs voltage v" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">efficiency pct load kg cm2 vs pid kp</p>
+      <img src="../images/278_rsm_efficiency_pct_load_kg_cm2_vs_pid_kp.png" alt="RSM surface: efficiency pct load kg cm2 vs pid kp" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">efficiency pct pwm khz vs duty pct</p>
+      <img src="../images/278_rsm_efficiency_pct_pwm_khz_vs_duty_pct.png" alt="RSM surface: efficiency pct pwm khz vs duty pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">efficiency pct pwm khz vs load kg cm2</p>
+      <img src="../images/278_rsm_efficiency_pct_pwm_khz_vs_load_kg_cm2.png" alt="RSM surface: efficiency pct pwm khz vs load kg cm2" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">efficiency pct pwm khz vs pid kp</p>
+      <img src="../images/278_rsm_efficiency_pct_pwm_khz_vs_pid_kp.png" alt="RSM surface: efficiency pct pwm khz vs pid kp" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">efficiency pct pwm khz vs voltage v</p>
+      <img src="../images/278_rsm_efficiency_pct_pwm_khz_vs_voltage_v.png" alt="RSM surface: efficiency pct pwm khz vs voltage v" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">efficiency pct voltage v vs load kg cm2</p>
+      <img src="../images/278_rsm_efficiency_pct_voltage_v_vs_load_kg_cm2.png" alt="RSM surface: efficiency pct voltage v vs load kg cm2" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">efficiency pct voltage v vs pid kp</p>
+      <img src="../images/278_rsm_efficiency_pct_voltage_v_vs_pid_kp.png" alt="RSM surface: efficiency pct voltage v vs pid kp" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">speed accuracy pct duty pct vs load kg cm2</p>
+      <img src="../images/278_rsm_speed_accuracy_pct_duty_pct_vs_load_kg_cm2.png" alt="RSM surface: speed accuracy pct duty pct vs load kg cm2" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">speed accuracy pct duty pct vs pid kp</p>
+      <img src="../images/278_rsm_speed_accuracy_pct_duty_pct_vs_pid_kp.png" alt="RSM surface: speed accuracy pct duty pct vs pid kp" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">speed accuracy pct duty pct vs voltage v</p>
+      <img src="../images/278_rsm_speed_accuracy_pct_duty_pct_vs_voltage_v.png" alt="RSM surface: speed accuracy pct duty pct vs voltage v" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">speed accuracy pct load kg cm2 vs pid kp</p>
+      <img src="../images/278_rsm_speed_accuracy_pct_load_kg_cm2_vs_pid_kp.png" alt="RSM surface: speed accuracy pct load kg cm2 vs pid kp" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">speed accuracy pct pwm khz vs duty pct</p>
+      <img src="../images/278_rsm_speed_accuracy_pct_pwm_khz_vs_duty_pct.png" alt="RSM surface: speed accuracy pct pwm khz vs duty pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">speed accuracy pct pwm khz vs load kg cm2</p>
+      <img src="../images/278_rsm_speed_accuracy_pct_pwm_khz_vs_load_kg_cm2.png" alt="RSM surface: speed accuracy pct pwm khz vs load kg cm2" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">speed accuracy pct pwm khz vs pid kp</p>
+      <img src="../images/278_rsm_speed_accuracy_pct_pwm_khz_vs_pid_kp.png" alt="RSM surface: speed accuracy pct pwm khz vs pid kp" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">speed accuracy pct pwm khz vs voltage v</p>
+      <img src="../images/278_rsm_speed_accuracy_pct_pwm_khz_vs_voltage_v.png" alt="RSM surface: speed accuracy pct pwm khz vs voltage v" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">speed accuracy pct voltage v vs load kg cm2</p>
+      <img src="../images/278_rsm_speed_accuracy_pct_voltage_v_vs_load_kg_cm2.png" alt="RSM surface: speed accuracy pct voltage v vs load kg cm2" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">speed accuracy pct voltage v vs pid kp</p>
+      <img src="../images/278_rsm_speed_accuracy_pct_voltage_v_vs_pid_kp.png" alt="RSM surface: speed accuracy pct voltage v vs pid kp" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_speed_accuracy_pct_pwm_khz_vs_duty_pct.png
+  RSM surface: rsm_speed_accuracy_pct_pwm_khz_vs_voltage_v.png
+  RSM surface: rsm_speed_accuracy_pct_pwm_khz_vs_load_kg_cm2.png
+  RSM surface: rsm_speed_accuracy_pct_pwm_khz_vs_pid_kp.png
+  RSM surface: rsm_speed_accuracy_pct_duty_pct_vs_voltage_v.png
+  RSM surface: rsm_speed_accuracy_pct_duty_pct_vs_load_kg_cm2.png
+  RSM surface: rsm_speed_accuracy_pct_duty_pct_vs_pid_kp.png
+  RSM surface: rsm_speed_accuracy_pct_voltage_v_vs_load_kg_cm2.png
+  RSM surface: rsm_speed_accuracy_pct_voltage_v_vs_pid_kp.png
+  RSM surface: rsm_speed_accuracy_pct_load_kg_cm2_vs_pid_kp.png
+  RSM surface: rsm_efficiency_pct_pwm_khz_vs_duty_pct.png
+  RSM surface: rsm_efficiency_pct_pwm_khz_vs_voltage_v.png
+  RSM surface: rsm_efficiency_pct_pwm_khz_vs_load_kg_cm2.png
+  RSM surface: rsm_efficiency_pct_pwm_khz_vs_pid_kp.png
+  RSM surface: rsm_efficiency_pct_duty_pct_vs_voltage_v.png
+  RSM surface: rsm_efficiency_pct_duty_pct_vs_load_kg_cm2.png
+  RSM surface: rsm_efficiency_pct_duty_pct_vs_pid_kp.png
+  RSM surface: rsm_efficiency_pct_voltage_v_vs_load_kg_cm2.png
+  RSM surface: rsm_efficiency_pct_voltage_v_vs_pid_kp.png
+  RSM surface: rsm_efficiency_pct_load_kg_cm2_vs_pid_kp.png
+
+=== Main Effects: speed_accuracy_pct ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+voltage_v               -4.2500       1.4993            30.9%
+duty_pct                -3.7500       1.4993            27.3%
+load_kg_cm2              2.2500       1.4993            16.4%
+pwm_khz                  1.7500       1.4993            12.7%
+pid_kp                  -1.7500       1.4993            12.7%
+
+=== Interaction Effects: speed_accuracy_pct ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+pwm_khz              pid_kp                     4.2500            16.0%
+duty_pct             voltage_v                  4.2500            16.0%
+load_kg_cm2          pid_kp                    -4.2500            16.0%
+pwm_khz              load_kg_cm2               -3.7500            14.2%
+pwm_khz              duty_pct                   2.2500             8.5%
+pwm_khz              voltage_v                  1.7500             6.6%
+duty_pct             load_kg_cm2                1.7500             6.6%
+voltage_v            pid_kp                    -1.7500             6.6%
+duty_pct             pid_kp                    -1.2500             4.7%
+voltage_v            load_kg_cm2                1.2500             4.7%
+
+=== Summary Statistics: speed_accuracy_pct ===
+
+pwm_khz:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    90.5000     5.1962    86.0000    98.0000
+  25                  4    92.2500     3.5940    89.0000    97.0000
+
+duty_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  20                  4    93.2500     4.9244    89.0000    98.0000
+  80                  4    89.5000     2.8868    86.0000    93.0000
+
+voltage_v:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  24                  4    93.5000     4.6547    89.0000    98.0000
+  6                   4    89.2500     2.8723    86.0000    93.0000
+
+load_kg_cm2:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    90.2500     4.7170    86.0000    97.0000
+  10                  4    92.5000     4.0415    89.0000    98.0000
+
+pid_kp:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.5                 4    92.2500     4.2720    89.0000    98.0000
+  5.0                 4    90.5000     4.6547    86.0000    97.0000
+
+=== Main Effects: efficiency_pct ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+voltage_v               -5.5000       1.3855            40.7%
+pwm_khz                  3.5000       1.3855            25.9%
+pid_kp                  -2.5000       1.3855            18.5%
+duty_pct                -1.5000       1.3855            11.1%
+load_kg_cm2             -0.5000       1.3855             3.7%
+
+=== Interaction Effects: efficiency_pct ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+pwm_khz              pid_kp                     5.5000            26.2%
+duty_pct             load_kg_cm2                3.5000            16.7%
+voltage_v            pid_kp                    -3.5000            16.7%
+pwm_khz              voltage_v                  2.5000            11.9%
+pwm_khz              load_kg_cm2               -1.5000             7.1%
+duty_pct             voltage_v                  1.5000             7.1%
+load_kg_cm2          pid_kp                    -1.5000             7.1%
+pwm_khz              duty_pct                  -0.5000             2.4%
+duty_pct             pid_kp                     0.5000             2.4%
+voltage_v            load_kg_cm2               -0.5000             2.4%
+
+=== Summary Statistics: efficiency_pct ===
+
+pwm_khz:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    71.5000     4.7958    67.0000    77.0000
+  25                  4    75.0000     2.1602    73.0000    78.0000
+
+duty_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  20                  4    74.0000     4.9666    67.0000    78.0000
+  80                  4    72.5000     3.1091    68.0000    75.0000
+
+voltage_v:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  24                  4    76.0000     1.8257    74.0000    78.0000
+  6                   4    70.5000     3.5119    67.0000    74.0000
+
+load_kg_cm2:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    73.5000     4.1231    68.0000    78.0000
+  10                  4    73.0000     4.3205    67.0000    77.0000
+
+pid_kp:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.5                 4    74.5000     1.7321    73.0000    77.0000
+  5.0                 4    72.0000     5.3541    67.0000    78.0000
+
+Pareto chart (speed_accuracy_pct): use_cases/278_motor_speed_control/results/analysis/pareto_speed_accuracy_pct.png
+
+Pareto chart (efficiency_pct): use_cases/278_motor_speed_control/results/analysis/pareto_efficiency_pct.png
+Main effects (speed_accuracy_pct): use_cases/278_motor_speed_control/results/analysis/main_effects_speed_accuracy_pct.png
+Main effects (efficiency_pct): use_cases/278_motor_speed_control/results/analysis/main_effects_efficiency_pct.png</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: speed_accuracy_pct ===
+Direction: maximize
+
+Best observed run: #6
+  pwm_khz = 1
+  duty_pct = 20
+  voltage_v = 24
+  load_kg_cm2 = 10
+  pid_kp = 0.5
+  Value: 98.0
+
+RSM Model (linear, R² = 0.7120, Adj R² = -0.0079):
+  Coefficients:
+    intercept                      +91.3750
+    pwm_khz                        -0.3750
+    duty_pct                       -1.1250
+    voltage_v                      +2.8750
+    load_kg_cm2                    -0.8750
+    pid_kp                         -0.8750
+
+  Predicted optimum (from linear model):
+    pwm_khz = 1
+    duty_pct = 20
+    voltage_v = 24
+    load_kg_cm2 = 10
+    pid_kp = 0.5
+    Predicted value: 95.7500
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. voltage_v  (effect: -5.8, contribution: 46.9%)
+  2. duty_pct  (effect: -2.2, contribution: 18.4%)
+  3. load_kg_cm2  (effect: -1.8, contribution: 14.3%)
+  4. pid_kp  (effect: -1.8, contribution: 14.3%)
+  5. pwm_khz  (effect: -0.8, contribution: 6.1%)
+
+=== Optimization: efficiency_pct ===
+Direction: maximize
+
+Best observed run: #4
+  pwm_khz = 25
+  duty_pct = 20
+  voltage_v = 24
+  load_kg_cm2 = 1
+  pid_kp = 5.0
+  Value: 78.0
+
+RSM Model (linear, R² = 0.4372, Adj R² = -0.9698):
+  Coefficients:
+    intercept                      +73.2500
+    pwm_khz                        -0.0000
+    duty_pct                       -1.0000
+    voltage_v                      +0.5000
+    load_kg_cm2                    -1.7500
+    pid_kp                         -1.2500
+
+  Predicted optimum (from linear model):
+    pwm_khz = 25
+    duty_pct = 20
+    voltage_v = 6
+    load_kg_cm2 = 1
+    pid_kp = 0.5
+    Predicted value: 76.7500
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. load_kg_cm2  (effect: -3.5, contribution: 38.9%)
+  2. pid_kp  (effect: -2.5, contribution: 27.8%)
+  3. duty_pct  (effect: -2.0, contribution: 22.2%)
+  4. voltage_v  (effect: -1.0, contribution: 11.1%)
+  5. pwm_khz  (effect: 0.0, contribution: 0.0%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="277-wire-gauge-selection.html">&larr; Previous: Wire Gauge &amp; Run Length</a>
+    <a href="279-oscilloscope-measurement.html">Next: Oscilloscope Measurement Setup &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

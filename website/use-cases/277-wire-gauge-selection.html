@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wire Gauge &amp; Run Length &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #ecfdf5, #a7f3d0);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F50C;</div>
+    <div class="uc-badge" style="background:rgba(5,150,105,.12);color:#059669;">Box-Behnken Design</div>
+    <h1>Wire Gauge &amp; Run Length</h1>
+    <p class="uc-subtitle">Box-Behnken design to minimize voltage drop and maximize cost efficiency by tuning wire gauge, run length, and conduit fill ratio</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>awg</code></td><td>10</td><td>18</td><td>AWG</td></tr>
+            <tr><td><code>run_m</code></td><td>5</td><td>30</td><td>m</td></tr>
+            <tr><td><code>fill_pct</code></td><td>20</td><td>60</td><td>%</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> circuit = 20A_120V, conductor = copper</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>voltage_drop_pct</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>%</td></tr>
+            <tr><td><code>cost_per_m</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>USD/m</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/277_wire_gauge_selection/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Wire Gauge &amp; Run Length&quot;,
+    &quot;description&quot;: &quot;Box-Behnken design to minimize voltage drop and maximize cost efficiency by tuning wire gauge, run length, and conduit fill ratio&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;awg&quot;,
+      &quot;levels&quot;: [
+        &quot;10&quot;,
+        &quot;18&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;AWG&quot;
+    },
+    {
+      &quot;name&quot;: &quot;run_m&quot;,
+      &quot;levels&quot;: [
+        &quot;5&quot;,
+        &quot;30&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;m&quot;
+    },
+    {
+      &quot;name&quot;: &quot;fill_pct&quot;,
+      &quot;levels&quot;: [
+        &quot;20&quot;,
+        &quot;60&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;circuit&quot;: &quot;20A_120V&quot;,
+    &quot;conductor&quot;: &quot;copper&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;voltage_drop_pct&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;cost_per_m&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;USD/m&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;box_behnken&quot;,
+    &quot;test_script&quot;: &quot;use_cases/277_wire_gauge_selection/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Box-Behnken Design produces <strong>15 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>awg</code></th><th><code>run_m</code></th><th><code>fill_pct</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>14</td><td>5</td><td>20</td></tr>
+        <tr><td>2</td><td>14</td><td>17.5</td><td>40</td></tr>
+        <tr><td>3</td><td>18</td><td>17.5</td><td>60</td></tr>
+        <tr><td>4</td><td>18</td><td>17.5</td><td>20</td></tr>
+        <tr><td>5</td><td>14</td><td>17.5</td><td>40</td></tr>
+        <tr><td>6</td><td>14</td><td>17.5</td><td>40</td></tr>
+        <tr><td>7</td><td>10</td><td>17.5</td><td>60</td></tr>
+        <tr><td>8</td><td>18</td><td>5</td><td>40</td></tr>
+        <tr><td>9</td><td>14</td><td>5</td><td>60</td></tr>
+        <tr><td>10</td><td>18</td><td>30</td><td>40</td></tr>
+        <tr><td>11</td><td>10</td><td>17.5</td><td>20</td></tr>
+        <tr><td>12</td><td>14</td><td>30</td><td>60</td></tr>
+        <tr><td>13</td><td>10</td><td>5</td><td>40</td></tr>
+        <tr><td>14</td><td>10</td><td>30</td><td>40</td></tr>
+        <tr><td>15</td><td>14</td><td>30</td><td>20</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/277_wire_gauge_selection/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/277_wire_gauge_selection/config.json \
+    <span class="flag">--output</span> use_cases/277_wire_gauge_selection/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/277_wire_gauge_selection/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/277_wire_gauge_selection/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/277_wire_gauge_selection/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/277_wire_gauge_selection/config.json \
+    <span class="flag">--output</span> use_cases/277_wire_gauge_selection/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>box_behnken</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (voltage_drop_pct &#x2193;, cost_per_m &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>15</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: voltage_drop_pct</h3>
+    <p>Top factors: fill_pct (56.0%), awg (29.1%), run_m (14.9%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/277_pareto_voltage_drop_pct.png" alt="Pareto chart for voltage_drop_pct">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/277_main_effects_voltage_drop_pct.png" alt="Main effects plot for voltage_drop_pct">
+      </div>
+    </div>
+
+    <h3>Response: cost_per_m</h3>
+    <p>Top factors: run_m (46.0%), awg (43.5%), fill_pct (10.6%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/277_pareto_cost_per_m.png" alt="Pareto chart for cost_per_m">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/277_main_effects_cost_per_m.png" alt="Main effects plot for cost_per_m">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cost per m awg vs fill pct</p>
+      <img src="../images/277_rsm_cost_per_m_awg_vs_fill_pct.png" alt="RSM surface: cost per m awg vs fill pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cost per m awg vs run m</p>
+      <img src="../images/277_rsm_cost_per_m_awg_vs_run_m.png" alt="RSM surface: cost per m awg vs run m" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cost per m run m vs fill pct</p>
+      <img src="../images/277_rsm_cost_per_m_run_m_vs_fill_pct.png" alt="RSM surface: cost per m run m vs fill pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">voltage drop pct awg vs fill pct</p>
+      <img src="../images/277_rsm_voltage_drop_pct_awg_vs_fill_pct.png" alt="RSM surface: voltage drop pct awg vs fill pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">voltage drop pct awg vs run m</p>
+      <img src="../images/277_rsm_voltage_drop_pct_awg_vs_run_m.png" alt="RSM surface: voltage drop pct awg vs run m" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">voltage drop pct run m vs fill pct</p>
+      <img src="../images/277_rsm_voltage_drop_pct_run_m_vs_fill_pct.png" alt="RSM surface: voltage drop pct run m vs fill pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_voltage_drop_pct_awg_vs_run_m.png
+  RSM surface: rsm_voltage_drop_pct_awg_vs_fill_pct.png
+  RSM surface: rsm_voltage_drop_pct_run_m_vs_fill_pct.png
+  RSM surface: rsm_cost_per_m_awg_vs_run_m.png
+  RSM surface: rsm_cost_per_m_awg_vs_fill_pct.png
+  RSM surface: rsm_cost_per_m_run_m_vs_fill_pct.png
+
+=== Main Effects: voltage_drop_pct ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+fill_pct                 1.9714       0.3818            56.0%
+awg                      1.0250       0.3818            29.1%
+run_m                    0.5250       0.3818            14.9%
+
+=== Summary Statistics: voltage_drop_pct ===
+
+awg:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4     2.8500     1.4708     1.6000     4.9000
+  14                  7     3.1429     1.4409     1.1000     4.7000
+  18                  4     3.8750     1.7689     2.3000     6.4000
+
+run_m:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  17.5                7     3.2286     2.0702     1.1000     6.4000
+  30                  4     3.5500     0.8266     2.9000     4.7000
+  5                   4     3.0250     0.8732     2.0000     4.1000
+
+fill_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  20                  4     4.7000     1.4765     2.8000     6.4000
+  40                  7     2.7286     1.2486     1.1000     4.7000
+  60                  4     2.7500     1.0661     1.6000     4.1000
+
+=== Main Effects: cost_per_m ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+run_m                    0.6800       0.1618            46.0%
+awg                      0.6425       0.1618            43.5%
+fill_pct                 0.1561       0.1618            10.6%
+
+=== Summary Statistics: cost_per_m ===
+
+awg:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4     2.4000     0.8427     1.4500     3.2100
+  14                  7     2.2700     0.6056     1.4700     3.2100
+  18                  4     1.7575     0.2615     1.4300     2.0100
+
+run_m:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  17.5                7     2.0686     0.6541     1.4500     3.0000
+  30                  4     1.9150     0.3445     1.4300     2.2300
+  5                   4     2.5950     0.7118     1.9200     3.2100
+
+fill_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  20                  4     2.1400     0.7853     1.4500     3.2100
+  40                  7     2.1214     0.6933     1.4300     3.2100
+  60                  4     2.2775     0.4821     2.0100     3.0000
+
+Pareto chart (voltage_drop_pct): use_cases/277_wire_gauge_selection/results/analysis/pareto_voltage_drop_pct.png
+
+Pareto chart (cost_per_m): use_cases/277_wire_gauge_selection/results/analysis/pareto_cost_per_m.png
+Main effects (voltage_drop_pct): use_cases/277_wire_gauge_selection/results/analysis/main_effects_voltage_drop_pct.png
+Main effects (cost_per_m): use_cases/277_wire_gauge_selection/results/analysis/main_effects_cost_per_m.png</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: voltage_drop_pct ===
+Direction: minimize
+
+Best observed run: #13
+  awg = 18
+  run_m = 30
+  fill_pct = 40
+  Value: 1.1
+
+RSM Model (linear, R² = 0.0223, Adj R² = -0.2444):
+  Coefficients:
+    intercept                      +3.2600
+    awg                            -0.0625
+    run_m                          -0.1375
+    fill_pct                       +0.2500
+
+RSM Model (quadratic, R² = 0.5811, Adj R² = -0.1728):
+  Coefficients:
+    intercept                      +3.4333
+    awg                            -0.0625
+    run_m                          -0.1375
+    fill_pct                       +0.2500
+    awg*run_m                      -0.3000
+    awg*fill_pct                   -0.1250
+    run_m*fill_pct                 -0.4250
+    awg^2                          -1.2667
+    run_m^2                        -0.5167
+    fill_pct^2                     +1.4583
+
+  Curvature analysis:
+    fill_pct                       coef=+1.4583  convex (has a minimum)
+    awg                            coef=-1.2667  concave (has a maximum)
+    run_m                          coef=-0.5167  concave (has a maximum)
+
+  Notable interactions:
+    run_m*fill_pct                 coef=-0.4250  (antagonistic)
+    awg*run_m                      coef=-0.3000  (antagonistic)
+
+  Predicted optimum (from quadratic model):
+    awg = 14
+    run_m = 5
+    fill_pct = 60
+    Predicted value: 5.1875
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
+
+Factor importance:
+  1. fill_pct  (effect: 1.8, contribution: 47.1%)
+  2. awg  (effect: 1.4, contribution: 35.8%)
+  3. run_m  (effect: 0.7, contribution: 17.1%)
+
+=== Optimization: cost_per_m ===
+Direction: minimize
+
+Best observed run: #8
+  awg = 14
+  run_m = 17.5
+  fill_pct = 40
+  Value: 1.43
+
+RSM Model (linear, R² = 0.1045, Adj R² = -0.1397):
+  Coefficients:
+    intercept                      +2.1680
+    awg                            -0.2462
+    run_m                          -0.0413
+    fill_pct                       +0.0975
+
+RSM Model (quadratic, R² = 0.4988, Adj R² = -0.4033):
+  Coefficients:
+    intercept                      +2.2900
+    awg                            -0.2462
+    run_m                          -0.0413
+    fill_pct                       +0.0975
+    awg*run_m                      +0.5025
+    awg*fill_pct                   -0.1750
+    run_m*fill_pct                 -0.0200
+    awg^2                          +0.2862
+    run_m^2                        -0.1038
+    fill_pct^2                     -0.4112
+
+  Curvature analysis:
+    fill_pct                       coef=-0.4112  concave (has a maximum)
+    awg                            coef=+0.2862  convex (has a minimum)
+    run_m                          coef=-0.1038  concave (has a maximum)
+
+  Notable interactions:
+    awg*run_m                      coef=+0.5025  (synergistic)
+
+  Predicted optimum (from linear model):
+    awg = 10
+    run_m = 17.5
+    fill_pct = 60
+    Predicted value: 2.5118
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. awg  (effect: 0.6, contribution: 46.4%)
+  2. fill_pct  (effect: 0.5, contribution: 42.5%)
+  3. run_m  (effect: 0.1, contribution: 11.1%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="276-solar-charge-controller.html">&larr; Previous: Solar Charge Controller Setup</a>
+    <a href="278-motor-speed-control.html">Next: DC Motor Speed Control &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

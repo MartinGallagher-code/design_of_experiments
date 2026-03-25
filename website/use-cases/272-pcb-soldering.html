@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PCB Soldering Parameters &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #ecfdf5, #a7f3d0);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F50C;</div>
+    <div class="uc-badge" style="background:rgba(5,150,105,.12);color:#059669;">Central Composite Design</div>
+    <h1>PCB Soldering Parameters</h1>
+    <p class="uc-subtitle">Central composite design to maximize joint quality and minimize bridging by tuning iron temperature, contact time, and solder wire diameter</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>iron_temp_c</code></td><td>280</td><td>380</td><td>C</td></tr>
+            <tr><td><code>contact_sec</code></td><td>1</td><td>5</td><td>sec</td></tr>
+            <tr><td><code>solder_mm</code></td><td>0.5</td><td>1.2</td><td>mm</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> flux = rosin, tip = chisel_2mm</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>joint_quality</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>pts</td></tr>
+            <tr><td><code>bridge_rate</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>per_100</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/272_pcb_soldering/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;PCB Soldering Parameters&quot;,
+    &quot;description&quot;: &quot;Central composite design to maximize joint quality and minimize bridging by tuning iron temperature, contact time, and solder wire diameter&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;iron_temp_c&quot;,
+      &quot;levels&quot;: [
+        &quot;280&quot;,
+        &quot;380&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;C&quot;
+    },
+    {
+      &quot;name&quot;: &quot;contact_sec&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;5&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;sec&quot;
+    },
+    {
+      &quot;name&quot;: &quot;solder_mm&quot;,
+      &quot;levels&quot;: [
+        &quot;0.5&quot;,
+        &quot;1.2&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;mm&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;flux&quot;: &quot;rosin&quot;,
+    &quot;tip&quot;: &quot;chisel_2mm&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;joint_quality&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;pts&quot;
+    },
+    {
+      &quot;name&quot;: &quot;bridge_rate&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;per_100&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;central_composite&quot;,
+    &quot;test_script&quot;: &quot;use_cases/272_pcb_soldering/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Central Composite Design produces <strong>22 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>iron_temp_c</code></th><th><code>contact_sec</code></th><th><code>solder_mm</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>330</td><td>3</td><td>0.85</td></tr>
+        <tr><td>2</td><td>380</td><td>1</td><td>1.2</td></tr>
+        <tr><td>3</td><td>280</td><td>5</td><td>0.5</td></tr>
+        <tr><td>4</td><td>330</td><td>6.65148</td><td>0.85</td></tr>
+        <tr><td>5</td><td>330</td><td>3</td><td>0.85</td></tr>
+        <tr><td>6</td><td>238.713</td><td>3</td><td>0.85</td></tr>
+        <tr><td>7</td><td>330</td><td>3</td><td>0.21099</td></tr>
+        <tr><td>8</td><td>330</td><td>3</td><td>0.85</td></tr>
+        <tr><td>9</td><td>380</td><td>5</td><td>0.5</td></tr>
+        <tr><td>10</td><td>421.287</td><td>3</td><td>0.85</td></tr>
+        <tr><td>11</td><td>330</td><td>3</td><td>0.85</td></tr>
+        <tr><td>12</td><td>330</td><td>-0.651484</td><td>0.85</td></tr>
+        <tr><td>13</td><td>330</td><td>3</td><td>0.85</td></tr>
+        <tr><td>14</td><td>280</td><td>1</td><td>1.2</td></tr>
+        <tr><td>15</td><td>330</td><td>3</td><td>0.85</td></tr>
+        <tr><td>16</td><td>380</td><td>1</td><td>0.5</td></tr>
+        <tr><td>17</td><td>330</td><td>3</td><td>1.48901</td></tr>
+        <tr><td>18</td><td>380</td><td>5</td><td>1.2</td></tr>
+        <tr><td>19</td><td>330</td><td>3</td><td>0.85</td></tr>
+        <tr><td>20</td><td>280</td><td>1</td><td>0.5</td></tr>
+        <tr><td>21</td><td>280</td><td>5</td><td>1.2</td></tr>
+        <tr><td>22</td><td>330</td><td>3</td><td>0.85</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/272_pcb_soldering/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/272_pcb_soldering/config.json \
+    <span class="flag">--output</span> use_cases/272_pcb_soldering/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/272_pcb_soldering/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/272_pcb_soldering/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/272_pcb_soldering/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/272_pcb_soldering/config.json \
+    <span class="flag">--output</span> use_cases/272_pcb_soldering/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>central_composite</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (joint_quality &#x2191;, bridge_rate &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>22</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: joint_quality</h3>
+    <p>Top factors: iron_temp_c (39.5%), solder_mm (31.8%), contact_sec (28.7%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/272_pareto_joint_quality.png" alt="Pareto chart for joint_quality">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/272_main_effects_joint_quality.png" alt="Main effects plot for joint_quality">
+      </div>
+    </div>
+
+    <h3>Response: bridge_rate</h3>
+    <p>Top factors: solder_mm (46.0%), contact_sec (33.4%), iron_temp_c (20.6%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/272_pareto_bridge_rate.png" alt="Pareto chart for bridge_rate">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/272_main_effects_bridge_rate.png" alt="Main effects plot for bridge_rate">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">bridge rate contact sec vs solder mm</p>
+      <img src="../images/272_rsm_bridge_rate_contact_sec_vs_solder_mm.png" alt="RSM surface: bridge rate contact sec vs solder mm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">bridge rate iron temp c vs contact sec</p>
+      <img src="../images/272_rsm_bridge_rate_iron_temp_c_vs_contact_sec.png" alt="RSM surface: bridge rate iron temp c vs contact sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">bridge rate iron temp c vs solder mm</p>
+      <img src="../images/272_rsm_bridge_rate_iron_temp_c_vs_solder_mm.png" alt="RSM surface: bridge rate iron temp c vs solder mm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">joint quality contact sec vs solder mm</p>
+      <img src="../images/272_rsm_joint_quality_contact_sec_vs_solder_mm.png" alt="RSM surface: joint quality contact sec vs solder mm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">joint quality iron temp c vs contact sec</p>
+      <img src="../images/272_rsm_joint_quality_iron_temp_c_vs_contact_sec.png" alt="RSM surface: joint quality iron temp c vs contact sec" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">joint quality iron temp c vs solder mm</p>
+      <img src="../images/272_rsm_joint_quality_iron_temp_c_vs_solder_mm.png" alt="RSM surface: joint quality iron temp c vs solder mm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_joint_quality_iron_temp_c_vs_contact_sec.png
+  RSM surface: rsm_joint_quality_iron_temp_c_vs_solder_mm.png
+  RSM surface: rsm_joint_quality_contact_sec_vs_solder_mm.png
+  RSM surface: rsm_bridge_rate_iron_temp_c_vs_contact_sec.png
+  RSM surface: rsm_bridge_rate_iron_temp_c_vs_solder_mm.png
+  RSM surface: rsm_bridge_rate_contact_sec_vs_solder_mm.png
+
+=== Main Effects: joint_quality ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+iron_temp_c              2.2000       0.2604            39.5%
+solder_mm                1.7750       0.2604            31.8%
+contact_sec              1.6000       0.2604            28.7%
+
+=== Summary Statistics: joint_quality ===
+
+iron_temp_c:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  238.713             1     4.9000     0.0000     4.9000     4.9000
+  280                 4     6.5500     0.8505     5.3000     7.2000
+  330                12     5.7417     1.4305     3.3000     7.3000
+  380                 4     6.2500     0.8103     5.5000     7.0000
+  421.287             1     7.1000     0.0000     7.1000     7.1000
+
+contact_sec:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -0.651484           1     5.1000     0.0000     5.1000     5.1000
+  1                   4     6.6250     0.7676     5.5000     7.2000
+  3                  12     5.7583     1.4687     3.3000     7.3000
+  5                   4     6.1750     0.8461     5.3000     6.9000
+  6.65148             1     6.7000     0.0000     6.7000     6.7000
+
+solder_mm:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.21099             1     7.3000     0.0000     7.3000     7.3000
+  0.5                 4     5.9000     0.8756     5.3000     7.2000
+  0.85               12     5.5250     1.3363     3.3000     7.1000
+  1.2                 4     6.9000     0.0816     6.8000     7.0000
+  1.48901             1     7.3000     0.0000     7.3000     7.3000
+
+=== Main Effects: bridge_rate ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+solder_mm                2.4750       0.2066            46.0%
+contact_sec              1.8000       0.2066            33.4%
+iron_temp_c              1.1083       0.2066            20.6%
+
+=== Summary Statistics: bridge_rate ===
+
+iron_temp_c:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  238.713             1     2.9000     0.0000     2.9000     2.9000
+  280                 4     2.5750     0.8057     1.4000     3.1000
+  330                12     3.6833     1.0426     2.0000     5.2000
+  380                 4     2.9750     0.5852     2.3000     3.7000
+  421.287             1     2.7000     0.0000     2.7000     2.7000
+
+contact_sec:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -0.651484           1     4.1000     0.0000     4.1000     4.1000
+  1                   4     3.2500     0.3000     3.1000     3.7000
+  3                  12     3.5500     1.0791     2.0000     5.2000
+  5                   4     2.3000     0.6377     1.4000     2.8000
+  6.65148             1     3.1000     0.0000     3.1000     3.1000
+
+solder_mm:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.21099             1     3.2000     0.0000     3.2000     3.2000
+  0.5                 4     2.6250     0.9979     1.4000     3.7000
+  0.85               12     3.4583     0.9858     2.0000     5.2000
+  1.2                 4     2.9250     0.2062     2.7000     3.1000
+  1.48901             1     5.1000     0.0000     5.1000     5.1000
+
+Pareto chart (joint_quality): use_cases/272_pcb_soldering/results/analysis/pareto_joint_quality.png
+
+Pareto chart (bridge_rate): use_cases/272_pcb_soldering/results/analysis/pareto_bridge_rate.png
+Main effects (joint_quality): use_cases/272_pcb_soldering/results/analysis/main_effects_joint_quality.png
+Main effects (bridge_rate): use_cases/272_pcb_soldering/results/analysis/main_effects_bridge_rate.png</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: joint_quality ===
+Direction: maximize
+
+Best observed run: #1
+  iron_temp_c = 330
+  contact_sec = 3
+  solder_mm = 0.85
+  Value: 7.3
+
+RSM Model (linear, R² = 0.0890, Adj R² = -0.0629):
+  Coefficients:
+    intercept                      +6.0045
+    iron_temp_c                    +0.2629
+    contact_sec                    -0.2920
+    solder_mm                      -0.1888
+
+RSM Model (quadratic, R² = 0.3271, Adj R² = -0.1776):
+  Coefficients:
+    intercept                      +5.6401
+    iron_temp_c                    +0.2629
+    contact_sec                    -0.2920
+    solder_mm                      -0.1888
+    iron_temp_c*contact_sec        +0.3125
+    iron_temp_c*solder_mm          +0.1625
+    contact_sec*solder_mm          +0.0875
+    iron_temp_c^2                  -0.1678
+    contact_sec^2                  +0.4772
+    solder_mm^2                    +0.2372
+
+  Curvature analysis:
+    contact_sec                    coef=+0.4772  convex (has a minimum)
+    solder_mm                      coef=+0.2372  convex (has a minimum)
+    iron_temp_c                    coef=-0.1678  concave (has a maximum)
+
+  Notable interactions:
+    iron_temp_c*contact_sec        coef=+0.3125  (synergistic)
+
+  Predicted optimum (from linear model):
+    iron_temp_c = 380
+    contact_sec = 1
+    solder_mm = 0.5
+    Predicted value: 6.7482
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. iron_temp_c  (effect: 2.3, contribution: 40.4%)
+  2. solder_mm  (effect: 1.9, contribution: 33.4%)
+  3. contact_sec  (effect: 1.5, contribution: 26.2%)
+
+=== Optimization: bridge_rate ===
+Direction: minimize
+
+Best observed run: #7
+  iron_temp_c = 330
+  contact_sec = 3
+  solder_mm = 1.48901
+  Value: 1.4
+
+RSM Model (linear, R² = 0.0146, Adj R² = -0.1496):
+  Coefficients:
+    intercept                      +3.2727
+    iron_temp_c                    +0.0578
+    contact_sec                    +0.1248
+    solder_mm                      -0.0275
+
+RSM Model (quadratic, R² = 0.2210, Adj R² = -0.3633):
+  Coefficients:
+    intercept                      +3.1872
+    iron_temp_c                    +0.0578
+    contact_sec                    +0.1248
+    solder_mm                      -0.0275
+    iron_temp_c*contact_sec        +0.2125
+    iron_temp_c*solder_mm          +0.3625
+    contact_sec*solder_mm          -0.4875
+    iron_temp_c^2                  -0.0422
+    contact_sec^2                  +0.1828
+    solder_mm^2                    -0.0122
+
+  Curvature analysis:
+    contact_sec                    coef=+0.1828  convex (has a minimum)
+    iron_temp_c                    coef=-0.0422  negligible curvature
+    solder_mm                      coef=-0.0122  negligible curvature
+
+  Notable interactions:
+    contact_sec*solder_mm          coef=-0.4875  (antagonistic)
+    iron_temp_c*solder_mm          coef=+0.3625  (synergistic)
+
+  Predicted optimum (from linear model):
+    iron_temp_c = 330
+    contact_sec = 6.65148
+    solder_mm = 0.85
+    Predicted value: 3.5006
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. solder_mm  (effect: 3.0, contribution: 45.5%)
+  2. iron_temp_c  (effect: 2.1, contribution: 31.8%)
+  3. contact_sec  (effect: 1.5, contribution: 22.7%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="271-led-strip-install.html">&larr; Previous: LED Strip Installation</a>
+    <a href="273-antenna-tuning.html">Next: DIY Antenna Tuning &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>
