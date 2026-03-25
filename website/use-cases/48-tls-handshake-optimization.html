@@ -38,6 +38,30 @@
 
 <div class="container-narrow uc-content">
 
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>tls handshake optimization</strong>. Box-Behnken design for TLS version, cipher choice, and session cache for handshake speed.</p>
+
+    <p>The design varies 3 factors: <strong>session cache size</strong> (entries), ranging from 1000 to 100000, <strong>session timeout s</strong> (s), ranging from 60 to 86400, and <strong>ocsp stapling workers</strong> (threads), ranging from 1 to 8. The goal is to optimize 2 responses: handshake ms (ms) (minimize) and resumption rate (%) (maximize). Fixed conditions held constant across all runs include tls version = 1.3, cipher = AES-256-GCM.</p>
+
+    <p>A Box-Behnken design was chosen because it efficiently fits quadratic models with 3 continuous factors while avoiding extreme corner combinations &mdash; requiring only 15 runs instead of the 8 needed for a full factorial at two levels.</p>
+
+    <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
+
+    <h3>Key Findings</h3>
+    <p>For <strong>handshake ms</strong>, the most influential factors were ocsp stapling workers (47.4%), session timeout s (26.8%), session cache size (25.7%). The best observed value was <strong>32.0</strong> (at session cache size = 1000, session timeout s = 43230, ocsp stapling workers = 8).</p>
+<p>For <strong>resumption rate</strong>, the most influential factors were ocsp stapling workers (67.1%), session cache size (17.3%), session timeout s (15.5%). The best observed value was <strong>85.9</strong> (at session cache size = 50500, session timeout s = 43230, ocsp stapling workers = 4.5).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Run confirmation experiments at the predicted optimal settings to validate the model.</li>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+  </ul>
+  </section>
+
   <!-- Factors & Responses -->
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -259,7 +283,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: handshake_ms</h3>
-    <p>Top factors: session_cache_size (43.2%), session_timeout_s (42.0%), ocsp_stapling_workers (14.8%).</p>
+    <p>Top factors: ocsp_stapling_workers (47.4%), session_timeout_s (26.8%), session_cache_size (25.7%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -272,7 +296,7 @@
     </div>
 
     <h3>Response: resumption_rate</h3>
-    <p>Top factors: session_cache_size (48.3%), session_timeout_s (27.0%), ocsp_stapling_workers (24.7%).</p>
+    <p>Top factors: ocsp_stapling_workers (67.1%), session_cache_size (17.3%), session_timeout_s (15.5%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -328,166 +352,166 @@
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: handshake_ms ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-session_cache_size      13.4107       3.1456            43.2%
-session_timeout_s       13.0250       3.1456            42.0%
-ocsp_stapling_workers     4.6000       3.1456            14.8%
+ocsp_stapling_workers     9.1643       3.1456            47.4%
+session_timeout_s        5.1857       3.1456            26.8%
+session_cache_size       4.9750       3.1456            25.7%
 
 === Summary Statistics: handshake_ms ===
 
 session_cache_size:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1000                4    46.1500     8.0922    36.6000    55.7000
-  100000              4    41.6750     4.9284    35.0000    46.0000
-  50500               7    55.0857    14.7333    32.0000    75.6000
+  1000                4    51.8750    16.7068    36.6000    75.6000
+  100000              4    46.9000     5.8901    43.5000    55.7000
+  50500               7    48.8286    13.4522    32.0000    65.7000
 
 session_timeout_s:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  43230               7    52.1714    11.8149    41.0000    75.6000
-  60                  4    39.9500     7.9105    32.0000    49.3000
-  86400               4    52.9750    14.0429    36.6000    65.7000
+  43230               7    46.9143    10.2159    35.0000    63.6000
+  60                  4    52.1000    10.9292    41.0000    65.7000
+  86400               4    50.0250    18.4435    32.0000    75.6000
 
 ocsp_stapling_workers:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    47.8000    13.9123    32.0000    65.7000
-  4.5                 7    48.0143    13.9209    35.0000    75.6000
-  8                   4    52.4000     9.5899    41.0000    63.6000
+  1                   4    45.9500     3.8906    41.0000    49.3000
+  4.5                 7    53.6143    13.5065    35.0000    75.6000
+  8                   4    44.4500    14.9342    32.0000    65.7000
 
 === Main Effects: resumption_rate ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-session_cache_size      22.1607       5.1048            48.3%
-session_timeout_s       12.3929       5.1048            27.0%
-ocsp_stapling_workers    11.3250       5.1048            24.7%
+ocsp_stapling_workers    19.3821       5.1048            67.1%
+session_cache_size       5.0071       5.1048            17.3%
+session_timeout_s        4.4857       5.1048            15.5%
 
 === Summary Statistics: resumption_rate ===
 
 session_cache_size:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1000                4    60.0000    21.5640    33.5000    85.9000
-  100000              4    61.3750     8.0280    54.3000    69.7000
-  50500               7    39.2143    18.9683    13.2000    74.0000
+  1000                4    47.6500    30.6447    13.2000    85.9000
+  100000              4    50.2000     7.1568    40.8000    57.0000
+  50500               7    52.6571    20.1511    27.2000    74.0000
 
 session_timeout_s:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  43230               7    46.2571    19.1759    13.2000    69.7000
-  60                  4    58.6500    16.1471    36.8000    74.0000
-  86400               4    50.4000    26.4105    27.2000    85.9000
+  43230               7    52.5857    19.5817    33.5000    85.9000
+  60                  4    48.1000    18.2594    27.2000    69.7000
+  86400               4    49.8750    26.5633    13.2000    74.0000
 
 ocsp_stapling_workers:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    54.7750    20.0673    27.2000    74.0000
-  4.5                 7    52.4429    22.5127    13.2000    85.9000
-  8                   4    43.4500    17.5633    33.5000    69.7000</div></div>
+  1                   4    56.1000    14.3404    36.8000    69.7000
+  4.5                 7    41.6429    17.2757    13.2000    66.8000
+  8                   4    61.0250    25.4784    27.2000    85.9000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: handshake_ms ===
 Direction: minimize
 
 Best observed run: #3
-  session_cache_size = 50500
-  session_timeout_s = 60
-  ocsp_stapling_workers = 1
+  session_cache_size = 1000
+  session_timeout_s = 43230
+  ocsp_stapling_workers = 8
   Value: 32.0
 
-RSM Model (linear, R² = 0.2329, Adj R² = 0.0236):
+RSM Model (linear, R² = 0.0636, Adj R² = -0.1918):
   Coefficients:
     intercept                      +49.1267
-    session_cache_size             +1.5000
-    session_timeout_s              +7.3875
-    ocsp_stapling_workers          +1.9125
+    session_cache_size             +2.9375
+    session_timeout_s              +2.7625
+    ocsp_stapling_workers          -0.5000
 
-RSM Model (quadratic, R² = 0.5986, Adj R² = -0.1238):
+RSM Model (quadratic, R² = 0.6125, Adj R² = -0.0850):
   Coefficients:
-    intercept                      +61.6667
-    session_cache_size             +1.5000
-    session_timeout_s              +7.3875
-    ocsp_stapling_workers          +1.9125
-    session_cache_size*session_timeout_s -0.0500
-    session_cache_size*ocsp_stapling_workers +2.1500
-    session_timeout_s*ocsp_stapling_workers +4.2250
-    session_cache_size^2           -11.4208
-    session_timeout_s^2            -6.6958
-    ocsp_stapling_workers^2        -5.3958
+    intercept                      +42.4333
+    session_cache_size             +2.9375
+    session_timeout_s              +2.7625
+    ocsp_stapling_workers          -0.5000
+    session_cache_size*session_timeout_s -1.1000
+    session_cache_size*ocsp_stapling_workers -0.1750
+    session_timeout_s*ocsp_stapling_workers -1.2250
+    session_cache_size^2           -8.4417
+    session_timeout_s^2            +11.3083
+    ocsp_stapling_workers^2        +9.6833
 
   Curvature analysis:
-    session_cache_size             coef=-11.4208  concave (has a maximum)
-    session_timeout_s              coef=-6.6958  concave (has a maximum)
-    ocsp_stapling_workers          coef=-5.3958  concave (has a maximum)
+    session_timeout_s              coef=+11.3083  convex (has a minimum)
+    ocsp_stapling_workers          coef=+9.6833  convex (has a minimum)
+    session_cache_size             coef=-8.4417  concave (has a maximum)
 
   Notable interactions:
-    session_timeout_s*ocsp_stapling_workers coef=+4.2250  (synergistic)
-    session_cache_size*ocsp_stapling_workers coef=+2.1500  (synergistic)
+    session_timeout_s*ocsp_stapling_workers coef=-1.2250  (antagonistic)
+    session_cache_size*session_timeout_s coef=-1.1000  (antagonistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from quadratic model):
     session_cache_size = 50500
     session_timeout_s = 86400
-    ocsp_stapling_workers = 8
-    Predicted value: 58.4267
+    ocsp_stapling_workers = 1
+    Predicted value: 67.9125
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. session_timeout_s  (effect: 14.8, contribution: 45.0%)
-  2. session_cache_size  (effect: 12.1, contribution: 36.7%)
-  3. ocsp_stapling_workers  (effect: 6.0, contribution: 18.3%)
+  1. session_timeout_s  (effect: 14.0, contribution: 38.0%)
+  2. session_cache_size  (effect: 12.9, contribution: 35.0%)
+  3. ocsp_stapling_workers  (effect: 10.0, contribution: 27.1%)
 
 === Optimization: resumption_rate ===
 Direction: maximize
 
 Best observed run: #10
-  session_cache_size = 1000
+  session_cache_size = 50500
   session_timeout_s = 43230
-  ocsp_stapling_workers = 8
+  ocsp_stapling_workers = 4.5
   Value: 85.9
 
-RSM Model (linear, R² = 0.1377, Adj R² = -0.0975):
+RSM Model (linear, R² = 0.0857, Adj R² = -0.1636):
   Coefficients:
     intercept                      +50.6667
-    session_cache_size             -4.1375
-    session_timeout_s              -7.9375
-    ocsp_stapling_workers          -3.7500
+    session_cache_size             -5.5000
+    session_timeout_s              -5.3000
+    ocsp_stapling_workers          +0.5500
 
-RSM Model (quadratic, R² = 0.6328, Adj R² = -0.0281):
+RSM Model (quadratic, R² = 0.4312, Adj R² = -0.5926):
   Coefficients:
-    intercept                      +31.5000
-    session_cache_size             -4.1375
-    session_timeout_s              -7.9375
-    ocsp_stapling_workers          -3.7500
-    session_cache_size*session_timeout_s +4.6750
-    session_cache_size*ocsp_stapling_workers -14.6000
-    session_timeout_s*ocsp_stapling_workers -5.1000
-    session_cache_size^2           +18.7375
-    session_timeout_s^2            +7.2875
-    ocsp_stapling_workers^2        +9.9125
+    intercept                      +62.0667
+    session_cache_size             -5.5000
+    session_timeout_s              -5.3000
+    ocsp_stapling_workers          +0.5500
+    session_cache_size*session_timeout_s +2.3000
+    session_cache_size*ocsp_stapling_workers +2.4000
+    session_timeout_s*ocsp_stapling_workers +3.9500
+    session_cache_size^2           +6.2417
+    session_timeout_s^2            -19.1083
+    ocsp_stapling_workers^2        -8.5083
 
   Curvature analysis:
-    session_cache_size             coef=+18.7375  convex (has a minimum)
-    ocsp_stapling_workers          coef=+9.9125  convex (has a minimum)
-    session_timeout_s              coef=+7.2875  convex (has a minimum)
+    session_timeout_s              coef=-19.1083  concave (has a maximum)
+    ocsp_stapling_workers          coef=-8.5083  concave (has a maximum)
+    session_cache_size             coef=+6.2417  convex (has a minimum)
 
   Notable interactions:
-    session_cache_size*ocsp_stapling_workers coef=-14.6000  (antagonistic)
-    session_timeout_s*ocsp_stapling_workers coef=-5.1000  (antagonistic)
-    session_cache_size*session_timeout_s coef=+4.6750  (synergistic)
+    session_timeout_s*ocsp_stapling_workers coef=+3.9500  (synergistic)
+    session_cache_size*ocsp_stapling_workers coef=+2.4000  (synergistic)
+    session_cache_size*session_timeout_s coef=+2.3000  (synergistic)
 
-  Predicted optimum (from quadratic model):
+  Predicted optimum (from linear model):
     session_cache_size = 1000
-    session_timeout_s = 43230
-    ocsp_stapling_workers = 8
-    Predicted value: 75.1375
+    session_timeout_s = 60
+    ocsp_stapling_workers = 4.5
+    Predicted value: 61.4667
 
-  Model quality: Moderate fit — use predictions directionally, not precisely.
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. session_cache_size  (effect: 21.6, contribution: 43.9%)
-  2. session_timeout_s  (effect: 15.9, contribution: 32.2%)
-  3. ocsp_stapling_workers  (effect: 11.8, contribution: 23.9%)</div></div>
+  1. session_timeout_s  (effect: 24.2, contribution: 52.6%)
+  2. session_cache_size  (effect: 13.7, contribution: 29.7%)
+  3. ocsp_stapling_workers  (effect: 8.1, contribution: 17.7%)</div></div>
   </section>
 
   <!-- Nav -->

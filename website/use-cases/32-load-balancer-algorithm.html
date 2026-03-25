@@ -38,6 +38,29 @@
 
 <div class="container-narrow uc-content">
 
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>load balancer algorithm</strong>. Full factorial of balancing algorithm, health check interval, and connection draining for availability.</p>
+
+    <p>The design varies 3 factors: <strong>algorithm</strong>, ranging from round_robin to ip_hash, <strong>health interval</strong> (s), ranging from 5 to 30, and <strong>drain timeout</strong> (s), ranging from 10 to 60. The goal is to optimize 2 responses: availability (%) (maximize) and imbalance pct (%) (minimize). Fixed conditions held constant across all runs include backend count = 4, protocol = http2.</p>
+
+    <p>A full factorial design was used to explore all 8 possible combinations of the 3 factors at two levels. This guarantees that every main effect and interaction can be estimated independently, at the cost of a larger experiment (12 runs).</p>
+
+    <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
+
+    <h3>Key Findings</h3>
+    <p>For <strong>availability</strong>, the most influential factors were drain timeout (43.7%), algorithm (42.6%), health interval (13.7%). The best observed value was <strong>99.963</strong> (at algorithm = ip_hash, health interval = 5, drain timeout = 10).</p>
+<p>For <strong>imbalance pct</strong>, the most influential factors were drain timeout (57.2%), algorithm (36.5%), health interval (6.3%). The best observed value was <strong>0.1</strong> (at algorithm = round_robin, health interval = 30, drain timeout = 60).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+  </ul>
+  </section>
+
   <!-- Factors & Responses -->
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -257,7 +280,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: availability</h3>
-    <p>Top factors: algorithm (53.8%), health_interval (29.3%), drain_timeout (16.9%).</p>
+    <p>Top factors: drain_timeout (43.7%), algorithm (42.6%), health_interval (13.7%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -270,7 +293,7 @@
     </div>
 
     <h3>Response: imbalance_pct</h3>
-    <p>Top factors: algorithm (65.4%), health_interval (21.5%), drain_timeout (13.1%).</p>
+    <p>Top factors: drain_timeout (57.2%), algorithm (36.5%), health_interval (6.3%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -306,167 +329,168 @@
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: availability ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-algorithm                0.3010       0.0770            53.8%
-health_interval         -0.1637       0.0770            29.3%
-drain_timeout            0.0943       0.0770            16.9%
+drain_timeout            0.1313       0.0770            43.7%
+algorithm                0.1280       0.0770            42.6%
+health_interval         -0.0413       0.0770            13.7%
 
 === Interaction Effects: availability ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-health_interval      drain_timeout              0.1217           100.0%
+health_interval      drain_timeout             -0.0657           100.0%
 
 === Summary Statistics: availability ===
 
 algorithm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  ip_hash             4    99.4230     0.2302    99.0850    99.5980
-  least_conn          4    99.4865     0.2353    99.2410    99.7900
-  round_robin         4    99.7240     0.2926    99.2990    99.9630
+  ip_hash             4    99.5645     0.2996    99.2410    99.8470
+  least_conn          4    99.4705     0.3763    99.0850    99.9630
+  round_robin         4    99.5985     0.1341    99.4850    99.7870
 
 health_interval:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  30                  6    99.6263     0.3060    99.0850    99.9630
-  5                   6    99.4627     0.2167    99.2410    99.8470
+  30                  6    99.5652     0.2662    99.2410    99.9630
+  5                   6    99.5238     0.2912    99.0850    99.8470
 
 drain_timeout:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  6    99.4973     0.2006    99.2410    99.7870
-  60                  6    99.5917     0.3333    99.0850    99.9630
+  10                  6    99.4788     0.2363    99.0850    99.7900
+  60                  6    99.6102     0.3008    99.2410    99.9630
 
 === Main Effects: imbalance_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-algorithm                5.4250       1.1645            65.4%
-health_interval          1.7833       1.1645            21.5%
-drain_timeout           -1.0833       1.1645            13.1%
+drain_timeout           -2.5833       1.1645            57.2%
+algorithm                1.6500       1.1645            36.5%
+health_interval          0.2833       1.1645             6.3%
 
 === Interaction Effects: imbalance_pct ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-health_interval      drain_timeout             -2.3500           100.0%
+health_interval      drain_timeout              0.3833           100.0%
 
 === Summary Statistics: imbalance_pct ===
 
 algorithm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  ip_hash             4     9.5500     3.3010     6.4000    14.2000
-  least_conn          4     8.2000     2.8519     5.0000    10.8000
-  round_robin         4     4.1250     4.4003     0.1000    10.2000
+  ip_hash             4     6.5750     5.0625     0.1000    10.8000
+  least_conn          4     8.2250     5.2360     1.9000    14.2000
+  round_robin         4     7.0750     2.1701     4.3000     8.9000
 
 health_interval:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  30                  6     6.4000     4.1833     1.9000    14.2000
-  5                   6     8.1833     4.0484     0.1000    10.8000
+  30                  6     7.1500     3.5478     1.9000    10.8000
+  5                   6     7.4333     4.8128     0.1000    14.2000
 
 drain_timeout:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  6     7.8333     2.4985     4.3000    10.8000
-  60                  6     6.7500     5.3713     0.1000    14.2000</div></div>
+  10                  6     8.5833     3.3612     5.0000    14.2000
+  60                  6     6.0000     4.5273     0.1000    10.8000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: availability ===
 Direction: maximize
 
 Best observed run: #2
-  algorithm = least_conn
+  algorithm = ip_hash
   health_interval = 5
-  drain_timeout = 60
+  drain_timeout = 10
   Value: 99.963
 
-RSM Model (linear, R² = 0.3783, Adj R² = 0.1452):
+RSM Model (linear, R² = 0.1645, Adj R² = -0.1488):
   Coefficients:
     intercept                      +99.5445
-    algorithm                      -0.0936
-    health_interval                -0.1270
-    drain_timeout                  -0.0522
+    algorithm                      -0.0313
+    health_interval                -0.0137
+    drain_timeout                  -0.0995
 
-RSM Model (quadratic, R² = 0.6701, Adj R² = -0.8143):
+RSM Model (quadratic, R² = 0.5537, Adj R² = -1.4546):
   Coefficients:
-    intercept                      +33.1969
-    algorithm                      -0.0936
-    health_interval                -0.1270
-    drain_timeout                  -0.0522
-    algorithm*health_interval      -0.1534
-    algorithm*drain_timeout        +0.0586
-    health_interval*drain_timeout  -0.0007
-    algorithm^2                    -0.0694
-    health_interval^2              +33.1969
-    drain_timeout^2                +33.1969
+    intercept                      +33.1207
+    algorithm                      -0.0312
+    health_interval                -0.0137
+    drain_timeout                  -0.0995
+    algorithm*health_interval      +0.0717
+    algorithm*drain_timeout        +0.0890
+    health_interval*drain_timeout  +0.0060
+    algorithm^2                    +0.2738
+    health_interval^2              +33.1207
+    drain_timeout^2                +33.1207
 
   Curvature analysis:
-    health_interval                coef=+33.1969  convex (has a minimum)
-    drain_timeout                  coef=+33.1969  convex (has a minimum)
-    algorithm                      coef=-0.0694  negligible curvature
+    health_interval                coef=+33.1207  convex (has a minimum)
+    drain_timeout                  coef=+33.1207  convex (has a minimum)
+    algorithm                      coef=+0.2738  convex (has a minimum)
 
   Predicted optimum (from linear model):
     algorithm = ip_hash
     health_interval = 5
     drain_timeout = 10
-    Predicted value: 99.8173
+    Predicted value: 99.6889
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. health_interval  (effect: 0.3, contribution: 46.6%)
-  2. algorithm  (effect: 0.2, contribution: 34.3%)
-  3. drain_timeout  (effect: -0.1, contribution: 19.1%)
+  1. algorithm  (effect: 0.3, contribution: 57.4%)
+  2. drain_timeout  (effect: -0.2, contribution: 37.5%)
+  3. health_interval  (effect: 0.0, contribution: 5.1%)
 
 === Optimization: imbalance_pct ===
 Direction: minimize
 
 Best observed run: #9
-  algorithm = ip_hash
-  health_interval = 5
-  drain_timeout = 10
+  algorithm = round_robin
+  health_interval = 30
+  drain_timeout = 60
   Value: 0.1
 
-RSM Model (linear, R² = 0.5537, Adj R² = 0.3863):
+RSM Model (linear, R² = 0.0805, Adj R² = -0.2643):
   Coefficients:
     intercept                      +7.2917
-    algorithm                      +1.4625
-    health_interval                +2.3750
-    drain_timeout                  +1.0917
+    algorithm                      -0.0500
+    health_interval                +0.2083
+    drain_timeout                  +1.0750
 
-RSM Model (quadratic, R² = 0.6903, Adj R² = -0.7031):
+RSM Model (quadratic, R² = 0.5642, Adj R² = -1.3970):
   Coefficients:
-    intercept                      +2.3167
-    algorithm                      +1.4625
-    health_interval                +2.3750
-    drain_timeout                  +1.0917
-    algorithm*health_interval      +1.3625
-    algorithm*drain_timeout        -1.0375
-    health_interval*drain_timeout  -0.1583
-    algorithm^2                    +0.5125
-    health_interval^2              +2.3167
-    drain_timeout^2                +2.3167
+    intercept                      +3.3417
+    algorithm                      -0.0500
+    health_interval                +0.2083
+    drain_timeout                  +1.0750
+    algorithm*health_interval      -1.5500
+    algorithm*drain_timeout        -1.6250
+    health_interval*drain_timeout  -0.3417
+    algorithm^2                    -4.1000
+    health_interval^2              +3.3417
+    drain_timeout^2                +3.3417
 
   Curvature analysis:
-    health_interval                coef=+2.3167  convex (has a minimum)
-    drain_timeout                  coef=+2.3167  convex (has a minimum)
-    algorithm                      coef=+0.5125  convex (has a minimum)
+    algorithm                      coef=-4.1000  concave (has a maximum)
+    health_interval                coef=+3.3417  convex (has a minimum)
+    drain_timeout                  coef=+3.3417  convex (has a minimum)
 
   Notable interactions:
-    algorithm*health_interval      coef=+1.3625  (synergistic)
-    algorithm*drain_timeout        coef=-1.0375  (antagonistic)
+    algorithm*drain_timeout        coef=-1.6250  (antagonistic)
+    algorithm*health_interval      coef=-1.5500  (antagonistic)
+    health_interval*drain_timeout  coef=-0.3417  (antagonistic)
 
   Predicted optimum (from linear model):
-    algorithm = round_robin
+    algorithm = ip_hash
     health_interval = 30
     drain_timeout = 60
-    Predicted value: 12.2208
+    Predicted value: 8.6250
 
-  Model quality: Moderate fit — use predictions directionally, not precisely.
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. health_interval  (effect: -4.7, contribution: 48.2%)
-  2. algorithm  (effect: 2.9, contribution: 29.7%)
-  3. drain_timeout  (effect: 2.2, contribution: 22.1%)</div></div>
+  1. algorithm  (effect: 4.2, contribution: 61.8%)
+  2. drain_timeout  (effect: 2.1, contribution: 32.0%)
+  3. health_interval  (effect: -0.4, contribution: 6.2%)</div></div>
   </section>
 
   <!-- Nav -->

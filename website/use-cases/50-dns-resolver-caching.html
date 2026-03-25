@@ -38,6 +38,30 @@
 
 <div class="container-narrow uc-content">
 
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>dns resolver caching</strong>. Central Composite design for DNS cache size, TTL override, and prefetch threshold for resolution time.</p>
+
+    <p>The design varies 3 factors: <strong>cache size</strong> (entries), ranging from 10000 to 500000, <strong>min ttl s</strong> (s), ranging from 30 to 3600, and <strong>prefetch pct</strong> (%), ranging from 0 to 90. The goal is to optimize 2 responses: avg resolution ms (ms) (minimize) and cache hit rate (%) (maximize). Fixed conditions held constant across all runs include resolver = unbound, dnssec = on.</p>
+
+    <p>A Central Composite Design (CCD) was selected to fit a full quadratic response surface model, including curvature and interaction effects. With 3 factors this produces 22 runs including center points and axial (star) points that extend beyond the factorial range.</p>
+
+    <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
+
+    <h3>Key Findings</h3>
+    <p>For <strong>avg resolution ms</strong>, the most influential factors were prefetch pct (48.9%), min ttl s (29.2%), cache size (22.0%). The best observed value was <strong>11.5</strong> (at cache size = 255000, min ttl s = -1443.95, prefetch pct = 45).</p>
+<p>For <strong>cache hit rate</strong>, the most influential factors were prefetch pct (41.1%), min ttl s (32.3%), cache size (26.7%). The best observed value was <strong>95.3</strong> (at cache size = 255000, min ttl s = -1443.95, prefetch pct = 45).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Run confirmation experiments at the predicted optimal settings to validate the model.</li>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+  </ul>
+  </section>
+
   <!-- Factors & Responses -->
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -266,7 +290,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: avg_resolution_ms</h3>
-    <p>Top factors: min_ttl_s (41.2%), prefetch_pct (37.0%), cache_size (21.8%).</p>
+    <p>Top factors: prefetch_pct (48.9%), min_ttl_s (29.2%), cache_size (22.0%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -279,7 +303,7 @@
     </div>
 
     <h3>Response: cache_hit_rate</h3>
-    <p>Top factors: prefetch_pct (41.7%), min_ttl_s (38.5%), cache_size (19.9%).</p>
+    <p>Top factors: prefetch_pct (41.1%), min_ttl_s (32.3%), cache_size (26.7%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -335,74 +359,74 @@
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: avg_resolution_ms ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-min_ttl_s               34.6000       2.7633            41.2%
-prefetch_pct            31.1000       2.7633            37.0%
-cache_size              18.2750       2.7633            21.8%
+prefetch_pct            37.7000       2.7633            48.9%
+min_ttl_s               22.5000       2.7633            29.2%
+cache_size              16.9750       2.7633            22.0%
 
 === Summary Statistics: avg_resolution_ms ===
 
 cache_size:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -192307             1    23.2000     0.0000    23.2000    23.2000
-  10000               4    38.8750    17.2446    24.5000    60.9000
-  255000             12    28.6250    12.1284    11.5000    54.7000
-  500000              4    33.3000    13.0795    20.3000    47.8000
-  702307              1    20.6000     0.0000    20.6000    20.6000
+  -192307             1    24.5000     0.0000    24.5000    24.5000
+  10000               4    37.3750    16.2674    23.4000    54.7000
+  255000             12    29.1167    13.7361    11.5000    60.9000
+  500000              4    33.0500     9.7196    24.5000    42.2000
+  702307              1    20.4000     0.0000    20.4000    20.4000
 
 min_ttl_s:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -1443.95            1    54.7000     0.0000    54.7000    54.7000
-  1815               12    26.0417     8.9405    11.5000    42.6000
-  30                  4    23.7500     2.3868    20.3000    25.8000
-  3600                4    48.4250     8.8073    40.7000    60.9000
-  5073.95             1    20.1000     0.0000    20.1000    20.1000
+  -1443.95            1    20.1000     0.0000    20.1000    20.1000
+  1815               12    27.6333    13.0846    11.5000    60.9000
+  30                  4    31.8500    15.2452    23.4000    54.7000
+  3600                4    38.5750    10.4404    23.6000    47.8000
+  5073.95             1    42.6000     0.0000    42.6000    42.6000
 
 prefetch_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -37.1584            1    42.6000     0.0000    42.6000    42.6000
-  0                   4    37.6250    17.3046    24.4000    60.9000
-  127.158             1    11.5000     0.0000    11.5000    11.5000
-  45                 12    27.7667    10.5076    20.1000    54.7000
-  90                  4    34.5500    13.5431    20.3000    47.8000
+  -37.1584            1    23.2000     0.0000    23.2000    23.2000
+  0                   4    35.8750    14.8068    23.6000    54.7000
+  127.158             1    60.9000     0.0000    60.9000    60.9000
+  45                 12    25.8500     9.5325    11.5000    44.3000
+  90                  4    34.5500    12.2946    23.4000    47.8000
 
 === Main Effects: cache_hit_rate ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-prefetch_pct            45.9000       3.3890            41.7%
-min_ttl_s               42.4000       3.3890            38.5%
-cache_size              21.8750       3.3890            19.9%
+prefetch_pct            37.8000       3.3890            41.1%
+min_ttl_s               29.7000       3.3890            32.3%
+cache_size              24.5750       3.3890            26.7%
 
 === Summary Statistics: cache_hit_rate ===
 
 cache_size:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -192307             1    72.8000     0.0000    72.8000    72.8000
-  10000               4    57.1250    17.7496    35.0000    72.6000
-  255000             12    68.3833    15.9234    36.7000    95.3000
-  500000              4    62.4250    17.5363    42.0000    81.3000
-  702307              1    79.0000     0.0000    79.0000    79.0000
+  -192307             1    71.4000     0.0000    71.4000    71.4000
+  10000               4    56.4250    19.8376    36.7000    73.9000
+  255000             12    68.9250    16.4297    35.0000    95.3000
+  500000              4    61.3500    10.7469    49.8000    70.7000
+  702307              1    81.0000     0.0000    81.0000    81.0000
 
 min_ttl_s:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -1443.95            1    36.7000     0.0000    36.7000    36.7000
-  1815               12    71.3833    12.4121    49.4000    95.3000
-  30                  4    74.0000     4.9592    70.3000    81.3000
-  3600                4    45.5500     8.7809    35.0000    54.6000
-  5073.95             1    79.1000     0.0000    79.1000    79.1000
+  -1443.95            1    79.1000     0.0000    79.1000    79.1000
+  1815               12    70.9167    15.3412    35.0000    95.3000
+  30                  4    62.7000    17.3774    36.7000    73.1000
+  3600                4    55.0750    13.5817    42.0000    73.9000
+  5073.95             1    49.4000     0.0000    49.4000    49.4000
 
 prefetch_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -37.1584            1    49.4000     0.0000    49.4000    49.4000
-  0                   4    57.9250    17.1490    35.0000    71.8000
-  127.158             1    95.3000     0.0000    95.3000    95.3000
-  45                 12    68.9750    12.9062    36.7000    81.0000
-  90                  4    61.6250    18.3870    42.0000    81.3000</div></div>
+  -37.1584            1    72.8000     0.0000    72.8000    72.8000
+  0                   4    58.8750    16.9930    36.7000    73.9000
+  127.158             1    35.0000     0.0000    35.0000    35.0000
+  45                 12    72.6417    12.7549    49.4000    95.3000
+  90                  4    58.9000    15.3764    42.0000    73.1000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: avg_resolution_ms ===
@@ -410,104 +434,104 @@ Direction: minimize
 
 Best observed run: #18
   cache_size = 255000
-  min_ttl_s = 1815
-  prefetch_pct = -37.1584
+  min_ttl_s = -1443.95
+  prefetch_pct = 45
   Value: 11.5
 
-RSM Model (linear, R² = 0.1038, Adj R² = -0.0456):
+RSM Model (linear, R² = 0.1117, Adj R² = -0.0364):
   Coefficients:
     intercept                      +30.7273
-    cache_size                     -1.4509
-    min_ttl_s                      +4.5967
-    prefetch_pct                   +1.3125
+    cache_size                     -3.4068
+    min_ttl_s                      +1.2318
+    prefetch_pct                   -3.7058
 
-RSM Model (quadratic, R² = 0.3313, Adj R² = -0.1702):
+RSM Model (quadratic, R² = 0.4422, Adj R² = 0.0238):
   Coefficients:
-    intercept                      +30.0668
-    cache_size                     -1.4509
-    min_ttl_s                      +4.5967
-    prefetch_pct                   +1.3125
-    cache_size*min_ttl_s           -8.8000
-    cache_size*prefetch_pct        -4.1250
-    min_ttl_s*prefetch_pct         -1.7000
-    cache_size^2                   -0.3047
-    min_ttl_s^2                    +0.3103
-    prefetch_pct^2                 +0.9853
+    intercept                      +32.5352
+    cache_size                     -3.4068
+    min_ttl_s                      +1.2318
+    prefetch_pct                   -3.7058
+    cache_size*min_ttl_s           -9.1750
+    cache_size*prefetch_pct        +0.6000
+    min_ttl_s*prefetch_pct         -1.0250
+    cache_size^2                   +2.0810
+    min_ttl_s^2                    -4.1889
+    prefetch_pct^2                 -0.6040
 
   Curvature analysis:
-    prefetch_pct                   coef=+0.9853  convex (has a minimum)
-    min_ttl_s                      coef=+0.3103  convex (has a minimum)
-    cache_size                     coef=-0.3047  concave (has a maximum)
+    min_ttl_s                      coef=-4.1889  concave (has a maximum)
+    cache_size                     coef=+2.0810  convex (has a minimum)
+    prefetch_pct                   coef=-0.6040  concave (has a maximum)
 
   Notable interactions:
-    cache_size*min_ttl_s           coef=-8.8000  (antagonistic)
-    cache_size*prefetch_pct        coef=-4.1250  (antagonistic)
-    min_ttl_s*prefetch_pct         coef=-1.7000  (antagonistic)
+    cache_size*min_ttl_s           coef=-9.1750  (antagonistic)
+    min_ttl_s*prefetch_pct         coef=-1.0250  (antagonistic)
+    cache_size*prefetch_pct        coef=+0.6000  (synergistic)
 
-  Predicted optimum (from linear model):
-    cache_size = 255000
-    min_ttl_s = 5073.95
-    prefetch_pct = 45
-    Predicted value: 39.1197
+  Predicted optimum (from quadratic model):
+    cache_size = 10000
+    min_ttl_s = 3600
+    prefetch_pct = 0
+    Predicted value: 48.9677
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. prefetch_pct  (effect: 30.7, contribution: 42.5%)
-  2. min_ttl_s  (effect: 22.1, contribution: 30.6%)
-  3. cache_size  (effect: 19.4, contribution: 26.9%)
+  1. cache_size  (effect: 22.0, contribution: 36.4%)
+  2. min_ttl_s  (effect: 20.8, contribution: 34.4%)
+  3. prefetch_pct  (effect: 17.6, contribution: 29.2%)
 
 === Optimization: cache_hit_rate ===
 Direction: maximize
 
 Best observed run: #18
   cache_size = 255000
-  min_ttl_s = 1815
-  prefetch_pct = -37.1584
+  min_ttl_s = -1443.95
+  prefetch_pct = 45
   Value: 95.3
 
-RSM Model (linear, R² = 0.1182, Adj R² = -0.0287):
+RSM Model (linear, R² = 0.1258, Adj R² = -0.0199):
   Coefficients:
     intercept                      +65.9364
-    cache_size                     +0.8267
-    min_ttl_s                      -5.5986
-    prefetch_pct                   -3.2776
+    cache_size                     +4.5592
+    min_ttl_s                      -1.2791
+    prefetch_pct                   +4.8049
 
-RSM Model (quadratic, R² = 0.3195, Adj R² = -0.1909):
+RSM Model (quadratic, R² = 0.4977, Adj R² = 0.1210):
   Coefficients:
-    intercept                      +66.7363
-    cache_size                     +0.8267
-    min_ttl_s                      -5.5986
-    prefetch_pct                   -3.2776
-    cache_size*min_ttl_s           +9.6500
-    cache_size*prefetch_pct        +5.7750
-    min_ttl_s*prefetch_pct         +2.1750
-    cache_size^2                   +0.1500
-    min_ttl_s^2                    -0.7050
-    prefetch_pct^2                 -0.6450
+    intercept                      +63.1679
+    cache_size                     +4.5592
+    min_ttl_s                      -1.2791
+    prefetch_pct                   +4.8049
+    cache_size*min_ttl_s           +10.5750
+    cache_size*prefetch_pct        +0.7750
+    min_ttl_s*prefetch_pct         +1.1000
+    cache_size^2                   -3.0458
+    min_ttl_s^2                    +6.2542
+    prefetch_pct^2                 +0.9442
 
   Curvature analysis:
-    min_ttl_s                      coef=-0.7050  concave (has a maximum)
-    prefetch_pct                   coef=-0.6450  concave (has a maximum)
-    cache_size                     coef=+0.1500  convex (has a minimum)
+    min_ttl_s                      coef=+6.2542  convex (has a minimum)
+    cache_size                     coef=-3.0458  concave (has a maximum)
+    prefetch_pct                   coef=+0.9442  convex (has a minimum)
 
   Notable interactions:
-    cache_size*min_ttl_s           coef=+9.6500  (synergistic)
-    cache_size*prefetch_pct        coef=+5.7750  (synergistic)
-    min_ttl_s*prefetch_pct         coef=+2.1750  (synergistic)
+    cache_size*min_ttl_s           coef=+10.5750  (synergistic)
+    min_ttl_s*prefetch_pct         coef=+1.1000  (synergistic)
+    cache_size*prefetch_pct        coef=+0.7750  (synergistic)
 
-  Predicted optimum (from linear model):
-    cache_size = 255000
-    min_ttl_s = -1443.95
-    prefetch_pct = 45
-    Predicted value: 76.1580
+  Predicted optimum (from quadratic model):
+    cache_size = 500000
+    min_ttl_s = 3600
+    prefetch_pct = 90
+    Predicted value: 87.8555
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. prefetch_pct  (effect: 45.5, contribution: 49.1%)
-  2. min_ttl_s  (effect: 23.8, contribution: 25.7%)
-  3. cache_size  (effect: 23.4, contribution: 25.2%)</div></div>
+  1. min_ttl_s  (effect: 32.4, contribution: 39.1%)
+  2. cache_size  (effect: 30.6, contribution: 36.9%)
+  3. prefetch_pct  (effect: 19.9, contribution: 24.0%)</div></div>
   </section>
 
   <!-- Nav -->

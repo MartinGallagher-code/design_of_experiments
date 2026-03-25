@@ -38,6 +38,29 @@
 
 <div class="container-narrow uc-content">
 
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>columnar compression</strong>. Full factorial of compression codec, dictionary encoding, page size, and row group size for ratio vs speed.</p>
+
+    <p>The design varies 4 factors: <strong>codec</strong>, ranging from snappy to zstd, <strong>dictionary</strong>, ranging from off to on, <strong>page size kb</strong> (KB), ranging from 64 to 1024, and <strong>row group mb</strong> (MB), ranging from 32 to 256. The goal is to optimize 2 responses: compression ratio (x) (maximize) and read speed mbps (MB/s) (maximize). Fixed conditions held constant across all runs include format = parquet, data type = mixed_analytics.</p>
+
+    <p>A full factorial design was used to explore all 16 possible combinations of the 4 factors at two levels. This guarantees that every main effect and interaction can be estimated independently, at the cost of a larger experiment (16 runs).</p>
+
+    <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
+
+    <h3>Key Findings</h3>
+    <p>For <strong>compression ratio</strong>, the most influential factors were codec (30.4%), dictionary (26.6%), page size kb (24.6%). The best observed value was <strong>8.7</strong> (at codec = zstd, dictionary = off, page size kb = 1024).</p>
+<p>For <strong>read speed mbps</strong>, the most influential factors were page size kb (37.1%), codec (28.9%), row group mb (27.5%). The best observed value was <strong>1323.0</strong> (at codec = snappy, dictionary = on, page size kb = 1024).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+  </ul>
+  </section>
+
   <!-- Factors & Responses -->
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -270,7 +293,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: compression_ratio</h3>
-    <p>Top factors: codec (51.1%), row_group_mb (35.1%), dictionary (12.6%).</p>
+    <p>Top factors: codec (30.4%), dictionary (26.6%), page_size_kb (24.6%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -283,7 +306,7 @@
     </div>
 
     <h3>Response: read_speed_mbps</h3>
-    <p>Top factors: page_size_kb (31.7%), codec (31.7%), dictionary (22.4%).</p>
+    <p>Top factors: page_size_kb (37.1%), codec (28.9%), row_group_mb (27.5%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -319,185 +342,185 @@
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: compression_ratio ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-codec                   -0.7862       0.5386            51.1%
-row_group_mb             0.5412       0.5386            35.1%
-dictionary               0.1937       0.5386            12.6%
-page_size_kb            -0.0187       0.5386             1.2%
+codec                   -1.6812       0.5386            30.4%
+dictionary              -1.4688       0.5386            26.6%
+page_size_kb            -1.3613       0.5386            24.6%
+row_group_mb             1.0112       0.5386            18.3%
 
 === Interaction Effects: compression_ratio ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-dictionary           page_size_kb              -2.3388            40.3%
-codec                page_size_kb              -1.1538            19.9%
-codec                dictionary                 0.9888            17.0%
-codec                row_group_mb               0.6963            12.0%
-page_size_kb         row_group_mb               0.3537             6.1%
-dictionary           row_group_mb              -0.2687             4.6%
+codec                row_group_mb              -1.7437            37.7%
+codec                dictionary                -1.3887            30.0%
+page_size_kb         row_group_mb               0.6562            14.2%
+codec                page_size_kb               0.4437             9.6%
+dictionary           page_size_kb              -0.2637             5.7%
+dictionary           row_group_mb              -0.1263             2.7%
 
 === Summary Statistics: compression_ratio ===
 
 codec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  snappy              8     4.8475     2.5899     1.6700     8.7000
-  zstd                8     4.0613     1.6981     2.4400     7.6100
+  snappy              8     5.2950     2.1296     2.5300     8.7000
+  zstd                8     3.6138     1.9478     1.6700     7.6100
 
 dictionary:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 8     4.3575     2.3288     1.7700     8.7000
-  on                  8     4.5512     2.1212     1.6700     7.6100
+  off                 8     5.1887     1.8757     2.5300     7.6100
+  on                  8     3.7200     2.2789     1.6700     8.7000
 
 page_size_kb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1024                8     4.4638     2.1336     1.7700     7.6100
-  64                  8     4.4450     2.3220     1.6700     8.7000
+  1024                8     5.1350     2.3754     1.7700     8.7000
+  64                  8     3.7737     1.8009     1.6700     7.5200
 
 row_group_mb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  256                 8     4.1837     2.0488     1.6700     7.5200
-  32                  8     4.7250     2.3621     1.7700     8.7000
+  256                 8     3.9487     1.8107     1.6700     7.6100
+  32                  8     4.9600     2.4661     1.7700     8.7000
 
 === Main Effects: read_speed_mbps ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-page_size_kb           202.1250      65.8871            31.7%
-codec                  201.6250      65.8871            31.7%
-dictionary            -142.8750      65.8871            22.4%
-row_group_mb           -90.1250      65.8871            14.2%
+page_size_kb           203.6250      65.8871            37.1%
+codec                  158.3750      65.8871            28.9%
+row_group_mb          -150.8750      65.8871            27.5%
+dictionary              35.8750      65.8871             6.5%
 
 === Interaction Effects: read_speed_mbps ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-codec                page_size_kb             258.3750            45.9%
-dictionary           page_size_kb             167.3750            29.7%
-codec                dictionary                77.8750            13.8%
-page_size_kb         row_group_mb              27.6250             4.9%
-dictionary           row_group_mb             -20.8750             3.7%
-codec                row_group_mb              10.6250             1.9%
+dictionary           page_size_kb            -251.8750            44.1%
+codec                row_group_mb              82.6250            14.5%
+codec                dictionary               -77.1250            13.5%
+codec                page_size_kb              75.6250            13.3%
+page_size_kb         row_group_mb             -44.1250             7.7%
+dictionary           row_group_mb             -39.3750             6.9%
 
 === Summary Statistics: read_speed_mbps ===
 
 codec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  snappy              8   694.1250   218.3990   478.0000  1137.0000
-  zstd                8   895.7500   279.1230   483.0000  1323.0000
+  snappy              8   715.7500   230.2451   483.0000  1077.0000
+  zstd                8   874.1250   285.4683   478.0000  1323.0000
 
 dictionary:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 8   866.3750   218.6791   531.0000  1137.0000
-  on                  8   723.5000   298.9190   478.0000  1323.0000
+  off                 8   777.0000   327.6858   478.0000  1323.0000
+  on                  8   812.8750   201.8029   483.0000  1098.0000
 
 page_size_kb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1024                8   693.8750   217.6553   478.0000  1137.0000
-  64                  8   896.0000   279.4970   531.0000  1323.0000
+  1024                8   693.1250   199.9439   478.0000  1098.0000
+  64                  8   896.7500   291.8340   483.0000  1323.0000
 
 row_group_mb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  256                 8   840.0000   316.2851   483.0000  1323.0000
-  32                  8   749.8750   210.1431   478.0000  1077.0000</div></div>
+  256                 8   870.3750   233.9279   547.0000  1137.0000
+  32                  8   719.5000   284.7947   478.0000  1323.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: compression_ratio ===
 Direction: maximize
 
 Best observed run: #12
-  codec = snappy
+  codec = zstd
   dictionary = off
   page_size_kb = 1024
-  row_group_mb = 256
+  row_group_mb = 32
   Value: 8.7
 
-RSM Model (linear, R² = 0.0851, Adj R² = -0.2477):
+RSM Model (linear, R² = 0.0876, Adj R² = -0.2442):
   Coefficients:
     intercept                      +4.4544
-    codec                          +0.0281
-    dictionary                     -0.1469
-    page_size_kb                   +0.4694
-    row_group_mb                   +0.3569
+    codec                          -0.3444
+    dictionary                     +0.1744
+    page_size_kb                   +0.4819
+    row_group_mb                   -0.0044
 
-RSM Model (quadratic, R² = 0.2837, Adj R² = -9.7446):
+RSM Model (quadratic, R² = 0.6053, Adj R² = -4.9202):
   Coefficients:
     intercept                      +0.8909
-    codec                          +0.0281
-    dictionary                     -0.1469
-    page_size_kb                   +0.4694
-    row_group_mb                   +0.3569
-    codec*dictionary               -0.0656
-    codec*page_size_kb             -0.0344
-    codec*row_group_mb             -0.3469
-    dictionary*page_size_kb        -0.6444
-    dictionary*row_group_mb        +0.0431
-    page_size_kb*row_group_mb      +0.5669
+    codec                          -0.3444
+    dictionary                     +0.1744
+    page_size_kb                   +0.4819
+    row_group_mb                   -0.0044
+    codec*dictionary               -0.9119
+    codec*page_size_kb             +0.8481
+    codec*row_group_mb             -0.1006
+    dictionary*page_size_kb        +0.0744
+    dictionary*row_group_mb        +0.7831
+    page_size_kb*row_group_mb      -0.2694
     codec^2                        +0.8909
     dictionary^2                   +0.8909
     page_size_kb^2                 +0.8909
     row_group_mb^2                 +0.8909
 
   Curvature analysis:
-    codec                          coef=+0.8909  convex (has a minimum)
     dictionary                     coef=+0.8909  convex (has a minimum)
     page_size_kb                   coef=+0.8909  convex (has a minimum)
+    codec                          coef=+0.8909  convex (has a minimum)
     row_group_mb                   coef=+0.8909  convex (has a minimum)
 
   Notable interactions:
-    dictionary*page_size_kb        coef=-0.6444  (antagonistic)
-    page_size_kb*row_group_mb      coef=+0.5669  (synergistic)
-    codec*row_group_mb             coef=-0.3469  (antagonistic)
+    codec*dictionary               coef=-0.9119  (antagonistic)
+    codec*page_size_kb             coef=+0.8481  (synergistic)
+    dictionary*row_group_mb        coef=+0.7831  (synergistic)
 
   Predicted optimum (from linear model):
-    codec = zstd
-    dictionary = off
+    codec = snappy
+    dictionary = on
     page_size_kb = 1024
-    row_group_mb = 256
-    Predicted value: 5.4556
+    row_group_mb = 32
+    Predicted value: 5.4594
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. page_size_kb  (effect: -0.9, contribution: 46.9%)
-  2. row_group_mb  (effect: -0.7, contribution: 35.6%)
-  3. dictionary  (effect: -0.3, contribution: 14.7%)
-  4. codec  (effect: 0.1, contribution: 2.8%)
+  1. page_size_kb  (effect: -1.0, contribution: 47.9%)
+  2. codec  (effect: -0.7, contribution: 34.3%)
+  3. dictionary  (effect: 0.3, contribution: 17.4%)
+  4. row_group_mb  (effect: 0.0, contribution: 0.4%)
 
 === Optimization: read_speed_mbps ===
 Direction: maximize
 
 Best observed run: #1
-  codec = zstd
+  codec = snappy
   dictionary = on
   page_size_kb = 1024
   row_group_mb = 256
   Value: 1323.0
 
-RSM Model (linear, R² = 0.2112, Adj R² = -0.0756):
+RSM Model (linear, R² = 0.2080, Adj R² = -0.0800):
   Coefficients:
     intercept                      +794.9375
-    codec                          -73.6875
-    dictionary                     -42.9375
-    page_size_kb                   +75.6875
-    row_group_mb                   -27.4375
+    codec                          +9.9375
+    dictionary                     -56.0625
+    page_size_kb                   +35.9375
+    row_group_mb                   +94.9375
 
-RSM Model (quadratic, R² = 0.6161, Adj R² = -4.7584):
+RSM Model (quadratic, R² = 0.3614, Adj R² = -8.5788):
   Coefficients:
     intercept                      +158.9875
-    codec                          -73.6875
-    dictionary                     -42.9375
-    page_size_kb                   +75.6875
-    row_group_mb                   -27.4375
-    codec*dictionary               +29.4375
-    codec*page_size_kb             +83.3125
-    codec*row_group_mb             +83.9375
-    dictionary*page_size_kb        +24.3125
-    dictionary*row_group_mb        +95.4375
-    page_size_kb*row_group_mb      +42.5625
+    codec                          +9.9375
+    dictionary                     -56.0625
+    page_size_kb                   +35.9375
+    row_group_mb                   +94.9375
+    codec*dictionary               -9.5625
+    codec*page_size_kb             -14.8125
+    codec*row_group_mb             -15.5625
+    dictionary*page_size_kb        +38.1875
+    dictionary*row_group_mb        -24.3125
+    page_size_kb*row_group_mb      +85.9375
     codec^2                        +158.9875
     dictionary^2                   +158.9875
     page_size_kb^2                 +158.9875
@@ -506,31 +529,31 @@ RSM Model (quadratic, R² = 0.6161, Adj R² = -4.7584):
   Curvature analysis:
     codec                          coef=+158.9875  convex (has a minimum)
     dictionary                     coef=+158.9875  convex (has a minimum)
-    row_group_mb                   coef=+158.9875  convex (has a minimum)
     page_size_kb                   coef=+158.9875  convex (has a minimum)
+    row_group_mb                   coef=+158.9875  convex (has a minimum)
 
   Notable interactions:
-    dictionary*row_group_mb        coef=+95.4375  (synergistic)
-    codec*row_group_mb             coef=+83.9375  (synergistic)
-    codec*page_size_kb             coef=+83.3125  (synergistic)
-    page_size_kb*row_group_mb      coef=+42.5625  (synergistic)
-    codec*dictionary               coef=+29.4375  (synergistic)
-    dictionary*page_size_kb        coef=+24.3125  (synergistic)
+    page_size_kb*row_group_mb      coef=+85.9375  (synergistic)
+    dictionary*page_size_kb        coef=+38.1875  (synergistic)
+    dictionary*row_group_mb        coef=-24.3125  (antagonistic)
+    codec*row_group_mb             coef=-15.5625  (antagonistic)
+    codec*page_size_kb             coef=-14.8125  (antagonistic)
+    codec*dictionary               coef=-9.5625  (antagonistic)
 
   Predicted optimum (from linear model):
-    codec = snappy
+    codec = zstd
     dictionary = off
     page_size_kb = 1024
-    row_group_mb = 32
-    Predicted value: 1014.6875
+    row_group_mb = 256
+    Predicted value: 991.8125
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. page_size_kb  (effect: -151.4, contribution: 34.4%)
-  2. codec  (effect: -147.4, contribution: 33.5%)
-  3. dictionary  (effect: -85.9, contribution: 19.5%)
-  4. row_group_mb  (effect: 54.9, contribution: 12.5%)</div></div>
+  1. row_group_mb  (effect: -189.9, contribution: 48.2%)
+  2. dictionary  (effect: -112.1, contribution: 28.5%)
+  3. page_size_kb  (effect: -71.9, contribution: 18.3%)
+  4. codec  (effect: 19.9, contribution: 5.0%)</div></div>
   </section>
 
   <!-- Nav -->

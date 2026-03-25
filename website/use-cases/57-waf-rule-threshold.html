@@ -38,6 +38,30 @@
 
 <div class="container-narrow uc-content">
 
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>waf rule threshold tuning</strong>. Plackett-Burman screening of 6 WAF parameters for detection rate and false positive rate.</p>
+
+    <p>The design varies 6 factors: <strong>rate limit rps</strong> (rps), ranging from 100 to 10000, <strong>body inspection depth</strong> (bytes), ranging from 1000 to 65536, <strong>anomaly score threshold</strong> (score), ranging from 3 to 15, <strong>paranoia level</strong> (level), ranging from 1 to 4, <strong>sql injection sensitivity</strong> (level), ranging from 1 to 9, and <strong>xss detection level</strong> (level), ranging from 1 to 5. The goal is to optimize 2 responses: detection rate (%) (maximize) and false positive rate (%) (minimize). Fixed conditions held constant across all runs include waf engine = modsecurity, ruleset = owasp_crs.</p>
+
+    <p>A Plackett-Burman screening design was used to efficiently test 6 factors in only 8 runs. This design assumes interactions are negligible and focuses on identifying the most influential main effects.</p>
+
+    
+    <h3>Key Findings</h3>
+    <p>For <strong>detection rate</strong>, the most influential factors were paranoia level (28.2%), sql injection sensitivity (23.4%), anomaly score threshold (18.2%). The best observed value was <strong>101.2</strong> (at rate limit rps = 100, body inspection depth = 65536, anomaly score threshold = 3).</p>
+<p>For <strong>false positive rate</strong>, the most influential factors were paranoia level (37.8%), sql injection sensitivity (20.9%), anomaly score threshold (19.9%). The best observed value was <strong>0.09</strong> (at rate limit rps = 10000, body inspection depth = 65536, anomaly score threshold = 15).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Follow up with a response surface design (CCD or Box-Behnken) on the top 3&ndash;4 factors to model curvature and find the true optimum.</li>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+    <li>The screening results can guide factor reduction &mdash; drop factors contributing less than 5% and re-run with a smaller, more focused design.</li>
+  </ul>
+  </section>
+
   <!-- Factors & Responses -->
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -282,7 +306,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: detection_rate</h3>
-    <p>Top factors: anomaly_score_threshold (45.2%), sql_injection_sensitivity (15.9%), body_inspection_depth (15.5%).</p>
+    <p>Top factors: paranoia_level (28.2%), sql_injection_sensitivity (23.4%), anomaly_score_threshold (18.2%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -295,7 +319,7 @@
     </div>
 
     <h3>Response: false_positive_rate</h3>
-    <p>Top factors: anomaly_score_threshold (38.8%), body_inspection_depth (18.9%), sql_injection_sensitivity (13.8%).</p>
+    <p>Top factors: paranoia_level (37.8%), sql_injection_sensitivity (20.9%), anomaly_score_threshold (19.9%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -471,178 +495,178 @@
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: detection_rate ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-anomaly_score_threshold   -24.7500       5.4749            45.2%
-sql_injection_sensitivity    -8.7000       5.4749            15.9%
-body_inspection_depth    -8.5000       5.4749            15.5%
-paranoia_level          -7.2500       5.4749            13.3%
-rate_limit_rps          -5.1000       5.4749             9.3%
-xss_detection_level     -0.4000       5.4749             0.7%
+paranoia_level         -16.9500       5.4749            28.2%
+sql_injection_sensitivity    14.0500       5.4749            23.4%
+anomaly_score_threshold    10.9500       5.4749            18.2%
+xss_detection_level      8.0500       5.4749            13.4%
+body_inspection_depth    -7.2500       5.4749            12.1%
+rate_limit_rps          -2.8500       5.4749             4.7%
 
 === Interaction Effects: detection_rate ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-rate_limit_rps       body_inspection_depth      24.7500            22.5%
-sql_injection_sensitivity xss_detection_level       24.7500            22.5%
-rate_limit_rps       paranoia_level            -8.7000             7.9%
-anomaly_score_threshold xss_detection_level        8.7000             7.9%
-rate_limit_rps       anomaly_score_threshold       8.5000             7.7%
-paranoia_level       xss_detection_level       -8.5000             7.7%
-rate_limit_rps       sql_injection_sensitivity      -7.2500             6.6%
-body_inspection_depth xss_detection_level       -7.2500             6.6%
-body_inspection_depth anomaly_score_threshold       5.1000             4.6%
-paranoia_level       sql_injection_sensitivity      -5.1000             4.6%
-body_inspection_depth paranoia_level            -0.4000             0.4%
-anomaly_score_threshold sql_injection_sensitivity       0.4000             0.4%
-rate_limit_rps       xss_detection_level       -0.2500             0.2%
-body_inspection_depth sql_injection_sensitivity      -0.2500             0.2%
-anomaly_score_threshold paranoia_level             0.2500             0.2%
+rate_limit_rps       sql_injection_sensitivity     -16.9500            11.2%
+body_inspection_depth xss_detection_level      -16.9500            11.2%
+rate_limit_rps       paranoia_level            14.0500             9.3%
+anomaly_score_threshold xss_detection_level      -14.0500             9.3%
+rate_limit_rps       body_inspection_depth     -10.9500             7.2%
+sql_injection_sensitivity xss_detection_level      -10.9500             7.2%
+rate_limit_rps       xss_detection_level       10.4500             6.9%
+body_inspection_depth sql_injection_sensitivity      10.4500             6.9%
+anomaly_score_threshold paranoia_level           -10.4500             6.9%
+body_inspection_depth paranoia_level             8.0500             5.3%
+anomaly_score_threshold sql_injection_sensitivity      -8.0500             5.3%
+rate_limit_rps       anomaly_score_threshold       7.2500             4.8%
+paranoia_level       xss_detection_level       -7.2500             4.8%
+body_inspection_depth anomaly_score_threshold       2.8500             1.9%
+paranoia_level       sql_injection_sensitivity      -2.8500             1.9%
 
 === Summary Statistics: detection_rate ===
 
 rate_limit_rps:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4    83.7750    19.2153    66.5000   101.2000
-  10000               4    78.6750    13.1515    62.9000    95.1000
+  100                 4    82.6500    18.0781    66.5000   101.2000
+  10000               4    79.8000    15.0765    62.9000    99.6000
 
 body_inspection_depth:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1000                4    85.4750    18.3426    62.9000   101.2000
-  65536               4    76.9750    13.2256    66.5000    95.1000
+  1000                4    84.8500    15.3142    66.5000    99.6000
+  65536               4    77.6000    17.0284    62.9000   101.2000
 
 anomaly_score_threshold:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  15                  4    93.6000    10.3926    78.5000   101.2000
-  3                   4    68.8500     6.5689    62.9000    78.2000
+  15                  4    75.7500    14.5221    62.9000    95.1000
+  3                   4    86.7000    16.3923    67.8000   101.2000
 
 paranoia_level:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    84.8500    15.3142    66.5000    99.6000
-  4                   4    77.6000    17.0284    62.9000   101.2000
+  1                   4    89.7000    18.0523    62.9000   101.2000
+  4                   4    72.7500     6.4892    66.5000    78.5000
 
 sql_injection_sensitivity:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    85.5750    15.3320    67.8000   101.2000
-  9                   4    76.8750    16.5530    62.9000    99.6000
+  1                   4    74.2000    17.0597    62.9000    99.6000
+  9                   4    88.2500    11.7003    78.2000   101.2000
 
 xss_detection_level:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    81.4250    19.5277    62.9000   101.2000
-  5                   4    81.0250    13.3453    67.8000    99.6000
+  1                   4    77.2000    17.2818    62.9000   101.2000
+  5                   4    85.2500    14.7536    67.8000    99.6000
 
 === Main Effects: false_positive_rate ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-anomaly_score_threshold    -9.2200       2.1841            38.8%
-body_inspection_depth    -4.5000       2.1841            18.9%
-sql_injection_sensitivity    -3.2900       2.1841            13.8%
-rate_limit_rps          -3.2200       2.1841            13.5%
-xss_detection_level     -2.3900       2.1841            10.1%
-paranoia_level          -1.1600       2.1841             4.9%
+paranoia_level          -8.1800       2.1841            37.8%
+sql_injection_sensitivity     4.5200       2.1841            20.9%
+anomaly_score_threshold     4.3100       2.1841            19.9%
+rate_limit_rps          -2.2000       2.1841            10.2%
+xss_detection_level      1.2900       2.1841             6.0%
+body_inspection_depth    -1.1600       2.1841             5.4%
 
 === Interaction Effects: false_positive_rate ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-rate_limit_rps       body_inspection_depth       9.2200            19.1%
-sql_injection_sensitivity xss_detection_level        9.2200            19.1%
-rate_limit_rps       anomaly_score_threshold       4.5000             9.3%
-paranoia_level       xss_detection_level       -4.5000             9.3%
-rate_limit_rps       paranoia_level            -3.2900             6.8%
-anomaly_score_threshold xss_detection_level        3.2900             6.8%
-body_inspection_depth anomaly_score_threshold       3.2200             6.7%
-paranoia_level       sql_injection_sensitivity      -3.2200             6.7%
-body_inspection_depth paranoia_level            -2.3900             4.9%
-anomaly_score_threshold sql_injection_sensitivity       2.3900             4.9%
-rate_limit_rps       sql_injection_sensitivity      -1.1600             2.4%
-body_inspection_depth xss_detection_level       -1.1600             2.4%
-rate_limit_rps       xss_detection_level       -0.2500             0.5%
-body_inspection_depth sql_injection_sensitivity      -0.2500             0.5%
-anomaly_score_threshold paranoia_level             0.2500             0.5%
+rate_limit_rps       sql_injection_sensitivity      -8.1800            14.4%
+body_inspection_depth xss_detection_level       -8.1800            14.4%
+rate_limit_rps       paranoia_level             4.5200             8.0%
+anomaly_score_threshold xss_detection_level       -4.5200             8.0%
+rate_limit_rps       xss_detection_level        4.4500             7.9%
+body_inspection_depth sql_injection_sensitivity       4.4500             7.9%
+anomaly_score_threshold paranoia_level            -4.4500             7.9%
+rate_limit_rps       body_inspection_depth      -4.3100             7.6%
+sql_injection_sensitivity xss_detection_level       -4.3100             7.6%
+body_inspection_depth anomaly_score_threshold       2.2000             3.9%
+paranoia_level       sql_injection_sensitivity      -2.2000             3.9%
+body_inspection_depth paranoia_level             1.2900             2.3%
+anomaly_score_threshold sql_injection_sensitivity      -1.2900             2.3%
+rate_limit_rps       anomaly_score_threshold       1.1600             2.0%
+paranoia_level       xss_detection_level       -1.1600             2.0%
 
 === Summary Statistics: false_positive_rate ===
 
 rate_limit_rps:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4     6.9550     8.1108     0.0900    15.9500
-  10000               4     3.7350     4.0435     0.4700     9.6400
+  100                 4     6.4450     7.7717     0.0900    15.9500
+  10000               4     4.2450     5.0420     0.4700    11.6800
 
 body_inspection_depth:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1000                4     7.5950     7.4276     0.4700    15.9500
-  65536               4     3.0950     4.5142     0.0900     9.6400
+  1000                4     5.9250     5.6017     0.1000    11.6800
+  65536               4     4.7650     7.5347     0.0900    15.9500
 
 anomaly_score_threshold:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  15                  4     9.9550     5.5931     2.5500    15.9500
-  3                   4     0.7350     1.0451     0.0900     2.2800
+  15                  4     3.1900     4.4332     0.1000     9.6400
+  3                   4     7.5000     7.5505     0.0900    15.9500
 
 paranoia_level:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4     5.9250     5.6017     0.1000    11.6800
-  4                   4     4.7650     7.5347     0.0900    15.9500
+  1                   4     9.4350     6.5294     0.4700    15.9500
+  4                   4     1.2550     1.3440     0.0900     2.5500
 
 sql_injection_sensitivity:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4     6.9900     7.2364     0.0900    15.9500
-  9                   4     3.7000     5.4282     0.1000    11.6800
+  1                   4     3.0850     5.7327     0.0900    11.6800
+  9                   4     7.6050     6.5240     2.2800    15.9500
 
 xss_detection_level:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4     6.5400     7.6698     0.1000    15.9500
-  5                   4     4.1500     5.1394     0.0900    11.6800</div></div>
+  1                   4     4.7000     7.5602     0.1000    15.9500
+  5                   4     5.9900     5.5480     0.0900    11.6800</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: detection_rate ===
 Direction: maximize
 
 Best observed run: #4
-  rate_limit_rps = 10000
-  body_inspection_depth = 1000
+  rate_limit_rps = 100
+  body_inspection_depth = 65536
   anomaly_score_threshold = 3
-  paranoia_level = 1
+  paranoia_level = 4
   sql_injection_sensitivity = 1
   xss_detection_level = 5
   Value: 101.2
 
-RSM Model (linear, R² = 0.9626, Adj R² = 0.7384):
+RSM Model (linear, R² = 0.9512, Adj R² = 0.6584):
   Coefficients:
     intercept                      +81.2250
-    rate_limit_rps                 +1.6500
-    body_inspection_depth          -12.3000
-    anomaly_score_threshold        -5.2250
-    paranoia_level                 -0.2000
-    sql_injection_sensitivity      +1.0250
-    xss_detection_level            +4.4250
+    rate_limit_rps                 -1.3250
+    body_inspection_depth          +1.4250
+    anomaly_score_threshold        +0.1250
+    paranoia_level                 +5.5500
+    sql_injection_sensitivity      -12.3000
+    xss_detection_level            -3.7000
 
   Predicted optimum (from linear model):
-    rate_limit_rps = 10000
+    rate_limit_rps = 100
     body_inspection_depth = 1000
-    anomaly_score_threshold = 3
-    paranoia_level = 1
+    anomaly_score_threshold = 15
+    paranoia_level = 4
     sql_injection_sensitivity = 1
-    xss_detection_level = 5
-    Predicted value: 104.0000
+    xss_detection_level = 1
+    Predicted value: 102.8000
 
   Model quality: Excellent fit — surface predictions are reliable.
 
 Factor importance:
-  1. body_inspection_depth  (effect: -24.6, contribution: 49.5%)
-  2. anomaly_score_threshold  (effect: 10.5, contribution: 21.0%)
-  3. xss_detection_level  (effect: 8.9, contribution: 17.8%)
-  4. rate_limit_rps  (effect: 3.3, contribution: 6.6%)
-  5. sql_injection_sensitivity  (effect: 2.0, contribution: 4.1%)
-  6. paranoia_level  (effect: -0.4, contribution: 0.8%)
+  1. sql_injection_sensitivity  (effect: -24.6, contribution: 50.4%)
+  2. paranoia_level  (effect: 11.1, contribution: 22.7%)
+  3. xss_detection_level  (effect: -7.4, contribution: 15.1%)
+  4. body_inspection_depth  (effect: 2.9, contribution: 5.8%)
+  5. rate_limit_rps  (effect: -2.6, contribution: 5.4%)
+  6. anomaly_score_threshold  (effect: -0.2, contribution: 0.5%)
 
 === Optimization: false_positive_rate ===
 Direction: minimize
@@ -656,34 +680,34 @@ Best observed run: #1
   xss_detection_level = 5
   Value: 0.09
 
-RSM Model (linear, R² = 0.9836, Adj R² = 0.8852):
+RSM Model (linear, R² = 0.9022, Adj R² = 0.3151):
   Coefficients:
     intercept                      +5.3450
-    rate_limit_rps                 +1.7025
-    body_inspection_depth          -4.5425
-    anomaly_score_threshold        -2.2250
-    paranoia_level                 -1.1950
-    sql_injection_sensitivity      +0.0325
-    xss_detection_level            +1.7125
+    rate_limit_rps                 -1.7050
+    body_inspection_depth          +1.1000
+    anomaly_score_threshold        +0.1250
+    paranoia_level                 +2.2225
+    sql_injection_sensitivity      -4.5425
+    xss_detection_level            -0.6475
 
   Predicted optimum (from linear model):
-    rate_limit_rps = 10000
-    body_inspection_depth = 1000
+    rate_limit_rps = 100
+    body_inspection_depth = 65536
     anomaly_score_threshold = 3
-    paranoia_level = 1
+    paranoia_level = 4
     sql_injection_sensitivity = 1
     xss_detection_level = 5
-    Predicted value: 16.6900
+    Predicted value: 14.1425
 
   Model quality: Excellent fit — surface predictions are reliable.
 
 Factor importance:
-  1. body_inspection_depth  (effect: -9.1, contribution: 39.8%)
-  2. anomaly_score_threshold  (effect: 4.4, contribution: 19.5%)
-  3. xss_detection_level  (effect: 3.4, contribution: 15.0%)
-  4. rate_limit_rps  (effect: 3.4, contribution: 14.9%)
-  5. paranoia_level  (effect: -2.4, contribution: 10.5%)
-  6. sql_injection_sensitivity  (effect: 0.1, contribution: 0.3%)</div></div>
+  1. sql_injection_sensitivity  (effect: -9.1, contribution: 43.9%)
+  2. paranoia_level  (effect: 4.4, contribution: 21.5%)
+  3. rate_limit_rps  (effect: -3.4, contribution: 16.5%)
+  4. body_inspection_depth  (effect: 2.2, contribution: 10.6%)
+  5. xss_detection_level  (effect: -1.3, contribution: 6.3%)
+  6. anomaly_score_threshold  (effect: -0.2, contribution: 1.2%)</div></div>
   </section>
 
   <!-- Nav -->

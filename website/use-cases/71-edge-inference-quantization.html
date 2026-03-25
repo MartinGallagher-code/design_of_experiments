@@ -38,6 +38,30 @@
 
 <div class="container-narrow uc-content">
 
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>edge inference quantization</strong>. Plackett-Burman screening of 6 edge ML inference parameters for latency and accuracy loss.</p>
+
+    <p>The design varies 6 factors: <strong>weight bits</strong> (bits), ranging from 4 to 16, <strong>activation bits</strong> (bits), ranging from 4 to 16, <strong>batch size</strong> (samples), ranging from 1 to 32, <strong>num threads</strong> (threads), ranging from 1 to 4, <strong>cache size kb</strong> (KB), ranging from 64 to 512, and <strong>memory pool mb</strong> (MB), ranging from 16 to 128. The goal is to optimize 2 responses: inference latency ms (ms) (minimize) and accuracy loss pct (%) (minimize). Fixed conditions held constant across all runs include framework = tflite, model = mobilenet_v2.</p>
+
+    <p>A Plackett-Burman screening design was used to efficiently test 6 factors in only 8 runs. This design assumes interactions are negligible and focuses on identifying the most influential main effects.</p>
+
+    
+    <h3>Key Findings</h3>
+    <p>For <strong>inference latency ms</strong>, the most influential factors were num threads (25.9%), batch size (23.2%), activation bits (22.1%). The best observed value was <strong>5.3</strong> (at weight bits = 16, activation bits = 4, batch size = 1).</p>
+<p>For <strong>accuracy loss pct</strong>, the most influential factors were batch size (39.5%), num threads (35.9%), weight bits (10.0%). The best observed value was <strong>1.42</strong> (at weight bits = 16, activation bits = 4, batch size = 1).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Follow up with a response surface design (CCD or Box-Behnken) on the top 3&ndash;4 factors to model curvature and find the true optimum.</li>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+    <li>The screening results can guide factor reduction &mdash; drop factors contributing less than 5% and re-run with a smaller, more focused design.</li>
+  </ul>
+  </section>
+
   <!-- Factors & Responses -->
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -282,7 +306,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: inference_latency_ms</h3>
-    <p>Top factors: cache_size_kb (44.7%), num_threads (17.1%), weight_bits (13.5%).</p>
+    <p>Top factors: num_threads (25.9%), batch_size (23.2%), activation_bits (22.1%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -295,7 +319,7 @@
     </div>
 
     <h3>Response: accuracy_loss_pct</h3>
-    <p>Top factors: cache_size_kb (45.2%), activation_bits (41.9%), weight_bits (4.6%).</p>
+    <p>Top factors: batch_size (39.5%), num_threads (35.9%), weight_bits (10.0%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -471,136 +495,136 @@
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: inference_latency_ms ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-cache_size_kb          -17.7500       5.2989            44.7%
-num_threads              6.8000       5.2989            17.1%
-weight_bits              5.3500       5.2989            13.5%
-memory_pool_mb          -4.1000       5.2989            10.3%
-batch_size              -2.9500       5.2989             7.4%
-activation_bits          2.8000       5.2989             7.0%
+num_threads            -14.4500       5.2989            25.9%
+batch_size              12.9500       5.2989            23.2%
+activation_bits         12.3500       5.2989            22.1%
+weight_bits             -8.7000       5.2989            15.6%
+cache_size_kb            5.3500       5.2989             9.6%
+memory_pool_mb          -2.0000       5.2989             3.6%
 
 === Interaction Effects: inference_latency_ms ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-weight_bits          memory_pool_mb           -19.0500            13.9%
-activation_bits      cache_size_kb            -19.0500            13.9%
-batch_size           num_threads              -19.0500            13.9%
-weight_bits          num_threads              -17.7500            13.0%
-batch_size           memory_pool_mb           -17.7500            13.0%
-weight_bits          cache_size_kb              6.8000             5.0%
-activation_bits      memory_pool_mb             6.8000             5.0%
-activation_bits      batch_size                 5.3500             3.9%
-num_threads          cache_size_kb              5.3500             3.9%
-activation_bits      num_threads               -4.1000             3.0%
-batch_size           cache_size_kb             -4.1000             3.0%
-weight_bits          activation_bits           -2.9500             2.2%
-cache_size_kb        memory_pool_mb            -2.9500             2.2%
-weight_bits          batch_size                 2.8000             2.0%
-num_threads          memory_pool_mb             2.8000             2.0%
+weight_bits          cache_size_kb            -14.4500             9.8%
+activation_bits      memory_pool_mb           -14.4500             9.8%
+weight_bits          activation_bits           12.9500             8.7%
+cache_size_kb        memory_pool_mb            12.9500             8.7%
+weight_bits          batch_size                12.3500             8.3%
+num_threads          memory_pool_mb            12.3500             8.3%
+weight_bits          memory_pool_mb           -12.2000             8.2%
+activation_bits      cache_size_kb            -12.2000             8.2%
+batch_size           num_threads              -12.2000             8.2%
+activation_bits      batch_size                -8.7000             5.9%
+num_threads          cache_size_kb             -8.7000             5.9%
+weight_bits          num_threads                5.3500             3.6%
+batch_size           memory_pool_mb             5.3500             3.6%
+activation_bits      num_threads               -2.0000             1.3%
+batch_size           cache_size_kb             -2.0000             1.3%
 
 === Summary Statistics: inference_latency_ms ===
 
 weight_bits:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  16                  4    22.1750    16.9240     5.3000    44.8000
-  4                   4    27.5250    14.7857    10.4000    44.5000
+  16                  4    29.2000    12.8639    14.5000    44.5000
+  4                   4    20.5000    17.5551     5.3000    44.8000
 
 activation_bits:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  16                  4    23.4500     7.9454    14.5000    33.7000
-  4                   4    26.2500    21.3486     5.3000    44.8000
+  16                  4    18.6750    17.6232     5.3000    44.5000
+  4                   4    31.0250    10.5765    21.5000    44.8000
 
 batch_size:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    26.3250    16.9415     5.3000    44.8000
-  32                  4    23.3750    15.2086    10.4000    44.5000
+  1                   4    18.3750    12.9382     5.3000    33.7000
+  32                  4    31.3250    15.6500    14.5000    44.8000
 
 num_threads:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    21.4500    16.7375     5.3000    44.5000
-  4                   4    28.2500    14.5997    10.4000    44.8000
+  1                   4    32.0750    18.5818     5.3000    44.8000
+  4                   4    17.6250     6.2957    10.4000    24.1000
 
 cache_size_kb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  512                 4    33.7250    12.6603    21.5000    44.8000
-  64                  4    15.9750    12.4014     5.3000    33.7000
+  512                 4    22.1750    16.9240     5.3000    44.8000
+  64                  4    27.5250    14.7857    10.4000    44.5000
 
 memory_pool_mb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  128                 4    26.9000    16.6373     5.3000    44.5000
-  16                  4    22.8000    15.3660    10.4000    44.8000
+  128                 4    25.8500    16.2096    10.4000    44.8000
+  16                  4    23.8500    16.0843     5.3000    44.5000
 
 === Main Effects: accuracy_loss_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-cache_size_kb           -5.7475       1.6299            45.2%
-activation_bits          5.3375       1.6299            41.9%
-weight_bits              0.5875       1.6299             4.6%
-num_threads              0.5475       1.6299             4.3%
-memory_pool_mb           0.4725       1.6299             3.7%
-batch_size               0.0325       1.6299             0.3%
+batch_size               4.5675       1.6299            39.5%
+num_threads             -4.1475       1.6299            35.9%
+weight_bits              1.1575       1.6299            10.0%
+memory_pool_mb           0.6325       1.6299             5.5%
+cache_size_kb            0.5875       1.6299             5.1%
+activation_bits          0.4625       1.6299             4.0%
 
 === Interaction Effects: accuracy_loss_pct ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-weight_bits          num_threads               -5.7475            16.0%
-batch_size           memory_pool_mb            -5.7475            16.0%
-weight_bits          batch_size                 5.3375            14.9%
-num_threads          memory_pool_mb             5.3375            14.9%
-weight_bits          memory_pool_mb            -3.4625             9.7%
-activation_bits      cache_size_kb             -3.4625             9.7%
-batch_size           num_threads               -3.4625             9.7%
-activation_bits      batch_size                 0.5875             1.6%
-num_threads          cache_size_kb              0.5875             1.6%
-weight_bits          cache_size_kb              0.5475             1.5%
-activation_bits      memory_pool_mb             0.5475             1.5%
-activation_bits      num_threads                0.4725             1.3%
-batch_size           cache_size_kb              0.4725             1.3%
-weight_bits          activation_bits            0.0325             0.1%
-cache_size_kb        memory_pool_mb             0.0325             0.1%
+weight_bits          memory_pool_mb            -5.8325            14.4%
+activation_bits      cache_size_kb             -5.8325            14.4%
+batch_size           num_threads               -5.8325            14.4%
+weight_bits          activation_bits            4.5675            11.2%
+cache_size_kb        memory_pool_mb             4.5675            11.2%
+weight_bits          cache_size_kb             -4.1475            10.2%
+activation_bits      memory_pool_mb            -4.1475            10.2%
+activation_bits      batch_size                 1.1575             2.9%
+num_threads          cache_size_kb              1.1575             2.9%
+activation_bits      num_threads                0.6325             1.6%
+batch_size           cache_size_kb              0.6325             1.6%
+weight_bits          num_threads                0.5875             1.4%
+batch_size           memory_pool_mb             0.5875             1.4%
+weight_bits          batch_size                 0.4625             1.1%
+num_threads          memory_pool_mb             0.4625             1.1%
 
 === Summary Statistics: accuracy_loss_pct ===
 
 weight_bits:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  16                  4     5.2525     5.2680     1.4200    13.0200
-  4                   4     5.8400     4.6482     2.0500    12.6200
+  16                  4     4.9675     5.1983     1.4200    12.6200
+  4                   4     6.1250     4.6553     2.7900    13.0200
 
 activation_bits:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  16                  4     2.8775     1.3583     1.4200     4.2600
-  4                   4     8.2150     5.3619     2.7900    13.0200
+  16                  4     5.3150     5.0230     1.4200    12.6200
+  4                   4     5.7775     4.9207     2.0500    13.0200
 
 batch_size:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4     5.5300     5.0771     2.0500    13.0200
-  32                  4     5.5625     4.8795     1.4200    12.6200
+  1                   4     3.2625     1.0527     2.0500     4.4300
+  32                  4     7.8300     5.8797     1.4200    13.0200
 
 num_threads:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4     5.2725     5.0337     1.4200    12.6200
-  4                   4     5.8200     4.9040     2.0500    13.0200
+  1                   4     7.6200     6.0143     2.0500    13.0200
+  4                   4     3.4725     1.3957     1.4200     4.4300
 
 cache_size_kb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  512                 4     8.4200     5.0871     3.7800    13.0200
-  64                  4     2.6725     1.2986     1.4200     4.4300
+  512                 4     5.2525     5.2680     1.4200    13.0200
+  64                  4     5.8400     4.6482     2.0500    12.6200
 
 memory_pool_mb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  128                 4     5.3100     4.9246     2.0500    12.6200
-  16                  4     5.7825     5.0186     1.4200    13.0200</div></div>
+  128                 4     5.2300     5.3527     1.4200    13.0200
+  16                  4     5.8625     4.5464     2.7900    12.6200</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: inference_latency_ms ===
@@ -608,41 +632,41 @@ Direction: minimize
 
 Best observed run: #6
   weight_bits = 16
-  activation_bits = 16
-  batch_size = 32
-  num_threads = 4
-  cache_size_kb = 512
+  activation_bits = 4
+  batch_size = 1
+  num_threads = 1
+  cache_size_kb = 64
   memory_pool_mb = 128
   Value: 5.3
 
-RSM Model (linear, R² = 0.9275, Adj R² = 0.4925):
+RSM Model (linear, R² = 0.9914, Adj R² = 0.9398):
   Coefficients:
     intercept                      +24.8500
-    weight_bits                    -8.5000
-    activation_bits                -4.3500
-    batch_size                     +1.4000
-    num_threads                    +2.4250
-    cache_size_kb                  -8.8750
-    memory_pool_mb                 +2.1250
+    weight_bits                    -0.3500
+    activation_bits                +11.2750
+    batch_size                     +3.3250
+    num_threads                    -4.8250
+    cache_size_kb                  +4.4250
+    memory_pool_mb                 -3.7000
 
   Predicted optimum (from linear model):
     weight_bits = 4
-    activation_bits = 4
-    batch_size = 32
-    num_threads = 4
-    cache_size_kb = 64
+    activation_bits = 16
+    batch_size = 1
+    num_threads = 1
+    cache_size_kb = 512
     memory_pool_mb = 16
-    Predicted value: 48.2750
+    Predicted value: 46.1000
 
   Model quality: Excellent fit — surface predictions are reliable.
 
 Factor importance:
-  1. cache_size_kb  (effect: 17.8, contribution: 32.1%)
-  2. weight_bits  (effect: 17.0, contribution: 30.7%)
-  3. activation_bits  (effect: 8.7, contribution: 15.7%)
-  4. num_threads  (effect: 4.8, contribution: 8.8%)
-  5. memory_pool_mb  (effect: -4.2, contribution: 7.7%)
-  6. batch_size  (effect: 2.8, contribution: 5.1%)
+  1. activation_bits  (effect: -22.5, contribution: 40.4%)
+  2. num_threads  (effect: -9.6, contribution: 17.3%)
+  3. cache_size_kb  (effect: -8.8, contribution: 15.9%)
+  4. memory_pool_mb  (effect: 7.4, contribution: 13.3%)
+  5. batch_size  (effect: 6.7, contribution: 11.9%)
+  6. weight_bits  (effect: 0.7, contribution: 1.3%)
 
 === Optimization: accuracy_loss_pct ===
 Direction: minimize
@@ -656,34 +680,34 @@ Best observed run: #4
   memory_pool_mb = 16
   Value: 1.42
 
-RSM Model (linear, R² = 0.9931, Adj R² = 0.9516):
+RSM Model (linear, R² = 1.0000, Adj R² = 0.9997):
   Coefficients:
     intercept                      +5.5462
-    weight_bits                    -2.4838
-    activation_bits                +0.5787
-    batch_size                     -0.1162
-    num_threads                    +1.9162
-    cache_size_kb                  -2.8737
-    memory_pool_mb                 -0.1362
+    weight_bits                    -0.8263
+    activation_bits                +2.4413
+    batch_size                     +0.1737
+    num_threads                    -2.5063
+    cache_size_kb                  -0.4788
+    memory_pool_mb                 -2.3263
 
   Predicted optimum (from linear model):
     weight_bits = 4
     activation_bits = 16
     batch_size = 1
-    num_threads = 4
-    cache_size_kb = 64
-    memory_pool_mb = 128
-    Predicted value: 13.3787
+    num_threads = 1
+    cache_size_kb = 512
+    memory_pool_mb = 16
+    Predicted value: 12.9938
 
   Model quality: Excellent fit — surface predictions are reliable.
 
 Factor importance:
-  1. cache_size_kb  (effect: 5.7, contribution: 35.5%)
-  2. weight_bits  (effect: 5.0, contribution: 30.6%)
-  3. num_threads  (effect: 3.8, contribution: 23.6%)
-  4. activation_bits  (effect: -1.2, contribution: 7.1%)
-  5. memory_pool_mb  (effect: 0.3, contribution: 1.7%)
-  6. batch_size  (effect: -0.2, contribution: 1.4%)</div></div>
+  1. num_threads  (effect: -5.0, contribution: 28.6%)
+  2. activation_bits  (effect: -4.9, contribution: 27.9%)
+  3. memory_pool_mb  (effect: 4.7, contribution: 26.6%)
+  4. weight_bits  (effect: 1.7, contribution: 9.4%)
+  5. cache_size_kb  (effect: 1.0, contribution: 5.5%)
+  6. batch_size  (effect: 0.3, contribution: 2.0%)</div></div>
   </section>
 
   <!-- Nav -->

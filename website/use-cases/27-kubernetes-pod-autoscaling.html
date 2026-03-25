@@ -38,6 +38,30 @@
 
 <div class="container-narrow uc-content">
 
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>kubernetes pod autoscaling</strong>. Central Composite design to optimize HPA target CPU, scale-up window, and replica bounds for request latency and cost.</p>
+
+    <p>The design varies 3 factors: <strong>target cpu pct</strong> (%), ranging from 40 to 80, <strong>scaleup window</strong> (s), ranging from 15 to 120, and <strong>max replicas</strong> (pods), ranging from 5 to 30. The goal is to optimize 2 responses: p99 latency ms (ms) (minimize) and hourly cost (USD) (minimize). Fixed conditions held constant across all runs include min replicas = 2, namespace = production.</p>
+
+    <p>A Central Composite Design (CCD) was selected to fit a full quadratic response surface model, including curvature and interaction effects. With 3 factors this produces 22 runs including center points and axial (star) points that extend beyond the factorial range.</p>
+
+    <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
+
+    <h3>Key Findings</h3>
+    <p>For <strong>p99 latency ms</strong>, the most influential factors were target cpu pct (40.8%), max replicas (39.3%), scaleup window (19.9%). The best observed value was <strong>85.0</strong> (at target cpu pct = 60, scaleup window = -28.3514, max replicas = 17.5).</p>
+<p>For <strong>hourly cost</strong>, the most influential factors were target cpu pct (46.3%), max replicas (43.6%), scaleup window (10.0%). The best observed value was <strong>0.73</strong> (at target cpu pct = 60, scaleup window = 67.5, max replicas = -5.32177).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Run confirmation experiments at the predicted optimal settings to validate the model.</li>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+  </ul>
+  </section>
+
   <!-- Factors & Responses -->
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -266,7 +290,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: p99_latency_ms</h3>
-    <p>Top factors: scaleup_window (44.5%), max_replicas (34.5%), target_cpu_pct (21.0%).</p>
+    <p>Top factors: target_cpu_pct (40.8%), max_replicas (39.3%), scaleup_window (19.9%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -279,7 +303,7 @@
     </div>
 
     <h3>Response: hourly_cost</h3>
-    <p>Top factors: scaleup_window (66.7%), target_cpu_pct (20.6%), max_replicas (12.7%).</p>
+    <p>Top factors: target_cpu_pct (46.3%), max_replicas (43.6%), scaleup_window (10.0%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -335,178 +359,178 @@
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: p99_latency_ms ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-scaleup_window          59.8000       6.6653            44.5%
-max_replicas            46.3000       6.6653            34.5%
-target_cpu_pct          28.1500       6.6653            21.0%
+target_cpu_pct          51.2250       6.6653            40.8%
+max_replicas            49.4000       6.6653            39.3%
+scaleup_window          25.0750       6.6653            19.9%
 
 === Summary Statistics: p99_latency_ms ===
 
 target_cpu_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  23.4852             1   113.3000     0.0000   113.3000   113.3000
-  40                  4   117.6000    18.1257    94.1000   138.2000
-  60                 12   134.9667    38.0178    85.0000   205.1000
-  80                  4   141.4500    24.8839   119.5000   166.9000
-  96.5148             1   119.7000     0.0000   119.7000   119.7000
+  23.4852             1   117.8000     0.0000   117.8000   117.8000
+  40                  4   136.2250    21.4907   120.1000   165.9000
+  60                 12   133.9333    32.5835    94.1000   205.1000
+  80                  4   133.4750    40.5615   100.6000   192.7000
+  96.5148             1    85.0000     0.0000    85.0000    85.0000
 
 scaleup_window:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -28.3514            1   165.9000     0.0000   165.9000   165.9000
-  120                 4   129.6750    30.7001    94.1000   166.9000
-  15                  4   129.3750    19.6064   117.5000   158.7000
-  163.351             1   106.1000     0.0000   106.1000   106.1000
-  67.5               12   131.7167    36.5370    85.0000   205.1000
+  -28.3514            1   113.3000     0.0000   113.3000   113.3000
+  120                 4   138.3750    36.2180   120.0000   192.7000
+  15                  4   131.3250    27.6993   100.6000   165.9000
+  163.351             1   120.4000     0.0000   120.4000   120.4000
+  67.5               12   131.3583    35.2199    85.0000   205.1000
 
 max_replicas:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -5.32177            1   166.4000     0.0000   166.4000   166.4000
-  17.5               12   130.5083    37.1163    85.0000   205.1000
-  30                  4   124.7500     8.9831   119.5000   138.2000
-  40.3218             1   120.1000     0.0000   120.1000   120.1000
-  5                   4   134.3000    34.4306    94.1000   166.9000
+  -5.32177            1   117.5000     0.0000   117.5000   117.5000
+  17.5               12   127.1333    33.6040    85.0000   205.1000
+  30                  4   144.8250    42.0450   100.6000   192.7000
+  40.3218             1   166.9000     0.0000   166.9000   166.9000
+  5                   4   124.8750     8.8887   120.0000   138.2000
 
 === Main Effects: hourly_cost ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-scaleup_window           6.9700       0.4994            66.7%
-target_cpu_pct           2.1525       0.4994            20.6%
-max_replicas             1.3325       0.4994            12.7%
+target_cpu_pct           5.6000       0.4994            46.3%
+max_replicas             5.2700       0.4994            43.6%
+scaleup_window           1.2133       0.4994            10.0%
 
 === Summary Statistics: hourly_cost ===
 
 target_cpu_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  23.4852             1     4.8900     0.0000     4.8900     4.8900
-  40                  4     5.8350     2.9643     2.9500     9.8700
-  60                 12     4.5708     2.4763     1.0300     8.9500
-  80                  4     3.6825     1.9944     0.7300     5.1000
-  96.5148             1     4.7200     0.0000     4.7200     4.7200
+  23.4852             1     3.5100     0.0000     3.5100     3.5100
+  40                  4     3.3500     1.2475     1.7600     4.3600
+  60                 12     4.8783     2.5983     0.7300     9.8700
+  80                  4     4.5325     1.7399     2.3200     6.5700
+  96.5148             1     8.9500     0.0000     8.9500     8.9500
 
 scaleup_window:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -28.3514            1     1.7600     0.0000     1.7600     1.7600
-  120                 4     4.5300     3.8925     0.7300     9.8700
-  15                  4     4.9875     0.7503     4.3300     6.0000
-  163.351             1     8.7300     0.0000     8.7300     8.7300
-  67.5               12     4.4975     1.9613     1.0300     8.9500
+  -28.3514            1     4.8900     0.0000     4.8900     4.8900
+  120                 4     3.9325     1.0895     2.3200     4.7200
+  15                  4     3.9500     2.0805     1.7600     6.5700
+  163.351             1     4.3600     0.0000     4.3600     4.3600
+  67.5               12     5.1458     2.8855     0.7300     9.8700
 
 max_replicas:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -5.32177            1     4.1000     0.0000     4.1000     4.1000
-  17.5               12     4.6667     2.4717     1.0300     8.9500
-  30                  4     4.0925     0.7687     2.9500     4.5700
-  40.3218             1     4.3600     0.0000     4.3600     4.3600
-  5                   4     5.4250     3.7522     0.7300     9.8700</div></div>
+  -5.32177            1     6.0000     0.0000     6.0000     6.0000
+  17.5               12     5.3558     2.5497     1.0300     9.8700
+  30                  4     3.7525     2.1855     1.7600     6.5700
+  40.3218             1     0.7300     0.0000     0.7300     0.7300
+  5                   4     4.1300     0.8026     2.9500     4.7200</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: p99_latency_ms ===
 Direction: minimize
 
 Best observed run: #2
-  target_cpu_pct = 80
-  scaleup_window = 15
-  max_replicas = 5
+  target_cpu_pct = 60
+  scaleup_window = -28.3514
+  max_replicas = 17.5
   Value: 85.0
 
-RSM Model (linear, R² = 0.3039, Adj R² = 0.1879):
+RSM Model (linear, R² = 0.1357, Adj R² = -0.0083):
   Coefficients:
     intercept                      +131.3091
-    target_cpu_pct                 -20.4652
-    scaleup_window                 -2.2677
-    max_replicas                   -1.1570
+    target_cpu_pct                 -12.3740
+    scaleup_window                 +5.8311
+    max_replicas                   +1.6868
 
-RSM Model (quadratic, R² = 0.5012, Adj R² = 0.1271):
+RSM Model (quadratic, R² = 0.4331, Adj R² = 0.0080):
   Coefficients:
-    intercept                      +135.6999
-    target_cpu_pct                 -20.4652
-    scaleup_window                 -2.2678
-    max_replicas                   -1.1570
-    target_cpu_pct*scaleup_window  +4.0125
-    target_cpu_pct*max_replicas    +16.4375
-    scaleup_window*max_replicas    -9.6875
-    target_cpu_pct^2               +2.4896
-    scaleup_window^2               -5.3854
-    max_replicas^2                 -3.6904
+    intercept                      +129.5038
+    target_cpu_pct                 -12.3740
+    scaleup_window                 +5.8311
+    max_replicas                   +1.6868
+    target_cpu_pct*scaleup_window  -5.8500
+    target_cpu_pct*max_replicas    -15.4500
+    scaleup_window*max_replicas    +6.2250
+    target_cpu_pct^2               +7.7977
+    scaleup_window^2               -9.2274
+    max_replicas^2                 +4.1376
 
   Curvature analysis:
-    scaleup_window                 coef=-5.3854  concave (has a maximum)
-    max_replicas                   coef=-3.6904  concave (has a maximum)
-    target_cpu_pct                 coef=+2.4896  convex (has a minimum)
+    scaleup_window                 coef=-9.2274  concave (has a maximum)
+    target_cpu_pct                 coef=+7.7977  convex (has a minimum)
+    max_replicas                   coef=+4.1376  convex (has a minimum)
 
   Notable interactions:
-    target_cpu_pct*max_replicas    coef=+16.4375  (synergistic)
-    scaleup_window*max_replicas    coef=-9.6875  (antagonistic)
-    target_cpu_pct*scaleup_window  coef=+4.0125  (synergistic)
+    target_cpu_pct*max_replicas    coef=-15.4500  (antagonistic)
+    scaleup_window*max_replicas    coef=+6.2250  (synergistic)
+    target_cpu_pct*scaleup_window  coef=-5.8500  (antagonistic)
 
-  Predicted optimum (from linear model):
-    target_cpu_pct = 23.4852
-    scaleup_window = 67.5
-    max_replicas = 17.5
-    Predicted value: 168.6732
+  Predicted optimum (from quadratic model):
+    target_cpu_pct = 40
+    scaleup_window = 120
+    max_replicas = 30
+    Predicted value: 179.6287
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. target_cpu_pct  (effect: 57.4, contribution: 56.2%)
-  2. scaleup_window  (effect: 27.8, contribution: 27.3%)
-  3. max_replicas  (effect: 16.9, contribution: 16.5%)
+  1. scaleup_window  (effect: 55.8, contribution: 35.5%)
+  2. max_replicas  (effect: 53.6, contribution: 34.1%)
+  3. target_cpu_pct  (effect: 47.8, contribution: 30.4%)
 
 === Optimization: hourly_cost ===
 Direction: minimize
 
 Best observed run: #7
-  target_cpu_pct = 40
-  scaleup_window = 15
-  max_replicas = 5
+  target_cpu_pct = 60
+  scaleup_window = 67.5
+  max_replicas = -5.32177
   Value: 0.73
 
-RSM Model (linear, R² = 0.2404, Adj R² = 0.1138):
+RSM Model (linear, R² = 0.0606, Adj R² = -0.0960):
   Coefficients:
     intercept                      +4.6605
-    target_cpu_pct                 +1.1704
-    scaleup_window                 +0.6299
-    max_replicas                   -0.3497
+    target_cpu_pct                 +0.1064
+    scaleup_window                 -0.4828
+    max_replicas                   +0.4810
 
-RSM Model (quadratic, R² = 0.5951, Adj R² = 0.2915):
+RSM Model (quadratic, R² = 0.4895, Adj R² = 0.1067):
   Coefficients:
-    intercept                      +3.8236
-    target_cpu_pct                 +1.1704
-    scaleup_window                 +0.6299
-    max_replicas                   -0.3497
-    target_cpu_pct*scaleup_window  -0.2975
-    target_cpu_pct*max_replicas    -1.7100
-    scaleup_window*max_replicas    -0.4700
-    target_cpu_pct^2               +0.3344
-    scaleup_window^2               +0.8249
-    max_replicas^2                 +0.0959
+    intercept                      +4.7731
+    target_cpu_pct                 +0.1064
+    scaleup_window                 -0.4828
+    max_replicas                   +0.4810
+    target_cpu_pct*scaleup_window  +0.1425
+    target_cpu_pct*max_replicas    +0.6200
+    scaleup_window*max_replicas    -0.5725
+    target_cpu_pct^2               -0.5163
+    scaleup_window^2               +1.0782
+    max_replicas^2                 -0.7308
 
   Curvature analysis:
-    scaleup_window                 coef=+0.8249  convex (has a minimum)
-    target_cpu_pct                 coef=+0.3344  convex (has a minimum)
-    max_replicas                   coef=+0.0959  negligible curvature
+    scaleup_window                 coef=+1.0782  convex (has a minimum)
+    max_replicas                   coef=-0.7308  concave (has a maximum)
+    target_cpu_pct                 coef=-0.5163  concave (has a maximum)
 
   Notable interactions:
-    target_cpu_pct*max_replicas    coef=-1.7100  (antagonistic)
-    scaleup_window*max_replicas    coef=-0.4700  (antagonistic)
+    target_cpu_pct*max_replicas    coef=+0.6200  (synergistic)
+    scaleup_window*max_replicas    coef=-0.5725  (antagonistic)
 
   Predicted optimum (from quadratic model):
-    target_cpu_pct = 80
-    scaleup_window = 120
-    max_replicas = 5
-    Predicted value: 9.1114
+    target_cpu_pct = 60
+    scaleup_window = -28.3514
+    max_replicas = 17.5
+    Predicted value: 9.2486
 
-  Model quality: Moderate fit — use predictions directionally, not precisely.
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. scaleup_window  (effect: 4.7, contribution: 42.1%)
-  2. target_cpu_pct  (effect: 4.5, contribution: 40.2%)
-  3. max_replicas  (effect: 2.0, contribution: 17.6%)</div></div>
+  1. scaleup_window  (effect: 5.6, contribution: 45.3%)
+  2. max_replicas  (effect: 4.5, contribution: 36.9%)
+  3. target_cpu_pct  (effect: 2.2, contribution: 17.9%)</div></div>
   </section>
 
   <!-- Nav -->

@@ -38,6 +38,30 @@
 
 <div class="container-narrow uc-content">
 
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>query engine join strategy</strong>. Plackett-Burman screening of 6 query engine parameters for join performance and memory pressure.</p>
+
+    <p>The design varies 6 factors: <strong>join algorithm</strong>, ranging from hash to sort_merge, <strong>hash table mb</strong> (MB), ranging from 256 to 4096, <strong>sort buffer mb</strong> (MB), ranging from 64 to 512, <strong>broadcast threshold mb</strong> (MB), ranging from 10 to 256, <strong>adaptive execution</strong>, ranging from off to on, and <strong>partitions</strong> (count), ranging from 50 to 400. The goal is to optimize 2 responses: query time s (s) (minimize) and peak memory gb (GB) (minimize). Fixed conditions held constant across all runs include engine = spark_sql, data size gb = 100.</p>
+
+    <p>A Plackett-Burman screening design was used to efficiently test 6 factors in only 8 runs. This design assumes interactions are negligible and focuses on identifying the most influential main effects.</p>
+
+    
+    <h3>Key Findings</h3>
+    <p>For <strong>query time s</strong>, the most influential factors were join algorithm (25.5%), hash table mb (25.0%), partitions (21.8%). The best observed value was <strong>34.5</strong> (at join algorithm = hash, hash table mb = 256, sort buffer mb = 512).</p>
+<p>For <strong>peak memory gb</strong>, the most influential factors were adaptive execution (35.7%), partitions (17.0%), sort buffer mb (16.0%). The best observed value was <strong>1.8</strong> (at join algorithm = sort_merge, hash table mb = 256, sort buffer mb = 64).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Follow up with a response surface design (CCD or Box-Behnken) on the top 3&ndash;4 factors to model curvature and find the true optimum.</li>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+    <li>The screening results can guide factor reduction &mdash; drop factors contributing less than 5% and re-run with a smaller, more focused design.</li>
+  </ul>
+  </section>
+
   <!-- Factors & Responses -->
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -282,7 +306,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: query_time_s</h3>
-    <p>Top factors: sort_buffer_mb (44.8%), broadcast_threshold_mb (19.1%), hash_table_mb (16.9%).</p>
+    <p>Top factors: join_algorithm (25.5%), hash_table_mb (25.0%), partitions (21.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -295,7 +319,7 @@
     </div>
 
     <h3>Response: peak_memory_gb</h3>
-    <p>Top factors: sort_buffer_mb (27.9%), join_algorithm (22.1%), partitions (16.2%).</p>
+    <p>Top factors: adaptive_execution (35.7%), partitions (17.0%), sort_buffer_mb (16.0%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -381,136 +405,136 @@
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: query_time_s ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-sort_buffer_mb         -20.1250       4.7346            44.8%
-broadcast_threshold_mb     8.5750       4.7346            19.1%
-hash_table_mb           -7.5750       4.7346            16.9%
-join_algorithm          -5.5750       4.7346            12.4%
-adaptive_execution       1.7750       4.7346             4.0%
-partitions              -1.2750       4.7346             2.8%
+join_algorithm          -9.6750       4.7346            25.5%
+hash_table_mb           -9.4750       4.7346            25.0%
+partitions               8.2750       4.7346            21.8%
+adaptive_execution      -5.5750       4.7346            14.7%
+broadcast_threshold_mb    -2.8750       4.7346             7.6%
+sort_buffer_mb           2.0750       4.7346             5.5%
 
 === Interaction Effects: query_time_s ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-join_algorithm       hash_table_mb             20.1250            17.9%
-adaptive_execution   partitions               -20.1250            17.9%
-join_algorithm       adaptive_execution         8.5750             7.6%
-hash_table_mb        partitions                -8.5750             7.6%
-join_algorithm       sort_buffer_mb             7.5750             6.7%
-broadcast_threshold_mb partitions                 7.5750             6.7%
-join_algorithm       partitions                -7.4750             6.7%
-hash_table_mb        adaptive_execution         7.4750             6.7%
-sort_buffer_mb       broadcast_threshold_mb      -7.4750             6.7%
-hash_table_mb        sort_buffer_mb             5.5750             5.0%
-broadcast_threshold_mb adaptive_execution        -5.5750             5.0%
-join_algorithm       broadcast_threshold_mb       1.7750             1.6%
-sort_buffer_mb       partitions                 1.7750             1.6%
-hash_table_mb        broadcast_threshold_mb       1.2750             1.1%
-sort_buffer_mb       adaptive_execution        -1.2750             1.1%
+join_algorithm       partitions               -18.2250            14.0%
+hash_table_mb        adaptive_execution        18.2250            14.0%
+sort_buffer_mb       broadcast_threshold_mb     -18.2250            14.0%
+hash_table_mb        sort_buffer_mb             9.6750             7.4%
+broadcast_threshold_mb adaptive_execution        -9.6750             7.4%
+join_algorithm       sort_buffer_mb             9.4750             7.3%
+broadcast_threshold_mb partitions                 9.4750             7.3%
+hash_table_mb        broadcast_threshold_mb      -8.2750             6.3%
+sort_buffer_mb       adaptive_execution         8.2750             6.3%
+join_algorithm       broadcast_threshold_mb      -5.5750             4.3%
+sort_buffer_mb       partitions                -5.5750             4.3%
+join_algorithm       adaptive_execution        -2.8750             2.2%
+hash_table_mb        partitions                 2.8750             2.2%
+join_algorithm       hash_table_mb             -2.0750             1.6%
+adaptive_execution   partitions                 2.0750             1.6%
 
 === Summary Statistics: query_time_s ===
 
 join_algorithm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  hash                4    48.6500    16.8520    34.5000    69.0000
-  sort_merge          4    43.0750    10.6644    36.0000    58.9000
+  hash                4    50.7000    15.9614    35.1000    69.0000
+  sort_merge          4    41.0250    10.0633    34.5000    56.0000
 
 hash_table_mb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  256                 4    49.6500    15.7720    36.0000    69.0000
-  4096                4    42.0750    11.4643    34.5000    58.9000
+  256                 4    50.6000    14.7576    37.6000    69.0000
+  4096                4    41.1250    11.8660    34.5000    58.9000
 
 sort_buffer_mb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  512                 4    55.9250    12.1082    39.8000    69.0000
-  64                  4    35.8000     1.3491    34.5000    37.6000
+  512                 4    44.8250    16.2703    34.5000    69.0000
+  64                  4    46.9000    12.2820    35.1000    58.9000
 
 broadcast_threshold_mb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4    41.5750     9.8720    34.5000    56.0000
-  256                 4    50.1500    16.4913    35.1000    69.0000
+  10                  4    47.3000    11.9769    34.5000    58.9000
+  256                 4    44.4250    16.4159    35.1000    69.0000
 
 adaptive_execution:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4    44.9750    16.1457    35.1000    69.0000
-  on                  4    46.7500    12.4762    34.5000    58.9000
+  off                 4    48.6500    16.8520    34.5000    69.0000
+  on                  4    43.0750    10.6644    36.0000    58.9000
 
 partitions:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  400                 4    46.5000    12.7046    35.1000    58.9000
-  50                  4    45.2250    15.9984    34.5000    69.0000
+  400                 4    41.7250     9.7322    35.1000    56.0000
+  50                  4    50.0000    16.6755    34.5000    69.0000
 
 === Main Effects: peak_memory_gb ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-sort_buffer_mb           8.6750       2.7310            27.9%
-join_algorithm           6.8750       2.7310            22.1%
-partitions               5.0250       2.7310            16.2%
-hash_table_mb            4.1250       2.7310            13.3%
-adaptive_execution       3.7250       2.7310            12.0%
-broadcast_threshold_mb     2.6250       2.7310             8.5%
+adaptive_execution       6.8750       2.7310            35.7%
+partitions               3.2750       2.7310            17.0%
+sort_buffer_mb           3.0750       2.7310            16.0%
+join_algorithm           2.8250       2.7310            14.7%
+broadcast_threshold_mb     1.7250       2.7310             9.0%
+hash_table_mb            1.4750       2.7310             7.7%
 
 === Interaction Effects: peak_memory_gb ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-join_algorithm       hash_table_mb             -8.6750            11.3%
-adaptive_execution   partitions                 8.6750            11.3%
-hash_table_mb        sort_buffer_mb            -6.8750             9.0%
-broadcast_threshold_mb adaptive_execution         6.8750             9.0%
-hash_table_mb        broadcast_threshold_mb      -5.0250             6.6%
-sort_buffer_mb       adaptive_execution         5.0250             6.6%
-join_algorithm       partitions                 4.8250             6.3%
-hash_table_mb        adaptive_execution        -4.8250             6.3%
-sort_buffer_mb       broadcast_threshold_mb       4.8250             6.3%
-join_algorithm       sort_buffer_mb            -4.1250             5.4%
-broadcast_threshold_mb partitions                -4.1250             5.4%
-join_algorithm       broadcast_threshold_mb       3.7250             4.9%
-sort_buffer_mb       partitions                 3.7250             4.9%
-join_algorithm       adaptive_execution         2.6250             3.4%
-hash_table_mb        partitions                -2.6250             3.4%
+join_algorithm       partitions                11.3250            15.6%
+hash_table_mb        adaptive_execution       -11.3250            15.6%
+sort_buffer_mb       broadcast_threshold_mb      11.3250            15.6%
+join_algorithm       broadcast_threshold_mb       6.8750             9.5%
+sort_buffer_mb       partitions                 6.8750             9.5%
+hash_table_mb        broadcast_threshold_mb      -3.2750             4.5%
+sort_buffer_mb       adaptive_execution         3.2750             4.5%
+join_algorithm       hash_table_mb             -3.0750             4.2%
+adaptive_execution   partitions                 3.0750             4.2%
+hash_table_mb        sort_buffer_mb            -2.8250             3.9%
+broadcast_threshold_mb adaptive_execution         2.8250             3.9%
+join_algorithm       adaptive_execution         1.7250             2.4%
+hash_table_mb        partitions                -1.7250             2.4%
+join_algorithm       sort_buffer_mb            -1.4750             2.0%
+broadcast_threshold_mb partitions                -1.4750             2.0%
 
 === Summary Statistics: peak_memory_gb ===
 
 join_algorithm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  hash                4     8.6500     7.4182     1.8000    15.7000
-  sort_merge          4    15.5250     7.2583     9.7000    25.9000
+  hash                4    10.6750     6.1109     1.8000    15.0000
+  sort_merge          4    13.5000     9.8265     2.7000    25.9000
 
 hash_table_mb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  256                 4    10.0250    11.1569     1.8000    25.9000
-  4096                4    14.1500     1.8448    11.5000    15.7000
+  256                 4    11.3500    11.4171     1.8000    25.9000
+  4096                4    12.8250     2.7244     9.7000    15.7000
 
 sort_buffer_mb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  512                 4     7.7500     6.5200     1.8000    15.0000
-  64                  4    16.4250     6.8222     9.7000    25.9000
+  512                 4    10.5500     6.4190     1.8000    15.7000
+  64                  4    13.6250     9.5768     2.7000    25.9000
 
 broadcast_threshold_mb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4    10.7750     6.0130     2.7000    15.7000
-  256                 4    13.4000     9.9234     1.8000    25.9000
+  10                  4    11.2250     5.9729     2.7000    15.7000
+  256                 4    12.9500    10.0779     1.8000    25.9000
 
 adaptive_execution:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4    10.2250     6.0961     1.8000    15.0000
-  on                  4    13.9500     9.6338     2.7000    25.9000
+  off                 4     8.6500     7.4182     1.8000    15.7000
+  on                  4    15.5250     7.2583     9.7000    25.9000
 
 partitions:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  400                 4     9.5750     4.9755     2.7000    14.4000
-  50                  4    14.6000     9.8810     1.8000    25.9000</div></div>
+  400                 4    10.4500     5.6842     2.7000    15.0000
+  50                  4    13.7250     9.9881     1.8000    25.9000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: query_time_s ===
@@ -518,22 +542,22 @@ Direction: minimize
 
 Best observed run: #4
   join_algorithm = hash
-  hash_table_mb = 4096
-  sort_buffer_mb = 64
-  broadcast_threshold_mb = 10
-  adaptive_execution = on
+  hash_table_mb = 256
+  sort_buffer_mb = 512
+  broadcast_threshold_mb = 256
+  adaptive_execution = off
   partitions = 50
   Value: 34.5
 
-RSM Model (linear, R² = 0.9422, Adj R² = 0.5952):
+RSM Model (linear, R² = 0.9974, Adj R² = 0.9819):
   Coefficients:
     intercept                      +45.8625
-    join_algorithm                 +4.1125
-    hash_table_mb                  -5.0625
-    sort_buffer_mb                 +0.6375
-    broadcast_threshold_mb         -3.5125
-    adaptive_execution             +1.4375
-    partitions                     +9.5125
+    join_algorithm                 +4.8375
+    hash_table_mb                  -8.7375
+    sort_buffer_mb                 -4.5125
+    broadcast_threshold_mb         -3.5625
+    adaptive_execution             +2.2125
+    partitions                     +4.3375
 
   Predicted optimum (from linear model):
     join_algorithm = sort_merge
@@ -542,17 +566,17 @@ RSM Model (linear, R² = 0.9422, Adj R² = 0.5952):
     broadcast_threshold_mb = 10
     adaptive_execution = off
     partitions = 400
-    Predicted value: 65.9875
+    Predicted value: 69.6375
 
   Model quality: Excellent fit — surface predictions are reliable.
 
 Factor importance:
-  1. partitions  (effect: -19.0, contribution: 39.2%)
-  2. hash_table_mb  (effect: -10.1, contribution: 20.9%)
-  3. join_algorithm  (effect: 8.2, contribution: 16.9%)
-  4. broadcast_threshold_mb  (effect: -7.0, contribution: 14.5%)
-  5. adaptive_execution  (effect: 2.9, contribution: 5.9%)
-  6. sort_buffer_mb  (effect: -1.3, contribution: 2.6%)
+  1. hash_table_mb  (effect: -17.5, contribution: 31.0%)
+  2. join_algorithm  (effect: 9.7, contribution: 17.2%)
+  3. sort_buffer_mb  (effect: 9.0, contribution: 16.0%)
+  4. partitions  (effect: -8.7, contribution: 15.4%)
+  5. broadcast_threshold_mb  (effect: -7.1, contribution: 12.6%)
+  6. adaptive_execution  (effect: 4.4, contribution: 7.8%)
 
 === Optimization: peak_memory_gb ===
 Direction: minimize
@@ -566,34 +590,34 @@ Best observed run: #8
   partitions = 400
   Value: 1.8
 
-RSM Model (linear, R² = 0.5925, Adj R² = -1.8525):
+RSM Model (linear, R² = 0.8791, Adj R² = 0.1536):
   Coefficients:
     intercept                      +12.0875
-    join_algorithm                 -3.6125
-    hash_table_mb                  +2.5875
-    sort_buffer_mb                 -2.5125
-    broadcast_threshold_mb         +1.2375
-    adaptive_execution             -0.8625
-    partitions                     -1.6125
+    join_algorithm                 -1.4125
+    hash_table_mb                  +4.1625
+    sort_buffer_mb                 -0.1375
+    broadcast_threshold_mb         +0.8875
+    adaptive_execution             +1.6875
+    partitions                     -4.7875
 
   Predicted optimum (from linear model):
     join_algorithm = hash
     hash_table_mb = 4096
     sort_buffer_mb = 64
-    broadcast_threshold_mb = 256
-    adaptive_execution = off
-    partitions = 400
-    Predicted value: 21.2875
+    broadcast_threshold_mb = 10
+    adaptive_execution = on
+    partitions = 50
+    Predicted value: 23.3875
 
-  Model quality: Moderate fit — use predictions directionally, not precisely.
+  Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. join_algorithm  (effect: -7.2, contribution: 29.1%)
-  2. hash_table_mb  (effect: 5.2, contribution: 20.8%)
-  3. sort_buffer_mb  (effect: 5.0, contribution: 20.2%)
-  4. partitions  (effect: 3.2, contribution: 13.0%)
-  5. broadcast_threshold_mb  (effect: 2.5, contribution: 10.0%)
-  6. adaptive_execution  (effect: -1.7, contribution: 6.9%)</div></div>
+  1. partitions  (effect: 9.6, contribution: 36.6%)
+  2. hash_table_mb  (effect: 8.3, contribution: 31.8%)
+  3. adaptive_execution  (effect: 3.4, contribution: 12.9%)
+  4. join_algorithm  (effect: -2.8, contribution: 10.8%)
+  5. broadcast_threshold_mb  (effect: 1.8, contribution: 6.8%)
+  6. sort_buffer_mb  (effect: 0.3, contribution: 1.1%)</div></div>
   </section>
 
   <!-- Nav -->

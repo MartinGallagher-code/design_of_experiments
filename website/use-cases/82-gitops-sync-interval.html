@@ -38,6 +38,28 @@
 
 <div class="container-narrow uc-content">
 
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>gitops sync interval</strong>. Full factorial of sync interval, health check timeout, and prune enabled for drift detection and reconciliation.</p>
+
+    <p>The design varies 3 factors: <strong>sync interval sec</strong> (sec), ranging from 30 to 300, <strong>health check timeout</strong> (sec), ranging from 10 to 60, and <strong>prune enabled</strong>, ranging from off to on. The goal is to optimize 2 responses: drift detection delay sec (sec) (minimize) and reconciliation success pct (%) (maximize). Fixed conditions held constant across all runs include tool = argocd, cluster count = 3.</p>
+
+    <p>A full factorial design was used to explore all 8 possible combinations of the 3 factors at two levels. This guarantees that every main effect and interaction can be estimated independently, at the cost of a larger experiment (8 runs).</p>
+
+    
+    <h3>Key Findings</h3>
+    <p>For <strong>drift detection delay sec</strong>, the most influential factors were sync interval sec (51.9%), health check timeout (47.2%), prune enabled (0.9%). The best observed value was <strong>8.0</strong> (at sync interval sec = 30, health check timeout = 10, prune enabled = on).</p>
+<p>For <strong>reconciliation success pct</strong>, the most influential factors were health check timeout (53.1%), sync interval sec (28.2%), prune enabled (18.7%). The best observed value was <strong>98.7</strong> (at sync interval sec = 300, health check timeout = 10, prune enabled = off).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+  </ul>
+  </section>
+
   <!-- Factors & Responses -->
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -252,7 +274,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: drift_detection_delay_sec</h3>
-    <p>Top factors: sync_interval_sec (62.2%), prune_enabled (32.4%), health_check_timeout (5.4%).</p>
+    <p>Top factors: sync_interval_sec (51.9%), health_check_timeout (47.2%), prune_enabled (0.9%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -265,7 +287,7 @@
     </div>
 
     <h3>Response: reconciliation_success_pct</h3>
-    <p>Top factors: prune_enabled (51.2%), sync_interval_sec (24.4%), health_check_timeout (24.4%).</p>
+    <p>Top factors: health_check_timeout (53.1%), sync_interval_sec (28.2%), prune_enabled (18.7%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -301,129 +323,129 @@
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: drift_detection_delay_sec ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-sync_interval_sec      -23.0000       9.9261            62.2%
-prune_enabled           12.0000       9.9261            32.4%
-health_check_timeout    -2.0000       9.9261             5.4%
+sync_interval_sec      -28.0000       9.9261            51.9%
+health_check_timeout    25.5000       9.9261            47.2%
+prune_enabled            0.5000       9.9261             0.9%
 
 === Interaction Effects: drift_detection_delay_sec ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-sync_interval_sec    health_check_timeout     -29.5000            53.2%
-sync_interval_sec    prune_enabled             21.5000            38.7%
-health_check_timeout prune_enabled             -4.5000             8.1%
+health_check_timeout prune_enabled             29.5000            58.4%
+sync_interval_sec    prune_enabled             18.0000            35.6%
+sync_interval_sec    health_check_timeout       3.0000             5.9%
 
 === Summary Statistics: drift_detection_delay_sec ===
 
 sync_interval_sec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  30                  4    47.7500    21.2348    18.0000    68.0000
-  300                 4    24.7500    32.1805     8.0000    73.0000
+  30                  4    50.2500    28.5934    10.0000    73.0000
+  300                 4    22.2500    22.3364     8.0000    55.0000
 
 health_check_timeout:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4    37.2500    29.8147     8.0000    73.0000
-  60                  4    35.2500    30.7828     8.0000    68.0000
+  10                  4    23.5000    29.6816     8.0000    68.0000
+  60                  4    49.0000    22.9056    18.0000    73.0000
 
 prune_enabled:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4    30.2500    25.7730     8.0000    55.0000
-  on                  4    42.2500    32.8469    10.0000    73.0000
+  off                 4    36.0000    27.8568     8.0000    68.0000
+  on                  4    36.5000    32.6037     8.0000    73.0000
 
 === Main Effects: reconciliation_success_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-prune_enabled           -3.6250       1.5159            51.2%
-sync_interval_sec        1.7250       1.5159            24.4%
-health_check_timeout     1.7250       1.5159            24.4%
+health_check_timeout    -5.3250       1.5159            53.1%
+sync_interval_sec        2.8250       1.5159            28.2%
+prune_enabled           -1.8750       1.5159            18.7%
 
 === Interaction Effects: reconciliation_success_pct ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-sync_interval_sec    health_check_timeout       3.9750            35.6%
-sync_interval_sec    prune_enabled             -3.6750            32.9%
-health_check_timeout prune_enabled              3.5250            31.5%
+health_check_timeout prune_enabled             -3.9750            69.4%
+sync_interval_sec    health_check_timeout      -0.8750            15.3%
+sync_interval_sec    prune_enabled              0.8750            15.3%
 
 === Summary Statistics: reconciliation_success_pct ===
 
 sync_interval_sec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  30                  4    93.1750     1.6112    91.2000    95.1000
-  300                 4    94.9000     6.1898    85.7000    98.7000
+  30                  4    92.6250     4.8849    85.7000    96.8000
+  300                 4    95.4500     3.7027    91.2000    98.7000
 
 health_check_timeout:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4    93.1750     5.3848    85.7000    98.4000
-  60                  4    94.9000     3.4516    91.2000    98.7000
+  10                  4    96.7000     2.6671    92.9000    98.7000
+  60                  4    91.3750     4.1080    85.7000    95.1000
 
 prune_enabled:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4    95.8500     3.5029    91.2000    98.7000
-  on                  4    92.2250     4.6757    85.7000    96.8000</div></div>
+  off                 4    94.9750     2.4649    92.9000    98.4000
+  on                  4    93.1000     5.8714    85.7000    98.7000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: drift_detection_delay_sec ===
 Direction: minimize
 
 Best observed run: #1
-  sync_interval_sec = 300
-  health_check_timeout = 60
-  prune_enabled = off
+  sync_interval_sec = 30
+  health_check_timeout = 10
+  prune_enabled = on
   Value: 8.0
 
-RSM Model (linear, R² = 0.4493, Adj R² = 0.0363):
+RSM Model (linear, R² = 0.6070, Adj R² = 0.3122):
   Coefficients:
     intercept                      +36.2500
-    sync_interval_sec              -3.5000
-    health_check_timeout           -17.2500
-    prune_enabled                  +0.2500
+    sync_interval_sec              -9.0000
+    health_check_timeout           +15.2500
+    prune_enabled                  -10.2500
 
   Predicted optimum (from linear model):
     sync_interval_sec = 30
-    health_check_timeout = 10
-    prune_enabled = on
-    Predicted value: 57.2500
+    health_check_timeout = 60
+    prune_enabled = off
+    Predicted value: 70.7500
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. health_check_timeout  (effect: -34.5, contribution: 82.1%)
-  2. sync_interval_sec  (effect: -7.0, contribution: 16.7%)
-  3. prune_enabled  (effect: 0.5, contribution: 1.2%)
+  1. health_check_timeout  (effect: 30.5, contribution: 44.2%)
+  2. prune_enabled  (effect: -20.5, contribution: 29.7%)
+  3. sync_interval_sec  (effect: -18.0, contribution: 26.1%)
 
 === Optimization: reconciliation_success_pct ===
 Direction: maximize
 
 Best observed run: #8
-  sync_interval_sec = 30
-  health_check_timeout = 60
+  sync_interval_sec = 300
+  health_check_timeout = 10
   prune_enabled = off
   Value: 98.7
 
-RSM Model (linear, R² = 0.6759, Adj R² = 0.4328):
+RSM Model (linear, R² = 0.4780, Adj R² = 0.0864):
   Coefficients:
     intercept                      +94.0375
-    sync_interval_sec              +0.5125
-    health_check_timeout           +3.2125
-    prune_enabled                  +0.5375
+    sync_interval_sec              -0.3625
+    health_check_timeout           -2.3875
+    prune_enabled                  +1.3625
 
   Predicted optimum (from linear model):
-    sync_interval_sec = 300
-    health_check_timeout = 60
+    sync_interval_sec = 30
+    health_check_timeout = 10
     prune_enabled = on
-    Predicted value: 98.3000
+    Predicted value: 98.1500
 
-  Model quality: Moderate fit — use predictions directionally, not precisely.
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. health_check_timeout  (effect: 6.4, contribution: 75.4%)
-  2. prune_enabled  (effect: 1.1, contribution: 12.6%)
-  3. sync_interval_sec  (effect: 1.0, contribution: 12.0%)</div></div>
+  1. health_check_timeout  (effect: -4.8, contribution: 58.1%)
+  2. prune_enabled  (effect: 2.7, contribution: 33.1%)
+  3. sync_interval_sec  (effect: -0.7, contribution: 8.8%)</div></div>
   </section>
 
   <!-- Nav -->

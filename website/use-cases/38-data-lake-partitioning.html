@@ -38,6 +38,29 @@
 
 <div class="container-narrow uc-content">
 
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>data lake partitioning</strong>. Full factorial of partitioning strategy, file format, and compaction for query speed and storage cost.</p>
+
+    <p>The design varies 4 factors: <strong>partition cols</strong>, ranging from date to date_hour_region, <strong>file format</strong>, ranging from parquet to orc, <strong>target file mb</strong> (MB), ranging from 64 to 256, and <strong>z order</strong>, ranging from off to on. The goal is to optimize 2 responses: query time s (s) (minimize) and storage cost month (USD) (minimize). Fixed conditions held constant across all runs include table size tb = 5, retention days = 90.</p>
+
+    <p>A full factorial design was used to explore all 16 possible combinations of the 4 factors at two levels. This guarantees that every main effect and interaction can be estimated independently, at the cost of a larger experiment (24 runs).</p>
+
+    <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
+
+    <h3>Key Findings</h3>
+    <p>For <strong>query time s</strong>, the most influential factors were partition cols (40.2%), file format (34.1%), target file mb (13.8%). The best observed value was <strong>2.9</strong> (at partition cols = date_hour, file format = orc, target file mb = 64).</p>
+<p>For <strong>storage cost month</strong>, the most influential factors were partition cols (53.1%), file format (28.5%), target file mb (13.4%). The best observed value was <strong>182.0</strong> (at partition cols = date, file format = parquet, target file mb = 256).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+  </ul>
+  </section>
+
   <!-- Factors & Responses -->
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -279,7 +302,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: query_time_s</h3>
-    <p>Top factors: file_format (51.0%), partition_cols (20.6%), target_file_mb (17.4%).</p>
+    <p>Top factors: partition_cols (40.2%), file_format (34.1%), target_file_mb (13.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -292,7 +315,7 @@
     </div>
 
     <h3>Response: storage_cost_month</h3>
-    <p>Top factors: z_order (68.8%), partition_cols (27.5%), file_format (3.5%).</p>
+    <p>Top factors: partition_cols (53.1%), file_format (28.5%), target_file_mb (13.4%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -313,216 +336,217 @@
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: query_time_s ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-file_format             -4.4000       1.1045            51.0%
-partition_cols           1.7750       1.1045            20.6%
-target_file_mb           1.5000       1.1045            17.4%
-z_order                 -0.9500       1.1045            11.0%
+partition_cols           3.0500       1.1045            40.2%
+file_format             -2.5833       1.1045            34.1%
+target_file_mb          -1.0500       1.1045            13.8%
+z_order                  0.9000       1.1045            11.9%
 
 === Interaction Effects: query_time_s ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-file_format          z_order                   -5.5167            78.1%
-file_format          target_file_mb             1.2000            17.0%
-target_file_mb       z_order                   -0.3500             5.0%
+file_format          target_file_mb            -3.3000            58.2%
+target_file_mb       z_order                    1.9500            34.4%
+file_format          z_order                    0.4167             7.4%
 
 === Summary Statistics: query_time_s ===
 
 partition_cols:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  date                8    11.1375     6.2046     2.9000    20.3000
-  date_hour           8    12.5500     6.4955     6.1000    23.5000
-  date_hour_region     8    12.9125     3.6744     8.4000    18.1000
+  date                8    13.5375     5.6740     8.4000    23.5000
+  date_hour           8    10.4875     5.7095     2.9000    20.5000
+  date_hour_region     8    12.5750     5.0844     4.9000    18.1000
 
 file_format:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  orc                12    14.4000     4.4194     6.1000    20.5000
-  parquet            12    10.0000     5.5792     2.9000    23.5000
+  orc                12    13.4917     6.1122     5.5000    23.5000
+  parquet            12    10.9083     4.4966     2.9000    18.1000
 
 target_file_mb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  256                12    11.4500     4.3523     4.9000    18.1000
-  64                 12    12.9500     6.4069     2.9000    23.5000
+  256                12    12.7250     4.6048     6.1000    20.3000
+  64                 12    11.6750     6.2780     2.9000    23.5000
 
 z_order:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                12    12.6750     5.0113     5.5000    23.5000
-  on                 12    11.7250     5.9677     2.9000    20.5000
+  off                12    11.7500     6.3255     2.9000    23.5000
+  on                 12    12.6500     4.5568     4.9000    20.5000
 
 === Main Effects: storage_cost_month ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-z_order                -24.7500       6.2977            68.8%
-partition_cols           9.8750       6.2977            27.5%
-file_format             -1.2500       6.2977             3.5%
-target_file_mb           0.0833       6.2977             0.2%
+partition_cols          27.5000       6.2977            53.1%
+file_format             14.7500       6.2977            28.5%
+target_file_mb           6.9167       6.2977            13.4%
+z_order                  2.5833       6.2977             5.0%
 
 === Interaction Effects: storage_cost_month ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-file_format          target_file_mb             8.9167            73.8%
-target_file_mb       z_order                   -2.5833            21.4%
-file_format          z_order                   -0.5833             4.8%
+file_format          z_order                  -21.9167            52.9%
+target_file_mb       z_order                  -18.0833            43.7%
+file_format          target_file_mb             1.4167             3.4%
 
 === Summary Statistics: storage_cost_month ===
 
 partition_cols:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  date                8   254.6250    31.5773   185.0000   281.0000
-  date_hour           8   244.7500    39.1909   182.0000   312.0000
-  date_hour_region     8   248.0000    23.1640   220.0000   283.0000
+  date                8   233.1250    34.7540   182.0000   278.0000
+  date_hour           8   260.6250    28.7200   215.0000   312.0000
+  date_hour_region     8   253.6250    25.0596   220.0000   281.0000
 
 file_format:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  orc                12   249.7500    33.2952   185.0000   312.0000
-  parquet            12   248.5000    29.6786   182.0000   283.0000
+  orc                12   241.7500    32.9355   185.0000   312.0000
+  parquet            12   256.5000    28.0503   182.0000   283.0000
 
 target_file_mb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  256                12   249.0833    29.1905   182.0000   283.0000
-  64                 12   249.1667    33.7365   185.0000   312.0000
+  256                12   245.6667    39.8642   182.0000   312.0000
+  64                 12   252.5833    19.3647   220.0000   283.0000
 
 z_order:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                12   261.5000    25.5289   220.0000   312.0000
-  on                 12   236.7500    31.6921   182.0000   271.0000</div></div>
+  off                12   247.8333    28.6637   185.0000   278.0000
+  on                 12   250.4167    34.1320   182.0000   312.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: query_time_s ===
 Direction: minimize
 
 Best observed run: #4
-  partition_cols = date_hour_region
-  file_format = parquet
+  partition_cols = date_hour
+  file_format = orc
   target_file_mb = 64
   z_order = off
   Value: 2.9
 
-RSM Model (linear, R² = 0.5547, Adj R² = 0.4609):
+RSM Model (linear, R² = 0.1443, Adj R² = -0.0358):
   Coefficients:
     intercept                      +12.2000
-    partition_cols                 -4.5125
-    file_format                    -1.1167
-    target_file_mb                 -0.7583
-    z_order                        +0.4083
+    partition_cols                 -0.8250
+    file_format                    -0.0667
+    target_file_mb                 -1.7833
+    z_order                        -0.6417
 
-RSM Model (quadratic, R² = 0.6832, Adj R² = 0.1904):
+RSM Model (quadratic, R² = 0.3610, Adj R² = -0.6331):
   Coefficients:
-    intercept                      +2.9500
-    partition_cols                 -4.5125
-    file_format                    -1.1167
-    target_file_mb                 -0.7583
-    z_order                        +0.4083
-    partition_cols*file_format     +1.0000
-    partition_cols*target_file_mb  +0.8625
-    partition_cols*z_order         +1.0625
-    file_format*target_file_mb     -0.1250
-    file_format*z_order            +1.2083
-    target_file_mb*z_order         -0.3667
-    partition_cols^2               +0.6000
-    file_format^2                  +2.9500
-    target_file_mb^2               +2.9500
-    z_order^2                      +2.9500
+    intercept                      +3.3000
+    partition_cols                 -0.8250
+    file_format                    -0.0667
+    target_file_mb                 -1.7833
+    z_order                        -0.6417
+    partition_cols*file_format     -1.5750
+    partition_cols*target_file_mb  -1.1875
+    partition_cols*z_order         -1.4250
+    file_format*target_file_mb     -1.0167
+    file_format*z_order            -0.3750
+    target_file_mb*z_order         -0.6750
+    partition_cols^2               -1.5000
+    file_format^2                  +3.3000
+    target_file_mb^2               +3.3000
+    z_order^2                      +3.3000
 
   Curvature analysis:
-    target_file_mb                 coef=+2.9500  convex (has a minimum)
-    z_order                        coef=+2.9500  convex (has a minimum)
-    file_format                    coef=+2.9500  convex (has a minimum)
-    partition_cols                 coef=+0.6000  convex (has a minimum)
+    target_file_mb                 coef=+3.3000  convex (has a minimum)
+    z_order                        coef=+3.3000  convex (has a minimum)
+    file_format                    coef=+3.3000  convex (has a minimum)
+    partition_cols                 coef=-1.5000  concave (has a maximum)
 
   Notable interactions:
-    file_format*z_order            coef=+1.2083  (synergistic)
-    partition_cols*z_order         coef=+1.0625  (synergistic)
-    partition_cols*file_format     coef=+1.0000  (synergistic)
-    partition_cols*target_file_mb  coef=+0.8625  (synergistic)
-    target_file_mb*z_order         coef=-0.3667  (antagonistic)
+    partition_cols*file_format     coef=-1.5750  (antagonistic)
+    partition_cols*z_order         coef=-1.4250  (antagonistic)
+    partition_cols*target_file_mb  coef=-1.1875  (antagonistic)
+    file_format*target_file_mb     coef=-1.0167  (antagonistic)
+    target_file_mb*z_order         coef=-0.6750  (antagonistic)
+    file_format*z_order            coef=-0.3750  (antagonistic)
 
   Predicted optimum (from linear model):
     partition_cols = date
     file_format = orc
     target_file_mb = 64
-    z_order = on
-    Predicted value: 18.9958
+    z_order = off
+    Predicted value: 15.5167
 
-  Model quality: Moderate fit — use predictions directionally, not precisely.
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. partition_cols  (effect: 9.0, contribution: 66.4%)
-  2. file_format  (effect: -2.2, contribution: 16.4%)
-  3. target_file_mb  (effect: 1.5, contribution: 11.2%)
-  4. z_order  (effect: 0.8, contribution: 6.0%)
+  1. target_file_mb  (effect: 3.6, contribution: 48.8%)
+  2. partition_cols  (effect: 2.3, contribution: 31.8%)
+  3. z_order  (effect: -1.3, contribution: 17.6%)
+  4. file_format  (effect: -0.1, contribution: 1.8%)
 
 === Optimization: storage_cost_month ===
 Direction: minimize
 
 Best observed run: #23
-  partition_cols = date_hour_region
-  file_format = orc
+  partition_cols = date
+  file_format = parquet
   target_file_mb = 256
-  z_order = off
+  z_order = on
   Value: 182.0
 
-RSM Model (linear, R² = 0.1747, Adj R² = 0.0009):
+RSM Model (linear, R² = 0.0717, Adj R² = -0.1238):
   Coefficients:
     intercept                      +249.1250
-    partition_cols                 +10.8750
-    file_format                    +3.2083
-    target_file_mb                 -7.2917
-    z_order                        +4.1250
+    partition_cols                 +3.5000
+    file_format                    -7.1250
+    target_file_mb                 +1.7083
+    z_order                        -1.8750
 
-RSM Model (quadratic, R² = 0.3656, Adj R² = -0.6213):
+RSM Model (quadratic, R² = 0.3729, Adj R² = -0.6027):
   Coefficients:
-    intercept                      +64.9688
-    partition_cols                 +10.8750
-    file_format                    +3.2083
-    target_file_mb                 -7.2917
-    z_order                        +4.1250
-    partition_cols*file_format     -6.5000
-    partition_cols*target_file_mb  -11.0000
-    partition_cols*z_order         -0.6250
-    file_format*target_file_mb     +0.7917
-    file_format*z_order            -2.1250
-    target_file_mb*z_order         -1.4583
-    partition_cols^2               -16.1250
-    file_format^2                  +64.9688
-    target_file_mb^2               +64.9688
-    z_order^2                      +64.9688
+    intercept                      +63.0937
+    partition_cols                 +3.5000
+    file_format                    -7.1250
+    target_file_mb                 +1.7083
+    z_order                        -1.8750
+    partition_cols*file_format     -8.0000
+    partition_cols*target_file_mb  +1.2500
+    partition_cols*z_order         +11.7500
+    file_format*target_file_mb     -10.5417
+    file_format*z_order            +2.0417
+    target_file_mb*z_order         -4.2917
+    partition_cols^2               -4.8750
+    file_format^2                  +63.0938
+    target_file_mb^2               +63.0938
+    z_order^2                      +63.0938
 
   Curvature analysis:
-    target_file_mb                 coef=+64.9688  convex (has a minimum)
-    z_order                        coef=+64.9688  convex (has a minimum)
-    file_format                    coef=+64.9688  convex (has a minimum)
-    partition_cols                 coef=-16.1250  concave (has a maximum)
+    target_file_mb                 coef=+63.0938  convex (has a minimum)
+    z_order                        coef=+63.0938  convex (has a minimum)
+    file_format                    coef=+63.0938  convex (has a minimum)
+    partition_cols                 coef=-4.8750  concave (has a maximum)
 
   Notable interactions:
-    partition_cols*target_file_mb  coef=-11.0000  (antagonistic)
-    partition_cols*file_format     coef=-6.5000  (antagonistic)
-    file_format*z_order            coef=-2.1250  (antagonistic)
-    target_file_mb*z_order         coef=-1.4583  (antagonistic)
-    file_format*target_file_mb     coef=+0.7917  (synergistic)
-    partition_cols*z_order         coef=-0.6250  (antagonistic)
+    partition_cols*z_order         coef=+11.7500  (synergistic)
+    file_format*target_file_mb     coef=-10.5417  (antagonistic)
+    partition_cols*file_format     coef=-8.0000  (antagonistic)
+    target_file_mb*z_order         coef=-4.2917  (antagonistic)
+    file_format*z_order            coef=+2.0417  (synergistic)
+    partition_cols*target_file_mb  coef=+1.2500  (synergistic)
 
   Predicted optimum (from linear model):
     partition_cols = date_hour_region
-    file_format = parquet
-    target_file_mb = 64
-    z_order = on
-    Predicted value: 274.6250
+    file_format = orc
+    target_file_mb = 256
+    z_order = off
+    Predicted value: 263.3333
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. partition_cols  (effect: 27.0, contribution: 48.0%)
-  2. target_file_mb  (effect: 14.6, contribution: 25.9%)
-  3. z_order  (effect: 8.2, contribution: 14.7%)
-  4. file_format  (effect: 6.4, contribution: 11.4%)</div></div>
+  1. file_format  (effect: -14.2, contribution: 47.8%)
+  2. partition_cols  (effect: 8.4, contribution: 28.1%)
+  3. z_order  (effect: -3.8, contribution: 12.6%)
+  4. target_file_mb  (effect: -3.4, contribution: 11.5%)</div></div>
   </section>
 
   <!-- Nav -->

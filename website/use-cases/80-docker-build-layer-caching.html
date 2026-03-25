@@ -38,6 +38,30 @@
 
 <div class="container-narrow uc-content">
 
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>docker build layer caching</strong>. Fractional factorial of 5 Docker build parameters for build time and image size.</p>
+
+    <p>The design varies 5 factors: <strong>build cache mode</strong>, ranging from inline to registry, <strong>max layers</strong> (layers), ranging from 5 to 30, <strong>squash enabled</strong>, ranging from off to on, <strong>build arg count</strong> (args), ranging from 0 to 10, and <strong>multistage stages</strong> (stages), ranging from 1 to 5. The goal is to optimize 2 responses: build time sec (sec) (minimize) and image size mb (MB) (minimize). Fixed conditions held constant across all runs include builder = buildkit, registry = ecr.</p>
+
+    <p>A fractional factorial design reduces the number of runs from 32 to 8 by deliberately confounding higher-order interactions. This is ideal for screening &mdash; identifying which of the 5 factors matter most before investing in a full study.</p>
+
+    
+    <h3>Key Findings</h3>
+    <p>For <strong>build time sec</strong>, the most influential factors were build cache mode (32.5%), max layers (25.6%), squash enabled (23.8%). The best observed value was <strong>52.0</strong> (at build cache mode = inline, max layers = 5, squash enabled = on).</p>
+<p>For <strong>image size mb</strong>, the most influential factors were max layers (34.4%), build arg count (29.1%), squash enabled (15.4%). The best observed value was <strong>328.0</strong> (at build cache mode = inline, max layers = 5, squash enabled = on).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Follow up with a response surface design (CCD or Box-Behnken) on the top 3&ndash;4 factors to model curvature and find the true optimum.</li>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+    <li>The screening results can guide factor reduction &mdash; drop factors contributing less than 5% and re-run with a smaller, more focused design.</li>
+  </ul>
+  </section>
+
   <!-- Factors & Responses -->
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -272,7 +296,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: build_time_sec</h3>
-    <p>Top factors: max_layers (45.8%), squash_enabled (23.5%), build_cache_mode (18.5%).</p>
+    <p>Top factors: build_cache_mode (32.5%), max_layers (25.6%), squash_enabled (23.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -285,7 +309,7 @@
     </div>
 
     <h3>Response: image_size_mb</h3>
-    <p>Top factors: squash_enabled (34.6%), max_layers (28.2%), build_arg_count (26.0%).</p>
+    <p>Top factors: max_layers (34.4%), build_arg_count (29.1%), squash_enabled (15.4%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -341,112 +365,112 @@
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: build_time_sec ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-max_layers             -54.5000      13.3697            45.8%
-squash_enabled         -28.0000      13.3697            23.5%
-build_cache_mode        22.0000      13.3697            18.5%
-build_arg_count        -12.5000      13.3697            10.5%
-multistage_stages        2.0000      13.3697             1.7%
+build_cache_mode       -26.0000      13.3697            32.5%
+max_layers              20.5000      13.3697            25.6%
+squash_enabled          19.0000      13.3697            23.8%
+build_arg_count          7.5000      13.3697             9.4%
+multistage_stages        7.0000      13.3697             8.8%
 
 === Interaction Effects: build_time_sec ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-build_cache_mode     build_arg_count           54.5000            27.9%
-build_cache_mode     multistage_stages        -28.0000            14.4%
-max_layers           squash_enabled           -24.5000            12.6%
-build_arg_count      multistage_stages         24.5000            12.6%
-max_layers           build_arg_count          -22.0000            11.3%
-squash_enabled       multistage_stages         22.0000            11.3%
-build_cache_mode     max_layers                12.5000             6.4%
-max_layers           multistage_stages          2.5000             1.3%
-squash_enabled       build_arg_count           -2.5000             1.3%
-build_cache_mode     squash_enabled             2.0000             1.0%
+max_layers           squash_enabled           -49.5000            18.5%
+build_arg_count      multistage_stages         49.5000            18.5%
+max_layers           multistage_stages        -31.5000            11.8%
+squash_enabled       build_arg_count           31.5000            11.8%
+max_layers           build_arg_count           26.0000             9.7%
+squash_enabled       multistage_stages        -26.0000             9.7%
+build_cache_mode     build_arg_count          -20.5000             7.6%
+build_cache_mode     multistage_stages         19.0000             7.1%
+build_cache_mode     max_layers                -7.5000             2.8%
+build_cache_mode     squash_enabled             7.0000             2.6%
 
 === Summary Statistics: build_time_sec ===
 
 build_cache_mode:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  inline              4   114.0000    45.1590    52.0000   149.0000
-  registry            4   136.0000    31.2197    91.0000   159.0000
+  inline              4   138.0000    20.4287   109.0000   155.0000
+  registry            4   112.0000    49.6857    52.0000   159.0000
 
 max_layers:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  30                  4   152.2500     5.8523   146.0000   159.0000
-  5                   4    97.7500    36.3628    52.0000   139.0000
+  30                  4   114.7500    46.6074    52.0000   159.0000
+  5                   4   135.2500    29.7363    91.0000   155.0000
 
 squash_enabled:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4   139.0000    21.6025   109.0000   159.0000
-  on                  4   111.0000    48.4493    52.0000   155.0000
+  off                 4   115.5000    46.7796    52.0000   155.0000
+  on                  4   134.5000    30.1275    91.0000   159.0000
 
 build_arg_count:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   4   131.2500    27.1585    91.0000   149.0000
-  10                  4   118.7500    49.9491    52.0000   159.0000
+  0                   4   121.2500    25.7730    91.0000   146.0000
+  10                  4   128.7500    51.3314    52.0000   159.0000
 
 multistage_stages:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4   124.0000    48.7100    52.0000   159.0000
-  5                   4   126.0000    31.0054    91.0000   155.0000
+  1                   4   121.5000    46.5224    52.0000   149.0000
+  5                   4   128.5000    33.7589    91.0000   159.0000
 
 === Main Effects: image_size_mb ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-squash_enabled          96.5000      39.1635            34.6%
-max_layers             -78.5000      39.1635            28.2%
-build_arg_count        -72.5000      39.1635            26.0%
-build_cache_mode        22.5000      39.1635             8.1%
-multistage_stages       -8.5000      39.1635             3.1%
+max_layers             119.5000      39.1635            34.4%
+build_arg_count       -101.0000      39.1635            29.1%
+squash_enabled         -53.5000      39.1635            15.4%
+build_cache_mode        51.0000      39.1635            14.7%
+multistage_stages       22.0000      39.1635             6.3%
 
 === Interaction Effects: image_size_mb ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-max_layers           squash_enabled          -105.5000            14.7%
-build_arg_count      multistage_stages        105.5000            14.7%
-max_layers           multistage_stages        102.5000            14.3%
-squash_enabled       build_arg_count         -102.5000            14.3%
-build_cache_mode     multistage_stages         96.5000            13.5%
-build_cache_mode     build_arg_count           78.5000            10.9%
-build_cache_mode     max_layers                72.5000            10.1%
-max_layers           build_arg_count          -22.5000             3.1%
-squash_enabled       multistage_stages         22.5000             3.1%
-build_cache_mode     squash_enabled            -8.5000             1.2%
+build_cache_mode     build_arg_count         -119.5000            17.7%
+max_layers           squash_enabled          -107.5000            15.9%
+build_arg_count      multistage_stages        107.5000            15.9%
+build_cache_mode     max_layers               101.0000            15.0%
+build_cache_mode     multistage_stages        -53.5000             7.9%
+max_layers           build_arg_count          -51.0000             7.6%
+squash_enabled       multistage_stages         51.0000             7.6%
+max_layers           multistage_stages        -31.0000             4.6%
+squash_enabled       build_arg_count           31.0000             4.6%
+build_cache_mode     squash_enabled            22.0000             3.3%
 
 === Summary Statistics: image_size_mb ===
 
 build_cache_mode:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  inline              4   455.0000   160.3018   328.0000   687.0000
-  registry            4   477.5000    50.9542   432.0000   526.0000
+  inline              4   440.7500    62.9676   374.0000   526.0000
+  registry            4   491.7500   151.4318   328.0000   687.0000
 
 max_layers:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  30                  4   505.5000   136.1678   374.0000   687.0000
-  5                   4   427.0000    77.3348   328.0000   517.0000
+  30                  4   406.5000    52.3609   328.0000   435.0000
+  5                   4   526.0000   127.9401   374.0000   687.0000
 
 squash_enabled:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4   418.0000    29.3825   374.0000   435.0000
-  on                  4   514.5000   146.8298   328.0000   687.0000
+  off                 4   493.0000   152.5276   328.0000   687.0000
+  on                  4   439.5000    58.8019   374.0000   517.0000
 
 build_arg_count:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   4   502.5000   136.2999   374.0000   687.0000
-  10                  4   430.0000    80.9238   328.0000   526.0000
+  0                   4   516.7500   120.4447   431.0000   687.0000
+  10                  4   415.7500    85.5740   328.0000   526.0000
 
 multistage_stages:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4   470.5000   152.6663   328.0000   687.0000
-  5                   4   462.0000    72.6315   374.0000   526.0000</div></div>
+  1                   4   455.2500   160.2527   328.0000   687.0000
+  5                   4   477.2500    51.2535   431.0000   526.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: build_time_sec ===
@@ -454,57 +478,57 @@ Direction: minimize
 
 Best observed run: #6
   build_cache_mode = inline
-  max_layers = 30
-  squash_enabled = off
-  build_arg_count = 0
-  multistage_stages = 5
+  max_layers = 5
+  squash_enabled = on
+  build_arg_count = 10
+  multistage_stages = 1
   Value: 52.0
 
-RSM Model (linear, R² = 0.5102, Adj R² = -0.7142):
+RSM Model (linear, R² = 0.8163, Adj R² = 0.3572):
   Coefficients:
     intercept                      +125.0000
-    build_cache_mode               +0.2500
-    max_layers                     -11.2500
-    squash_enabled                 +10.7500
-    build_arg_count                +18.0000
-    multistage_stages              -8.5000
+    build_cache_mode               +11.2500
+    max_layers                     +25.5000
+    squash_enabled                 +3.0000
+    build_arg_count                -7.7500
+    multistage_stages              +13.2500
 
   Predicted optimum (from linear model):
-    build_cache_mode = inline
-    max_layers = 5
+    build_cache_mode = registry
+    max_layers = 30
     squash_enabled = on
     build_arg_count = 10
-    multistage_stages = 1
-    Predicted value: 173.2500
+    multistage_stages = 5
+    Predicted value: 170.2500
 
-  Model quality: Moderate fit — use predictions directionally, not precisely.
+  Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. build_arg_count  (effect: 36.0, contribution: 36.9%)
-  2. max_layers  (effect: 22.5, contribution: 23.1%)
-  3. squash_enabled  (effect: 21.5, contribution: 22.1%)
-  4. multistage_stages  (effect: -17.0, contribution: 17.4%)
-  5. build_cache_mode  (effect: 0.5, contribution: 0.5%)
+  1. max_layers  (effect: -51.0, contribution: 42.0%)
+  2. multistage_stages  (effect: 26.5, contribution: 21.8%)
+  3. build_cache_mode  (effect: 22.5, contribution: 18.5%)
+  4. build_arg_count  (effect: -15.5, contribution: 12.8%)
+  5. squash_enabled  (effect: 6.0, contribution: 4.9%)
 
 === Optimization: image_size_mb ===
 Direction: minimize
 
 Best observed run: #6
   build_cache_mode = inline
-  max_layers = 30
-  squash_enabled = off
-  build_arg_count = 0
-  multistage_stages = 5
+  max_layers = 5
+  squash_enabled = on
+  build_arg_count = 10
+  multistage_stages = 1
   Value: 328.0
 
-RSM Model (linear, R² = 0.7164, Adj R² = 0.0073):
+RSM Model (linear, R² = 0.8525, Adj R² = 0.4836):
   Coefficients:
     intercept                      +466.2500
-    build_cache_mode               +74.0000
-    max_layers                     -37.0000
-    squash_enabled                 +14.7500
-    build_arg_count                -24.7500
-    multistage_stages              +4.0000
+    build_cache_mode               +37.0000
+    max_layers                     -24.5000
+    squash_enabled                 +27.7500
+    build_arg_count                -74.2500
+    multistage_stages              +30.0000
 
   Predicted optimum (from linear model):
     build_cache_mode = registry
@@ -512,16 +536,16 @@ RSM Model (linear, R² = 0.7164, Adj R² = 0.0073):
     squash_enabled = on
     build_arg_count = 0
     multistage_stages = 5
-    Predicted value: 620.7500
+    Predicted value: 659.7500
 
   Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. build_cache_mode  (effect: 148.0, contribution: 47.9%)
-  2. max_layers  (effect: 74.0, contribution: 23.9%)
-  3. build_arg_count  (effect: -49.5, contribution: 16.0%)
-  4. squash_enabled  (effect: 29.5, contribution: 9.5%)
-  5. multistage_stages  (effect: 8.0, contribution: 2.6%)</div></div>
+  1. build_arg_count  (effect: -148.5, contribution: 38.4%)
+  2. build_cache_mode  (effect: 74.0, contribution: 19.1%)
+  3. multistage_stages  (effect: 60.0, contribution: 15.5%)
+  4. squash_enabled  (effect: 55.5, contribution: 14.3%)
+  5. max_layers  (effect: 49.0, contribution: 12.7%)</div></div>
   </section>
 
   <!-- Nav -->

@@ -38,6 +38,30 @@
 
 <div class="container-narrow uc-content">
 
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>smart sensor sampling</strong>. Fractional factorial of 5 sensor sampling parameters for measurement accuracy and power consumption.</p>
+
+    <p>The design varies 5 factors: <strong>sample rate hz</strong> (Hz), ranging from 1 to 100, <strong>adc resolution bits</strong> (bits), ranging from 8 to 16, <strong>averaging window</strong> (samples), ranging from 1 to 32, <strong>sleep mode depth</strong> (level), ranging from 1 to 4, and <strong>wakeup interval sec</strong> (sec), ranging from 1 to 60. The goal is to optimize 2 responses: measurement accuracy pct (%) (maximize) and power consumption mw (mW) (minimize). Fixed conditions held constant across all runs include mcu = esp32, sensor = bme280.</p>
+
+    <p>A fractional factorial design reduces the number of runs from 32 to 8 by deliberately confounding higher-order interactions. This is ideal for screening &mdash; identifying which of the 5 factors matter most before investing in a full study.</p>
+
+    
+    <h3>Key Findings</h3>
+    <p>For <strong>measurement accuracy pct</strong>, the most influential factors were adc resolution bits (30.6%), wakeup interval sec (30.0%), averaging window (20.8%). The best observed value was <strong>99.9</strong> (at sample rate hz = 1, adc resolution bits = 16, averaging window = 1).</p>
+<p>For <strong>power consumption mw</strong>, the most influential factors were averaging window (53.9%), adc resolution bits (33.9%), sleep mode depth (11.3%). The best observed value was <strong>2.4</strong> (at sample rate hz = 1, adc resolution bits = 16, averaging window = 32).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Follow up with a response surface design (CCD or Box-Behnken) on the top 3&ndash;4 factors to model curvature and find the true optimum.</li>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+    <li>The screening results can guide factor reduction &mdash; drop factors contributing less than 5% and re-run with a smaller, more focused design.</li>
+  </ul>
+  </section>
+
   <!-- Factors & Responses -->
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -272,7 +296,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: measurement_accuracy_pct</h3>
-    <p>Top factors: sleep_mode_depth (47.6%), adc_resolution_bits (40.1%), averaging_window (9.2%).</p>
+    <p>Top factors: adc_resolution_bits (30.6%), wakeup_interval_sec (30.0%), averaging_window (20.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -285,7 +309,7 @@
     </div>
 
     <h3>Response: power_consumption_mw</h3>
-    <p>Top factors: adc_resolution_bits (45.2%), sample_rate_hz (34.7%), averaging_window (14.1%).</p>
+    <p>Top factors: averaging_window (53.9%), adc_resolution_bits (33.9%), sleep_mode_depth (11.3%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -411,150 +435,150 @@
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: measurement_accuracy_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-sleep_mode_depth         9.5500       3.2998            47.6%
-adc_resolution_bits     -8.0500       3.2998            40.1%
-averaging_window        -1.8500       3.2998             9.2%
-sample_rate_hz          -0.3500       3.2998             1.7%
-wakeup_interval_sec      0.2500       3.2998             1.2%
+adc_resolution_bits      5.0000       3.2998            30.6%
+wakeup_interval_sec     -4.9000       3.2998            30.0%
+averaging_window        -3.4000       3.2998            20.8%
+sleep_mode_depth         2.8000       3.2998            17.1%
+sample_rate_hz           0.2500       3.2998             1.5%
 
 === Interaction Effects: measurement_accuracy_pct ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-adc_resolution_bits  averaging_window          12.0500            26.8%
-sleep_mode_depth     wakeup_interval_sec      -12.0500            26.8%
-sample_rate_hz       adc_resolution_bits       -9.5500            21.2%
-sample_rate_hz       sleep_mode_depth           8.0500            17.9%
-sample_rate_hz       wakeup_interval_sec       -1.8500             4.1%
-adc_resolution_bits  sleep_mode_depth           0.3500             0.8%
-averaging_window     wakeup_interval_sec       -0.3500             0.8%
-sample_rate_hz       averaging_window           0.2500             0.6%
-adc_resolution_bits  wakeup_interval_sec       -0.2500             0.6%
-averaging_window     sleep_mode_depth           0.2500             0.6%
+adc_resolution_bits  wakeup_interval_sec      -12.0500            20.2%
+averaging_window     sleep_mode_depth          12.0500            20.2%
+adc_resolution_bits  averaging_window           9.5500            16.0%
+sleep_mode_depth     wakeup_interval_sec       -9.5500            16.0%
+sample_rate_hz       sleep_mode_depth          -5.0000             8.4%
+sample_rate_hz       averaging_window          -4.9000             8.2%
+sample_rate_hz       wakeup_interval_sec       -3.4000             5.7%
+sample_rate_hz       adc_resolution_bits       -2.8000             4.7%
+adc_resolution_bits  sleep_mode_depth          -0.2500             0.4%
+averaging_window     wakeup_interval_sec        0.2500             0.4%
 
 === Summary Statistics: measurement_accuracy_pct ===
 
 sample_rate_hz:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    84.7500     7.2560    76.8000    91.2000
-  100                 4    84.4000    12.2687    70.5000    99.9000
+  1                   4    84.4500    13.2872    70.5000    99.9000
+  100                 4    84.7000     5.1633    80.4000    91.2000
 
 adc_resolution_bits:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  16                  4    88.6000     9.6281    76.8000    99.9000
-  8                   4    80.5500     8.2067    70.5000    90.6000
+  16                  4    82.0750     8.7202    70.5000    90.6000
+  8                   4    87.0750    10.5139    76.8000    99.9000
 
 averaging_window:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    85.5000    12.7914    70.5000    99.9000
-  32                  4    83.6500     6.1115    76.8000    90.6000
+  1                   4    86.2750     6.6530    76.8000    91.2000
+  32                  4    82.8750    12.2997    70.5000    99.9000
 
 sleep_mode_depth:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    79.8000     8.6845    70.5000    91.2000
-  4                   4    89.3500     8.1872    80.4000    99.9000
+  1                   4    83.1750     9.7960    70.5000    91.2000
+  4                   4    85.9750    10.1026    76.8000    99.9000
 
 wakeup_interval_sec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    84.4500    13.2872    70.5000    99.9000
-  60                  4    84.7000     5.1633    80.4000    91.2000
+  1                   4    87.0250    12.3362    70.5000    99.9000
+  60                  4    82.1250     5.9214    76.8000    90.6000
 
 === Main Effects: power_consumption_mw ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-adc_resolution_bits    -45.6500      11.5876            45.2%
-sample_rate_hz         -35.0000      11.5876            34.7%
-averaging_window        14.2500      11.5876            14.1%
-sleep_mode_depth        -5.5000      11.5876             5.4%
-wakeup_interval_sec      0.6000      11.5876             0.6%
+averaging_window       -49.5000      11.5876            53.9%
+adc_resolution_bits     31.1500      11.5876            33.9%
+sleep_mode_depth        10.4000      11.5876            11.3%
+sample_rate_hz           0.6000      11.5876             0.7%
+wakeup_interval_sec     -0.2500      11.5876             0.3%
 
 === Interaction Effects: power_consumption_mw ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-sample_rate_hz       sleep_mode_depth          45.6500            26.5%
-adc_resolution_bits  sleep_mode_depth          35.0000            20.3%
-averaging_window     wakeup_interval_sec      -35.0000            20.3%
-sample_rate_hz       wakeup_interval_sec       14.2500             8.3%
-adc_resolution_bits  averaging_window          14.1500             8.2%
-sleep_mode_depth     wakeup_interval_sec      -14.1500             8.2%
-sample_rate_hz       adc_resolution_bits        5.5000             3.2%
-adc_resolution_bits  wakeup_interval_sec       -4.1000             2.4%
-averaging_window     sleep_mode_depth           4.1000             2.4%
-sample_rate_hz       averaging_window           0.6000             0.3%
+sample_rate_hz       wakeup_interval_sec      -49.5000            37.6%
+sample_rate_hz       sleep_mode_depth         -31.1500            23.6%
+adc_resolution_bits  wakeup_interval_sec      -14.1500            10.7%
+averaging_window     sleep_mode_depth          14.1500            10.7%
+sample_rate_hz       adc_resolution_bits      -10.4000             7.9%
+adc_resolution_bits  averaging_window          -5.5000             4.2%
+sleep_mode_depth     wakeup_interval_sec        5.5000             4.2%
+adc_resolution_bits  sleep_mode_depth          -0.6000             0.5%
+averaging_window     wakeup_interval_sec        0.6000             0.5%
+sample_rate_hz       averaging_window          -0.2500             0.2%
 
 === Summary Statistics: power_consumption_mw ===
 
 sample_rate_hz:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    69.9250    32.3301    28.4000    97.8000
-  100                 4    34.9250    25.3873     2.4000    57.4000
+  1                   4    52.1250    37.5357     2.4000    93.2000
+  100                 4    52.7250    33.1248    27.3000    97.8000
 
 adc_resolution_bits:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  16                  4    75.2500    23.5397    52.6000    97.8000
-  8                   4    29.6000    23.7280     2.4000    60.3000
+  16                  4    36.8500    27.3874     2.4000    60.3000
+  8                   4    68.0000    33.3087    28.4000    97.8000
 
 averaging_window:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    45.3000    40.5609     2.4000    97.8000
-  32                  4    59.5500    26.9417    27.3000    93.2000
+  1                   4    77.1750    21.2760    57.4000    97.8000
+  32                  4    27.6750    20.5000     2.4000    52.6000
 
 sleep_mode_depth:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    55.1750    47.6970     2.4000    97.8000
-  4                   4    49.6750    14.5344    28.4000    60.3000
+  1                   4    47.2250    41.2005     2.4000    97.8000
+  4                   4    57.6250    27.1446    27.3000    93.2000
 
 wakeup_interval_sec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    52.1250    37.5357     2.4000    93.2000
-  60                  4    52.7250    33.1248    27.3000    97.8000</div></div>
+  1                   4    52.5500    39.0986     2.4000    97.8000
+  60                  4    52.3000    31.2678    27.3000    93.2000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: measurement_accuracy_pct ===
 Direction: maximize
 
 Best observed run: #4
-  sample_rate_hz = 100
+  sample_rate_hz = 1
   adc_resolution_bits = 16
-  averaging_window = 32
-  sleep_mode_depth = 4
+  averaging_window = 1
+  sleep_mode_depth = 1
   wakeup_interval_sec = 60
   Value: 99.9
 
-RSM Model (linear, R² = 0.6912, Adj R² = -0.0809):
+RSM Model (linear, R² = 0.6290, Adj R² = -0.2984):
   Coefficients:
     intercept                      +84.5750
-    sample_rate_hz                 +5.9500
-    adc_resolution_bits            +1.0000
-    averaging_window               -0.1250
-    sleep_mode_depth               +4.0250
-    wakeup_interval_sec            -0.2500
+    sample_rate_hz                 -3.4750
+    adc_resolution_bits            -2.6000
+    averaging_window               -4.8500
+    sleep_mode_depth               +0.2500
+    wakeup_interval_sec            +2.3500
 
   Predicted optimum (from linear model):
-    sample_rate_hz = 100
-    adc_resolution_bits = 16
+    sample_rate_hz = 1
+    adc_resolution_bits = 8
     averaging_window = 1
     sleep_mode_depth = 4
-    wakeup_interval_sec = 1
-    Predicted value: 95.9250
+    wakeup_interval_sec = 60
+    Predicted value: 98.1000
 
   Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. sample_rate_hz  (effect: 11.9, contribution: 52.4%)
-  2. sleep_mode_depth  (effect: 8.0, contribution: 35.5%)
-  3. adc_resolution_bits  (effect: -2.0, contribution: 8.8%)
-  4. wakeup_interval_sec  (effect: -0.5, contribution: 2.2%)
-  5. averaging_window  (effect: -0.2, contribution: 1.1%)
+  1. averaging_window  (effect: -9.7, contribution: 35.9%)
+  2. sample_rate_hz  (effect: -7.0, contribution: 25.7%)
+  3. adc_resolution_bits  (effect: 5.2, contribution: 19.2%)
+  4. wakeup_interval_sec  (effect: 4.7, contribution: 17.4%)
+  5. sleep_mode_depth  (effect: 0.5, contribution: 1.8%)
 
 === Optimization: power_consumption_mw ===
 Direction: minimize
@@ -562,36 +586,36 @@ Direction: minimize
 Best observed run: #7
   sample_rate_hz = 1
   adc_resolution_bits = 16
-  averaging_window = 1
+  averaging_window = 32
   sleep_mode_depth = 1
-  wakeup_interval_sec = 60
+  wakeup_interval_sec = 1
   Value: 2.4
 
-RSM Model (linear, R² = 0.9902, Adj R² = 0.9656):
+RSM Model (linear, R² = 0.4448, Adj R² = -0.9430):
   Coefficients:
     intercept                      +52.4250
-    sample_rate_hz                 +7.3500
-    adc_resolution_bits            -7.4000
-    averaging_window               -2.0500
-    sleep_mode_depth               +22.8250
-    wakeup_interval_sec            -17.2250
+    sample_rate_hz                 -0.8500
+    adc_resolution_bits            -8.5500
+    averaging_window               +3.0250
+    sleep_mode_depth               +17.2250
+    wakeup_interval_sec            +6.2000
 
   Predicted optimum (from linear model):
-    sample_rate_hz = 100
-    adc_resolution_bits = 16
+    sample_rate_hz = 1
+    adc_resolution_bits = 8
     averaging_window = 1
     sleep_mode_depth = 4
-    wakeup_interval_sec = 1
-    Predicted value: 94.4750
+    wakeup_interval_sec = 60
+    Predicted value: 82.2250
 
-  Model quality: Excellent fit — surface predictions are reliable.
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. sleep_mode_depth  (effect: 45.7, contribution: 40.1%)
-  2. wakeup_interval_sec  (effect: -34.5, contribution: 30.3%)
-  3. adc_resolution_bits  (effect: 14.8, contribution: 13.0%)
-  4. sample_rate_hz  (effect: 14.7, contribution: 12.9%)
-  5. averaging_window  (effect: -4.1, contribution: 3.6%)</div></div>
+  1. sleep_mode_depth  (effect: 34.5, contribution: 48.0%)
+  2. adc_resolution_bits  (effect: 17.1, contribution: 23.8%)
+  3. wakeup_interval_sec  (effect: 12.4, contribution: 17.3%)
+  4. averaging_window  (effect: 6.1, contribution: 8.4%)
+  5. sample_rate_hz  (effect: -1.7, contribution: 2.4%)</div></div>
   </section>
 
   <!-- Nav -->

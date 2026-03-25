@@ -169,6 +169,139 @@ def parse_main_effects(text, response_name):
         return results
     return []
 
+def parse_best_run(text, response_name):
+    """Extract best observed run info from optimize output."""
+    pattern = rf"=== Optimization: {re.escape(response_name)} ===.*?Best observed run: #(\d+)(.*?)(?:RSM Model|===|$)"
+    m = re.search(pattern, text, re.DOTALL)
+    if not m:
+        return None, None
+    run_num = m.group(1)
+    block = m.group(2).strip()
+    # Extract value
+    val_match = re.search(r"Value:\s+([0-9.\-]+)", block)
+    value = val_match.group(1) if val_match else None
+    # Extract factor settings
+    settings = []
+    for line in block.split("\n"):
+        line = line.strip()
+        if "=" in line and "Value" not in line:
+            parts = line.split("=", 1)
+            settings.append((parts[0].strip(), parts[1].strip()))
+    return value, settings
+
+
+def build_summary_html(cfg, analyze_text, optimize_text, design_label, run_count):
+    """Build a prose summary section from config and analysis data."""
+    meta = cfg["metadata"]
+    factors = cfg["factors"]
+    responses = cfg["responses"]
+    fixed = cfg.get("fixed_factors", {})
+    design = cfg["settings"]["operation"]
+
+    name = meta["name"]
+    desc = meta["description"]
+    n_factors = len(factors)
+    n_responses = len(responses)
+
+    # Build factor descriptions
+    factor_parts = []
+    for f in factors:
+        unit_str = f" ({f.get('unit', '')})" if f.get("unit") else ""
+        factor_parts.append(f"<strong>{f['name'].replace('_', ' ')}</strong>{unit_str}, ranging from {f['levels'][0]} to {f['levels'][-1]}")
+    if len(factor_parts) == 1:
+        factor_prose = factor_parts[0]
+    elif len(factor_parts) == 2:
+        factor_prose = " and ".join(factor_parts)
+    else:
+        factor_prose = ", ".join(factor_parts[:-1]) + ", and " + factor_parts[-1]
+
+    # Build response descriptions
+    resp_parts = []
+    for r in responses:
+        direction = "maximize" if r.get("optimize", "maximize") == "maximize" else "minimize"
+        unit_str = f" ({r.get('unit', '')})" if r.get("unit") else ""
+        resp_parts.append(f"{r['name'].replace('_', ' ')}{unit_str} ({direction})")
+    resp_prose = " and ".join(resp_parts) if len(resp_parts) <= 2 else ", ".join(resp_parts[:-1]) + ", and " + resp_parts[-1]
+
+    # Fixed factors
+    fixed_prose = ""
+    if fixed:
+        fixed_items = [f"{k.replace('_', ' ')} = {v}" for k, v in fixed.items()]
+        fixed_prose = f" Fixed conditions held constant across all runs include {', '.join(fixed_items)}."
+
+    # Design rationale
+    design_notes = {
+        "box_behnken": f"A Box-Behnken design was chosen because it efficiently fits quadratic models with {n_factors} continuous factors while avoiding extreme corner combinations &mdash; requiring only {run_count} runs instead of the {2**n_factors} needed for a full factorial at two levels.",
+        "central_composite": f"A Central Composite Design (CCD) was selected to fit a full quadratic response surface model, including curvature and interaction effects. With {n_factors} factors this produces {run_count} runs including center points and axial (star) points that extend beyond the factorial range.",
+        "full_factorial": f"A full factorial design was used to explore all {2**n_factors} possible combinations of the {n_factors} factors at two levels. This guarantees that every main effect and interaction can be estimated independently, at the cost of a larger experiment ({run_count} runs).",
+        "fractional_factorial": f"A fractional factorial design reduces the number of runs from {2**n_factors} to {run_count} by deliberately confounding higher-order interactions. This is ideal for screening &mdash; identifying which of the {n_factors} factors matter most before investing in a full study.",
+        "plackett_burman": f"A Plackett-Burman screening design was used to efficiently test {n_factors} factors in only {run_count} runs. This design assumes interactions are negligible and focuses on identifying the most influential main effects.",
+        "latin_hypercube": f"Latin Hypercube Sampling was used to space {run_count} runs across the {n_factors}-dimensional factor space with good coverage and minimal gaps, making it ideal for computer experiments where the response surface may be complex.",
+    }
+    design_prose = design_notes.get(design, f"The {design_label} produces {run_count} experimental runs.")
+
+    # Parse results
+    results_prose = ""
+    next_steps = []
+    for r in responses:
+        rname = r["name"]
+        effects = parse_main_effects(analyze_text, rname)
+        best_val, best_settings = parse_best_run(optimize_text, rname)
+
+        if effects:
+            top_factors = effects[:3]
+            top_str = ", ".join(f"{f.replace('_', ' ')} ({p})" for f, p in top_factors)
+            results_prose += f"<p>For <strong>{rname.replace('_', ' ')}</strong>, the most influential factors were {top_str}."
+            if best_val:
+                results_prose += f" The best observed value was <strong>{best_val}</strong>"
+                if best_settings:
+                    settings_str = ", ".join(f"{k.replace('_', ' ')} = {v}" for k, v in best_settings[:3])
+                    results_prose += f" (at {settings_str})"
+                results_prose += "."
+            results_prose += "</p>\n"
+
+    # Determine if there are interactions or curvature worth noting
+    has_rsm = "RSM Model (quadratic" in optimize_text
+    has_curvature = "significant curvature" in optimize_text.lower() or "saddle" in optimize_text.lower()
+
+    special_notes = ""
+    if has_curvature:
+        special_notes = "<p>The quadratic RSM model detected significant curvature in the response surface, indicating that optimal settings lie within the interior of the design space rather than at the extremes. The contour plots below show these nonlinear relationships.</p>\n"
+    elif has_rsm:
+        special_notes = "<p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>\n"
+
+    # Next steps
+    if design in ("plackett_burman", "fractional_factorial"):
+        next_steps.append("Follow up with a response surface design (CCD or Box-Behnken) on the top 3&ndash;4 factors to model curvature and find the true optimum.")
+    if design in ("box_behnken", "central_composite"):
+        next_steps.append("Run confirmation experiments at the predicted optimal settings to validate the model.")
+    next_steps.append("Consider whether any fixed factors should be varied in a future study.")
+    if n_factors >= 5:
+        next_steps.append("The screening results can guide factor reduction &mdash; drop factors contributing less than 5% and re-run with a smaller, more focused design.")
+
+    next_html = "<ul>\n" + "".join(f"    <li>{s}</li>\n" for s in next_steps) + "  </ul>"
+
+    summary = f'''
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>{escape(name.lower())}</strong>. {escape(desc)}.</p>
+
+    <p>The design varies {n_factors} factors: {factor_prose}. The goal is to optimize {n_responses} response{"s" if n_responses > 1 else ""}: {resp_prose}.{fixed_prose}</p>
+
+    <p>{design_prose}</p>
+
+    {special_notes}
+    <h3>Key Findings</h3>
+    {results_prose if results_prose else "<p>Run the analysis to see detailed results.</p>"}
+
+    <h3>Recommended Next Steps</h3>
+    {next_html}
+  </section>
+'''
+    return summary
+
+
 def build_matrix_html(config_path, design_label, seed=42):
     """Generate the experimental matrix HTML section from a config file."""
     try:
@@ -276,6 +409,8 @@ def build_page(num, uc_dir):
     config_html = re.sub(r': "([^"]*)"', r': <span class="string">"\1"</span>', config_html)
 
     matrix_html = build_matrix_html(config_path, design_label)
+
+    summary_html = build_summary_html(cfg, analyze_text, optimize_text, design_label, run_count)
 
     analysis_html = ""
     for r in responses:
@@ -392,6 +527,7 @@ def build_page(num, uc_dir):
 
 <div class="container-narrow uc-content">
 
+{summary_html}
   <!-- Factors & Responses -->
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -570,8 +706,12 @@ def inject_matrix_into_existing(num, uc_dir):
     design_label = DESIGN_LABELS.get(design, design)
 
     matrix_html = build_matrix_html(config_path, design_label)
-    if not matrix_html:
-        return
+
+    # Build summary
+    analyze_text = get_analysis_output(num, config_path)
+    optimize_text = get_optimize_output(num, config_path)
+    run_count = len(glob.glob(os.path.join(uc_dir, "results", "run_*.json")))
+    summary_html = build_summary_html(cfg, analyze_text, optimize_text, design_label, run_count)
 
     slug = os.path.basename(uc_dir).split("_", 1)[1]
     web_slug = slug_to_web(slug)
@@ -589,15 +729,33 @@ def inject_matrix_into_existing(num, uc_dir):
     with open(html_path) as f:
         page = f.read()
 
-    # Remove any previously injected matrix section
+    # Remove any previously injected sections
     page = re.sub(
         r'\n  <!-- Experimental Matrix -->.*?</section>\n',
         '',
         page,
         flags=re.DOTALL,
     )
+    page = re.sub(
+        r'\n  <!-- Prose Summary -->.*?</section>\n',
+        '',
+        page,
+        flags=re.DOTALL,
+    )
 
-    # Insert before the Workflow section — try comment marker first, then h2 text
+    # Insert summary after container-narrow uc-content
+    if 'class="container-narrow uc-content"' in page:
+        page = page.replace(
+            'class="container-narrow uc-content">',
+            f'class="container-narrow uc-content">\n{summary_html}',
+        )
+    elif '<!-- Scenario -->' in page:
+        page = page.replace(
+            '  <!-- Scenario -->',
+            f'{summary_html}\n  <!-- Scenario -->',
+        )
+
+    # Insert matrix before the Workflow section — try comment marker first, then h2 text
     if "<!-- Workflow -->" in page:
         page = page.replace(
             "  <!-- Workflow -->",

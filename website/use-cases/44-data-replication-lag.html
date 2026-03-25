@@ -38,6 +38,30 @@
 
 <div class="container-narrow uc-content">
 
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>data replication lag</strong>. Fractional factorial of 5 replication parameters for lag and failover readiness.</p>
+
+    <p>The design varies 5 factors: <strong>sync mode</strong>, ranging from async to semi_sync, <strong>binlog batch size</strong> (txns), ranging from 1 to 100, <strong>parallel workers</strong> (threads), ranging from 1 to 16, <strong>network buffer kb</strong> (KB), ranging from 64 to 1024, and <strong>compression</strong>, ranging from off to on. The goal is to optimize 2 responses: replication lag ms (ms) (minimize) and failover ready pct (%) (maximize). Fixed conditions held constant across all runs include engine = mysql_8, gtid = on.</p>
+
+    <p>A fractional factorial design reduces the number of runs from 32 to 8 by deliberately confounding higher-order interactions. This is ideal for screening &mdash; identifying which of the 5 factors matter most before investing in a full study.</p>
+
+    
+    <h3>Key Findings</h3>
+    <p>For <strong>replication lag ms</strong>, the most influential factors were binlog batch size (35.0%), compression (18.8%), sync mode (15.8%). The best observed value was <strong>0.0</strong> (at sync mode = async, binlog batch size = 1, parallel workers = 16).</p>
+<p>For <strong>failover ready pct</strong>, the most influential factors were binlog batch size (42.8%), parallel workers (36.9%), network buffer kb (11.2%). The best observed value was <strong>100.9</strong> (at sync mode = async, binlog batch size = 1, parallel workers = 16).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Follow up with a response surface design (CCD or Box-Behnken) on the top 3&ndash;4 factors to model curvature and find the true optimum.</li>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+    <li>The screening results can guide factor reduction &mdash; drop factors contributing less than 5% and re-run with a smaller, more focused design.</li>
+  </ul>
+  </section>
+
   <!-- Factors & Responses -->
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -272,7 +296,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: replication_lag_ms</h3>
-    <p>Top factors: network_buffer_kb (49.2%), compression (20.6%), parallel_workers (17.5%).</p>
+    <p>Top factors: binlog_batch_size (35.0%), compression (18.8%), sync_mode (15.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -285,7 +309,7 @@
     </div>
 
     <h3>Response: failover_ready_pct</h3>
-    <p>Top factors: network_buffer_kb (52.5%), compression (28.2%), parallel_workers (11.6%).</p>
+    <p>Top factors: binlog_batch_size (42.8%), parallel_workers (36.9%), network_buffer_kb (11.2%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -341,133 +365,133 @@
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: replication_lag_ms ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-network_buffer_kb     -223.0000      67.4608            49.2%
-compression             93.5000      67.4608            20.6%
-parallel_workers       -79.5000      67.4608            17.5%
-binlog_batch_size      -49.0000      67.4608            10.8%
-sync_mode                8.0000      67.4608             1.8%
+binlog_batch_size     -185.0000      67.4608            35.0%
+compression            -99.5000      67.4608            18.8%
+sync_mode              -83.5000      67.4608            15.8%
+parallel_workers        81.0000      67.4608            15.3%
+network_buffer_kb      -79.5000      67.4608            15.0%
 
 === Interaction Effects: replication_lag_ms ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-sync_mode            binlog_batch_size        223.0000            19.9%
-binlog_batch_size    parallel_workers         219.5000            19.6%
-network_buffer_kb    compression             -219.5000            19.6%
-binlog_batch_size    compression             -109.5000             9.8%
-parallel_workers     network_buffer_kb        109.5000             9.8%
-sync_mode            parallel_workers          93.5000             8.4%
-sync_mode            compression              -79.5000             7.1%
-sync_mode            network_buffer_kb         49.0000             4.4%
-binlog_batch_size    network_buffer_kb         -8.0000             0.7%
-parallel_workers     compression                8.0000             0.7%
+binlog_batch_size    compression              251.5000            22.0%
+parallel_workers     network_buffer_kb       -251.5000            22.0%
+sync_mode            network_buffer_kb        185.0000            16.2%
+sync_mode            parallel_workers         -99.5000             8.7%
+binlog_batch_size    network_buffer_kb         83.5000             7.3%
+parallel_workers     compression              -83.5000             7.3%
+sync_mode            compression               81.0000             7.1%
+sync_mode            binlog_batch_size         79.5000             7.0%
+binlog_batch_size    parallel_workers          14.0000             1.2%
+network_buffer_kb    compression              -14.0000             1.2%
 
 === Summary Statistics: replication_lag_ms ===
 
 sync_mode:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  async               4   214.0000   265.9286     0.0000   601.0000
-  semi_sync           4   222.0000   119.1246    87.0000   371.0000
+  async               4   259.7500   230.1787    99.0000   601.0000
+  semi_sync           4   176.2500   165.2904     0.0000   371.0000
 
 binlog_batch_size:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4   242.5000   242.7859    87.0000   601.0000
-  100                 4   193.5000   156.2231     0.0000   371.0000
+  1                   4   310.5000   226.7590    87.0000   601.0000
+  100                 4   125.5000   103.5133     0.0000   247.0000
 
 parallel_workers:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4   257.7500   251.6338     0.0000   601.0000
-  16                  4   178.2500   131.9782    87.0000   371.0000
+  1                   4   177.5000   152.1414     0.0000   371.0000
+  16                  4   258.5000   239.6463    87.0000   601.0000
 
 network_buffer_kb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1024                4   329.5000   212.4233    99.0000   601.0000
-  64                  4   106.5000    81.7007     0.0000   183.0000
+  1024                4   257.7500   251.6338     0.0000   601.0000
+  64                  4   178.2500   131.9782    87.0000   371.0000
 
 compression:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4   171.2500    61.4512    99.0000   247.0000
-  on                  4   264.7500   274.4939     0.0000   601.0000
+  off                 4   267.7500   271.9576     0.0000   601.0000
+  on                  4   168.2500    66.2590    87.0000   247.0000
 
 === Main Effects: failover_ready_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-network_buffer_kb        6.4750       2.5648            52.5%
-compression             -3.4750       2.5648            28.2%
-parallel_workers         1.4250       2.5648            11.6%
-sync_mode               -0.9250       2.5648             7.5%
-binlog_batch_size        0.0250       2.5648             0.2%
+binlog_batch_size        5.4250       2.5648            42.8%
+parallel_workers        -4.6750       2.5648            36.9%
+network_buffer_kb        1.4250       2.5648            11.2%
+sync_mode                1.0250       2.5648             8.1%
+compression             -0.1250       2.5648             1.0%
 
 === Interaction Effects: failover_ready_pct ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-binlog_batch_size    compression                9.2750            20.8%
-parallel_workers     network_buffer_kb         -9.2750            20.8%
-sync_mode            binlog_batch_size         -6.4750            14.5%
-binlog_batch_size    parallel_workers          -6.4250            14.4%
-network_buffer_kb    compression                6.4250            14.4%
-sync_mode            parallel_workers          -3.4750             7.8%
-sync_mode            compression                1.4250             3.2%
-binlog_batch_size    network_buffer_kb          0.9250             2.1%
-parallel_workers     compression               -0.9250             2.1%
-sync_mode            network_buffer_kb         -0.0250             0.1%
+binlog_batch_size    compression              -11.0750            26.9%
+parallel_workers     network_buffer_kb         11.0750            26.9%
+sync_mode            network_buffer_kb         -5.4250            13.2%
+sync_mode            compression               -4.6750            11.3%
+binlog_batch_size    parallel_workers           2.6750             6.5%
+network_buffer_kb    compression               -2.6750             6.5%
+sync_mode            binlog_batch_size         -1.4250             3.5%
+binlog_batch_size    network_buffer_kb         -1.0250             2.5%
+parallel_workers     compression                1.0250             2.5%
+sync_mode            parallel_workers          -0.1250             0.3%
 
 === Summary Statistics: failover_ready_pct ===
 
 sync_mode:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  async               4    92.2500    10.2103    78.7000   100.9000
-  semi_sync           4    91.3250     4.2398    87.7000    97.0000
+  async               4    91.2750     9.2500    78.7000    99.3000
+  semi_sync           4    92.3000     6.0443    87.7000   100.9000
 
 binlog_batch_size:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    91.7750     9.2193    78.7000    99.3000
-  100                 4    91.8000     6.1482    87.7000   100.9000
+  1                   4    89.0750     7.7444    78.7000    97.0000
+  100                 4    94.5000     6.5727    87.7000   100.9000
 
 parallel_workers:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    91.0750     9.9359    78.7000   100.9000
-  16                  4    92.5000     4.7666    88.5000    99.3000
+  1                   4    94.1250     5.8312    88.5000   100.9000
+  16                  4    89.4500     8.6153    78.7000    99.3000
 
 network_buffer_kb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1024                4    88.5500     8.4323    78.7000    99.3000
-  64                  4    95.0250     4.8726    90.1000   100.9000
+  1024                4    91.0750     9.9359    78.7000   100.9000
+  64                  4    92.5000     4.7666    88.5000    99.3000
 
 compression:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4    93.5250     5.5102    87.7000    99.3000
-  on                  4    90.0500     9.1860    78.7000   100.9000</div></div>
+  off                 4    91.8500    10.3529    78.7000   100.9000
+  on                  4    91.7250     3.9500    87.7000    97.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: replication_lag_ms ===
 Direction: minimize
 
 Best observed run: #1
-  sync_mode = semi_sync
-  binlog_batch_size = 100
-  parallel_workers = 1
+  sync_mode = async
+  binlog_batch_size = 1
+  parallel_workers = 16
   network_buffer_kb = 1024
   compression = off
   Value: 0.0
 
-RSM Model (linear, R² = 0.8636, Adj R² = 0.5227):
+RSM Model (linear, R² = 0.8563, Adj R² = 0.4971):
   Coefficients:
     intercept                      +218.0000
-    sync_mode                      +2.7500
-    binlog_batch_size              -38.7500
-    parallel_workers               +57.7500
-    network_buffer_kb              -132.5000
-    compression                    +71.5000
+    sync_mode                      +111.5000
+    binlog_batch_size              -64.0000
+    parallel_workers               -21.2500
+    network_buffer_kb              -92.5000
+    compression                    +41.7500
 
   Predicted optimum (from linear model):
     sync_mode = semi_sync
@@ -475,53 +499,53 @@ RSM Model (linear, R² = 0.8636, Adj R² = 0.5227):
     parallel_workers = 16
     network_buffer_kb = 64
     compression = on
-    Predicted value: 521.2500
+    Predicted value: 506.5000
 
   Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. network_buffer_kb  (effect: 265.0, contribution: 43.7%)
-  2. compression  (effect: 143.0, contribution: 23.6%)
-  3. parallel_workers  (effect: 115.5, contribution: 19.0%)
-  4. binlog_batch_size  (effect: -77.5, contribution: 12.8%)
-  5. sync_mode  (effect: 5.5, contribution: 0.9%)
+  1. sync_mode  (effect: 223.0, contribution: 33.7%)
+  2. network_buffer_kb  (effect: 185.0, contribution: 27.9%)
+  3. binlog_batch_size  (effect: -128.0, contribution: 19.3%)
+  4. compression  (effect: 83.5, contribution: 12.6%)
+  5. parallel_workers  (effect: -42.5, contribution: 6.4%)
 
 === Optimization: failover_ready_pct ===
 Direction: maximize
 
 Best observed run: #1
-  sync_mode = semi_sync
-  binlog_batch_size = 100
-  parallel_workers = 1
+  sync_mode = async
+  binlog_batch_size = 1
+  parallel_workers = 16
   network_buffer_kb = 1024
   compression = off
   Value: 100.9
 
-RSM Model (linear, R² = 0.8098, Adj R² = 0.3342):
+RSM Model (linear, R² = 0.5219, Adj R² = -0.6732):
   Coefficients:
     intercept                      +91.7875
-    sync_mode                      +2.1875
-    binlog_batch_size              +2.3125
-    parallel_workers               -2.8375
-    network_buffer_kb              +3.8125
-    compression                    -2.1375
+    sync_mode                      -3.2375
+    binlog_batch_size              +2.2375
+    parallel_workers               +0.9625
+    network_buffer_kb              +2.7125
+    compression                    -0.5125
 
   Predicted optimum (from linear model):
-    sync_mode = semi_sync
-    binlog_batch_size = 100
-    parallel_workers = 1
+    sync_mode = async
+    binlog_batch_size = 1
+    parallel_workers = 16
     network_buffer_kb = 1024
     compression = off
-    Predicted value: 105.0750
+    Predicted value: 96.9750
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. network_buffer_kb  (effect: -7.6, contribution: 28.7%)
-  2. parallel_workers  (effect: -5.7, contribution: 21.4%)
-  3. binlog_batch_size  (effect: 4.6, contribution: 17.4%)
-  4. sync_mode  (effect: 4.4, contribution: 16.5%)
-  5. compression  (effect: -4.3, contribution: 16.1%)</div></div>
+  1. sync_mode  (effect: -6.5, contribution: 33.5%)
+  2. network_buffer_kb  (effect: -5.4, contribution: 28.1%)
+  3. binlog_batch_size  (effect: 4.5, contribution: 23.2%)
+  4. parallel_workers  (effect: 1.9, contribution: 10.0%)
+  5. compression  (effect: -1.0, contribution: 5.3%)</div></div>
   </section>
 
   <!-- Nav -->

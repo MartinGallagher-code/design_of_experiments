@@ -38,6 +38,30 @@
 
 <div class="container-narrow uc-content">
 
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>zero trust policy evaluation</strong>. Fractional factorial of 5 zero trust parameters for auth latency and security score.</p>
+
+    <p>The design varies 5 factors: <strong>policy cache ttl</strong> (sec), ranging from 10 to 300, <strong>context attributes</strong> (count), ranging from 3 to 12, <strong>risk score weight</strong> (weight), ranging from 0.1 to 0.9, <strong>session timeout</strong> (sec), ranging from 300 to 3600, and <strong>mfa frequency</strong> (hours), ranging from 1 to 24. The goal is to optimize 2 responses: auth latency ms (ms) (minimize) and security score (score) (maximize). Fixed conditions held constant across all runs include identity provider = okta, policy engine = opa.</p>
+
+    <p>A fractional factorial design reduces the number of runs from 32 to 8 by deliberately confounding higher-order interactions. This is ideal for screening &mdash; identifying which of the 5 factors matter most before investing in a full study.</p>
+
+    
+    <h3>Key Findings</h3>
+    <p>For <strong>auth latency ms</strong>, the most influential factors were mfa frequency (69.0%), context attributes (16.7%), risk score weight (7.2%). The best observed value was <strong>3.8</strong> (at policy cache ttl = 10, context attributes = 12, risk score weight = 0.1).</p>
+<p>For <strong>security score</strong>, the most influential factors were policy cache ttl (38.5%), risk score weight (21.0%), session timeout (19.3%). The best observed value was <strong>99.4</strong> (at policy cache ttl = 300, context attributes = 12, risk score weight = 0.9).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Follow up with a response surface design (CCD or Box-Behnken) on the top 3&ndash;4 factors to model curvature and find the true optimum.</li>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+    <li>The screening results can guide factor reduction &mdash; drop factors contributing less than 5% and re-run with a smaller, more focused design.</li>
+  </ul>
+  </section>
+
   <!-- Factors & Responses -->
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -272,7 +296,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: auth_latency_ms</h3>
-    <p>Top factors: risk_score_weight (37.0%), session_timeout (27.4%), policy_cache_ttl (16.5%).</p>
+    <p>Top factors: mfa_frequency (69.0%), context_attributes (16.7%), risk_score_weight (7.2%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -285,7 +309,7 @@
     </div>
 
     <h3>Response: security_score</h3>
-    <p>Top factors: risk_score_weight (43.5%), policy_cache_ttl (25.5%), context_attributes (18.9%).</p>
+    <p>Top factors: policy_cache_ttl (38.5%), risk_score_weight (21.0%), session_timeout (19.3%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -411,112 +435,112 @@
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: auth_latency_ms ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-risk_score_weight       21.4250       5.6169            37.0%
-session_timeout         15.8750       5.6169            27.4%
-policy_cache_ttl        -9.5750       5.6169            16.5%
-mfa_frequency            8.5750       5.6169            14.8%
-context_attributes       2.4750       5.6169             4.3%
+mfa_frequency           23.7250       5.6169            69.0%
+context_attributes       5.7250       5.6169            16.7%
+risk_score_weight       -2.4750       5.6169             7.2%
+policy_cache_ttl        -1.7250       5.6169             5.0%
+session_timeout         -0.7250       5.6169             2.1%
 
 === Interaction Effects: auth_latency_ms ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-policy_cache_ttl     mfa_frequency             21.4250            30.5%
-policy_cache_ttl     context_attributes       -15.8750            22.6%
-context_attributes   session_timeout            9.5750            13.6%
-risk_score_weight    mfa_frequency             -9.5750            13.6%
-policy_cache_ttl     risk_score_weight          8.5750            12.2%
-policy_cache_ttl     session_timeout           -2.4750             3.5%
-context_attributes   mfa_frequency             -0.8250             1.2%
-risk_score_weight    session_timeout            0.8250             1.2%
-context_attributes   risk_score_weight         -0.5750             0.8%
-session_timeout      mfa_frequency              0.5750             0.8%
+policy_cache_ttl     risk_score_weight         23.7250            29.5%
+context_attributes   risk_score_weight        -15.1250            18.8%
+session_timeout      mfa_frequency             15.1250            18.8%
+context_attributes   mfa_frequency             -7.0250             8.7%
+risk_score_weight    session_timeout            7.0250             8.7%
+policy_cache_ttl     session_timeout           -5.7250             7.1%
+policy_cache_ttl     mfa_frequency             -2.4750             3.1%
+context_attributes   session_timeout            1.7250             2.1%
+risk_score_weight    mfa_frequency             -1.7250             2.1%
+policy_cache_ttl     context_attributes         0.7250             0.9%
 
 === Summary Statistics: auth_latency_ms ===
 
 policy_cache_ttl:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4    34.3750    12.9345    18.9000    50.1000
-  300                 4    24.8000    18.9870     3.8000    47.2000
+  10                  4    30.4500    16.0940    15.8000    50.1000
+  300                 4    28.7250    18.1088     3.8000    47.2000
 
 context_attributes:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  12                  4    28.3500    14.2834    15.8000    47.2000
-  3                   4    30.8250    19.5148     3.8000    50.1000
+  12                  4    26.7250    19.2491     3.8000    47.2000
+  3                   4    32.4500    14.0196    15.8000    50.1000
 
 risk_score_weight:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.1                 4    18.8750    13.7262     3.8000    37.0000
-  0.9                 4    40.3000     9.7211    31.5000    50.1000
+  0.1                 4    30.8250    19.5148     3.8000    50.1000
+  0.9                 4    28.3500    14.2834    15.8000    47.2000
 
 session_timeout:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  300                 4    21.6500    13.4011     3.8000    32.4000
-  3600                4    37.5250    15.5348    15.8000    50.1000
+  300                 4    29.9500     7.7505    18.9000    37.0000
+  3600                4    29.2250    22.9893     3.8000    50.1000
 
 mfa_frequency:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    25.3000    20.0498     3.8000    50.1000
-  24                  4    33.8750    11.7438    18.9000    47.2000
+  1                   4    17.7250    11.7523     3.8000    32.4000
+  24                  4    41.4500     8.6927    31.5000    50.1000
 
 === Main Effects: security_score ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-risk_score_weight       21.2750       5.2823            43.5%
-policy_cache_ttl        12.4750       5.2823            25.5%
-context_attributes      -9.2250       5.2823            18.9%
-mfa_frequency            4.6750       5.2823             9.6%
-session_timeout          1.2250       5.2823             2.5%
+policy_cache_ttl        16.9250       5.2823            38.5%
+risk_score_weight        9.2250       5.2823            21.0%
+session_timeout          8.4750       5.2823            19.3%
+mfa_frequency            5.6750       5.2823            12.9%
+context_attributes       3.6750       5.2823             8.4%
 
 === Interaction Effects: security_score ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-policy_cache_ttl     mfa_frequency             21.2750            26.6%
-context_attributes   session_timeout          -12.4750            15.6%
-risk_score_weight    mfa_frequency             12.4750            15.6%
-policy_cache_ttl     session_timeout            9.2250            11.6%
-context_attributes   mfa_frequency             -7.9250             9.9%
-risk_score_weight    session_timeout            7.9250             9.9%
-policy_cache_ttl     risk_score_weight          4.6750             5.9%
-context_attributes   risk_score_weight         -1.3250             1.7%
-session_timeout      mfa_frequency              1.3250             1.7%
-policy_cache_ttl     context_attributes        -1.2250             1.5%
+context_attributes   session_timeout          -16.9250            16.3%
+risk_score_weight    mfa_frequency             16.9250            16.3%
+context_attributes   risk_score_weight        -16.2750            15.7%
+session_timeout      mfa_frequency             16.2750            15.7%
+policy_cache_ttl     mfa_frequency              9.2250             8.9%
+policy_cache_ttl     context_attributes        -8.4750             8.2%
+policy_cache_ttl     risk_score_weight          5.6750             5.5%
+context_attributes   mfa_frequency             -5.2250             5.0%
+risk_score_weight    session_timeout            5.2250             5.0%
+policy_cache_ttl     session_timeout           -3.6750             3.5%
 
 === Summary Statistics: security_score ===
 
 policy_cache_ttl:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4    64.1000    11.3007    48.5000    73.1000
-  300                 4    76.5750    17.0114    63.0000    99.4000
+  10                  4    61.8750     9.7010    48.5000    71.7000
+  300                 4    78.8000    15.3547    63.0000    99.4000
 
 context_attributes:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  12                  4    74.9500    16.9037    63.1000    99.4000
-  3                   4    65.7250    13.3557    48.5000    79.7000
+  12                  4    68.5000    21.7119    48.5000    99.4000
+  3                   4    72.1750     6.3589    64.2000    79.7000
 
 risk_score_weight:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.1                 4    59.7000     7.4864    48.5000    64.2000
-  0.9                 4    80.9750    12.7691    71.7000    99.4000
+  0.1                 4    65.7250    13.3557    48.5000    79.7000
+  0.9                 4    74.9500    16.9037    63.1000    99.4000
 
 session_timeout:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  300                 4    69.7250     8.1651    63.0000    79.7000
-  3600                4    70.9500    21.2879    48.5000    99.4000
+  300                 4    66.1000    13.5735    48.5000    79.7000
+  3600                4    74.5750    16.9918    63.0000    99.4000
 
 mfa_frequency:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    68.0000     5.1361    63.0000    73.1000
-  24                  4    72.6750    21.9065    48.5000    99.4000</div></div>
+  1                   4    67.5000     8.1515    63.0000    79.7000
+  24                  4    73.1750    20.8069    48.5000    99.4000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: auth_latency_ms ===
@@ -524,74 +548,74 @@ Direction: minimize
 
 Best observed run: #2
   policy_cache_ttl = 10
-  context_attributes = 3
-  risk_score_weight = 0.9
-  session_timeout = 3600
-  mfa_frequency = 1
+  context_attributes = 12
+  risk_score_weight = 0.1
+  session_timeout = 300
+  mfa_frequency = 24
   Value: 3.8
 
-RSM Model (linear, R² = 0.9057, Adj R² = 0.6700):
+RSM Model (linear, R² = 0.9186, Adj R² = 0.7151):
   Coefficients:
     intercept                      +29.5875
-    policy_cache_ttl               -3.7875
-    context_attributes             +5.0125
-    risk_score_weight              -3.4125
-    session_timeout                -2.8625
-    mfa_frequency                  +11.8625
+    policy_cache_ttl               +7.5625
+    context_attributes             +0.5125
+    risk_score_weight              +11.8625
+    session_timeout                +2.1375
+    mfa_frequency                  -0.3625
 
   Predicted optimum (from linear model):
-    policy_cache_ttl = 10
+    policy_cache_ttl = 300
     context_attributes = 12
-    risk_score_weight = 0.1
-    session_timeout = 300
+    risk_score_weight = 0.9
+    session_timeout = 3600
     mfa_frequency = 24
-    Predicted value: 56.5250
+    Predicted value: 51.3000
 
   Model quality: Excellent fit — surface predictions are reliable.
 
 Factor importance:
-  1. mfa_frequency  (effect: 23.7, contribution: 44.0%)
-  2. context_attributes  (effect: -10.0, contribution: 18.6%)
-  3. policy_cache_ttl  (effect: -7.6, contribution: 14.1%)
-  4. risk_score_weight  (effect: -6.8, contribution: 12.7%)
-  5. session_timeout  (effect: -5.7, contribution: 10.6%)
+  1. risk_score_weight  (effect: 23.7, contribution: 52.9%)
+  2. policy_cache_ttl  (effect: 15.1, contribution: 33.7%)
+  3. session_timeout  (effect: 4.3, contribution: 9.5%)
+  4. context_attributes  (effect: -1.0, contribution: 2.3%)
+  5. mfa_frequency  (effect: -0.7, contribution: 1.6%)
 
 === Optimization: security_score ===
 Direction: maximize
 
 Best observed run: #1
-  policy_cache_ttl = 10
-  context_attributes = 3
-  risk_score_weight = 0.1
+  policy_cache_ttl = 300
+  context_attributes = 12
+  risk_score_weight = 0.9
   session_timeout = 3600
   mfa_frequency = 24
   Value: 99.4
 
-RSM Model (linear, R² = 0.5962, Adj R² = -0.4132):
+RSM Model (linear, R² = 0.8927, Adj R² = 0.6244):
   Coefficients:
     intercept                      +70.3375
-    policy_cache_ttl               -8.1125
-    context_attributes             -4.5875
-    risk_score_weight              -4.2625
-    session_timeout                -1.8375
-    mfa_frequency                  +2.8375
+    policy_cache_ttl               +8.1375
+    context_attributes             +2.3125
+    risk_score_weight              +2.8375
+    session_timeout                +8.7625
+    mfa_frequency                  +4.2375
 
   Predicted optimum (from linear model):
-    policy_cache_ttl = 10
-    context_attributes = 3
-    risk_score_weight = 0.1
+    policy_cache_ttl = 300
+    context_attributes = 12
+    risk_score_weight = 0.9
     session_timeout = 3600
     mfa_frequency = 24
-    Predicted value: 88.3000
+    Predicted value: 96.6250
 
-  Model quality: Moderate fit — use predictions directionally, not precisely.
+  Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. policy_cache_ttl  (effect: -16.2, contribution: 37.5%)
-  2. context_attributes  (effect: 9.2, contribution: 21.2%)
-  3. risk_score_weight  (effect: -8.5, contribution: 19.7%)
-  4. mfa_frequency  (effect: 5.7, contribution: 13.1%)
-  5. session_timeout  (effect: -3.7, contribution: 8.5%)</div></div>
+  1. session_timeout  (effect: 17.5, contribution: 33.3%)
+  2. policy_cache_ttl  (effect: 16.3, contribution: 31.0%)
+  3. mfa_frequency  (effect: 8.5, contribution: 16.1%)
+  4. risk_score_weight  (effect: 5.7, contribution: 10.8%)
+  5. context_attributes  (effect: -4.6, contribution: 8.8%)</div></div>
   </section>
 
   <!-- Nav -->

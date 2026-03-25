@@ -8,8 +8,9 @@ import os
 from datetime import datetime
 
 from .models import DesignMatrix, DOEConfig
-from .analysis import analyze
+from .analysis import analyze, _load_all_results, _compute_main_effects
 from .design import generate_design
+from .rsm import fit_rsm
 
 
 def generate_report(
@@ -37,6 +38,7 @@ def generate_report(
     str
         The *output_path* that was written.
     """
+    results_dir_resolved = results_dir or cfg.out_directory or "results"
     report = analyze(matrix, cfg, results_dir=results_dir, no_plots=False)
 
     # --- Encode plot images as base64 data URIs ---
@@ -48,6 +50,26 @@ def generate_report(
     for resp_name, path in report.effects_plot_paths.items():
         effects_images[resp_name] = _encode_image(path)
 
+    # --- Collect RSM surface plot images ---
+    rsm_images: dict[str, list[tuple[str, str]]] = {}  # resp_name -> [(label, data_uri)]
+    processed_dir = cfg.processed_directory or results_dir_resolved
+    if os.path.isdir(processed_dir):
+        import glob as _glob
+        for resp in cfg.responses:
+            safe = resp.name.replace("/", "_").replace(" ", "_")
+            rsm_files = sorted(_glob.glob(os.path.join(processed_dir, f"rsm_{safe}_*.png")))
+            if rsm_files:
+                rsm_images[resp.name] = []
+                for rsm_path in rsm_files:
+                    fname = os.path.basename(rsm_path).replace(".png", "")
+                    # Extract label from filename like rsm_yield_temperature_vs_pressure
+                    parts = fname.split("_", 2)
+                    label = parts[2].replace("_vs_", " vs ").replace("_", " ") if len(parts) >= 3 else fname
+                    rsm_images[resp.name].append((label, _encode_image(rsm_path)))
+
+    # --- Run optimization analysis ---
+    optimization_data = _run_optimization(matrix, cfg, results_dir_resolved)
+
     # --- Build HTML sections ---
     plan_name = html.escape(cfg.metadata.get("name", "Unnamed Experiment"))
     plan_desc = html.escape(cfg.metadata.get("description", ""))
@@ -55,7 +77,8 @@ def generate_report(
 
     header_html = _build_header(plan_name, plan_desc, timestamp)
     design_summary_html = _build_design_summary(matrix, cfg)
-    results_html = _build_results(report, pareto_images, effects_images)
+    results_html = _build_results(report, pareto_images, effects_images, rsm_images)
+    optimization_html = _build_optimization(optimization_data, cfg)
     design_matrix_html = _build_design_matrix(matrix)
     footer_html = _build_footer()
 
@@ -65,6 +88,7 @@ def generate_report(
         header=header_html,
         design_summary=design_summary_html,
         results=results_html,
+        optimization=optimization_html,
         design_matrix=design_matrix_html,
         footer=footer_html,
     )
@@ -141,7 +165,175 @@ def _build_design_summary(matrix: DesignMatrix, cfg: DOEConfig) -> str:
     )
 
 
-def _build_results(report, pareto_images, effects_images) -> str:
+def _run_optimization(matrix, cfg, results_dir):
+    """Run optimization analysis and return structured data."""
+    all_data = _load_all_results(matrix.runs, results_dir)
+    results = []
+
+    for resp in cfg.responses:
+        responses = {}
+        for run in matrix.runs:
+            data = all_data.get(run.run_id, {})
+            if resp.name in data:
+                responses[run.run_id] = float(data[resp.name])
+        if not responses:
+            continue
+
+        valid_runs = [r for r in matrix.runs if r.run_id in responses]
+        direction = resp.optimize or "maximize"
+
+        # Best observed run
+        if direction == "minimize":
+            best_run = min(valid_runs, key=lambda r: responses[r.run_id])
+        else:
+            best_run = max(valid_runs, key=lambda r: responses[r.run_id])
+
+        best_settings = {fname: best_run.factor_values[fname] for fname in matrix.factor_names}
+        best_value = responses[best_run.run_id]
+
+        # RSM models
+        rsm_linear = fit_rsm(valid_runs, responses, matrix.factor_names, cfg.factors, model_type="linear")
+        rsm_quad = None
+        n_factors = len(matrix.factor_names)
+        n_quad_terms = 1 + n_factors + n_factors * (n_factors - 1) // 2 + n_factors
+        if len(valid_runs) >= n_quad_terms + 1:
+            try:
+                rsm_quad = fit_rsm(valid_runs, responses, matrix.factor_names, cfg.factors, model_type="quadratic")
+            except Exception:
+                pass
+
+        best_model = rsm_quad if (rsm_quad and rsm_quad.adj_r_squared > rsm_linear.adj_r_squared) else rsm_linear
+        model_label = "quadratic" if best_model is rsm_quad else "linear"
+
+        # Factor importance
+        effects = _compute_main_effects(valid_runs, responses, matrix.factor_names)
+        total_abs = sum(abs(e.main_effect) for e in effects) or 1.0
+        importance = [(e.factor_name, e.main_effect, abs(e.main_effect) / total_abs * 100) for e in effects]
+
+        # R² quality
+        r2 = best_model.r_squared
+        if r2 > 0.9:
+            quality = "Excellent fit — surface predictions are reliable."
+        elif r2 > 0.7:
+            quality = "Good fit — general trends are captured, some noise remains."
+        elif r2 > 0.5:
+            quality = "Moderate fit — use predictions directionally, not precisely."
+        else:
+            quality = "Weak fit — consider adding center points or using a different design."
+
+        results.append({
+            "response_name": resp.name,
+            "direction": direction,
+            "unit": resp.unit or "",
+            "best_run_id": best_run.run_id,
+            "best_settings": best_settings,
+            "best_value": best_value,
+            "linear_r2": rsm_linear.r_squared,
+            "linear_adj_r2": rsm_linear.adj_r_squared,
+            "linear_coeffs": rsm_linear.coefficients,
+            "quad_r2": rsm_quad.r_squared if rsm_quad else None,
+            "quad_adj_r2": rsm_quad.adj_r_squared if rsm_quad else None,
+            "quad_coeffs": rsm_quad.coefficients if rsm_quad else None,
+            "best_model_label": model_label,
+            "predicted_optimum": best_model.predicted_optimum,
+            "predicted_value": best_model.predicted_value,
+            "quality": quality,
+            "importance": importance,
+        })
+
+    return results
+
+
+def _build_optimization(opt_data, cfg) -> str:
+    if not opt_data:
+        return ""
+
+    sections = []
+    for opt in opt_data:
+        safe_name = html.escape(opt["response_name"])
+        direction = html.escape(opt["direction"])
+        unit = f' ({html.escape(opt["unit"])})' if opt["unit"] else ""
+
+        # Best observed run
+        settings_rows = "".join(
+            f'      <tr><td>{html.escape(k)}</td><td class="mono">{html.escape(str(v))}</td></tr>\n'
+            for k, v in opt["best_settings"].items()
+        )
+        best_html = (
+            f'  <h3>Best Observed Run (#{opt["best_run_id"]})</h3>\n'
+            f'  <table class="info-table">\n'
+            f'{settings_rows}'
+            f'      <tr><td><strong>Value</strong></td><td class="mono"><strong>{opt["best_value"]:.4f}</strong></td></tr>\n'
+            f'  </table>\n'
+        )
+
+        # RSM model coefficients (best model)
+        coeffs = opt["quad_coeffs"] if opt["best_model_label"] == "quadratic" else opt["linear_coeffs"]
+        r2 = opt["quad_r2"] if opt["best_model_label"] == "quadratic" else opt["linear_r2"]
+        adj_r2 = opt["quad_adj_r2"] if opt["best_model_label"] == "quadratic" else opt["linear_adj_r2"]
+
+        coeff_rows = ""
+        for name, coef in coeffs.items():
+            sign = "+" if coef >= 0 else ""
+            coeff_rows += f'      <tr><td>{html.escape(name)}</td><td class="mono">{sign}{coef:.4f}</td></tr>\n'
+
+        model_html = (
+            f'  <h3>RSM Model ({html.escape(opt["best_model_label"])}, R&sup2; = {r2:.4f}, Adj R&sup2; = {adj_r2:.4f})</h3>\n'
+            f'  <table class="data-table">\n'
+            f'    <thead><tr><th>Term</th><th>Coefficient</th></tr></thead>\n'
+            f'    <tbody>\n'
+            f'{coeff_rows}'
+            f'    </tbody>\n'
+            f'  </table>\n'
+        )
+
+        # Predicted optimum
+        pred_rows = "".join(
+            f'      <tr><td>{html.escape(k)}</td><td class="mono">{html.escape(str(v))}</td></tr>\n'
+            for k, v in opt["predicted_optimum"].items()
+        )
+        pred_html = (
+            f'  <h3>Predicted Optimum</h3>\n'
+            f'  <table class="info-table">\n'
+            f'{pred_rows}'
+            f'      <tr><td><strong>Predicted Value</strong></td><td class="mono"><strong>{opt["predicted_value"]:.4f}</strong></td></tr>\n'
+            f'  </table>\n'
+            f'  <p class="muted">{html.escape(opt["quality"])}</p>\n'
+        )
+
+        # Factor importance
+        imp_rows = ""
+        for i, (fname, effect, pct) in enumerate(opt["importance"], 1):
+            imp_rows += (
+                f'      <tr><td class="mono">{i}</td><td>{html.escape(fname)}</td>'
+                f'<td class="mono">{effect:.2f}</td><td class="mono">{pct:.1f}%</td></tr>\n'
+            )
+        imp_html = (
+            '  <h3>Factor Importance Ranking</h3>\n'
+            '  <table class="data-table">\n'
+            '    <thead><tr><th>#</th><th>Factor</th><th>Effect</th><th>Contribution</th></tr></thead>\n'
+            '    <tbody>\n'
+            f'{imp_rows}'
+            '    </tbody>\n'
+            '  </table>\n'
+        )
+
+        sections.append(
+            f'<details open>\n'
+            f'  <summary><h2>Optimization: {safe_name}{unit} ({direction})</h2></summary>\n'
+            f'  <div class="section-body">\n'
+            f'{best_html}'
+            f'{model_html}'
+            f'{pred_html}'
+            f'{imp_html}'
+            f'  </div>\n'
+            f'</details>\n'
+        )
+
+    return "\n".join(sections)
+
+
+def _build_results(report, pareto_images, effects_images, rsm_images=None) -> str:
     if not report.results_by_response:
         return '<p class="muted">No analysis results available.</p>\n'
 
@@ -238,6 +430,19 @@ def _build_results(report, pareto_images, effects_images) -> str:
                 f'alt="Main effects plot for {safe_name}"></div>\n'
             )
 
+        # --- RSM surface plots ---
+        rsm_html = ""
+        if rsm_images and resp_name in rsm_images:
+            rsm_html = '  <h3>Response Surface Plots</h3>\n'
+            for label, data_uri in rsm_images[resp_name]:
+                safe_label = html.escape(label)
+                rsm_html += (
+                    f'  <div class="plot">\n'
+                    f'    <p class="plot-label">{safe_label}</p>\n'
+                    f'    <img src="{data_uri}" alt="RSM: {safe_label}">\n'
+                    f'  </div>\n'
+                )
+
         sections.append(
             f'<details open>\n'
             f'  <summary><h2>Results: {safe_name}</h2></summary>\n'
@@ -246,6 +451,7 @@ def _build_results(report, pareto_images, effects_images) -> str:
             f'{interaction_html}'
             f'{summary_html}'
             f'{plots_html}'
+            f'{rsm_html}'
             f'  </div>\n'
             f'</details>\n'
         )
@@ -401,6 +607,11 @@ table { border-collapse: collapse; width: 100%; margin-bottom: 12px; }
   border: 1px solid var(--border);
   border-radius: 4px;
 }
+.plot-label {
+  font-size: 0.85em;
+  color: #666;
+  margin: 4px 0;
+}
 footer {
   margin-top: 30px;
   padding-top: 12px;
@@ -431,6 +642,7 @@ _HTML_TEMPLATE = """\
 {header}
 {design_summary}
 {results}
+{optimization}
 {design_matrix}
 {footer}
 </body>

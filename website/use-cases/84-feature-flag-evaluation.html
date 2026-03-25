@@ -38,6 +38,30 @@
 
 <div class="container-narrow uc-content">
 
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>feature flag evaluation</strong>. Box-Behnken design to tune cache TTL, rule complexity, and SDK polling interval for evaluation latency and cache hits.</p>
+
+    <p>The design varies 3 factors: <strong>cache ttl sec</strong> (sec), ranging from 5 to 120, <strong>rule complexity score</strong> (score), ranging from 1 to 10, and <strong>sdk polling interval sec</strong> (sec), ranging from 10 to 300. The goal is to optimize 2 responses: evaluation latency us (us) (minimize) and cache hit rate pct (%) (maximize). Fixed conditions held constant across all runs include platform = launchdarkly, sdk = server_side.</p>
+
+    <p>A Box-Behnken design was chosen because it efficiently fits quadratic models with 3 continuous factors while avoiding extreme corner combinations &mdash; requiring only 15 runs instead of the 8 needed for a full factorial at two levels.</p>
+
+    <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
+
+    <h3>Key Findings</h3>
+    <p>For <strong>evaluation latency us</strong>, the most influential factors were rule complexity score (46.7%), cache ttl sec (27.2%), sdk polling interval sec (26.1%). The best observed value was <strong>115.0</strong> (at cache ttl sec = 5, rule complexity score = 10, sdk polling interval sec = 155).</p>
+<p>For <strong>cache hit rate pct</strong>, the most influential factors were sdk polling interval sec (52.0%), rule complexity score (30.1%), cache ttl sec (18.0%). The best observed value was <strong>90.6</strong> (at cache ttl sec = 5, rule complexity score = 10, sdk polling interval sec = 155).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Run confirmation experiments at the predicted optimal settings to validate the model.</li>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+  </ul>
+  </section>
+
   <!-- Factors & Responses -->
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -259,7 +283,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: evaluation_latency_us</h3>
-    <p>Top factors: rule_complexity_score (57.4%), sdk_polling_interval_sec (40.4%), cache_ttl_sec (2.2%).</p>
+    <p>Top factors: rule_complexity_score (46.7%), cache_ttl_sec (27.2%), sdk_polling_interval_sec (26.1%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -272,7 +296,7 @@
     </div>
 
     <h3>Response: cache_hit_rate_pct</h3>
-    <p>Top factors: cache_ttl_sec (41.5%), sdk_polling_interval_sec (30.1%), rule_complexity_score (28.3%).</p>
+    <p>Top factors: sdk_polling_interval_sec (52.0%), rule_complexity_score (30.1%), cache_ttl_sec (18.0%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -328,167 +352,167 @@
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: evaluation_latency_us ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-rule_complexity_score    55.6786      13.4490            57.4%
-sdk_polling_interval_sec    39.2500      13.4490            40.4%
-cache_ttl_sec            2.1429      13.4490             2.2%
+rule_complexity_score    61.3214      13.4490            46.7%
+cache_ttl_sec           35.7500      13.4490            27.2%
+sdk_polling_interval_sec    34.2500      13.4490            26.1%
 
 === Summary Statistics: evaluation_latency_us ===
 
 cache_ttl_sec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  120                 4   175.0000    59.2565   123.0000   234.0000
-  5                   4   177.0000    46.3968   129.0000   232.0000
-  62.5                7   174.8571    59.1310   115.0000   295.0000
+  120                 4   196.0000    83.5504   115.0000   295.0000
+  5                   4   160.2500    31.7004   125.0000   197.0000
+  62.5                7   172.4286    43.4927   123.0000   232.0000
 
 rule_complexity_score:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4   215.2500    60.3400   150.0000   295.0000
-  10                  4   163.5000    47.5009   125.0000   232.0000
-  5.5                 7   159.5714    44.0070   115.0000   234.0000
+  1                   4   204.7500    68.2856   129.0000   295.0000
+  10                  4   202.2500    51.9896   125.0000   234.0000
+  5.5                 7   143.4286    20.0071   115.0000   174.0000
 
 sdk_polling_interval_sec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4   164.5000    38.7341   123.0000   198.0000
-  155                 7   165.5714    44.9105   115.0000   232.0000
-  300                 4   203.7500    75.3099   129.0000   295.0000
+  10                  4   151.7500    45.8358   115.0000   218.0000
+  155                 7   183.0000    63.3377   123.0000   295.0000
+  300                 4   186.0000    38.8158   140.0000   232.0000
 
 === Main Effects: cache_hit_rate_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-cache_ttl_sec            6.7500       2.6857            41.5%
-sdk_polling_interval_sec     4.9000       2.6857            30.1%
-rule_complexity_score     4.6071       2.6857            28.3%
+sdk_polling_interval_sec    12.0750       2.6857            52.0%
+rule_complexity_score     6.9929       2.6857            30.1%
+cache_ttl_sec            4.1750       2.6857            18.0%
 
 === Summary Statistics: cache_hit_rate_pct ===
 
 cache_ttl_sec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  120                 4    80.3500     8.9310    70.2000    88.2000
-  5                   4    73.6000    12.8086    59.1000    87.6000
-  62.5                7    76.1286    10.7197    58.1000    90.6000
+  120                 4    74.4250    13.7250    58.1000    90.6000
+  5                   4    75.2000    10.5758    65.9000    88.2000
+  62.5                7    78.6000     9.6551    59.1000    87.6000
 
 rule_complexity_score:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    73.7500    10.7202    58.1000    81.0000
-  10                  4    76.3000    12.2684    59.1000    88.2000
-  5.5                 7    78.3571    10.5196    65.9000    90.6000
+  1                   4    73.5000    13.2999    58.1000    87.6000
+  10                  4    73.2500    12.0843    59.1000    88.2000
+  5.5                 7    80.2429     7.8504    65.9000    90.6000
 
 sdk_polling_interval_sec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4    78.6500     8.4200    67.3000    87.5000
-  155                 7    77.0143    11.3548    59.1000    90.6000
-  300                 4    73.7500    12.6223    58.1000    87.6000</div></div>
+  10                  4    83.2750     7.0197    75.5000    90.6000
+  155                 7    75.8286    11.1025    58.1000    88.2000
+  300                 4    71.2000    10.4610    59.1000    81.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: evaluation_latency_us ===
 Direction: minimize
 
 Best observed run: #8
-  cache_ttl_sec = 62.5
+  cache_ttl_sec = 5
   rule_complexity_score = 10
-  sdk_polling_interval_sec = 10
+  sdk_polling_interval_sec = 155
   Value: 115.0
 
-RSM Model (linear, R² = 0.0437, Adj R² = -0.2170):
+RSM Model (linear, R² = 0.0060, Adj R² = -0.2651):
   Coefficients:
     intercept                      +175.4667
-    cache_ttl_sec                  -11.2500
-    rule_complexity_score          -4.3750
-    sdk_polling_interval_sec       -7.8750
+    cache_ttl_sec                  -0.0000
+    rule_complexity_score          +3.2500
+    sdk_polling_interval_sec       +4.2500
 
-RSM Model (quadratic, R² = 0.5422, Adj R² = -0.2820):
+RSM Model (quadratic, R² = 0.1285, Adj R² = -1.4401):
   Coefficients:
-    intercept                      +133.0000
-    cache_ttl_sec                  -11.2500
-    rule_complexity_score          -4.3750
-    sdk_polling_interval_sec       -7.8750
-    cache_ttl_sec*rule_complexity_score +9.5000
-    cache_ttl_sec*sdk_polling_interval_sec +49.0000
-    rule_complexity_score*sdk_polling_interval_sec +20.2500
-    cache_ttl_sec^2                +17.8750
-    rule_complexity_score^2        +27.1250
-    sdk_polling_interval_sec^2     +34.6250
+    intercept                      +189.6667
+    cache_ttl_sec                  -0.0000
+    rule_complexity_score          +3.2500
+    sdk_polling_interval_sec       +4.2500
+    cache_ttl_sec*rule_complexity_score +5.2500
+    cache_ttl_sec*sdk_polling_interval_sec -8.2500
+    rule_complexity_score*sdk_polling_interval_sec +13.2500
+    cache_ttl_sec^2                -27.7083
+    rule_complexity_score^2        +9.7917
+    sdk_polling_interval_sec^2     -8.7083
 
   Curvature analysis:
-    sdk_polling_interval_sec       coef=+34.6250  convex (has a minimum)
-    rule_complexity_score          coef=+27.1250  convex (has a minimum)
-    cache_ttl_sec                  coef=+17.8750  convex (has a minimum)
+    cache_ttl_sec                  coef=-27.7083  concave (has a maximum)
+    rule_complexity_score          coef=+9.7917  convex (has a minimum)
+    sdk_polling_interval_sec       coef=-8.7083  concave (has a maximum)
 
   Notable interactions:
-    cache_ttl_sec*sdk_polling_interval_sec coef=+49.0000  (synergistic)
-    rule_complexity_score*sdk_polling_interval_sec coef=+20.2500  (synergistic)
-    cache_ttl_sec*rule_complexity_score coef=+9.5000  (synergistic)
+    rule_complexity_score*sdk_polling_interval_sec coef=+13.2500  (synergistic)
+    cache_ttl_sec*sdk_polling_interval_sec coef=-8.2500  (antagonistic)
+    cache_ttl_sec*rule_complexity_score coef=+5.2500  (synergistic)
 
   Predicted optimum (from linear model):
-    cache_ttl_sec = 5
-    rule_complexity_score = 5.5
-    sdk_polling_interval_sec = 10
-    Predicted value: 194.5917
+    cache_ttl_sec = 62.5
+    rule_complexity_score = 10
+    sdk_polling_interval_sec = 300
+    Predicted value: 182.9667
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. sdk_polling_interval_sec  (effect: 39.3, contribution: 42.8%)
-  2. rule_complexity_score  (effect: 27.8, contribution: 30.2%)
-  3. cache_ttl_sec  (effect: 24.7, contribution: 26.9%)
+  1. cache_ttl_sec  (effect: 27.8, contribution: 50.4%)
+  2. rule_complexity_score  (effect: 15.6, contribution: 28.4%)
+  3. sdk_polling_interval_sec  (effect: 11.7, contribution: 21.2%)
 
 === Optimization: cache_hit_rate_pct ===
 Direction: maximize
 
 Best observed run: #8
-  cache_ttl_sec = 62.5
+  cache_ttl_sec = 5
   rule_complexity_score = 10
-  sdk_polling_interval_sec = 10
+  sdk_polling_interval_sec = 155
   Value: 90.6
 
-RSM Model (linear, R² = 0.0894, Adj R² = -0.1590):
+RSM Model (linear, R² = 0.0637, Adj R² = -0.1916):
   Coefficients:
     intercept                      +76.5800
-    cache_ttl_sec                  +1.0750
-    rule_complexity_score          +3.4000
-    sdk_polling_interval_sec       +2.0500
+    cache_ttl_sec                  +0.6875
+    rule_complexity_score          +0.3500
+    sdk_polling_interval_sec       +3.3875
 
-RSM Model (quadratic, R² = 0.6771, Adj R² = 0.0959):
+RSM Model (quadratic, R² = 0.3461, Adj R² = -0.8310):
   Coefficients:
-    intercept                      +85.0667
-    cache_ttl_sec                  +1.0750
-    rule_complexity_score          +3.4000
-    sdk_polling_interval_sec       +2.0500
-    cache_ttl_sec*rule_complexity_score +2.1250
-    cache_ttl_sec*sdk_polling_interval_sec -10.9750
-    rule_complexity_score*sdk_polling_interval_sec -5.1750
-    cache_ttl_sec^2                -6.0708
-    rule_complexity_score^2        -3.8208
-    sdk_polling_interval_sec^2     -6.0208
+    intercept                      +75.0333
+    cache_ttl_sec                  +0.6875
+    rule_complexity_score          +0.3500
+    sdk_polling_interval_sec       +3.3875
+    cache_ttl_sec*rule_complexity_score -4.9250
+    cache_ttl_sec*sdk_polling_interval_sec -2.5000
+    rule_complexity_score*sdk_polling_interval_sec -2.6250
+    cache_ttl_sec^2                +7.2583
+    rule_complexity_score^2        -4.1667
+    sdk_polling_interval_sec^2     -0.1917
 
   Curvature analysis:
-    cache_ttl_sec                  coef=-6.0708  concave (has a maximum)
-    sdk_polling_interval_sec       coef=-6.0208  concave (has a maximum)
-    rule_complexity_score          coef=-3.8208  concave (has a maximum)
+    cache_ttl_sec                  coef=+7.2583  convex (has a minimum)
+    rule_complexity_score          coef=-4.1667  concave (has a maximum)
+    sdk_polling_interval_sec       coef=-0.1917  concave (has a maximum)
 
   Notable interactions:
-    cache_ttl_sec*sdk_polling_interval_sec coef=-10.9750  (antagonistic)
-    rule_complexity_score*sdk_polling_interval_sec coef=-5.1750  (antagonistic)
-    cache_ttl_sec*rule_complexity_score coef=+2.1250  (synergistic)
+    cache_ttl_sec*rule_complexity_score coef=-4.9250  (antagonistic)
+    rule_complexity_score*sdk_polling_interval_sec coef=-2.6250  (antagonistic)
+    cache_ttl_sec*sdk_polling_interval_sec coef=-2.5000  (antagonistic)
 
-  Predicted optimum (from quadratic model):
-    cache_ttl_sec = 62.5
+  Predicted optimum (from linear model):
+    cache_ttl_sec = 120
     rule_complexity_score = 5.5
-    sdk_polling_interval_sec = 155
-    Predicted value: 85.0667
+    sdk_polling_interval_sec = 300
+    Predicted value: 80.6550
 
-  Model quality: Moderate fit — use predictions directionally, not precisely.
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. sdk_polling_interval_sec  (effect: 7.4, contribution: 35.7%)
-  2. rule_complexity_score  (effect: 6.8, contribution: 33.0%)
-  3. cache_ttl_sec  (effect: 6.4, contribution: 31.3%)</div></div>
+  1. cache_ttl_sec  (effect: 8.3, contribution: 41.2%)
+  2. sdk_polling_interval_sec  (effect: 6.8, contribution: 33.8%)
+  3. rule_complexity_score  (effect: 5.0, contribution: 25.0%)</div></div>
   </section>
 
   <!-- Nav -->

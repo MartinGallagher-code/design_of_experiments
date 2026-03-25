@@ -38,6 +38,30 @@
 
 <div class="container-narrow uc-content">
 
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>siem alert correlation</strong>. Box-Behnken design to tune alert correlation window, similarity threshold, and event count for alert reduction.</p>
+
+    <p>The design varies 3 factors: <strong>correlation window sec</strong> (sec), ranging from 30 to 600, <strong>similarity threshold</strong> (ratio), ranging from 0.3 to 0.9, and <strong>min event count</strong> (events), ranging from 2 to 10. The goal is to optimize 2 responses: alert reduction pct (%) (maximize) and missed incident rate (%) (minimize). Fixed conditions held constant across all runs include siem platform = elastic_security, log sources = 12.</p>
+
+    <p>A Box-Behnken design was chosen because it efficiently fits quadratic models with 3 continuous factors while avoiding extreme corner combinations &mdash; requiring only 15 runs instead of the 8 needed for a full factorial at two levels.</p>
+
+    <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
+
+    <h3>Key Findings</h3>
+    <p>For <strong>alert reduction pct</strong>, the most influential factors were similarity threshold (48.4%), correlation window sec (43.3%), min event count (8.4%). The best observed value was <strong>77.0</strong> (at correlation window sec = 30, similarity threshold = 0.6, min event count = 10).</p>
+<p>For <strong>missed incident rate</strong>, the most influential factors were correlation window sec (43.3%), similarity threshold (39.6%), min event count (17.1%). The best observed value was <strong>0.11</strong> (at correlation window sec = 600, similarity threshold = 0.6, min event count = 10).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Run confirmation experiments at the predicted optimal settings to validate the model.</li>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+  </ul>
+  </section>
+
   <!-- Factors & Responses -->
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -259,7 +283,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: alert_reduction_pct</h3>
-    <p>Top factors: similarity_threshold (43.0%), correlation_window_sec (34.3%), min_event_count (22.7%).</p>
+    <p>Top factors: similarity_threshold (48.4%), correlation_window_sec (43.3%), min_event_count (8.4%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -272,7 +296,7 @@
     </div>
 
     <h3>Response: missed_incident_rate</h3>
-    <p>Top factors: similarity_threshold (65.8%), min_event_count (28.0%), correlation_window_sec (6.1%).</p>
+    <p>Top factors: correlation_window_sec (43.3%), similarity_threshold (39.6%), min_event_count (17.1%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -328,62 +352,62 @@
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: alert_reduction_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-similarity_threshold    16.2250       4.2596            43.0%
-correlation_window_sec    12.9464       4.2596            34.3%
-min_event_count          8.5750       4.2596            22.7%
+similarity_threshold    16.5286       4.2596            48.4%
+correlation_window_sec    14.7750       4.2596            43.3%
+min_event_count          2.8571       4.2596             8.4%
 
 === Summary Statistics: alert_reduction_pct ===
 
 correlation_window_sec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  30                  4    59.2750    11.1338    51.5000    75.8000
-  315                 7    46.3286    15.3616    27.5000    73.8000
-  600                 4    46.4250    22.6089    22.4000    77.0000
+  30                  4    40.0500    12.4077    22.4000    51.5000
+  315                 7    52.5143    13.0769    32.7000    75.8000
+  600                 4    54.8250    24.4238    27.5000    77.0000
 
 similarity_threshold:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.3                 4    58.4500    18.9183    41.0000    75.8000
-  0.6                 7    49.2000    17.4648    22.4000    77.0000
-  0.9                 4    42.2250    11.1819    27.5000    54.7000
+  0.3                 4    41.8000    10.5650    27.5000    53.0000
+  0.6                 7    58.3286    19.4629    22.4000    77.0000
+  0.9                 4    42.9000     9.0734    32.7000    54.7000
 
 min_event_count:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4    53.2750    16.4348    41.0000    77.0000
-  2                   4    44.7000    24.1392    22.4000    73.8000
-  6                   7    50.7429    13.4987    32.7000    75.8000
+  10                  4    51.2000    18.8480    32.7000    77.0000
+  2                   4    50.9750    21.2563    22.4000    73.8000
+  6                   7    48.3429    15.0600    27.5000    75.8000
 
 === Main Effects: missed_incident_rate ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-similarity_threshold     5.0100       0.9476            65.8%
-min_event_count          2.1314       0.9476            28.0%
-correlation_window_sec     0.4675       0.9476             6.1%
+correlation_window_sec     2.9050       0.9476            43.3%
+similarity_threshold     2.6539       0.9476            39.6%
+min_event_count          1.1493       0.9476            17.1%
 
 === Summary Statistics: missed_incident_rate ===
 
 correlation_window_sec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  30                  4     5.0250     2.6766     2.9500     8.7700
-  315                 7     4.5586     4.4927     0.4200    13.3700
-  600                 4     4.5575     3.8875     0.1100     8.5100
+  30                  4     3.7125     3.0104     0.1100     7.0200
+  315                 7     4.1314     2.7971     0.5100     8.7700
+  600                 4     6.6175     5.5850     0.4200    13.3700
 
 similarity_threshold:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.3                 4     8.3325     3.8565     4.1700    13.3700
-  0.6                 7     3.3743     2.8454     0.1100     8.5100
-  0.9                 4     3.3225     2.7515     0.4200     7.0300
+  0.3                 4     3.3375     2.7511     0.4200     7.0300
+  0.6                 7     5.9914     4.4991     0.1100    13.3700
+  0.9                 4     3.7375     2.6843     0.5100     7.0200
 
 min_event_count:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4     6.2100     1.9400     4.1700     8.5100
-  2                   4     4.2125     6.2361     0.1100    13.3700
-  6                   7     4.0786     2.8239     0.5100     8.7700</div></div>
+  10                  4     5.2950     3.4771     0.5100     8.5100
+  2                   4     5.0100     5.7702     0.1100    13.3700
+  6                   7     4.1457     2.8423     0.4200     8.7700</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: alert_reduction_pct ===
@@ -391,104 +415,104 @@ Direction: maximize
 
 Best observed run: #10
   correlation_window_sec = 30
-  similarity_threshold = 0.3
-  min_event_count = 6
+  similarity_threshold = 0.6
+  min_event_count = 10
   Value: 77.0
 
-RSM Model (linear, R² = 0.3004, Adj R² = 0.1096):
+RSM Model (linear, R² = 0.4371, Adj R² = 0.2836):
   Coefficients:
     intercept                      +49.8067
-    correlation_window_sec         -4.2125
-    similarity_threshold           -10.3000
-    min_event_count                +4.3875
+    correlation_window_sec         -13.3625
+    similarity_threshold           -0.5750
+    min_event_count                -5.4125
 
-RSM Model (quadratic, R² = 0.5858, Adj R² = -0.1598):
+RSM Model (quadratic, R² = 0.8911, Adj R² = 0.6952):
   Coefficients:
-    intercept                      +64.2333
-    correlation_window_sec         -4.2125
-    similarity_threshold           -10.3000
-    min_event_count                +4.3875
-    correlation_window_sec*similarity_threshold -2.1750
-    correlation_window_sec*min_event_count -1.0000
-    similarity_threshold*min_event_count +3.5250
-    correlation_window_sec^2       -8.4417
-    similarity_threshold^2         -3.9167
-    min_event_count^2              -14.6917
+    intercept                      +46.0667
+    correlation_window_sec         -13.3625
+    similarity_threshold           -0.5750
+    min_event_count                -5.4125
+    correlation_window_sec*similarity_threshold -12.6500
+    correlation_window_sec*min_event_count -8.4750
+    similarity_threshold*min_event_count -9.8000
+    correlation_window_sec^2       +9.0292
+    similarity_threshold^2         -4.4958
+    min_event_count^2              +2.4792
 
   Curvature analysis:
-    min_event_count                coef=-14.6917  concave (has a maximum)
-    correlation_window_sec         coef=-8.4417  concave (has a maximum)
-    similarity_threshold           coef=-3.9167  concave (has a maximum)
+    correlation_window_sec         coef=+9.0292  convex (has a minimum)
+    similarity_threshold           coef=-4.4958  concave (has a maximum)
+    min_event_count                coef=+2.4792  convex (has a minimum)
 
   Notable interactions:
-    similarity_threshold*min_event_count coef=+3.5250  (synergistic)
-    correlation_window_sec*similarity_threshold coef=-2.1750  (antagonistic)
-    correlation_window_sec*min_event_count coef=-1.0000  (antagonistic)
+    correlation_window_sec*similarity_threshold coef=-12.6500  (antagonistic)
+    similarity_threshold*min_event_count coef=-9.8000  (antagonistic)
+    correlation_window_sec*min_event_count coef=-8.4750  (antagonistic)
 
-  Predicted optimum (from linear model):
-    correlation_window_sec = 315
-    similarity_threshold = 0.3
-    min_event_count = 10
-    Predicted value: 64.4942
+  Predicted optimum (from quadratic model):
+    correlation_window_sec = 30
+    similarity_threshold = 0.9
+    min_event_count = 6
+    Predicted value: 76.0375
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. similarity_threshold  (effect: 20.6, contribution: 41.1%)
-  2. min_event_count  (effect: 18.2, contribution: 36.3%)
-  3. correlation_window_sec  (effect: 11.3, contribution: 22.6%)
+  1. correlation_window_sec  (effect: 26.7, contribution: 61.5%)
+  2. min_event_count  (effect: 10.8, contribution: 24.9%)
+  3. similarity_threshold  (effect: 5.9, contribution: 13.6%)
 
 === Optimization: missed_incident_rate ===
 Direction: minimize
 
 Best observed run: #13
   correlation_window_sec = 600
-  similarity_threshold = 0.9
-  min_event_count = 6
+  similarity_threshold = 0.6
+  min_event_count = 10
   Value: 0.11
 
-RSM Model (linear, R² = 0.2344, Adj R² = 0.0256):
+RSM Model (linear, R² = 0.6687, Adj R² = 0.5783):
   Coefficients:
     intercept                      +4.6827
-    correlation_window_sec         -1.0262
-    similarity_threshold           -1.2000
-    min_event_count                +1.7413
+    correlation_window_sec         -3.8750
+    similarity_threshold           +0.0088
+    min_event_count                -0.8637
 
-RSM Model (quadratic, R² = 0.6016, Adj R² = -0.1156):
+RSM Model (quadratic, R² = 0.9059, Adj R² = 0.7365):
   Coefficients:
-    intercept                      +8.2433
-    correlation_window_sec         -1.0263
-    similarity_threshold           -1.2000
-    min_event_count                +1.7413
-    correlation_window_sec*similarity_threshold +0.5900
-    correlation_window_sec*min_event_count -1.9175
-    similarity_threshold*min_event_count +1.1600
-    correlation_window_sec^2       -2.4129
-    similarity_threshold^2         -2.1104
-    min_event_count^2              -2.1529
+    intercept                      +4.9167
+    correlation_window_sec         -3.8750
+    similarity_threshold           +0.0088
+    min_event_count                -0.8637
+    correlation_window_sec*similarity_threshold -2.2350
+    correlation_window_sec*min_event_count -0.6450
+    similarity_threshold*min_event_count -0.4925
+    correlation_window_sec^2       +1.6904
+    similarity_threshold^2         -0.6071
+    min_event_count^2              -1.5221
 
   Curvature analysis:
-    correlation_window_sec         coef=-2.4129  concave (has a maximum)
-    min_event_count                coef=-2.1529  concave (has a maximum)
-    similarity_threshold           coef=-2.1104  concave (has a maximum)
+    correlation_window_sec         coef=+1.6904  convex (has a minimum)
+    min_event_count                coef=-1.5221  concave (has a maximum)
+    similarity_threshold           coef=-0.6071  concave (has a maximum)
 
   Notable interactions:
-    correlation_window_sec*min_event_count coef=-1.9175  (antagonistic)
-    similarity_threshold*min_event_count coef=+1.1600  (synergistic)
-    correlation_window_sec*similarity_threshold coef=+0.5900  (synergistic)
+    correlation_window_sec*similarity_threshold coef=-2.2350  (antagonistic)
+    correlation_window_sec*min_event_count coef=-0.6450  (antagonistic)
+    similarity_threshold*min_event_count coef=-0.4925  (antagonistic)
 
-  Predicted optimum (from linear model):
-    correlation_window_sec = 315
-    similarity_threshold = 0.3
-    min_event_count = 10
-    Predicted value: 7.6239
+  Predicted optimum (from quadratic model):
+    correlation_window_sec = 30
+    similarity_threshold = 0.9
+    min_event_count = 6
+    Predicted value: 12.1187
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Model quality: Excellent fit — surface predictions are reliable.
 
 Factor importance:
-  1. min_event_count  (effect: 3.6, contribution: 36.9%)
-  2. correlation_window_sec  (effect: 3.1, contribution: 32.3%)
-  3. similarity_threshold  (effect: 3.0, contribution: 30.8%)</div></div>
+  1. correlation_window_sec  (effect: 7.8, contribution: 71.5%)
+  2. min_event_count  (effect: 2.5, contribution: 22.7%)
+  3. similarity_threshold  (effect: 0.6, contribution: 5.8%)</div></div>
   </section>
 
   <!-- Nav -->

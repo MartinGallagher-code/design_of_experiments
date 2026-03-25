@@ -39,6 +39,30 @@
 
 <div class="container-narrow uc-content">
 
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>database performance tuning</strong>. Plackett-Burman screening of 6 PostgreSQL parameters with 2 replicate blocks.</p>
+
+    <p>The design varies 6 factors: <strong>shared buffers</strong> (MB), ranging from 256 to 1024, <strong>work mem</strong> (MB), ranging from 4 to 64, <strong>max connections</strong>, ranging from 50 to 200, <strong>effective cache</strong> (MB), ranging from 512 to 4096, <strong>wal level</strong>, ranging from minimal to replica, and <strong>checkpoint timeout</strong> (sec), ranging from 60 to 900. The goal is to optimize 2 responses: throughput (tps) (maximize) and p99 latency (ms) (minimize). Fixed conditions held constant across all runs include pg version = 16, storage = nvme.</p>
+
+    <p>A Plackett-Burman screening design was used to efficiently test 6 factors in only 16 runs. This design assumes interactions are negligible and focuses on identifying the most influential main effects.</p>
+
+    
+    <h3>Key Findings</h3>
+    <p>For <strong>throughput</strong>, the most influential factors were max connections (24.7%), wal level (23.3%), effective cache (17.6%). The best observed value was <strong>6654.0</strong> (at shared buffers = 1024, work mem = 4, max connections = 50).</p>
+<p>For <strong>p99 latency</strong>, the most influential factors were checkpoint timeout (29.6%), max connections (29.1%), shared buffers (19.0%). The best observed value was <strong>7.1</strong> (at shared buffers = 256, work mem = 4, max connections = 200).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Follow up with a response surface design (CCD or Box-Behnken) on the top 3&ndash;4 factors to model curvature and find the true optimum.</li>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+    <li>The screening results can guide factor reduction &mdash; drop factors contributing less than 5% and re-run with a smaller, more focused design.</li>
+  </ul>
+  </section>
+
+
   <section class="uc-section">
     <h2>The Scenario</h2>
     <p>You are tuning a PostgreSQL database for an OLTP workload. There are 6 configuration parameters to investigate, but running benchmarks is time-consuming. A full factorial would require 64 runs &mdash; way too many. Plackett-Burman gives you the answer in 8 base runs, replicated across 2 blocks for 16 total.</p>
@@ -81,6 +105,7 @@
       </div>
     </div>
   </section>
+
 
 
 

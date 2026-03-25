@@ -38,6 +38,30 @@
 
 <div class="container-narrow uc-content">
 
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>container image scanning</strong>. Central Composite design to optimize layer parallelism, vuln DB cache, and max image size for scan time and CVE detection.</p>
+
+    <p>The design varies 3 factors: <strong>layer parallelism</strong> (threads), ranging from 1 to 8, <strong>vuln db cache hours</strong> (hours), ranging from 1 to 24, and <strong>max image size gb</strong> (GB), ranging from 1 to 10. The goal is to optimize 2 responses: scan time sec (sec) (minimize) and cve detection rate (%) (maximize). Fixed conditions held constant across all runs include scanner = trivy, registry = ecr.</p>
+
+    <p>A Central Composite Design (CCD) was selected to fit a full quadratic response surface model, including curvature and interaction effects. With 3 factors this produces 22 runs including center points and axial (star) points that extend beyond the factorial range.</p>
+
+    <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
+
+    <h3>Key Findings</h3>
+    <p>For <strong>scan time sec</strong>, the most influential factors were vuln db cache hours (39.6%), layer parallelism (32.5%), max image size gb (27.8%). The best observed value was <strong>14.7</strong> (at layer parallelism = 4.5, vuln db cache hours = 12.5, max image size gb = 5.5).</p>
+<p>For <strong>cve detection rate</strong>, the most influential factors were vuln db cache hours (41.9%), max image size gb (34.9%), layer parallelism (23.2%). The best observed value was <strong>96.2</strong> (at layer parallelism = 10.8901, vuln db cache hours = 12.5, max image size gb = 5.5).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Run confirmation experiments at the predicted optimal settings to validate the model.</li>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+  </ul>
+  </section>
+
   <!-- Factors & Responses -->
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -266,7 +290,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: scan_time_sec</h3>
-    <p>Top factors: max_image_size_gb (52.4%), layer_parallelism (30.0%), vuln_db_cache_hours (17.6%).</p>
+    <p>Top factors: vuln_db_cache_hours (39.6%), layer_parallelism (32.5%), max_image_size_gb (27.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -279,7 +303,7 @@
     </div>
 
     <h3>Response: cve_detection_rate</h3>
-    <p>Top factors: layer_parallelism (50.4%), max_image_size_gb (35.4%), vuln_db_cache_hours (14.2%).</p>
+    <p>Top factors: vuln_db_cache_hours (41.9%), max_image_size_gb (34.9%), layer_parallelism (23.2%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -335,74 +359,74 @@
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: scan_time_sec ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-max_image_size_gb       70.1000       4.8245            52.4%
-layer_parallelism       40.2083       4.8245            30.0%
-vuln_db_cache_hours     23.5750       4.8245            17.6%
+vuln_db_cache_hours     55.0750       4.8245            39.6%
+layer_parallelism       45.2000       4.8245            32.5%
+max_image_size_gb       38.6750       4.8245            27.8%
 
 === Summary Statistics: scan_time_sec ===
 
 layer_parallelism:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -1.8901             1    14.7000     0.0000    14.7000    14.7000
-  1                   4    48.2000     9.6585    39.8000    61.3000
-  10.8901             1    49.8000     0.0000    49.8000    49.8000
-  4.5                12    54.9083    23.5714    27.6000    97.7000
-  8                   4    50.0250    30.6908    18.4000    92.1000
+  -1.8901             1    46.5000     0.0000    46.5000    46.5000
+  1                   4    55.7000    28.0921    38.7000    97.7000
+  10.8901             1    89.0000     0.0000    89.0000    89.0000
+  4.5                12    43.8000    20.1267    14.7000    87.4000
+  8                   4    58.1000    22.7683    45.1000    92.1000
 
 vuln_db_cache_hours:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -8.49603            1    43.1000     0.0000    43.1000    43.1000
-  1                   4    43.3500    18.1039    18.4000    61.3000
-  12.5               12    54.0833    25.3154    14.7000    97.7000
-  24                  4    54.8750    24.9225    39.8000    92.1000
-  33.496              1    31.3000     0.0000    31.3000    31.3000
+  -8.49603            1    46.5000     0.0000    46.5000    46.5000
+  1                   4    69.7750    29.1041    44.2000    97.7000
+  12.5               12    49.9917    21.7258    18.4000    89.0000
+  24                  4    44.0250     4.7233    38.7000    49.8000
+  33.496              1    14.7000     0.0000    14.7000    14.7000
 
 max_image_size_gb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -2.71584            1    97.7000     0.0000    97.7000    97.7000
-  1                   4    52.9000    31.4593    18.4000    92.1000
-  10                  4    45.3250     3.0804    42.2000    49.5000
-  13.7158             1    27.6000     0.0000    27.6000    27.6000
-  5.5                12    49.8417    21.0402    14.7000    89.0000
+  -2.71584            1    27.6000     0.0000    27.6000    27.6000
+  1                   4    56.7250    27.4909    38.7000    97.7000
+  10                  4    57.0750    23.5705    42.2000    92.1000
+  13.7158             1    18.4000     0.0000    18.4000    18.4000
+  5.5                12    51.2583    21.1727    14.7000    89.0000
 
 === Main Effects: cve_detection_rate ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-layer_parallelism       14.0000       0.9740            50.4%
-max_image_size_gb        9.8250       0.9740            35.4%
-vuln_db_cache_hours      3.9583       0.9740            14.2%
+vuln_db_cache_hours      6.2500       0.9740            41.9%
+max_image_size_gb        5.2000       0.9740            34.9%
+layer_parallelism        3.4500       0.9740            23.2%
 
 === Summary Statistics: cve_detection_rate ===
 
 layer_parallelism:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -1.8901             1    94.9000     0.0000    94.9000    94.9000
-  1                   4    90.2250     7.3776    79.5000    96.2000
-  10.8901             1    80.9000     0.0000    80.9000    80.9000
-  4.5                12    89.4667     3.4963    83.0000    93.5000
-  8                   4    91.9250     2.2692    90.5000    95.3000
+  -1.8901             1    90.6000     0.0000    90.6000    90.6000
+  1                   4    89.3500     4.4852    83.0000    93.4000
+  10.8901             1    92.8000     0.0000    92.8000    92.8000
+  4.5                12    89.9250     4.8152    79.5000    96.2000
+  8                   4    89.5250     6.1158    80.9000    95.3000
 
 vuln_db_cache_hours:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
   -8.49603            1    91.3000     0.0000    91.3000    91.3000
-  1                   4    89.4000     7.0517    79.5000    96.2000
-  12.5               12    88.7917     4.4592    80.9000    94.9000
-  24                  4    92.7500     2.0728    90.5000    95.3000
-  33.496              1    92.6000     0.0000    92.6000    92.6000
+  1                   4    90.2250     5.1732    83.0000    95.3000
+  12.5               12    89.6917     4.6365    79.5000    96.2000
+  24                  4    88.6500     5.3966    80.9000    93.4000
+  33.496              1    94.9000     0.0000    94.9000    94.9000
 
 max_image_size_gb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -2.71584            1    83.0000     0.0000    83.0000    83.0000
-  1                   4    89.3250     6.8373    79.5000    95.3000
-  10                  4    92.8250     2.5669    90.5000    96.2000
-  13.7158             1    85.5000     0.0000    85.5000    85.5000
-  5.5                12    90.0750     3.9930    80.9000    94.9000</div></div>
+  -2.71584            1    85.5000     0.0000    85.5000    85.5000
+  1                   4    88.6750     3.8396    83.0000    91.4000
+  10                  4    90.2000     6.4224    80.9000    95.3000
+  13.7158             1    90.7000     0.0000    90.7000    90.7000
+  5.5                12    90.5250     4.6638    79.5000    96.2000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: scan_time_sec ===
@@ -414,100 +438,100 @@ Best observed run: #16
   max_image_size_gb = 5.5
   Value: 14.7
 
-RSM Model (linear, R² = 0.0439, Adj R² = -0.1155):
+RSM Model (linear, R² = 0.1296, Adj R² = -0.0155):
   Coefficients:
     intercept                      +50.7409
-    layer_parallelism              +4.2619
-    vuln_db_cache_hours            +1.0181
-    max_image_size_gb              -3.6023
+    layer_parallelism              -1.7214
+    vuln_db_cache_hours            +7.6984
+    max_image_size_gb              +5.7262
 
-RSM Model (quadratic, R² = 0.3740, Adj R² = -0.0956):
+RSM Model (quadratic, R² = 0.6863, Adj R² = 0.4510):
   Coefficients:
-    intercept                      +46.9791
-    layer_parallelism              +4.2619
-    vuln_db_cache_hours            +1.0181
-    max_image_size_gb              -3.6023
-    layer_parallelism*vuln_db_cache_hours -17.9375
-    layer_parallelism*max_image_size_gb +5.7875
-    vuln_db_cache_hours*max_image_size_gb -6.5875
-    layer_parallelism^2            +3.4409
-    vuln_db_cache_hours^2          +2.6009
-    max_image_size_gb^2            -0.3991
+    intercept                      +34.7396
+    layer_parallelism              -1.7214
+    vuln_db_cache_hours            +7.6984
+    max_image_size_gb              +5.7262
+    layer_parallelism*vuln_db_cache_hours -8.8375
+    layer_parallelism*max_image_size_gb -3.0625
+    vuln_db_cache_hours*max_image_size_gb +3.9125
+    layer_parallelism^2            +1.7356
+    vuln_db_cache_hours^2          +7.4206
+    max_image_size_gb^2            +14.8457
 
   Curvature analysis:
-    layer_parallelism              coef=+3.4409  convex (has a minimum)
-    vuln_db_cache_hours            coef=+2.6009  convex (has a minimum)
-    max_image_size_gb              coef=-0.3991  concave (has a maximum)
+    max_image_size_gb              coef=+14.8457  convex (has a minimum)
+    vuln_db_cache_hours            coef=+7.4206  convex (has a minimum)
+    layer_parallelism              coef=+1.7356  convex (has a minimum)
 
   Notable interactions:
-    layer_parallelism*vuln_db_cache_hours coef=-17.9375  (antagonistic)
-    vuln_db_cache_hours*max_image_size_gb coef=-6.5875  (antagonistic)
-    layer_parallelism*max_image_size_gb coef=+5.7875  (synergistic)
+    layer_parallelism*vuln_db_cache_hours coef=-8.8375  (antagonistic)
+    vuln_db_cache_hours*max_image_size_gb coef=+3.9125  (synergistic)
+    layer_parallelism*max_image_size_gb coef=-3.0625  (antagonistic)
 
   Predicted optimum (from quadratic model):
-    layer_parallelism = 1
-    vuln_db_cache_hours = 24
-    max_image_size_gb = 1
-    Predicted value: 83.2929
+    layer_parallelism = 4.5
+    vuln_db_cache_hours = 12.5
+    max_image_size_gb = 13.7158
+    Predicted value: 94.6794
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. max_image_size_gb  (effect: 44.6, contribution: 46.7%)
-  2. layer_parallelism  (effect: 27.3, contribution: 28.6%)
-  3. vuln_db_cache_hours  (effect: 23.6, contribution: 24.7%)
+  1. max_image_size_gb  (effect: 55.1, contribution: 50.9%)
+  2. vuln_db_cache_hours  (effect: 47.0, contribution: 43.4%)
+  3. layer_parallelism  (effect: 6.2, contribution: 5.7%)
 
 === Optimization: cve_detection_rate ===
 Direction: maximize
 
 Best observed run: #2
-  layer_parallelism = 4.5
+  layer_parallelism = 10.8901
   vuln_db_cache_hours = 12.5
   max_image_size_gb = 5.5
   Value: 96.2
 
-RSM Model (linear, R² = 0.1398, Adj R² = -0.0035):
+RSM Model (linear, R² = 0.2388, Adj R² = 0.1119):
   Coefficients:
     intercept                      +89.9091
-    layer_parallelism              +0.7147
-    vuln_db_cache_hours            -1.2282
-    max_image_size_gb              +1.4694
+    layer_parallelism              +1.7273
+    vuln_db_cache_hours            +0.4037
+    max_image_size_gb              -1.9972
 
-RSM Model (quadratic, R² = 0.4724, Adj R² = 0.0767):
+RSM Model (quadratic, R² = 0.3565, Adj R² = -0.1261):
   Coefficients:
-    intercept                      +91.4867
-    layer_parallelism              +0.7147
-    vuln_db_cache_hours            -1.2282
-    max_image_size_gb              +1.4694
-    layer_parallelism*vuln_db_cache_hours +2.8625
-    layer_parallelism*max_image_size_gb +1.9125
-    vuln_db_cache_hours*max_image_size_gb -0.6125
-    layer_parallelism^2            -0.5988
-    vuln_db_cache_hours^2          -0.2988
-    max_image_size_gb^2            -1.4688
+    intercept                      +89.8038
+    layer_parallelism              +1.7273
+    vuln_db_cache_hours            +0.4037
+    max_image_size_gb              -1.9972
+    layer_parallelism*vuln_db_cache_hours +1.0250
+    layer_parallelism*max_image_size_gb +0.9000
+    vuln_db_cache_hours*max_image_size_gb -0.3750
+    layer_parallelism^2            -0.3624
+    vuln_db_cache_hours^2          +1.0776
+    max_image_size_gb^2            -0.5574
 
   Curvature analysis:
-    max_image_size_gb              coef=-1.4688  concave (has a maximum)
-    layer_parallelism              coef=-0.5988  concave (has a maximum)
-    vuln_db_cache_hours            coef=-0.2988  concave (has a maximum)
+    vuln_db_cache_hours            coef=+1.0776  convex (has a minimum)
+    max_image_size_gb              coef=-0.5574  concave (has a maximum)
+    layer_parallelism              coef=-0.3624  concave (has a maximum)
 
   Notable interactions:
-    layer_parallelism*vuln_db_cache_hours coef=+2.8625  (synergistic)
-    layer_parallelism*max_image_size_gb coef=+1.9125  (synergistic)
-    vuln_db_cache_hours*max_image_size_gb coef=-0.6125  (antagonistic)
+    layer_parallelism*vuln_db_cache_hours coef=+1.0250  (synergistic)
+    layer_parallelism*max_image_size_gb coef=+0.9000  (synergistic)
+    vuln_db_cache_hours*max_image_size_gb coef=-0.3750  (antagonistic)
 
-  Predicted optimum (from quadratic model):
+  Predicted optimum (from linear model):
     layer_parallelism = 8
     vuln_db_cache_hours = 24
-    max_image_size_gb = 10
-    Predicted value: 94.2387
+    max_image_size_gb = 1
+    Predicted value: 94.0373
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. max_image_size_gb  (effect: 5.9, contribution: 37.9%)
-  2. vuln_db_cache_hours  (effect: 5.7, contribution: 36.6%)
-  3. layer_parallelism  (effect: 4.0, contribution: 25.5%)</div></div>
+  1. layer_parallelism  (effect: 15.3, contribution: 49.2%)
+  2. max_image_size_gb  (effect: 9.8, contribution: 31.5%)
+  3. vuln_db_cache_hours  (effect: 6.0, contribution: 19.4%)</div></div>
   </section>
 
   <!-- Nav -->

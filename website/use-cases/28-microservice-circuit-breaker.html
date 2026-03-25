@@ -38,6 +38,30 @@
 
 <div class="container-narrow uc-content">
 
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>microservice circuit breaker</strong>. Box-Behnken design to tune circuit breaker thresholds for error rate and recovery time.</p>
+
+    <p>The design varies 3 factors: <strong>failure threshold</strong> (count), ranging from 3 to 15, <strong>timeout ms</strong> (ms), ranging from 500 to 5000, and <strong>reset interval</strong> (s), ranging from 5 to 60. The goal is to optimize 2 responses: error rate (%) (minimize) and recovery time (s) (minimize). Fixed conditions held constant across all runs include backend pool size = 10, health check interval = 5.</p>
+
+    <p>A Box-Behnken design was chosen because it efficiently fits quadratic models with 3 continuous factors while avoiding extreme corner combinations &mdash; requiring only 15 runs instead of the 8 needed for a full factorial at two levels.</p>
+
+    <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
+
+    <h3>Key Findings</h3>
+    <p>For <strong>error rate</strong>, the most influential factors were failure threshold (37.2%), reset interval (33.1%), timeout ms (29.7%). The best observed value was <strong>2.25</strong> (at failure threshold = 9, timeout ms = 2750, reset interval = 32.5).</p>
+<p>For <strong>recovery time</strong>, the most influential factors were failure threshold (47.5%), reset interval (26.6%), timeout ms (25.8%). The best observed value was <strong>8.3</strong> (at failure threshold = 3, timeout ms = 2750, reset interval = 5).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Run confirmation experiments at the predicted optimal settings to validate the model.</li>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+  </ul>
+  </section>
+
   <!-- Factors & Responses -->
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -259,7 +283,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: error_rate</h3>
-    <p>Top factors: reset_interval (63.1%), timeout_ms (18.6%), failure_threshold (18.3%).</p>
+    <p>Top factors: failure_threshold (37.2%), reset_interval (33.1%), timeout_ms (29.7%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -272,7 +296,7 @@
     </div>
 
     <h3>Response: recovery_time</h3>
-    <p>Top factors: failure_threshold (44.5%), reset_interval (31.6%), timeout_ms (24.0%).</p>
+    <p>Top factors: failure_threshold (47.5%), reset_interval (26.6%), timeout_ms (25.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -328,62 +352,62 @@
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: error_rate ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-reset_interval           3.6650       0.6656            63.1%
-timeout_ms               1.0804       0.6656            18.6%
-failure_threshold        1.0625       0.6656            18.3%
+failure_threshold        2.1854       0.6656            37.2%
+reset_interval           1.9454       0.6656            33.1%
+timeout_ms               1.7425       0.6656            29.7%
 
 === Summary Statistics: error_rate ===
 
 failure_threshold:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  15                  4     5.6375     3.7723     2.2500    10.5800
-  3                   4     6.7000     2.5256     3.1800     9.1900
-  9                   7     6.3986     2.1889     4.6500    10.3700
+  15                  4     7.4425     2.1933     5.5300    10.5800
+  3                   4     6.8925     3.1970     3.1900    10.3700
+  9                   7     5.2571     2.3701     2.2500     9.1900
 
 timeout_ms:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  2750                7     6.7329     2.3881     3.1800    10.5800
-  500                 4     6.1000     3.4746     2.2500    10.3700
-  5000                4     5.6525     2.5464     3.1900     9.1900
+  2750                7     6.4271     2.6478     2.2500    10.3700
+  500                 4     7.0150     2.6116     4.7300    10.5800
+  5000                4     5.2725     2.8360     3.1800     9.1900
 
 reset_interval:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  32.5                7     5.9000     2.5955     2.2500     9.1900
-  5                   4     8.4375     2.4663     5.5000    10.5800
-  60                  4     4.7725     1.3713     3.1800     6.5300
+  32.5                7     5.3071     2.6511     2.2500    10.5800
+  5                   4     7.2525     2.0288     4.7300     9.1900
+  60                  4     6.9950     2.9471     3.1800    10.3700
 
 === Main Effects: recovery_time ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-failure_threshold       15.0464       3.0233            44.5%
-reset_interval          10.6750       3.0233            31.6%
-timeout_ms               8.1036       3.0233            24.0%
+failure_threshold       13.4250       3.0233            47.5%
+reset_interval           7.5250       3.0233            26.6%
+timeout_ms               7.3000       3.0233            25.8%
 
 === Summary Statistics: recovery_time ===
 
 failure_threshold:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  15                  4    36.4500    10.2951    25.8000    50.3000
-  3                   4    37.9750    11.1329    22.9000    49.5000
-  9                   7    22.9286     8.7874     8.3000    29.9000
+  15                  4    36.7000    11.2638    25.8000    50.3000
+  3                   4    23.2750    12.5593     8.3000    36.8000
+  9                   7    31.1857    10.7999    15.7000    49.5000
 
 timeout_ms:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  2750                7    34.4286    12.0815    18.3000    50.3000
-  500                 4    27.9750    14.0635     8.3000    41.4000
-  5000                4    26.3250     9.0761    15.7000    36.8000
+  2750                7    30.0571    13.8967     8.3000    50.3000
+  500                 4    27.3250     9.2953    15.7000    38.1000
+  5000                4    34.6250    11.4284    22.9000    49.5000
 
 reset_interval:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  32.5                7    30.1857     7.8766    18.3000    41.4000
-  5                   4    25.5250    12.5704     8.3000    38.1000
-  60                  4    36.2000    16.7686    15.7000    50.3000</div></div>
+  32.5                7    30.5286     3.4500    25.8000    36.8000
+  5                   4    26.8000    15.9470    15.7000    50.3000
+  60                  4    34.3250    17.9990     8.3000    49.5000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: error_rate ===
@@ -395,100 +419,100 @@ Best observed run: #8
   reset_interval = 32.5
   Value: 2.25
 
-RSM Model (linear, R² = 0.0319, Adj R² = -0.2321):
+RSM Model (linear, R² = 0.1566, Adj R² = -0.0734):
   Coefficients:
     intercept                      +6.2760
-    failure_threshold              -0.5625
-    timeout_ms                     -0.2275
-    reset_interval                 -0.0550
+    failure_threshold              -0.3087
+    timeout_ms                     -0.7762
+    reset_interval                 -1.0600
 
-RSM Model (quadratic, R² = 0.8263, Adj R² = 0.5136):
+RSM Model (quadratic, R² = 0.6325, Adj R² = -0.0290):
   Coefficients:
-    intercept                      +4.1600
-    failure_threshold              -0.5625
-    timeout_ms                     -0.2275
-    reset_interval                 -0.0550
-    failure_threshold*timeout_ms   -2.4600
-    failure_threshold*reset_interval -1.0200
-    timeout_ms*reset_interval      -0.3150
-    failure_threshold^2            +2.9525
-    timeout_ms^2                   -0.7375
-    reset_interval^2               +1.7525
+    intercept                      +5.4467
+    failure_threshold              -0.3087
+    timeout_ms                     -0.7762
+    reset_interval                 -1.0600
+    failure_threshold*timeout_ms   -0.4600
+    failure_threshold*reset_interval -1.1875
+    timeout_ms*reset_interval      +0.8575
+    failure_threshold^2            +1.0292
+    timeout_ms^2                   -1.6958
+    reset_interval^2               +2.2217
 
   Curvature analysis:
-    failure_threshold              coef=+2.9525  convex (has a minimum)
-    reset_interval                 coef=+1.7525  convex (has a minimum)
-    timeout_ms                     coef=-0.7375  concave (has a maximum)
+    reset_interval                 coef=+2.2217  convex (has a minimum)
+    timeout_ms                     coef=-1.6958  concave (has a maximum)
+    failure_threshold              coef=+1.0292  convex (has a minimum)
 
   Notable interactions:
-    failure_threshold*timeout_ms   coef=-2.4600  (antagonistic)
-    failure_threshold*reset_interval coef=-1.0200  (antagonistic)
-    timeout_ms*reset_interval      coef=-0.3150  (antagonistic)
+    failure_threshold*reset_interval coef=-1.1875  (antagonistic)
+    timeout_ms*reset_interval      coef=+0.8575  (synergistic)
+    failure_threshold*timeout_ms   coef=-0.4600  (antagonistic)
 
   Predicted optimum (from quadratic model):
-    failure_threshold = 3
+    failure_threshold = 15
     timeout_ms = 2750
-    reset_interval = 60
-    Predicted value: 10.3925
+    reset_interval = 5
+    Predicted value: 10.6363
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. failure_threshold  (effect: 3.4, contribution: 53.8%)
-  2. reset_interval  (effect: 1.6, contribution: 25.8%)
-  3. timeout_ms  (effect: 1.3, contribution: 20.4%)
+  1. reset_interval  (effect: 3.3, contribution: 45.4%)
+  2. timeout_ms  (effect: 2.7, contribution: 36.9%)
+  3. failure_threshold  (effect: 1.3, contribution: 17.7%)
 
 === Optimization: recovery_time ===
 Direction: minimize
 
 Best observed run: #11
   failure_threshold = 3
-  timeout_ms = 5000
-  reset_interval = 32.5
+  timeout_ms = 2750
+  reset_interval = 5
   Value: 8.3
 
-RSM Model (linear, R² = 0.1468, Adj R² = -0.0859):
+RSM Model (linear, R² = 0.1484, Adj R² = -0.0839):
   Coefficients:
     intercept                      +30.5467
-    failure_threshold              +3.0000
-    timeout_ms                     -2.8375
-    reset_interval                 -4.2625
+    failure_threshold              +2.4500
+    timeout_ms                     +5.2000
+    reset_interval                 +1.6000
 
-RSM Model (quadratic, R² = 0.5325, Adj R² = -0.3089):
+RSM Model (quadratic, R² = 0.8509, Adj R² = 0.5825):
   Coefficients:
-    intercept                      +26.1667
-    failure_threshold              +3.0000
-    timeout_ms                     -2.8375
-    reset_interval                 -4.2625
-    failure_threshold*timeout_ms   +8.1000
-    failure_threshold*reset_interval +2.7500
-    timeout_ms*reset_interval      +7.0250
-    failure_threshold^2            -2.1458
-    timeout_ms^2                   +7.2792
-    reset_interval^2               +3.0792
+    intercept                      +26.8333
+    failure_threshold              +2.4500
+    timeout_ms                     +5.2000
+    reset_interval                 +1.6000
+    failure_threshold*timeout_ms   -5.2750
+    failure_threshold*reset_interval -2.7750
+    timeout_ms*reset_interval      +11.5250
+    failure_threshold^2            -0.5292
+    timeout_ms^2                   +12.2208
+    reset_interval^2               -4.7292
 
   Curvature analysis:
-    timeout_ms                     coef=+7.2792  convex (has a minimum)
-    reset_interval                 coef=+3.0792  convex (has a minimum)
-    failure_threshold              coef=-2.1458  concave (has a maximum)
+    timeout_ms                     coef=+12.2208  convex (has a minimum)
+    reset_interval                 coef=-4.7292  concave (has a maximum)
+    failure_threshold              coef=-0.5292  concave (has a maximum)
 
   Notable interactions:
-    failure_threshold*timeout_ms   coef=+8.1000  (synergistic)
-    timeout_ms*reset_interval      coef=+7.0250  (synergistic)
-    failure_threshold*reset_interval coef=+2.7500  (synergistic)
+    timeout_ms*reset_interval      coef=+11.5250  (synergistic)
+    failure_threshold*timeout_ms   coef=-5.2750  (antagonistic)
+    failure_threshold*reset_interval coef=-2.7750  (antagonistic)
 
-  Predicted optimum (from linear model):
-    failure_threshold = 15
-    timeout_ms = 2750
-    reset_interval = 5
-    Predicted value: 37.8092
+  Predicted optimum (from quadratic model):
+    failure_threshold = 9
+    timeout_ms = 5000
+    reset_interval = 60
+    Predicted value: 52.6500
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. timeout_ms  (effect: 10.1, contribution: 40.9%)
-  2. reset_interval  (effect: 8.5, contribution: 34.7%)
-  3. failure_threshold  (effect: 6.0, contribution: 24.4%)</div></div>
+  1. timeout_ms  (effect: 17.8, contribution: 59.6%)
+  2. reset_interval  (effect: 7.2, contribution: 24.0%)
+  3. failure_threshold  (effect: 4.9, contribution: 16.4%)</div></div>
   </section>
 
   <!-- Nav -->

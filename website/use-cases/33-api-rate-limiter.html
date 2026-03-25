@@ -38,6 +38,30 @@
 
 <div class="container-narrow uc-content">
 
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>api rate limiter tuning</strong>. Fractional factorial of 5 rate limiting parameters for throughput and fairness.</p>
+
+    <p>The design varies 5 factors: <strong>requests per sec</strong> (rps), ranging from 100 to 1000, <strong>burst size</strong> (requests), ranging from 10 to 100, <strong>window type</strong>, ranging from sliding to fixed, <strong>penalty duration</strong> (s), ranging from 10 to 300, and <strong>global limit</strong> (rps), ranging from 5000 to 50000. The goal is to optimize 2 responses: goodput rps (rps) (maximize) and fairness index (0-1) (maximize). Fixed conditions held constant across all runs include backend capacity = 20000, cache backend = redis.</p>
+
+    <p>A fractional factorial design reduces the number of runs from 32 to 8 by deliberately confounding higher-order interactions. This is ideal for screening &mdash; identifying which of the 5 factors matter most before investing in a full study.</p>
+
+    
+    <h3>Key Findings</h3>
+    <p>For <strong>goodput rps</strong>, the most influential factors were window type (30.7%), penalty duration (27.1%), requests per sec (19.9%). The best observed value was <strong>13093.0</strong> (at requests per sec = 100, burst size = 100, window type = sliding).</p>
+<p>For <strong>fairness index</strong>, the most influential factors were requests per sec (34.0%), window type (22.1%), burst size (21.1%). The best observed value was <strong>0.995</strong> (at requests per sec = 1000, burst size = 100, window type = sliding).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Follow up with a response surface design (CCD or Box-Behnken) on the top 3&ndash;4 factors to model curvature and find the true optimum.</li>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+    <li>The screening results can guide factor reduction &mdash; drop factors contributing less than 5% and re-run with a smaller, more focused design.</li>
+  </ul>
+  </section>
+
   <!-- Factors & Responses -->
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -272,7 +296,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: goodput_rps</h3>
-    <p>Top factors: global_limit (42.4%), burst_size (24.2%), requests_per_sec (12.8%).</p>
+    <p>Top factors: window_type (30.7%), penalty_duration (27.1%), requests_per_sec (19.9%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -285,7 +309,7 @@
     </div>
 
     <h3>Response: fairness_index</h3>
-    <p>Top factors: window_type (43.7%), burst_size (21.6%), penalty_duration (19.1%).</p>
+    <p>Top factors: requests_per_sec (34.0%), window_type (22.1%), burst_size (21.1%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -371,133 +395,133 @@
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: goodput_rps ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-global_limit          5857.2500    1426.6277            42.4%
-burst_size           -3342.2500    1426.6277            24.2%
-requests_per_sec     -1775.7500    1426.6277            12.8%
-window_type           1563.7500    1426.6277            11.3%
-penalty_duration     -1288.2500    1426.6277             9.3%
+window_type          -4202.2500    1426.6277            30.7%
+penalty_duration     -3714.7500    1426.6277            27.1%
+requests_per_sec      2727.2500    1426.6277            19.9%
+global_limit          2267.2500    1426.6277            16.5%
+burst_size            -796.7500    1426.6277             5.8%
 
 === Interaction Effects: goodput_rps ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-requests_per_sec     window_type            -5857.2500            29.4%
-requests_per_sec     penalty_duration       -3342.2500            16.8%
-burst_size           global_limit            2059.7500            10.3%
-window_type          penalty_duration       -2059.7500            10.3%
-burst_size           penalty_duration       -1775.7500             8.9%
-window_type          global_limit            1775.7500             8.9%
-requests_per_sec     global_limit           -1563.7500             7.9%
-requests_per_sec     burst_size             -1288.2500             6.5%
-burst_size           window_type               93.2500             0.5%
-penalty_duration     global_limit             -93.2500             0.5%
+requests_per_sec     global_limit            4202.2500            16.6%
+requests_per_sec     burst_size             -3714.7500            14.7%
+burst_size           global_limit            3342.2500            13.2%
+window_type          penalty_duration       -3342.2500            13.2%
+burst_size           penalty_duration        2727.2500            10.8%
+window_type          global_limit           -2727.2500            10.8%
+requests_per_sec     window_type            -2267.2500             9.0%
+burst_size           window_type            -1070.2500             4.2%
+penalty_duration     global_limit            1070.2500             4.2%
+requests_per_sec     penalty_duration        -796.7500             3.2%
 
 === Summary Statistics: goodput_rps ===
 
 requests_per_sec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4  9333.0000  4616.1155  3519.0000 13093.0000
-  1000                4  7557.2500  3818.4986  2112.0000 11036.0000
+  100                 4  7081.5000  2409.7671  3519.0000  8709.0000
+  1000                4  9808.7500  5217.8610  2112.0000 13093.0000
 
 burst_size:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4 10116.2500  2367.9128  7726.0000 12994.0000
-  100                 4  6774.0000  4993.7506  2112.0000 13093.0000
+  10                  4  8843.5000  4181.8821  3519.0000 13093.0000
+  100                 4  8046.7500  4481.1049  2112.0000 12994.0000
 
 window_type:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  fixed               4  7663.2500  3112.1544  3519.0000 11036.0000
-  sliding             4  9227.0000  5164.8748  2112.0000 13093.0000
+  fixed               4 10546.2500  2895.8930  7726.0000 13093.0000
+  sliding             4  6344.0000  4222.8955  2112.0000 11036.0000
 
 penalty_duration:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4  9089.2500  4122.7873  3519.0000 13093.0000
-  300                 4  7801.0000  4459.5828  2112.0000 12994.0000
+  10                  4 10302.5000  2205.3711  8372.0000 13093.0000
+  300                 4  6587.7500  4891.6670  2112.0000 12994.0000
 
 global_limit:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  5000                4  5516.5000  3196.5905  2112.0000  8709.0000
-  50000               4 11373.7500  2214.0166  8372.0000 13093.0000
+  5000                4  7311.5000  3750.6964  2112.0000 11036.0000
+  50000               4  9578.7500  4527.3583  3519.0000 13093.0000
 
 === Main Effects: fairness_index ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-window_type             -0.1485       0.0382            43.7%
-burst_size              -0.0735       0.0382            21.6%
-penalty_duration        -0.0650       0.0382            19.1%
-requests_per_sec         0.0295       0.0382             8.7%
-global_limit             0.0230       0.0382             6.8%
+requests_per_sec        -0.0840       0.0382            34.0%
+window_type              0.0545       0.0382            22.1%
+burst_size              -0.0520       0.0382            21.1%
+penalty_duration        -0.0400       0.0382            16.2%
+global_limit            -0.0165       0.0382             6.7%
 
 === Interaction Effects: fairness_index ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-requests_per_sec     global_limit               0.1485            24.6%
-burst_size           window_type               -0.0800            13.2%
-penalty_duration     global_limit               0.0800            13.2%
-requests_per_sec     penalty_duration          -0.0735            12.2%
-requests_per_sec     burst_size                -0.0650            10.8%
-burst_size           global_limit              -0.0375             6.2%
-window_type          penalty_duration           0.0375             6.2%
-burst_size           penalty_duration           0.0295             4.9%
-window_type          global_limit              -0.0295             4.9%
-requests_per_sec     window_type               -0.0230             3.8%
+burst_size           window_type               -0.1445            18.8%
+penalty_duration     global_limit               0.1445            18.8%
+burst_size           penalty_duration          -0.0840            11.0%
+window_type          global_limit               0.0840            11.0%
+burst_size           global_limit               0.0735             9.6%
+window_type          penalty_duration          -0.0735             9.6%
+requests_per_sec     global_limit              -0.0545             7.1%
+requests_per_sec     penalty_duration          -0.0520             6.8%
+requests_per_sec     burst_size                -0.0400             5.2%
+requests_per_sec     window_type                0.0165             2.2%
 
 === Summary Statistics: fairness_index ===
 
 requests_per_sec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4     0.8317     0.0994     0.7060     0.9490
-  1000                4     0.8613     0.1296     0.6850     0.9950
+  100                 4     0.8885     0.0470     0.8400     0.9490
+  1000                4     0.8045     0.1426     0.6850     0.9950
 
 burst_size:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4     0.8832     0.0759     0.8320     0.9950
-  100                 4     0.8097     0.1338     0.6850     0.9490
+  10                  4     0.8725     0.1286     0.7060     0.9950
+  100                 4     0.8205     0.0944     0.6850     0.8990
 
 window_type:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  fixed               4     0.9207     0.0666     0.8400     0.9950
-  sliding             4     0.7722     0.0901     0.6850     0.8660
+  fixed               4     0.8193     0.0812     0.7060     0.8990
+  sliding             4     0.8738     0.1367     0.6850     0.9950
 
 penalty_duration:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4     0.8790     0.1271     0.7060     0.9950
-  300                 4     0.8140     0.0910     0.6850     0.8990
+  10                  4     0.8665     0.1202     0.7060     0.9950
+  300                 4     0.8265     0.1084     0.6850     0.9490
 
 global_limit:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  5000                4     0.8350     0.1103     0.6850     0.9490
-  50000               4     0.8580     0.1214     0.7060     0.9950</div></div>
+  5000                4     0.8548     0.1299     0.6850     0.9950
+  50000               4     0.8382     0.1009     0.7060     0.9490</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: goodput_rps ===
 Direction: maximize
 
 Best observed run: #4
-  requests_per_sec = 1000
-  burst_size = 10
-  window_type = fixed
+  requests_per_sec = 100
+  burst_size = 100
+  window_type = sliding
   penalty_duration = 10
   global_limit = 50000
   Value: 13093.0
 
-RSM Model (linear, R² = 0.3442, Adj R² = -1.2953):
+RSM Model (linear, R² = 0.9687, Adj R² = 0.8904):
   Coefficients:
     intercept                      +8445.1250
-    requests_per_sec               +2101.1250
-    burst_size                     -46.6250
-    window_type                    -559.8750
-    penalty_duration               +183.3750
-    global_limit                   -373.6250
+    requests_per_sec               -1029.8750
+    burst_size                     +3012.8750
+    window_type                    +208.1250
+    penalty_duration               +1586.8750
+    global_limit                   +1049.3750
 
   Predicted optimum (from linear model):
     requests_per_sec = 1000
@@ -505,53 +529,53 @@ RSM Model (linear, R² = 0.3442, Adj R² = -1.2953):
     window_type = fixed
     penalty_duration = 300
     global_limit = 50000
-    Predicted value: 10869.2500
+    Predicted value: 12856.2500
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Model quality: Excellent fit — surface predictions are reliable.
 
 Factor importance:
-  1. requests_per_sec  (effect: 4202.2, contribution: 64.4%)
-  2. window_type  (effect: -1119.8, contribution: 17.1%)
-  3. global_limit  (effect: -747.2, contribution: 11.4%)
-  4. penalty_duration  (effect: 366.8, contribution: 5.6%)
-  5. burst_size  (effect: -93.2, contribution: 1.4%)
+  1. burst_size  (effect: 6025.8, contribution: 43.7%)
+  2. penalty_duration  (effect: 3173.8, contribution: 23.0%)
+  3. global_limit  (effect: 2098.8, contribution: 15.2%)
+  4. requests_per_sec  (effect: -2059.8, contribution: 15.0%)
+  5. window_type  (effect: 416.2, contribution: 3.0%)
 
 === Optimization: fairness_index ===
 Direction: maximize
 
 Best observed run: #5
-  requests_per_sec = 100
-  burst_size = 10
-  window_type = fixed
+  requests_per_sec = 1000
+  burst_size = 100
+  window_type = sliding
   penalty_duration = 300
   global_limit = 5000
   Value: 0.995
 
-RSM Model (linear, R² = 0.7189, Adj R² = 0.0163):
+RSM Model (linear, R² = 0.2959, Adj R² = -1.4643):
   Coefficients:
     intercept                      +0.8465
-    requests_per_sec               -0.0272
-    burst_size                     +0.0400
-    window_type                    -0.0407
-    penalty_duration               +0.0063
-    global_limit                   -0.0575
+    requests_per_sec               +0.0187
+    burst_size                     +0.0033
+    window_type                    -0.0252
+    penalty_duration               +0.0450
+    global_limit                   -0.0000
 
   Predicted optimum (from linear model):
-    requests_per_sec = 100
+    requests_per_sec = 1000
     burst_size = 100
     window_type = fixed
-    penalty_duration = 10
-    global_limit = 5000
-    Predicted value: 1.0057
+    penalty_duration = 300
+    global_limit = 50000
+    Predicted value: 0.9387
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. global_limit  (effect: -0.1, contribution: 33.5%)
-  2. window_type  (effect: -0.1, contribution: 23.7%)
-  3. burst_size  (effect: 0.1, contribution: 23.3%)
-  4. requests_per_sec  (effect: -0.1, contribution: 15.9%)
-  5. penalty_duration  (effect: 0.0, contribution: 3.6%)</div></div>
+  1. penalty_duration  (effect: 0.1, contribution: 48.8%)
+  2. window_type  (effect: -0.1, contribution: 27.4%)
+  3. requests_per_sec  (effect: 0.0, contribution: 20.3%)
+  4. burst_size  (effect: 0.0, contribution: 3.5%)
+  5. global_limit  (effect: 0.0, contribution: 0.0%)</div></div>
   </section>
 
   <!-- Nav -->

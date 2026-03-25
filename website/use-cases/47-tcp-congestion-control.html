@@ -38,6 +38,29 @@
 
 <div class="container-narrow uc-content">
 
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>tcp congestion control</strong>. Full factorial of congestion algorithm, initial window, buffer sizes, and ECN for throughput and fairness.</p>
+
+    <p>The design varies 4 factors: <strong>congestion algo</strong>, ranging from cubic to bbr, <strong>init cwnd</strong> (segments), ranging from 10 to 40, <strong>rmem max kb</strong> (KB), ranging from 256 to 4096, and <strong>ecn</strong>, ranging from off to on. The goal is to optimize 2 responses: throughput gbps (Gbps) (maximize) and retransmit pct (%) (minimize). Fixed conditions held constant across all runs include mtu = 1500, link speed = 10Gbps.</p>
+
+    <p>A full factorial design was used to explore all 16 possible combinations of the 4 factors at two levels. This guarantees that every main effect and interaction can be estimated independently, at the cost of a larger experiment (16 runs).</p>
+
+    <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
+
+    <h3>Key Findings</h3>
+    <p>For <strong>throughput gbps</strong>, the most influential factors were congestion algo (44.5%), init cwnd (34.9%), ecn (18.0%). The best observed value was <strong>10.2</strong> (at congestion algo = cubic, init cwnd = 10, rmem max kb = 4096).</p>
+<p>For <strong>retransmit pct</strong>, the most influential factors were init cwnd (47.2%), ecn (22.0%), rmem max kb (19.9%). The best observed value was <strong>0.424</strong> (at congestion algo = cubic, init cwnd = 40, rmem max kb = 256).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+  </ul>
+  </section>
+
   <!-- Factors & Responses -->
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -270,7 +293,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: throughput_gbps</h3>
-    <p>Top factors: ecn (49.0%), init_cwnd (24.8%), congestion_algo (22.5%).</p>
+    <p>Top factors: congestion_algo (44.5%), init_cwnd (34.9%), ecn (18.0%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -283,7 +306,7 @@
     </div>
 
     <h3>Response: retransmit_pct</h3>
-    <p>Top factors: ecn (47.2%), init_cwnd (30.9%), rmem_max_kb (18.3%).</p>
+    <p>Top factors: init_cwnd (47.2%), ecn (22.0%), rmem_max_kb (19.9%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -319,210 +342,214 @@
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: throughput_gbps ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-ecn                     -1.9287       0.4625            49.0%
-init_cwnd               -0.9737       0.4625            24.8%
-congestion_algo          0.8862       0.4625            22.5%
-rmem_max_kb              0.1437       0.4625             3.7%
+congestion_algo          0.6463       0.4625            44.5%
+init_cwnd               -0.5063       0.4625            34.9%
+ecn                      0.2612       0.4625            18.0%
+rmem_max_kb              0.0387       0.4625             2.7%
 
 === Interaction Effects: throughput_gbps ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-congestion_algo      init_cwnd                 -1.3362            31.0%
-init_cwnd            ecn                       -1.1963            27.8%
-congestion_algo      ecn                       -0.6012            14.0%
-congestion_algo      rmem_max_kb               -0.4487            10.4%
-init_cwnd            rmem_max_kb               -0.3937             9.1%
-rmem_max_kb          ecn                       -0.3288             7.6%
+rmem_max_kb          ecn                       -2.6087            47.3%
+init_cwnd            rmem_max_kb               -1.8463            33.5%
+init_cwnd            ecn                        0.6612            12.0%
+congestion_algo      ecn                        0.3237             5.9%
+congestion_algo      init_cwnd                 -0.0737             1.3%
+congestion_algo      rmem_max_kb                0.0012             0.0%
 
 === Summary Statistics: throughput_gbps ===
 
 congestion_algo:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  bbr                 8     6.9188     1.4903     5.0700     9.9300
-  cubic               8     7.8050     2.1596     4.4300    10.2000
+  bbr                 8     7.0388     2.1294     4.4300    10.2000
+  cubic               8     7.6850     1.6002     5.4700    10.1700
 
 init_cwnd:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  8     7.8487     1.4933     5.6900    10.2000
-  40                  8     6.8750     2.1359     4.4300    10.1700
+  10                  8     7.6150     1.8090     5.4700    10.1700
+  40                  8     7.1087     1.9785     4.4300    10.2000
 
 rmem_max_kb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  256                 8     7.2900     1.8814     4.4300    10.1700
-  4096                8     7.4337     1.9448     5.0700    10.2000
+  256                 8     7.3425     1.8864     5.0700    10.2000
+  4096                8     7.3812     1.9427     4.4300    10.1700
 
 ecn:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 8     8.3262     1.8034     5.6900    10.2000
-  on                  8     6.3975     1.3984     4.4300     8.4100
+  off                 8     7.2313     1.9536     5.0700    10.1700
+  on                  8     7.4925     1.8649     4.4300    10.2000
 
 === Main Effects: retransmit_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-ecn                      0.6338       0.1983            47.2%
-init_cwnd                0.4155       0.1983            30.9%
-rmem_max_kb             -0.2458       0.1983            18.3%
-congestion_algo          0.0475       0.1983             3.5%
+init_cwnd                0.3548       0.1983            47.2%
+ecn                     -0.1652       0.1983            22.0%
+rmem_max_kb             -0.1492       0.1983            19.9%
+congestion_algo         -0.0823       0.1983            10.9%
 
 === Interaction Effects: retransmit_pct ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-congestion_algo      init_cwnd                  0.7225            32.4%
-init_cwnd            ecn                        0.6063            27.1%
-init_cwnd            rmem_max_kb                0.4607            20.6%
-congestion_algo      ecn                        0.2378            10.6%
-congestion_algo      rmem_max_kb                0.1692             7.6%
-rmem_max_kb          ecn                        0.0365             1.6%
+rmem_max_kb          ecn                        1.0225            40.5%
+init_cwnd            rmem_max_kb                0.6490            25.7%
+congestion_algo      ecn                       -0.3740            14.8%
+congestion_algo      rmem_max_kb               -0.2070             8.2%
+init_cwnd            ecn                        0.2070             8.2%
+congestion_algo      init_cwnd                  0.0670             2.7%
 
 === Summary Statistics: retransmit_pct ===
 
 congestion_algo:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  bbr                 8     1.4690     0.5164     0.6670     2.2150
-  cubic               8     1.5165     1.0394     0.4240     3.2700
+  bbr                 8     1.5339     0.9023     0.6050     3.2700
+  cubic               8     1.4516     0.7282     0.4240     2.7000
 
 init_cwnd:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  8     1.2850     0.5622     0.6050     2.2150
-  40                  8     1.7005     0.9663     0.4240     3.2700
+  10                  8     1.3154     0.7926     0.4240     2.7000
+  40                  8     1.6701     0.8052     0.6050     3.2700
 
 rmem_max_kb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  256                 8     1.6156     0.8433     0.4240     3.2700
-  4096                8     1.3699     0.7764     0.6050     2.7000
+  256                 8     1.5674     0.7333     0.6050     2.7000
+  4096                8     1.4181     0.8932     0.4240     3.2700
 
 ecn:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 8     1.1759     0.6473     0.4240     2.2150
-  on                  8     1.8096     0.8366     0.6600     3.2700</div></div>
+  off                 8     1.5754     0.8078     0.4240     2.7000
+  on                  8     1.4101     0.8248     0.6050     3.2700</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: throughput_gbps ===
 Direction: maximize
 
 Best observed run: #5
-  congestion_algo = bbr
+  congestion_algo = cubic
   init_cwnd = 10
   rmem_max_kb = 4096
-  ecn = off
+  ecn = on
   Value: 10.2
 
-RSM Model (linear, R² = 0.1383, Adj R² = -0.1750):
+RSM Model (linear, R² = 0.1999, Adj R² = -0.0911):
   Coefficients:
     intercept                      +7.3619
-    congestion_algo                -0.2956
-    init_cwnd                      -0.5156
-    rmem_max_kb                    -0.2969
-    ecn                            -0.0494
+    congestion_algo                +0.6519
+    init_cwnd                      +0.3281
+    rmem_max_kb                    +0.2156
+    ecn                            +0.2494
 
-RSM Model (quadratic, R² = 0.6365, Adj R² = -4.4518):
+RSM Model (quadratic, R² = 0.5509, Adj R² = -5.7368):
   Coefficients:
     intercept                      +1.4724
-    congestion_algo                -0.2956
-    init_cwnd                      -0.5156
-    rmem_max_kb                    -0.2969
-    ecn                            -0.0494
-    congestion_algo*init_cwnd      +0.1394
-    congestion_algo*rmem_max_kb    -0.2744
-    congestion_algo*ecn            +0.8081
-    init_cwnd*rmem_max_kb          -0.6444
-    init_cwnd*ecn                  -0.5894
-    rmem_max_kb*ecn                +0.2969
+    congestion_algo                +0.6519
+    init_cwnd                      +0.3281
+    rmem_max_kb                    +0.2156
+    ecn                            +0.2494
+    congestion_algo*init_cwnd      +0.2956
+    congestion_algo*rmem_max_kb    +0.5706
+    congestion_algo*ecn            +0.7419
+    init_cwnd*rmem_max_kb          -0.4006
+    init_cwnd*ecn                  +0.0181
+    rmem_max_kb*ecn                -0.0444
     congestion_algo^2              +1.4724
     init_cwnd^2                    +1.4724
     rmem_max_kb^2                  +1.4724
     ecn^2                          +1.4724
 
   Curvature analysis:
-    rmem_max_kb                    coef=+1.4724  convex (has a minimum)
     ecn                            coef=+1.4724  convex (has a minimum)
     congestion_algo                coef=+1.4724  convex (has a minimum)
     init_cwnd                      coef=+1.4724  convex (has a minimum)
+    rmem_max_kb                    coef=+1.4724  convex (has a minimum)
 
   Notable interactions:
-    congestion_algo*ecn            coef=+0.8081  (synergistic)
-    init_cwnd*rmem_max_kb          coef=-0.6444  (antagonistic)
-    init_cwnd*ecn                  coef=-0.5894  (antagonistic)
+    congestion_algo*ecn            coef=+0.7419  (synergistic)
+    congestion_algo*rmem_max_kb    coef=+0.5706  (synergistic)
+    init_cwnd*rmem_max_kb          coef=-0.4006  (antagonistic)
 
   Predicted optimum (from linear model):
-    congestion_algo = bbr
-    init_cwnd = 10
-    rmem_max_kb = 256
-    ecn = off
-    Predicted value: 8.5194
+    congestion_algo = cubic
+    init_cwnd = 40
+    rmem_max_kb = 4096
+    ecn = on
+    Predicted value: 8.8069
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. init_cwnd  (effect: -1.0, contribution: 44.5%)
-  2. rmem_max_kb  (effect: -0.6, contribution: 25.6%)
-  3. congestion_algo  (effect: -0.6, contribution: 25.5%)
-  4. ecn  (effect: -0.1, contribution: 4.3%)
+  1. congestion_algo  (effect: 1.3, contribution: 45.1%)
+  2. init_cwnd  (effect: 0.7, contribution: 22.7%)
+  3. ecn  (effect: 0.5, contribution: 17.3%)
+  4. rmem_max_kb  (effect: 0.4, contribution: 14.9%)
 
 === Optimization: retransmit_pct ===
 Direction: minimize
 
 Best observed run: #12
   congestion_algo = cubic
-  init_cwnd = 10
+  init_cwnd = 40
   rmem_max_kb = 256
   ecn = on
   Value: 0.424
 
-RSM Model (linear, R² = 0.1322, Adj R² = -0.1834):
+RSM Model (linear, R² = 0.0899, Adj R² = -0.2411):
   Coefficients:
     intercept                      +1.4928
-    congestion_algo                -0.0666
-    init_cwnd                      +0.1171
-    rmem_max_kb                    +0.2428
-    ecn                            +0.0296
+    congestion_algo                -0.1765
+    init_cwnd                      -0.1355
+    rmem_max_kb                    -0.0303
+    ecn                            +0.0510
 
-RSM Model (quadratic, R² = 0.4715, Adj R² = -6.9269):
+RSM Model (quadratic, R² = 0.6261, Adj R² = -4.6080):
   Coefficients:
     intercept                      +0.2986
-    congestion_algo                -0.0666
-    init_cwnd                      +0.1171
-    rmem_max_kb                    +0.2428
-    ecn                            +0.0296
-    congestion_algo*init_cwnd      -0.1155
-    congestion_algo*rmem_max_kb    +0.0099
-    congestion_algo*ecn            -0.2715
-    init_cwnd*rmem_max_kb          +0.1609
-    init_cwnd*ecn                  +0.2823
-    rmem_max_kb*ecn                -0.0866
+    congestion_algo                -0.1765
+    init_cwnd                      -0.1355
+    rmem_max_kb                    -0.0303
+    ecn                            +0.0510
+    congestion_algo*init_cwnd      -0.0922
+    congestion_algo*rmem_max_kb    -0.0778
+    congestion_algo*ecn            -0.3878
+    init_cwnd*rmem_max_kb          +0.3425
+    init_cwnd*ecn                  +0.1465
+    rmem_max_kb*ecn                +0.1125
     congestion_algo^2              +0.2986
     init_cwnd^2                    +0.2986
     rmem_max_kb^2                  +0.2986
     ecn^2                          +0.2986
 
   Curvature analysis:
-    congestion_algo                coef=+0.2986  convex (has a minimum)
     init_cwnd                      coef=+0.2986  convex (has a minimum)
-    rmem_max_kb                    coef=+0.2986  convex (has a minimum)
+    congestion_algo                coef=+0.2986  convex (has a minimum)
     ecn                            coef=+0.2986  convex (has a minimum)
+    rmem_max_kb                    coef=+0.2986  convex (has a minimum)
+
+  Notable interactions:
+    congestion_algo*ecn            coef=-0.3878  (antagonistic)
+    init_cwnd*rmem_max_kb          coef=+0.3425  (synergistic)
 
   Predicted optimum (from linear model):
     congestion_algo = bbr
-    init_cwnd = 40
-    rmem_max_kb = 4096
+    init_cwnd = 10
+    rmem_max_kb = 256
     ecn = on
-    Predicted value: 1.9489
+    Predicted value: 1.8860
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. rmem_max_kb  (effect: 0.5, contribution: 53.2%)
-  2. init_cwnd  (effect: 0.2, contribution: 25.7%)
-  3. congestion_algo  (effect: -0.1, contribution: 14.6%)
-  4. ecn  (effect: 0.1, contribution: 6.5%)</div></div>
+  1. congestion_algo  (effect: -0.4, contribution: 44.9%)
+  2. init_cwnd  (effect: -0.3, contribution: 34.5%)
+  3. ecn  (effect: 0.1, contribution: 13.0%)
+  4. rmem_max_kb  (effect: -0.1, contribution: 7.7%)</div></div>
   </section>
 
   <!-- Nav -->
