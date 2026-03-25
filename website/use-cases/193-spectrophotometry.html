@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UV-Vis Spectrophotometry &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #e8f5e9, #c8e6c9);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F9EA;</div>
+    <div class="uc-badge" style="background:rgba(46,125,50,.12);color:#2e7d32;">Box-Behnken Design</div>
+    <h1>UV-Vis Spectrophotometry</h1>
+    <p class="uc-subtitle">Box-Behnken design to maximize signal-to-noise ratio and minimize baseline drift by tuning slit width, scan speed, and sample path length</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>slit_nm</code></td><td>0.5</td><td>5.0</td><td>nm</td></tr>
+            <tr><td><code>scan_speed</code></td><td>100</td><td>1000</td><td>nm/min</td></tr>
+            <tr><td><code>path_cm</code></td><td>0.1</td><td>5.0</td><td>cm</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> lamp = deuterium, wavelength = 260nm</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>snr</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>ratio</td></tr>
+            <tr><td><code>baseline_drift</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>AU/hr</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/193_spectrophotometry/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;UV-Vis Spectrophotometry&quot;,
+    &quot;description&quot;: &quot;Box-Behnken design to maximize signal-to-noise ratio and minimize baseline drift by tuning slit width, scan speed, and sample path length&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;slit_nm&quot;,
+      &quot;levels&quot;: [
+        &quot;0.5&quot;,
+        &quot;5.0&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;nm&quot;
+    },
+    {
+      &quot;name&quot;: &quot;scan_speed&quot;,
+      &quot;levels&quot;: [
+        &quot;100&quot;,
+        &quot;1000&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;nm/min&quot;
+    },
+    {
+      &quot;name&quot;: &quot;path_cm&quot;,
+      &quot;levels&quot;: [
+        &quot;0.1&quot;,
+        &quot;5.0&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;cm&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;lamp&quot;: &quot;deuterium&quot;,
+    &quot;wavelength&quot;: &quot;260nm&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;snr&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;ratio&quot;
+    },
+    {
+      &quot;name&quot;: &quot;baseline_drift&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;AU/hr&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;box_behnken&quot;,
+    &quot;test_script&quot;: &quot;use_cases/193_spectrophotometry/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Box-Behnken Design produces <strong>15 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>slit_nm</code></th><th><code>scan_speed</code></th><th><code>path_cm</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>2.75</td><td>100</td><td>0.1</td></tr>
+        <tr><td>2</td><td>2.75</td><td>550</td><td>2.55</td></tr>
+        <tr><td>3</td><td>5</td><td>550</td><td>5</td></tr>
+        <tr><td>4</td><td>5</td><td>550</td><td>0.1</td></tr>
+        <tr><td>5</td><td>2.75</td><td>550</td><td>2.55</td></tr>
+        <tr><td>6</td><td>2.75</td><td>550</td><td>2.55</td></tr>
+        <tr><td>7</td><td>0.5</td><td>550</td><td>5</td></tr>
+        <tr><td>8</td><td>5</td><td>100</td><td>2.55</td></tr>
+        <tr><td>9</td><td>2.75</td><td>100</td><td>5</td></tr>
+        <tr><td>10</td><td>5</td><td>1000</td><td>2.55</td></tr>
+        <tr><td>11</td><td>0.5</td><td>550</td><td>0.1</td></tr>
+        <tr><td>12</td><td>2.75</td><td>1000</td><td>5</td></tr>
+        <tr><td>13</td><td>0.5</td><td>100</td><td>2.55</td></tr>
+        <tr><td>14</td><td>0.5</td><td>1000</td><td>2.55</td></tr>
+        <tr><td>15</td><td>2.75</td><td>1000</td><td>0.1</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/193_spectrophotometry/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/193_spectrophotometry/config.json \
+    <span class="flag">--output</span> use_cases/193_spectrophotometry/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/193_spectrophotometry/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/193_spectrophotometry/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/193_spectrophotometry/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/193_spectrophotometry/config.json \
+    <span class="flag">--output</span> use_cases/193_spectrophotometry/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>box_behnken</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (snr &#x2191;, baseline_drift &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>15</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: snr</h3>
+    <p>Top factors: path_cm (54.4%), scan_speed (29.5%), slit_nm (16.1%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/193_pareto_snr.png" alt="Pareto chart for snr">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/193_main_effects_snr.png" alt="Main effects plot for snr">
+      </div>
+    </div>
+
+    <h3>Response: baseline_drift</h3>
+    <p>Top factors: slit_nm (42.8%), path_cm (35.3%), scan_speed (21.8%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/193_pareto_baseline_drift.png" alt="Pareto chart for baseline_drift">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/193_main_effects_baseline_drift.png" alt="Main effects plot for baseline_drift">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">baseline drift scan speed vs path cm</p>
+      <img src="../images/193_rsm_baseline_drift_scan_speed_vs_path_cm.png" alt="RSM surface: baseline drift scan speed vs path cm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">baseline drift slit nm vs path cm</p>
+      <img src="../images/193_rsm_baseline_drift_slit_nm_vs_path_cm.png" alt="RSM surface: baseline drift slit nm vs path cm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">baseline drift slit nm vs scan speed</p>
+      <img src="../images/193_rsm_baseline_drift_slit_nm_vs_scan_speed.png" alt="RSM surface: baseline drift slit nm vs scan speed" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">snr scan speed vs path cm</p>
+      <img src="../images/193_rsm_snr_scan_speed_vs_path_cm.png" alt="RSM surface: snr scan speed vs path cm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">snr slit nm vs path cm</p>
+      <img src="../images/193_rsm_snr_slit_nm_vs_path_cm.png" alt="RSM surface: snr slit nm vs path cm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">snr slit nm vs scan speed</p>
+      <img src="../images/193_rsm_snr_slit_nm_vs_scan_speed.png" alt="RSM surface: snr slit nm vs scan speed" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_snr_slit_nm_vs_scan_speed.png
+  RSM surface: rsm_snr_slit_nm_vs_path_cm.png
+  RSM surface: rsm_snr_scan_speed_vs_path_cm.png
+  RSM surface: rsm_baseline_drift_slit_nm_vs_scan_speed.png
+  RSM surface: rsm_baseline_drift_slit_nm_vs_path_cm.png
+  RSM surface: rsm_baseline_drift_scan_speed_vs_path_cm.png
+
+=== Main Effects: snr ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+path_cm                 55.0000      13.8153            54.4%
+scan_speed              29.8571      13.8153            29.5%
+slit_nm                 16.2500      13.8153            16.1%
+
+=== Summary Statistics: snr ===
+
+slit_nm:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.5                 4   189.7500    19.6023   166.0000   214.0000
+  2.75                7   195.4286    60.7093   113.0000   272.0000
+  5                   4   206.0000    73.6297   108.0000   286.0000
+
+scan_speed:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4   213.0000    45.5046   166.0000   272.0000
+  1000                4   204.2500    61.0321   139.0000   286.0000
+  550                 7   183.1429    57.9035   108.0000   272.0000
+
+path_cm:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.1                 4   163.2500    48.4519   108.0000   214.0000
+  2.55                7   203.5714    61.0324   113.0000   286.0000
+  5                   4   218.2500    36.6276   190.0000   272.0000
+
+=== Main Effects: baseline_drift ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+slit_nm                  0.0012       0.0005            42.8%
+path_cm                  0.0010       0.0005            35.3%
+scan_speed               0.0006       0.0005            21.8%
+
+=== Summary Statistics: baseline_drift ===
+
+slit_nm:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.5                 4     0.0054     0.0024     0.0025     0.0082
+  2.75                7     0.0056     0.0012     0.0041     0.0070
+  5                   4     0.0044     0.0021     0.0029     0.0075
+
+scan_speed:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4     0.0055     0.0023     0.0025     0.0075
+  1000                4     0.0055     0.0014     0.0037     0.0070
+  550                 7     0.0049     0.0019     0.0029     0.0082
+
+path_cm:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.1                 4     0.0059     0.0021     0.0034     0.0082
+  2.55                7     0.0049     0.0018     0.0025     0.0075
+  5                   4     0.0051     0.0017     0.0029     0.0070
+
+Pareto chart (snr): use_cases/193_spectrophotometry/results/analysis/pareto_snr.png
+
+Pareto chart (baseline_drift): use_cases/193_spectrophotometry/results/analysis/pareto_baseline_drift.png
+Main effects (snr): use_cases/193_spectrophotometry/results/analysis/main_effects_snr.png
+Main effects (baseline_drift): use_cases/193_spectrophotometry/results/analysis/main_effects_baseline_drift.png</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: snr ===
+Direction: maximize
+
+Best observed run: #9
+  slit_nm = 5
+  scan_speed = 550
+  path_cm = 0.1
+  Value: 286.0
+
+RSM Model (linear, R² = 0.1060, Adj R² = -0.1378):
+  Coefficients:
+    intercept                      +196.7333
+    slit_nm                        +3.0000
+    scan_speed                     -22.5000
+    path_cm                        +4.0000
+
+RSM Model (quadratic, R² = 0.4815, Adj R² = -0.4517):
+  Coefficients:
+    intercept                      +185.6667
+    slit_nm                        +3.0000
+    scan_speed                     -22.5000
+    path_cm                        +4.0000
+    slit_nm*scan_speed             +30.0000
+    slit_nm*path_cm                -25.5000
+    scan_speed*path_cm             +18.0000
+    slit_nm^2                      +37.4167
+    scan_speed^2                   -22.0833
+    path_cm^2                      +5.4167
+
+  Curvature analysis:
+    slit_nm                        coef=+37.4167  convex (has a minimum)
+    scan_speed                     coef=-22.0833  concave (has a maximum)
+    path_cm                        coef=+5.4167  convex (has a minimum)
+
+  Notable interactions:
+    slit_nm*scan_speed             coef=+30.0000  (synergistic)
+    slit_nm*path_cm                coef=-25.5000  (antagonistic)
+    scan_speed*path_cm             coef=+18.0000  (synergistic)
+
+  Predicted optimum (from linear model):
+    slit_nm = 2.75
+    scan_speed = 100
+    path_cm = 5
+    Predicted value: 223.2333
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. scan_speed  (effect: 47.6, contribution: 48.8%)
+  2. slit_nm  (effect: 41.6, contribution: 42.6%)
+  3. path_cm  (effect: 8.3, contribution: 8.5%)
+
+=== Optimization: baseline_drift ===
+Direction: minimize
+
+Best observed run: #13
+  slit_nm = 2.75
+  scan_speed = 100
+  path_cm = 0.1
+  Value: 0.0025
+
+RSM Model (linear, R² = 0.3153, Adj R² = 0.1286):
+  Coefficients:
+    intercept                      +0.0052
+    slit_nm                        -0.0013
+    scan_speed                     +0.0001
+    path_cm                        +0.0001
+
+RSM Model (quadratic, R² = 0.9528, Adj R² = 0.8679):
+  Coefficients:
+    intercept                      +0.0039
+    slit_nm                        -0.0013
+    scan_speed                     +0.0001
+    path_cm                        +0.0001
+    slit_nm*scan_speed             -0.0001
+    slit_nm*path_cm                +0.0005
+    scan_speed*path_cm             -0.0018
+    slit_nm^2                      +0.0019
+    scan_speed^2                   +0.0003
+    path_cm^2                      +0.0003
+
+  Curvature analysis:
+    slit_nm                        coef=+0.0019  negligible curvature
+    path_cm                        coef=+0.0003  negligible curvature
+    scan_speed                     coef=+0.0003  negligible curvature
+
+  Predicted optimum (from quadratic model):
+    slit_nm = 0.5
+    scan_speed = 550
+    path_cm = 0.1
+    Predicted value: 0.0079
+
+  Model quality: Excellent fit — surface predictions are reliable.
+
+Factor importance:
+  1. slit_nm  (effect: 0.0, contribution: 89.4%)
+  2. path_cm  (effect: 0.0, contribution: 5.7%)
+  3. scan_speed  (effect: 0.0, contribution: 5.0%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="192-distillation-purity.html">&larr; Previous: Lab Distillation Purity</a>
+    <a href="194-electroplating.html">Next: Electroplating Thickness Control &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

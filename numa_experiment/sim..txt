@@ -1,0 +1,164 @@
+#usrbinenvbash
+# Simulated EPYC dual-socket NUMA transfer rate benchmark.
+#
+# Produces bandwidth_GBs and latency_ns based on a realistic model of
+# AMD EPYC 9654 (Genoa) dual-socket NUMA behavior.
+#
+# Hidden model:
+#   bandwidth_GBs:
+#     Base: 52 GB/s (single-thread, local, memcpy, 4K pages)
+#     Remote penalty: -22 GB/s (cross-socket via Infinity Fabric)
+#     NT stores: +10 GB/s base, +16 GB/s on remote (bypasses cache)
+#     Thread scaling: ~5.5x at 24 threads (sub-linear due to memory controller saturation)
+#     Large buffers (>64 MB): -6% BW (L3 thrashing)
+#     Hugepages 2M: +8% BW (reduced TLB misses)
+#     NUMA balancing on: -4 GB/s (kernel page migration overhead)
+#     Interleave policy: +15 GB/s (distributes across both memory controllers)
+#     Interactions:
+#       remote + ntstore: synergistic (+16 vs +10)
+#       remote + interleave: +10 GB/s extra (both controllers active)
+#       threads > 12 + large buffer: additional -3 GB/s (memory controller contention)
+#
+#   latency_ns:
+#     Base: 68 ns (local, single-thread)
+#     Remote: +55 ns (cross-socket hop)
+#     NT stores: -8 ns (write-combine reduces read-for-ownership)
+#     Thread contention: +1.2 ns per thread
+#     Large buffers: +10 ns (TLB/prefetcher misses)
+#     Hugepages 2M: -12 ns (TLB benefit)
+#     NUMA balancing on: +5 ns (migration jitter)
+#     Interleave: +8 ns average (some accesses now remote)
+#     Interactions:
+#       remote + hugepages: -6 ns extra (TLB helps more on longer paths)
+#       large buffer + hugepages: -8 ns (TLB benefit scales with working set)
+
+set -euo pipefail
+
+OUTFILE=""
+NUMA_DISTANCE=""
+TRANSFER_MODE=""
+THREAD_COUNT=""
+BUFFER_SIZE_MB=""
+HUGEPAGES=""
+NUMA_BALANCING=""
+MEM_POLICY=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --out)              OUTFILE="$2";          shift 2 ;;
+        --numa_distance)    NUMA_DISTANCE="$2";    shift 2 ;;
+        --transfer_mode)    TRANSFER_MODE="$2";    shift 2 ;;
+        --thread_count)     THREAD_COUNT="$2";     shift 2 ;;
+        --buffer_size_mb)   BUFFER_SIZE_MB="$2";   shift 2 ;;
+        --hugepages)        HUGEPAGES="$2";        shift 2 ;;
+        --numa_balancing)   NUMA_BALANCING="$2";   shift 2 ;;
+        --mem_policy)       MEM_POLICY="$2";       shift 2 ;;
+        # Absorb fixed factors silently
+        --sockets|--cores_per_socket|--cpu_governor|--turbo_boost|--smt|--nps_setting)
+                            shift 2 ;;
+        *)                  shift ;;
+    esac
+done
+
+# Defaults for factors not passed (used in later phases when factors are fixed)
+NUMA_DISTANCE="${NUMA_DISTANCE:-local}"
+TRANSFER_MODE="${TRANSFER_MODE:-memcpy}"
+THREAD_COUNT="${THREAD_COUNT:-1}"
+BUFFER_SIZE_MB="${BUFFER_SIZE_MB:-1}"
+HUGEPAGES="${HUGEPAGES:-off}"
+NUMA_BALANCING="${NUMA_BALANCING:-off}"
+MEM_POLICY="${MEM_POLICY:-local}"
+
+if [[ -z "$OUTFILE" ]]; then
+    echo "Usage: sim.sh --out FILE [--numa_distance V] [--transfer_mode V] ..." >&2
+    exit 1
+fi
+
+RESULT=$(awk -v dist="$NUMA_DISTANCE" -v mode="$TRANSFER_MODE" \
+             -v threads="$THREAD_COUNT" -v buf_mb="$BUFFER_SIZE_MB" \
+             -v hp="$HUGEPAGES" -v bal="$NUMA_BALANCING" \
+             -v mpol="$MEM_POLICY" -v seed="$RANDOM" '
+BEGIN {
+    srand(seed);
+    noise_bw  = (rand() - 0.5) * 6;
+    noise_lat = (rand() - 0.5) * 8;
+
+    # ======== BANDWIDTH MODEL (GB/s) ========
+    bw = 52.0;
+
+    # NUMA distance
+    is_remote = (dist == "remote") ? 1 : 0;
+    if (is_remote) bw -= 22.0;
+
+    # Transfer mode
+    if (mode == "ntstore") {
+        if (is_remote) bw += 16.0;
+        else           bw += 10.0;
+    }
+
+    # Thread scaling (sub-linear: sqrt-ish model)
+    threads = int(threads);
+    if (threads < 1) threads = 1;
+    thread_scale = 1.0 + (threads - 1) * 4.5 / 23.0;
+    bw = bw * thread_scale;
+
+    # Buffer size effects
+    buf_mb = int(buf_mb);
+    if (buf_mb < 1) buf_mb = 1;
+    is_large = (buf_mb > 64) ? 1 : 0;
+    if (is_large) bw *= 0.94;
+
+    # Hugepages
+    if (hp == "2M") bw *= 1.08;
+
+    # NUMA balancing overhead
+    if (bal == "on") bw -= 4.0;
+
+    # Memory policy
+    if (mpol == "interleave") bw += 15.0;
+
+    # Interactions
+    if (is_remote && mpol == "interleave") bw += 10.0;
+    if (threads > 12 && is_large) bw -= 3.0;
+
+    bw += noise_bw;
+    if (bw < 2) bw = 2;
+
+    # ======== LATENCY MODEL (ns) ========
+    lat = 68.0;
+
+    # NUMA distance
+    if (is_remote) lat += 55.0;
+
+    # Transfer mode
+    if (mode == "ntstore") lat -= 8.0;
+
+    # Thread contention
+    lat += (threads - 1) * 1.2;
+
+    # Buffer size
+    if (is_large) lat += 10.0;
+
+    # Hugepages
+    if (hp == "2M") lat -= 12.0;
+
+    # NUMA balancing jitter
+    if (bal == "on") lat += 5.0;
+
+    # Memory policy
+    if (mpol == "interleave") lat += 8.0;
+
+    # Interactions
+    if (is_remote && hp == "2M") lat -= 6.0;
+    if (is_large && hp == "2M") lat -= 8.0;
+
+    lat += noise_lat;
+    if (lat < 20) lat = 20;
+
+    printf "{\"bandwidth_GBs\": %.1f, \"latency_ns\": %.1f}", bw, lat;
+}')
+
+mkdir -p "$(dirname "$OUTFILE")"
+echo "$RESULT" > "$OUTFILE"
+
+echo "  -> $(cat "$OUTFILE")"

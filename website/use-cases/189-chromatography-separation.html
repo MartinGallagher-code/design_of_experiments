@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chromatography Separation &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #e8f5e9, #c8e6c9);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F9EA;</div>
+    <div class="uc-badge" style="background:rgba(46,125,50,.12);color:#2e7d32;">Box-Behnken Design</div>
+    <h1>Chromatography Separation</h1>
+    <p class="uc-subtitle">Box-Behnken design to maximize resolution and minimize run time by tuning flow rate, mobile phase ratio, and column temperature</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>flow_ml_min</code></td><td>0.5</td><td>2.0</td><td>mL/min</td></tr>
+            <tr><td><code>organic_pct</code></td><td>30</td><td>80</td><td>%</td></tr>
+            <tr><td><code>column_temp_c</code></td><td>25</td><td>55</td><td>C</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> column = C18_150mm, detector = UV_254nm</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>resolution</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>Rs</td></tr>
+            <tr><td><code>run_time_min</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>min</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/189_chromatography_separation/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Chromatography Separation&quot;,
+    &quot;description&quot;: &quot;Box-Behnken design to maximize resolution and minimize run time by tuning flow rate, mobile phase ratio, and column temperature&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;flow_ml_min&quot;,
+      &quot;levels&quot;: [
+        &quot;0.5&quot;,
+        &quot;2.0&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;mL/min&quot;
+    },
+    {
+      &quot;name&quot;: &quot;organic_pct&quot;,
+      &quot;levels&quot;: [
+        &quot;30&quot;,
+        &quot;80&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;column_temp_c&quot;,
+      &quot;levels&quot;: [
+        &quot;25&quot;,
+        &quot;55&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;C&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;column&quot;: &quot;C18_150mm&quot;,
+    &quot;detector&quot;: &quot;UV_254nm&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;resolution&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;Rs&quot;
+    },
+    {
+      &quot;name&quot;: &quot;run_time_min&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;min&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;box_behnken&quot;,
+    &quot;test_script&quot;: &quot;use_cases/189_chromatography_separation/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Box-Behnken Design produces <strong>15 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>flow_ml_min</code></th><th><code>organic_pct</code></th><th><code>column_temp_c</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>1.25</td><td>30</td><td>25</td></tr>
+        <tr><td>2</td><td>1.25</td><td>55</td><td>40</td></tr>
+        <tr><td>3</td><td>2</td><td>55</td><td>55</td></tr>
+        <tr><td>4</td><td>2</td><td>55</td><td>25</td></tr>
+        <tr><td>5</td><td>1.25</td><td>55</td><td>40</td></tr>
+        <tr><td>6</td><td>1.25</td><td>55</td><td>40</td></tr>
+        <tr><td>7</td><td>0.5</td><td>55</td><td>55</td></tr>
+        <tr><td>8</td><td>2</td><td>30</td><td>40</td></tr>
+        <tr><td>9</td><td>1.25</td><td>30</td><td>55</td></tr>
+        <tr><td>10</td><td>2</td><td>80</td><td>40</td></tr>
+        <tr><td>11</td><td>0.5</td><td>55</td><td>25</td></tr>
+        <tr><td>12</td><td>1.25</td><td>80</td><td>55</td></tr>
+        <tr><td>13</td><td>0.5</td><td>30</td><td>40</td></tr>
+        <tr><td>14</td><td>0.5</td><td>80</td><td>40</td></tr>
+        <tr><td>15</td><td>1.25</td><td>80</td><td>25</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/189_chromatography_separation/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/189_chromatography_separation/config.json \
+    <span class="flag">--output</span> use_cases/189_chromatography_separation/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/189_chromatography_separation/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/189_chromatography_separation/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/189_chromatography_separation/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/189_chromatography_separation/config.json \
+    <span class="flag">--output</span> use_cases/189_chromatography_separation/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>box_behnken</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (resolution &#x2191;, run_time_min &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>15</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: resolution</h3>
+    <p>Top factors: flow_ml_min (47.1%), column_temp_c (37.9%), organic_pct (15.0%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/189_pareto_resolution.png" alt="Pareto chart for resolution">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/189_main_effects_resolution.png" alt="Main effects plot for resolution">
+      </div>
+    </div>
+
+    <h3>Response: run_time_min</h3>
+    <p>Top factors: flow_ml_min (44.5%), organic_pct (38.2%), column_temp_c (17.3%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/189_pareto_run_time_min.png" alt="Pareto chart for run_time_min">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/189_main_effects_run_time_min.png" alt="Main effects plot for run_time_min">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">resolution flow ml min vs column temp c</p>
+      <img src="../images/189_rsm_resolution_flow_ml_min_vs_column_temp_c.png" alt="RSM surface: resolution flow ml min vs column temp c" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">resolution flow ml min vs organic pct</p>
+      <img src="../images/189_rsm_resolution_flow_ml_min_vs_organic_pct.png" alt="RSM surface: resolution flow ml min vs organic pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">resolution organic pct vs column temp c</p>
+      <img src="../images/189_rsm_resolution_organic_pct_vs_column_temp_c.png" alt="RSM surface: resolution organic pct vs column temp c" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">run time min flow ml min vs column temp c</p>
+      <img src="../images/189_rsm_run_time_min_flow_ml_min_vs_column_temp_c.png" alt="RSM surface: run time min flow ml min vs column temp c" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">run time min flow ml min vs organic pct</p>
+      <img src="../images/189_rsm_run_time_min_flow_ml_min_vs_organic_pct.png" alt="RSM surface: run time min flow ml min vs organic pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">run time min organic pct vs column temp c</p>
+      <img src="../images/189_rsm_run_time_min_organic_pct_vs_column_temp_c.png" alt="RSM surface: run time min organic pct vs column temp c" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_resolution_flow_ml_min_vs_organic_pct.png
+  RSM surface: rsm_resolution_flow_ml_min_vs_column_temp_c.png
+  RSM surface: rsm_resolution_organic_pct_vs_column_temp_c.png
+  RSM surface: rsm_run_time_min_flow_ml_min_vs_organic_pct.png
+  RSM surface: rsm_run_time_min_flow_ml_min_vs_column_temp_c.png
+  RSM surface: rsm_run_time_min_organic_pct_vs_column_temp_c.png
+
+=== Main Effects: resolution ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+flow_ml_min              0.4696       0.1520            47.1%
+column_temp_c            0.3775       0.1520            37.9%
+organic_pct              0.1493       0.1520            15.0%
+
+=== Summary Statistics: resolution ===
+
+flow_ml_min:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.5                 4     2.0375     0.8488     1.2500     2.9400
+  1.25                7     2.5071     0.5457     1.6700     3.3700
+  2                   4     2.1550     0.2849     1.8700     2.5100
+
+organic_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  30                  4     2.2550     0.4135     1.6700     2.5800
+  55                  7     2.2457     0.5616     1.3800     2.9400
+  80                  4     2.3950     0.8910     1.2500     3.3700
+
+column_temp_c:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  25                  4     2.4625     0.8227     1.6700     3.3700
+  40                  7     2.3043     0.5169     1.2500     2.8900
+  55                  4     2.0850     0.5560     1.3800     2.7100
+
+=== Main Effects: run_time_min ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+flow_ml_min              4.2250       1.0429            44.5%
+organic_pct              3.6250       1.0429            38.2%
+column_temp_c            1.6429       1.0429            17.3%
+
+=== Summary Statistics: run_time_min ===
+
+flow_ml_min:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.5                 4    16.9000     2.2271    14.7000    19.9000
+  1.25                7    16.5429     5.0059    10.2000    23.0000
+  2                   4    12.6750     2.3071     9.3000    14.5000
+
+organic_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  30                  4    14.1750     2.6998    10.5000    17.0000
+  55                  7    15.1714     3.4793    10.2000    21.3000
+  80                  4    17.8000     5.9200     9.3000    23.0000
+
+column_temp_c:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  25                  4    16.6000     2.3847    13.3000    19.0000
+  40                  7    14.9571     4.4646     9.3000    21.3000
+  55                  4    15.7500     5.3157    10.5000    23.0000
+
+Pareto chart (resolution): use_cases/189_chromatography_separation/results/analysis/pareto_resolution.png
+
+Pareto chart (run_time_min): use_cases/189_chromatography_separation/results/analysis/pareto_run_time_min.png
+Main effects (resolution): use_cases/189_chromatography_separation/results/analysis/main_effects_resolution.png
+Main effects (run_time_min): use_cases/189_chromatography_separation/results/analysis/main_effects_run_time_min.png</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: resolution ===
+Direction: maximize
+
+Best observed run: #7
+  flow_ml_min = 2
+  organic_pct = 55
+  column_temp_c = 55
+  Value: 3.37
+
+RSM Model (linear, R² = 0.1131, Adj R² = -0.1288):
+  Coefficients:
+    intercept                      +2.2880
+    flow_ml_min                    +0.1713
+    organic_pct                    -0.0637
+    column_temp_c                  +0.1875
+
+RSM Model (quadratic, R² = 0.7834, Adj R² = 0.3936):
+  Coefficients:
+    intercept                      +2.6800
+    flow_ml_min                    +0.1712
+    organic_pct                    -0.0637
+    column_temp_c                  +0.1875
+    flow_ml_min*organic_pct        +0.3850
+    flow_ml_min*column_temp_c      +0.1175
+    organic_pct*column_temp_c      +0.5375
+    flow_ml_min^2                  -0.2775
+    organic_pct^2                  -0.5575
+    column_temp_c^2                +0.1000
+
+  Curvature analysis:
+    organic_pct                    coef=-0.5575  concave (has a maximum)
+    flow_ml_min                    coef=-0.2775  concave (has a maximum)
+    column_temp_c                  coef=+0.1000  negligible curvature
+
+  Notable interactions:
+    organic_pct*column_temp_c      coef=+0.5375  (synergistic)
+    flow_ml_min*organic_pct        coef=+0.3850  (synergistic)
+
+  Predicted optimum (from quadratic model):
+    flow_ml_min = 2
+    organic_pct = 55
+    column_temp_c = 55
+    Predicted value: 2.9787
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. organic_pct  (effect: 0.6, contribution: 43.5%)
+  2. flow_ml_min  (effect: 0.4, contribution: 29.7%)
+  3. column_temp_c  (effect: 0.4, contribution: 26.8%)
+
+=== Optimization: run_time_min ===
+Direction: minimize
+
+Best observed run: #10
+  flow_ml_min = 2
+  organic_pct = 80
+  column_temp_c = 40
+  Value: 9.3
+
+RSM Model (linear, R² = 0.0882, Adj R² = -0.1605):
+  Coefficients:
+    intercept                      +15.6067
+    flow_ml_min                    +1.4625
+    organic_pct                    -0.4875
+    column_temp_c                  -0.3750
+
+RSM Model (quadratic, R² = 0.7736, Adj R² = 0.3662):
+  Coefficients:
+    intercept                      +19.7000
+    flow_ml_min                    +1.4625
+    organic_pct                    -0.4875
+    column_temp_c                  -0.3750
+    flow_ml_min*organic_pct        -4.3500
+    flow_ml_min*column_temp_c      +1.8250
+    organic_pct*column_temp_c      +0.5750
+    flow_ml_min^2                  -3.3000
+    organic_pct^2                  -2.3000
+    column_temp_c^2                -2.0750
+
+  Curvature analysis:
+    flow_ml_min                    coef=-3.3000  concave (has a maximum)
+    organic_pct                    coef=-2.3000  concave (has a maximum)
+    column_temp_c                  coef=-2.0750  concave (has a maximum)
+
+  Notable interactions:
+    flow_ml_min*organic_pct        coef=-4.3500  (antagonistic)
+    flow_ml_min*column_temp_c      coef=+1.8250  (synergistic)
+    organic_pct*column_temp_c      coef=+0.5750  (synergistic)
+
+  Predicted optimum (from quadratic model):
+    flow_ml_min = 2
+    organic_pct = 30
+    column_temp_c = 40
+    Predicted value: 20.4000
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. flow_ml_min  (effect: 4.4, contribution: 50.0%)
+  2. organic_pct  (effect: 2.4, contribution: 27.0%)
+  3. column_temp_c  (effect: 2.1, contribution: 23.0%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="188-crystallization.html">&larr; Previous: Crystal Growth Optimization</a>
+    <a href="190-pcr-amplification.html">Next: PCR Amplification Efficiency &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

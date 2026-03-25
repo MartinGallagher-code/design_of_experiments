@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lab Distillation Purity &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #e8f5e9, #c8e6c9);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F9EA;</div>
+    <div class="uc-badge" style="background:rgba(46,125,50,.12);color:#2e7d32;">Central Composite Design</div>
+    <h1>Lab Distillation Purity</h1>
+    <p class="uc-subtitle">Central composite design to maximize distillate purity and recovery by tuning reflux ratio, heating rate, and column packing height</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>reflux_ratio</code></td><td>1</td><td>5</td><td>ratio</td></tr>
+            <tr><td><code>heat_rate_c_min</code></td><td>0.5</td><td>3.0</td><td>C/min</td></tr>
+            <tr><td><code>packing_cm</code></td><td>10</td><td>50</td><td>cm</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> mixture = ethanol_water, column_diam = 25mm</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>purity_pct</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+            <tr><td><code>recovery_pct</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/192_distillation_purity/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Lab Distillation Purity&quot;,
+    &quot;description&quot;: &quot;Central composite design to maximize distillate purity and recovery by tuning reflux ratio, heating rate, and column packing height&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;reflux_ratio&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;5&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;ratio&quot;
+    },
+    {
+      &quot;name&quot;: &quot;heat_rate_c_min&quot;,
+      &quot;levels&quot;: [
+        &quot;0.5&quot;,
+        &quot;3.0&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;C/min&quot;
+    },
+    {
+      &quot;name&quot;: &quot;packing_cm&quot;,
+      &quot;levels&quot;: [
+        &quot;10&quot;,
+        &quot;50&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;cm&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;mixture&quot;: &quot;ethanol_water&quot;,
+    &quot;column_diam&quot;: &quot;25mm&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;purity_pct&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;recovery_pct&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;central_composite&quot;,
+    &quot;test_script&quot;: &quot;use_cases/192_distillation_purity/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Central Composite Design produces <strong>22 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>reflux_ratio</code></th><th><code>heat_rate_c_min</code></th><th><code>packing_cm</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>3</td><td>1.75</td><td>30</td></tr>
+        <tr><td>2</td><td>5</td><td>0.5</td><td>50</td></tr>
+        <tr><td>3</td><td>1</td><td>3</td><td>10</td></tr>
+        <tr><td>4</td><td>3</td><td>4.03218</td><td>30</td></tr>
+        <tr><td>5</td><td>3</td><td>1.75</td><td>30</td></tr>
+        <tr><td>6</td><td>-0.651484</td><td>1.75</td><td>30</td></tr>
+        <tr><td>7</td><td>3</td><td>1.75</td><td>-6.51484</td></tr>
+        <tr><td>8</td><td>3</td><td>1.75</td><td>30</td></tr>
+        <tr><td>9</td><td>5</td><td>3</td><td>10</td></tr>
+        <tr><td>10</td><td>6.65148</td><td>1.75</td><td>30</td></tr>
+        <tr><td>11</td><td>3</td><td>1.75</td><td>30</td></tr>
+        <tr><td>12</td><td>3</td><td>-0.532177</td><td>30</td></tr>
+        <tr><td>13</td><td>3</td><td>1.75</td><td>30</td></tr>
+        <tr><td>14</td><td>1</td><td>0.5</td><td>50</td></tr>
+        <tr><td>15</td><td>3</td><td>1.75</td><td>30</td></tr>
+        <tr><td>16</td><td>5</td><td>0.5</td><td>10</td></tr>
+        <tr><td>17</td><td>3</td><td>1.75</td><td>66.5148</td></tr>
+        <tr><td>18</td><td>5</td><td>3</td><td>50</td></tr>
+        <tr><td>19</td><td>3</td><td>1.75</td><td>30</td></tr>
+        <tr><td>20</td><td>1</td><td>0.5</td><td>10</td></tr>
+        <tr><td>21</td><td>1</td><td>3</td><td>50</td></tr>
+        <tr><td>22</td><td>3</td><td>1.75</td><td>30</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/192_distillation_purity/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/192_distillation_purity/config.json \
+    <span class="flag">--output</span> use_cases/192_distillation_purity/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/192_distillation_purity/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/192_distillation_purity/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/192_distillation_purity/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/192_distillation_purity/config.json \
+    <span class="flag">--output</span> use_cases/192_distillation_purity/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>central_composite</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (purity_pct &#x2191;, recovery_pct &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>22</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: purity_pct</h3>
+    <p>Top factors: reflux_ratio (43.0%), packing_cm (41.5%), heat_rate_c_min (15.5%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/192_pareto_purity_pct.png" alt="Pareto chart for purity_pct">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/192_main_effects_purity_pct.png" alt="Main effects plot for purity_pct">
+      </div>
+    </div>
+
+    <h3>Response: recovery_pct</h3>
+    <p>Top factors: reflux_ratio (49.2%), packing_cm (30.2%), heat_rate_c_min (20.6%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/192_pareto_recovery_pct.png" alt="Pareto chart for recovery_pct">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/192_main_effects_recovery_pct.png" alt="Main effects plot for recovery_pct">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">purity pct heat rate c min vs packing cm</p>
+      <img src="../images/192_rsm_purity_pct_heat_rate_c_min_vs_packing_cm.png" alt="RSM surface: purity pct heat rate c min vs packing cm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">purity pct reflux ratio vs heat rate c min</p>
+      <img src="../images/192_rsm_purity_pct_reflux_ratio_vs_heat_rate_c_min.png" alt="RSM surface: purity pct reflux ratio vs heat rate c min" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">purity pct reflux ratio vs packing cm</p>
+      <img src="../images/192_rsm_purity_pct_reflux_ratio_vs_packing_cm.png" alt="RSM surface: purity pct reflux ratio vs packing cm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">recovery pct heat rate c min vs packing cm</p>
+      <img src="../images/192_rsm_recovery_pct_heat_rate_c_min_vs_packing_cm.png" alt="RSM surface: recovery pct heat rate c min vs packing cm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">recovery pct reflux ratio vs heat rate c min</p>
+      <img src="../images/192_rsm_recovery_pct_reflux_ratio_vs_heat_rate_c_min.png" alt="RSM surface: recovery pct reflux ratio vs heat rate c min" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">recovery pct reflux ratio vs packing cm</p>
+      <img src="../images/192_rsm_recovery_pct_reflux_ratio_vs_packing_cm.png" alt="RSM surface: recovery pct reflux ratio vs packing cm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_purity_pct_reflux_ratio_vs_heat_rate_c_min.png
+  RSM surface: rsm_purity_pct_reflux_ratio_vs_packing_cm.png
+  RSM surface: rsm_purity_pct_heat_rate_c_min_vs_packing_cm.png
+  RSM surface: rsm_recovery_pct_reflux_ratio_vs_heat_rate_c_min.png
+  RSM surface: rsm_recovery_pct_reflux_ratio_vs_packing_cm.png
+  RSM surface: rsm_recovery_pct_heat_rate_c_min_vs_packing_cm.png
+
+=== Main Effects: purity_pct ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+reflux_ratio             7.5750       1.0077            43.0%
+packing_cm               7.3000       1.0077            41.5%
+heat_rate_c_min          2.7250       1.0077            15.5%
+
+=== Summary Statistics: purity_pct ===
+
+reflux_ratio:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -0.651484           1    92.4000     0.0000    92.4000    92.4000
+  1                   4    84.8250     5.0704    77.4000    88.4000
+  3                  12    87.1000     4.5810    77.9000    93.3000
+  5                   4    87.5500     6.1022    82.3000    95.7000
+  6.65148             1    86.9000     0.0000    86.9000    86.9000
+
+heat_rate_c_min:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -0.532177           1    88.2000     0.0000    88.2000    88.2000
+  0.5                 4    86.9000     7.5750    77.4000    95.7000
+  1.75               12    87.3833     4.8283    77.9000    93.3000
+  3                   4    85.4750     3.0270    82.3000    88.4000
+  4.03218             1    87.7000     0.0000    87.7000    87.7000
+
+packing_cm:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -6.51484            1    91.8000     0.0000    91.8000    91.8000
+  10                  4    87.8750     5.6759    82.3000    95.7000
+  30                 12    87.0500     4.6304    77.9000    93.3000
+  50                  4    84.5000     5.2997    77.4000    88.7000
+  66.5148             1    88.1000     0.0000    88.1000    88.1000
+
+=== Main Effects: recovery_pct ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+reflux_ratio             7.7500       1.1437            49.2%
+packing_cm               4.7500       1.1437            30.2%
+heat_rate_c_min          3.2500       1.1437            20.6%
+
+=== Summary Statistics: recovery_pct ===
+
+reflux_ratio:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -0.651484           1    71.0000     0.0000    71.0000    71.0000
+  1                   4    75.7500     1.2583    74.0000    77.0000
+  3                  12    75.4167     6.1416    65.0000    87.0000
+  5                   4    74.2500     6.1847    65.0000    78.0000
+  6.65148             1    68.0000     0.0000    68.0000    68.0000
+
+heat_rate_c_min:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -0.532177           1    76.0000     0.0000    76.0000    76.0000
+  0.5                 4    73.7500     5.8523    65.0000    77.0000
+  1.75               12    74.5833     6.5707    65.0000    87.0000
+  3                   4    76.2500     1.7078    74.0000    78.0000
+  4.03218             1    73.0000     0.0000    73.0000    73.0000
+
+packing_cm:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -6.51484            1    72.0000     0.0000    72.0000    72.0000
+  10                  4    73.2500     5.7373    65.0000    78.0000
+  30                 12    74.8333     6.5482    65.0000    87.0000
+  50                  4    76.7500     0.5000    76.0000    77.0000
+  66.5148             1    74.0000     0.0000    74.0000    74.0000
+
+Pareto chart (purity_pct): use_cases/192_distillation_purity/results/analysis/pareto_purity_pct.png
+
+Pareto chart (recovery_pct): use_cases/192_distillation_purity/results/analysis/pareto_recovery_pct.png
+Main effects (purity_pct): use_cases/192_distillation_purity/results/analysis/main_effects_purity_pct.png
+Main effects (recovery_pct): use_cases/192_distillation_purity/results/analysis/main_effects_recovery_pct.png</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: purity_pct ===
+Direction: maximize
+
+Best observed run: #2
+  reflux_ratio = 1
+  heat_rate_c_min = 0.5
+  packing_cm = 10
+  Value: 95.7
+
+RSM Model (linear, R² = 0.1241, Adj R² = -0.0219):
+  Coefficients:
+    intercept                      +87.0000
+    reflux_ratio                   +0.2991
+    heat_rate_c_min                -1.0189
+    packing_cm                     -1.6858
+
+RSM Model (quadratic, R² = 0.4126, Adj R² = -0.0279):
+  Coefficients:
+    intercept                      +86.3539
+    reflux_ratio                   +0.2991
+    heat_rate_c_min                -1.0189
+    packing_cm                     -1.6858
+    reflux_ratio*heat_rate_c_min   +3.9625
+    reflux_ratio*packing_cm        +0.4125
+    heat_rate_c_min*packing_cm     +0.5375
+    reflux_ratio^2                 +0.3580
+    heat_rate_c_min^2              +0.1780
+    packing_cm^2                   +0.4330
+
+  Curvature analysis:
+    packing_cm                     coef=+0.4330  convex (has a minimum)
+    reflux_ratio                   coef=+0.3580  convex (has a minimum)
+    heat_rate_c_min                coef=+0.1780  convex (has a minimum)
+
+  Notable interactions:
+    reflux_ratio*heat_rate_c_min   coef=+3.9625  (synergistic)
+    heat_rate_c_min*packing_cm     coef=+0.5375  (synergistic)
+    reflux_ratio*packing_cm        coef=+0.4125  (synergistic)
+
+  Predicted optimum (from linear model):
+    reflux_ratio = 3
+    heat_rate_c_min = 1.75
+    packing_cm = -6.51484
+    Predicted value: 90.0779
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. packing_cm  (effect: 5.7, contribution: 52.4%)
+  2. heat_rate_c_min  (effect: 3.3, contribution: 30.4%)
+  3. reflux_ratio  (effect: 1.9, contribution: 17.2%)
+
+=== Optimization: recovery_pct ===
+Direction: maximize
+
+Best observed run: #6
+  reflux_ratio = 3
+  heat_rate_c_min = 1.75
+  packing_cm = 30
+  Value: 87.0
+
+RSM Model (linear, R² = 0.0471, Adj R² = -0.1117):
+  Coefficients:
+    intercept                      +74.7273
+    reflux_ratio                   -0.7025
+    heat_rate_c_min                +0.1395
+    packing_cm                     +1.1947
+
+RSM Model (quadratic, R² = 0.3099, Adj R² = -0.2077):
+  Coefficients:
+    intercept                      +74.8194
+    reflux_ratio                   -0.7025
+    heat_rate_c_min                +0.1395
+    packing_cm                     +1.1947
+    reflux_ratio*heat_rate_c_min   -3.6250
+    reflux_ratio*packing_cm        -1.8750
+    heat_rate_c_min*packing_cm     -0.3750
+    reflux_ratio^2                 +0.3039
+    heat_rate_c_min^2              -0.8961
+    packing_cm^2                   +0.4539
+
+  Curvature analysis:
+    heat_rate_c_min                coef=-0.8961  concave (has a maximum)
+    packing_cm                     coef=+0.4539  convex (has a minimum)
+    reflux_ratio                   coef=+0.3039  convex (has a minimum)
+
+  Notable interactions:
+    reflux_ratio*heat_rate_c_min   coef=-3.6250  (antagonistic)
+    reflux_ratio*packing_cm        coef=-1.8750  (antagonistic)
+    heat_rate_c_min*packing_cm     coef=-0.3750  (antagonistic)
+
+  Predicted optimum (from linear model):
+    reflux_ratio = 3
+    heat_rate_c_min = 1.75
+    packing_cm = 66.5148
+    Predicted value: 76.9085
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. heat_rate_c_min  (effect: 9.0, contribution: 48.0%)
+  2. packing_cm  (effect: 5.8, contribution: 30.7%)
+  3. reflux_ratio  (effect: 4.0, contribution: 21.3%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="191-ph-buffer-prep.html">&larr; Previous: pH Buffer Preparation</a>
+    <a href="193-spectrophotometry.html">Next: UV-Vis Spectrophotometry &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

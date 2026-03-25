@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Electroplating Thickness Control &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #e8f5e9, #c8e6c9);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F9EA;</div>
+    <div class="uc-badge" style="background:rgba(46,125,50,.12);color:#2e7d32;">Plackett-Burman Design</div>
+    <h1>Electroplating Thickness Control</h1>
+    <p class="uc-subtitle">Plackett-Burman screening of current density, bath temperature, plating time, pH, and agitation for uniform coating thickness and adhesion</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>current_density</code></td><td>1</td><td>10</td><td>A/dm2</td></tr>
+            <tr><td><code>bath_temp_c</code></td><td>20</td><td>55</td><td>C</td></tr>
+            <tr><td><code>time_min</code></td><td>5</td><td>60</td><td>min</td></tr>
+            <tr><td><code>bath_ph</code></td><td>2</td><td>5</td><td>pH</td></tr>
+            <tr><td><code>agitation_rpm</code></td><td>0</td><td>200</td><td>rpm</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> metal = nickel, substrate = mild_steel</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>thickness_um</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>um</td></tr>
+            <tr><td><code>adhesion_score</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>pts</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/194_electroplating/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Electroplating Thickness Control&quot;,
+    &quot;description&quot;: &quot;Plackett-Burman screening of current density, bath temperature, plating time, pH, and agitation for uniform coating thickness and adhesion&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;current_density&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;10&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;A/dm2&quot;
+    },
+    {
+      &quot;name&quot;: &quot;bath_temp_c&quot;,
+      &quot;levels&quot;: [
+        &quot;20&quot;,
+        &quot;55&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;C&quot;
+    },
+    {
+      &quot;name&quot;: &quot;time_min&quot;,
+      &quot;levels&quot;: [
+        &quot;5&quot;,
+        &quot;60&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;min&quot;
+    },
+    {
+      &quot;name&quot;: &quot;bath_ph&quot;,
+      &quot;levels&quot;: [
+        &quot;2&quot;,
+        &quot;5&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;pH&quot;
+    },
+    {
+      &quot;name&quot;: &quot;agitation_rpm&quot;,
+      &quot;levels&quot;: [
+        &quot;0&quot;,
+        &quot;200&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;rpm&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;metal&quot;: &quot;nickel&quot;,
+    &quot;substrate&quot;: &quot;mild_steel&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;thickness_um&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;um&quot;
+    },
+    {
+      &quot;name&quot;: &quot;adhesion_score&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;pts&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;plackett_burman&quot;,
+    &quot;test_script&quot;: &quot;use_cases/194_electroplating/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Plackett-Burman Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>current_density</code></th><th><code>bath_temp_c</code></th><th><code>time_min</code></th><th><code>bath_ph</code></th><th><code>agitation_rpm</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>10</td><td>55</td><td>60</td><td>2</td><td>0</td></tr>
+        <tr><td>2</td><td>1</td><td>20</td><td>60</td><td>5</td><td>0</td></tr>
+        <tr><td>3</td><td>1</td><td>55</td><td>5</td><td>5</td><td>0</td></tr>
+        <tr><td>4</td><td>10</td><td>55</td><td>60</td><td>5</td><td>200</td></tr>
+        <tr><td>5</td><td>1</td><td>55</td><td>5</td><td>2</td><td>200</td></tr>
+        <tr><td>6</td><td>10</td><td>20</td><td>5</td><td>5</td><td>200</td></tr>
+        <tr><td>7</td><td>1</td><td>20</td><td>60</td><td>2</td><td>200</td></tr>
+        <tr><td>8</td><td>10</td><td>20</td><td>5</td><td>2</td><td>0</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/194_electroplating/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/194_electroplating/config.json \
+    <span class="flag">--output</span> use_cases/194_electroplating/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/194_electroplating/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/194_electroplating/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/194_electroplating/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/194_electroplating/config.json \
+    <span class="flag">--output</span> use_cases/194_electroplating/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>plackett_burman</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 5)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (thickness_um &#x2191;, adhesion_score &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>8</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: thickness_um</h3>
+    <p>Top factors: current_density (34.7%), agitation_rpm (29.5%), bath_ph (26.3%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/194_pareto_thickness_um.png" alt="Pareto chart for thickness_um">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/194_main_effects_thickness_um.png" alt="Main effects plot for thickness_um">
+      </div>
+    </div>
+
+    <h3>Response: adhesion_score</h3>
+    <p>Top factors: bath_temp_c (35.5%), bath_ph (19.0%), agitation_rpm (19.0%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/194_pareto_adhesion_score.png" alt="Pareto chart for adhesion_score">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/194_main_effects_adhesion_score.png" alt="Main effects plot for adhesion_score">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">adhesion score bath ph vs agitation rpm</p>
+      <img src="../images/194_rsm_adhesion_score_bath_ph_vs_agitation_rpm.png" alt="RSM surface: adhesion score bath ph vs agitation rpm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">adhesion score bath temp c vs agitation rpm</p>
+      <img src="../images/194_rsm_adhesion_score_bath_temp_c_vs_agitation_rpm.png" alt="RSM surface: adhesion score bath temp c vs agitation rpm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">adhesion score bath temp c vs bath ph</p>
+      <img src="../images/194_rsm_adhesion_score_bath_temp_c_vs_bath_ph.png" alt="RSM surface: adhesion score bath temp c vs bath ph" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">adhesion score bath temp c vs time min</p>
+      <img src="../images/194_rsm_adhesion_score_bath_temp_c_vs_time_min.png" alt="RSM surface: adhesion score bath temp c vs time min" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">adhesion score current density vs agitation rpm</p>
+      <img src="../images/194_rsm_adhesion_score_current_density_vs_agitation_rpm.png" alt="RSM surface: adhesion score current density vs agitation rpm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">adhesion score current density vs bath ph</p>
+      <img src="../images/194_rsm_adhesion_score_current_density_vs_bath_ph.png" alt="RSM surface: adhesion score current density vs bath ph" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">adhesion score current density vs bath temp c</p>
+      <img src="../images/194_rsm_adhesion_score_current_density_vs_bath_temp_c.png" alt="RSM surface: adhesion score current density vs bath temp c" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">adhesion score current density vs time min</p>
+      <img src="../images/194_rsm_adhesion_score_current_density_vs_time_min.png" alt="RSM surface: adhesion score current density vs time min" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">adhesion score time min vs agitation rpm</p>
+      <img src="../images/194_rsm_adhesion_score_time_min_vs_agitation_rpm.png" alt="RSM surface: adhesion score time min vs agitation rpm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">adhesion score time min vs bath ph</p>
+      <img src="../images/194_rsm_adhesion_score_time_min_vs_bath_ph.png" alt="RSM surface: adhesion score time min vs bath ph" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">thickness um bath ph vs agitation rpm</p>
+      <img src="../images/194_rsm_thickness_um_bath_ph_vs_agitation_rpm.png" alt="RSM surface: thickness um bath ph vs agitation rpm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">thickness um bath temp c vs agitation rpm</p>
+      <img src="../images/194_rsm_thickness_um_bath_temp_c_vs_agitation_rpm.png" alt="RSM surface: thickness um bath temp c vs agitation rpm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">thickness um bath temp c vs bath ph</p>
+      <img src="../images/194_rsm_thickness_um_bath_temp_c_vs_bath_ph.png" alt="RSM surface: thickness um bath temp c vs bath ph" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">thickness um bath temp c vs time min</p>
+      <img src="../images/194_rsm_thickness_um_bath_temp_c_vs_time_min.png" alt="RSM surface: thickness um bath temp c vs time min" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">thickness um current density vs agitation rpm</p>
+      <img src="../images/194_rsm_thickness_um_current_density_vs_agitation_rpm.png" alt="RSM surface: thickness um current density vs agitation rpm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">thickness um current density vs bath ph</p>
+      <img src="../images/194_rsm_thickness_um_current_density_vs_bath_ph.png" alt="RSM surface: thickness um current density vs bath ph" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">thickness um current density vs bath temp c</p>
+      <img src="../images/194_rsm_thickness_um_current_density_vs_bath_temp_c.png" alt="RSM surface: thickness um current density vs bath temp c" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">thickness um current density vs time min</p>
+      <img src="../images/194_rsm_thickness_um_current_density_vs_time_min.png" alt="RSM surface: thickness um current density vs time min" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">thickness um time min vs agitation rpm</p>
+      <img src="../images/194_rsm_thickness_um_time_min_vs_agitation_rpm.png" alt="RSM surface: thickness um time min vs agitation rpm" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">thickness um time min vs bath ph</p>
+      <img src="../images/194_rsm_thickness_um_time_min_vs_bath_ph.png" alt="RSM surface: thickness um time min vs bath ph" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_thickness_um_current_density_vs_bath_temp_c.png
+  RSM surface: rsm_thickness_um_current_density_vs_time_min.png
+  RSM surface: rsm_thickness_um_current_density_vs_bath_ph.png
+  RSM surface: rsm_thickness_um_current_density_vs_agitation_rpm.png
+  RSM surface: rsm_thickness_um_bath_temp_c_vs_time_min.png
+  RSM surface: rsm_thickness_um_bath_temp_c_vs_bath_ph.png
+  RSM surface: rsm_thickness_um_bath_temp_c_vs_agitation_rpm.png
+  RSM surface: rsm_thickness_um_time_min_vs_bath_ph.png
+  RSM surface: rsm_thickness_um_time_min_vs_agitation_rpm.png
+  RSM surface: rsm_thickness_um_bath_ph_vs_agitation_rpm.png
+  RSM surface: rsm_adhesion_score_current_density_vs_bath_temp_c.png
+  RSM surface: rsm_adhesion_score_current_density_vs_time_min.png
+  RSM surface: rsm_adhesion_score_current_density_vs_bath_ph.png
+  RSM surface: rsm_adhesion_score_current_density_vs_agitation_rpm.png
+  RSM surface: rsm_adhesion_score_bath_temp_c_vs_time_min.png
+  RSM surface: rsm_adhesion_score_bath_temp_c_vs_bath_ph.png
+  RSM surface: rsm_adhesion_score_bath_temp_c_vs_agitation_rpm.png
+  RSM surface: rsm_adhesion_score_time_min_vs_bath_ph.png
+  RSM surface: rsm_adhesion_score_time_min_vs_agitation_rpm.png
+  RSM surface: rsm_adhesion_score_bath_ph_vs_agitation_rpm.png
+
+=== Main Effects: thickness_um ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+current_density         16.5000       4.9785            34.7%
+agitation_rpm          -14.0000       4.9785            29.5%
+bath_ph                -12.5000       4.9785            26.3%
+bath_temp_c             -3.5000       4.9785             7.4%
+time_min                -1.0000       4.9785             2.1%
+
+=== Interaction Effects: thickness_um ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+bath_temp_c          time_min                  16.5000            19.4%
+bath_ph              agitation_rpm             16.5000            19.4%
+current_density      bath_ph                  -14.0000            16.5%
+current_density      agitation_rpm            -12.5000            14.7%
+bath_temp_c          bath_ph                   -6.0000             7.1%
+time_min             agitation_rpm             -6.0000             7.1%
+bath_temp_c          agitation_rpm              4.5000             5.3%
+time_min             bath_ph                    4.5000             5.3%
+current_density      time_min                  -3.5000             4.1%
+current_density      bath_temp_c               -1.0000             1.2%
+
+=== Summary Statistics: thickness_um ===
+
+current_density:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4     6.7500     6.2915     1.0000    14.0000
+  10                  4    23.2500    15.5430     7.0000    38.0000
+
+bath_temp_c:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  20                  4    16.7500    15.1740     2.0000    38.0000
+  55                  4    13.2500    14.9750     1.0000    35.0000
+
+time_min:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  5                   4    15.5000    15.8430     1.0000    38.0000
+  60                  4    14.5000    14.5258     2.0000    35.0000
+
+bath_ph:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2                   4    21.2500    17.9513     2.0000    38.0000
+  5                   4     8.7500     6.0208     1.0000    14.0000
+
+agitation_rpm:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4    22.0000    17.6068     1.0000    38.0000
+  200                 4     8.0000     4.6904     2.0000    13.0000
+
+=== Main Effects: adhesion_score ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+bath_temp_c             -1.0750       0.3020            35.5%
+bath_ph                 -0.5750       0.3020            19.0%
+agitation_rpm           -0.5750       0.3020            19.0%
+time_min                -0.4750       0.3020            15.7%
+current_density         -0.3250       0.3020            10.7%
+
+=== Interaction Effects: adhesion_score ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+current_density      time_min                  -1.0750            20.9%
+current_density      bath_ph                   -0.5750            11.2%
+current_density      agitation_rpm             -0.5750            11.2%
+current_density      bath_temp_c               -0.4750             9.2%
+bath_temp_c          bath_ph                    0.4750             9.2%
+time_min             agitation_rpm              0.4750             9.2%
+bath_temp_c          agitation_rpm             -0.4250             8.3%
+time_min             bath_ph                   -0.4250             8.3%
+bath_temp_c          time_min                  -0.3250             6.3%
+bath_ph              agitation_rpm             -0.3250             6.3%
+
+=== Summary Statistics: adhesion_score ===
+
+current_density:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4     3.3500     0.6245     2.6000     4.1000
+  10                  4     3.0250     1.1147     1.7000     4.4000
+
+bath_temp_c:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  20                  4     3.7250     0.6185     3.2000     4.4000
+  55                  4     2.6500     0.7416     1.7000     3.5000
+
+time_min:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  5                   4     3.4250     0.7500     2.6000     4.4000
+  60                  4     2.9500     0.9950     1.7000     4.1000
+
+bath_ph:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2                   4     3.4750     0.9069     2.6000     4.4000
+  5                   4     2.9000     0.8124     1.7000     3.5000
+
+agitation_rpm:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4     3.4750     0.6801     2.8000     4.4000
+  200                 4     2.9000     1.0100     1.7000     4.1000
+
+Pareto chart (thickness_um): use_cases/194_electroplating/results/analysis/pareto_thickness_um.png
+
+Pareto chart (adhesion_score): use_cases/194_electroplating/results/analysis/pareto_adhesion_score.png
+Main effects (thickness_um): use_cases/194_electroplating/results/analysis/main_effects_thickness_um.png
+Main effects (adhesion_score): use_cases/194_electroplating/results/analysis/main_effects_adhesion_score.png</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: thickness_um ===
+Direction: maximize
+
+Best observed run: #4
+  current_density = 1
+  bath_temp_c = 55
+  time_min = 5
+  bath_ph = 2
+  agitation_rpm = 200
+  Value: 38.0
+
+RSM Model (linear, R² = 0.5659, Adj R² = -0.5193):
+  Coefficients:
+    intercept                      +15.0000
+    current_density                -0.7500
+    bath_temp_c                    -3.0000
+    time_min                       -6.7500
+    bath_ph                        -6.2500
+    agitation_rpm                  +2.0000
+
+  Predicted optimum (from linear model):
+    current_density = 10
+    bath_temp_c = 20
+    time_min = 5
+    bath_ph = 2
+    agitation_rpm = 0
+    Predicted value: 28.2500
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
+
+Factor importance:
+  1. time_min  (effect: -13.5, contribution: 36.0%)
+  2. bath_ph  (effect: -12.5, contribution: 33.3%)
+  3. bath_temp_c  (effect: -6.0, contribution: 16.0%)
+  4. agitation_rpm  (effect: 4.0, contribution: 10.7%)
+  5. current_density  (effect: -1.5, contribution: 4.0%)
+
+=== Optimization: adhesion_score ===
+Direction: maximize
+
+Best observed run: #4
+  current_density = 1
+  bath_temp_c = 55
+  time_min = 5
+  bath_ph = 2
+  agitation_rpm = 200
+  Value: 4.4
+
+RSM Model (linear, R² = 0.5062, Adj R² = -0.7282):
+  Coefficients:
+    intercept                      +3.1875
+    current_density                -0.2375
+    bath_temp_c                    +0.2375
+    time_min                       -0.2875
+    bath_ph                        -0.2875
+    agitation_rpm                  -0.2125
+
+  Predicted optimum (from linear model):
+    current_density = 1
+    bath_temp_c = 55
+    time_min = 5
+    bath_ph = 2
+    agitation_rpm = 200
+    Predicted value: 4.0250
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
+
+Factor importance:
+  1. time_min  (effect: -0.6, contribution: 22.8%)
+  2. bath_ph  (effect: -0.6, contribution: 22.8%)
+  3. current_density  (effect: -0.5, contribution: 18.8%)
+  4. bath_temp_c  (effect: 0.5, contribution: 18.8%)
+  5. agitation_rpm  (effect: -0.4, contribution: 16.8%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="193-spectrophotometry.html">&larr; Previous: UV-Vis Spectrophotometry</a>
+    <a href="195-enzyme-kinetics.html">Next: Enzyme Kinetics Assay &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+{
+    "metadata": {
+        "name": "EPYC NUMA Transfer Rate — Screening",
+        "description": "Plackett-Burman screening design to identify dominant factors affecting cross-NUMA memory bandwidth on a dual-socket AMD EPYC system"
+    },
+    "factors": [
+        {
+            "name": "numa_distance",
+            "levels": ["local", "remote"],
+            "type": "categorical",
+            "unit": "",
+            "description": "NUMA topology: local (same socket) vs. remote (cross-socket via Infinity Fabric)"
+        },
+        {
+            "name": "transfer_mode",
+            "levels": ["memcpy", "ntstore"],
+            "type": "categorical",
+            "unit": "",
+            "description": "Data movement method: standard memcpy vs. non-temporal streaming stores (bypass cache)"
+        },
+        {
+            "name": "thread_count",
+            "levels": ["1", "24"],
+            "type": "continuous",
+            "unit": "threads",
+            "description": "Number of threads performing the transfer (1 = single-thread baseline, 24 = half-socket)"
+        },
+        {
+            "name": "buffer_size_mb",
+            "levels": ["1", "512"],
+            "type": "continuous",
+            "unit": "MB",
+            "description": "Transfer buffer size: 1 MB (fits L3) vs. 512 MB (stresses memory controller)"
+        },
+        {
+            "name": "hugepages",
+            "levels": ["off", "2M"],
+            "type": "categorical",
+            "unit": "",
+            "description": "Hugepage allocation: off (4K base pages) vs. 2M hugepages (reduced TLB pressure)"
+        },
+        {
+            "name": "numa_balancing",
+            "levels": ["off", "on"],
+            "type": "categorical",
+            "unit": "",
+            "description": "Linux kernel automatic NUMA balancing (page migration)"
+        },
+        {
+            "name": "mem_policy",
+            "levels": ["local", "interleave"],
+            "type": "categorical",
+            "unit": "",
+            "description": "NUMA memory allocation policy: local (bind to one node) vs. interleave (round-robin across nodes)"
+        }
+    ],
+    "fixed_factors": {
+        "sockets": "2",
+        "cores_per_socket": "96",
+        "cpu_governor": "performance",
+        "turbo_boost": "off",
+        "smt": "off",
+        "nps_setting": "NPS1"
+    },
+    "responses": [
+        {
+            "name": "bandwidth_GBs",
+            "optimize": "maximize",
+            "unit": "GB/s",
+            "description": "Memory transfer bandwidth"
+        },
+        {
+            "name": "latency_ns",
+            "optimize": "minimize",
+            "unit": "ns",
+            "description": "Average per-cacheline memory access latency"
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "operation": "plackett_burman",
+        "test_script": "numa_experiment/sim.sh",
+        "block_count": 3,
+        "out_directory": "numa_experiment/results/screening",
+        "processed_directory": "numa_experiment/results/screening/analysis"
+    }
+}

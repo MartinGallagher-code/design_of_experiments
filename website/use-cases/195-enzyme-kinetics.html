@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enzyme Kinetics Assay &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #e8f5e9, #c8e6c9);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F9EA;</div>
+    <div class="uc-badge" style="background:rgba(46,125,50,.12);color:#2e7d32;">Full Factorial Design</div>
+    <h1>Enzyme Kinetics Assay</h1>
+    <p class="uc-subtitle">Full factorial of substrate concentration, enzyme amount, pH, and temperature to maximize reaction rate and minimize substrate inhibition</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>substrate_mm</code></td><td>0.1</td><td>10</td><td>mM</td></tr>
+            <tr><td><code>enzyme_ug</code></td><td>1</td><td>20</td><td>ug</td></tr>
+            <tr><td><code>ph</code></td><td>5</td><td>9</td><td>pH</td></tr>
+            <tr><td><code>temp_c</code></td><td>20</td><td>45</td><td>C</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> enzyme = alkaline_phosphatase, buffer = tris</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>reaction_rate</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>umol/min</td></tr>
+            <tr><td><code>inhibition_pct</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/195_enzyme_kinetics/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Enzyme Kinetics Assay&quot;,
+    &quot;description&quot;: &quot;Full factorial of substrate concentration, enzyme amount, pH, and temperature to maximize reaction rate and minimize substrate inhibition&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;substrate_mm&quot;,
+      &quot;levels&quot;: [
+        &quot;0.1&quot;,
+        &quot;10&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;mM&quot;
+    },
+    {
+      &quot;name&quot;: &quot;enzyme_ug&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;20&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;ug&quot;
+    },
+    {
+      &quot;name&quot;: &quot;ph&quot;,
+      &quot;levels&quot;: [
+        &quot;5&quot;,
+        &quot;9&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;pH&quot;
+    },
+    {
+      &quot;name&quot;: &quot;temp_c&quot;,
+      &quot;levels&quot;: [
+        &quot;20&quot;,
+        &quot;45&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;C&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;enzyme&quot;: &quot;alkaline_phosphatase&quot;,
+    &quot;buffer&quot;: &quot;tris&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;reaction_rate&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;umol/min&quot;
+    },
+    {
+      &quot;name&quot;: &quot;inhibition_pct&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;full_factorial&quot;,
+    &quot;test_script&quot;: &quot;use_cases/195_enzyme_kinetics/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Full Factorial Design produces <strong>16 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>substrate_mm</code></th><th><code>enzyme_ug</code></th><th><code>ph</code></th><th><code>temp_c</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>0.1</td><td>20</td><td>9</td><td>45</td></tr>
+        <tr><td>2</td><td>10</td><td>1</td><td>5</td><td>45</td></tr>
+        <tr><td>3</td><td>0.1</td><td>20</td><td>5</td><td>45</td></tr>
+        <tr><td>4</td><td>0.1</td><td>20</td><td>9</td><td>20</td></tr>
+        <tr><td>5</td><td>10</td><td>20</td><td>9</td><td>20</td></tr>
+        <tr><td>6</td><td>10</td><td>1</td><td>9</td><td>20</td></tr>
+        <tr><td>7</td><td>10</td><td>20</td><td>5</td><td>20</td></tr>
+        <tr><td>8</td><td>10</td><td>1</td><td>5</td><td>20</td></tr>
+        <tr><td>9</td><td>0.1</td><td>1</td><td>5</td><td>45</td></tr>
+        <tr><td>10</td><td>0.1</td><td>1</td><td>9</td><td>20</td></tr>
+        <tr><td>11</td><td>10</td><td>20</td><td>5</td><td>45</td></tr>
+        <tr><td>12</td><td>10</td><td>20</td><td>9</td><td>45</td></tr>
+        <tr><td>13</td><td>0.1</td><td>20</td><td>5</td><td>20</td></tr>
+        <tr><td>14</td><td>10</td><td>1</td><td>9</td><td>45</td></tr>
+        <tr><td>15</td><td>0.1</td><td>1</td><td>5</td><td>20</td></tr>
+        <tr><td>16</td><td>0.1</td><td>1</td><td>9</td><td>45</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/195_enzyme_kinetics/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/195_enzyme_kinetics/config.json \
+    <span class="flag">--output</span> use_cases/195_enzyme_kinetics/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/195_enzyme_kinetics/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/195_enzyme_kinetics/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/195_enzyme_kinetics/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/195_enzyme_kinetics/config.json \
+    <span class="flag">--output</span> use_cases/195_enzyme_kinetics/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>full_factorial</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 4)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (reaction_rate &#x2191;, inhibition_pct &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>16</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: reaction_rate</h3>
+    <p>Top factors: substrate_mm (39.3%), ph (26.2%), enzyme_ug (23.0%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/195_pareto_reaction_rate.png" alt="Pareto chart for reaction_rate">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/195_main_effects_reaction_rate.png" alt="Main effects plot for reaction_rate">
+      </div>
+    </div>
+
+    <h3>Response: inhibition_pct</h3>
+    <p>Top factors: ph (45.6%), substrate_mm (27.8%), temp_c (18.9%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/195_pareto_inhibition_pct.png" alt="Pareto chart for inhibition_pct">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/195_main_effects_inhibition_pct.png" alt="Main effects plot for inhibition_pct">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">inhibition pct enzyme ug vs ph</p>
+      <img src="../images/195_rsm_inhibition_pct_enzyme_ug_vs_ph.png" alt="RSM surface: inhibition pct enzyme ug vs ph" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">inhibition pct enzyme ug vs temp c</p>
+      <img src="../images/195_rsm_inhibition_pct_enzyme_ug_vs_temp_c.png" alt="RSM surface: inhibition pct enzyme ug vs temp c" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">inhibition pct ph vs temp c</p>
+      <img src="../images/195_rsm_inhibition_pct_ph_vs_temp_c.png" alt="RSM surface: inhibition pct ph vs temp c" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">inhibition pct substrate mm vs enzyme ug</p>
+      <img src="../images/195_rsm_inhibition_pct_substrate_mm_vs_enzyme_ug.png" alt="RSM surface: inhibition pct substrate mm vs enzyme ug" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">inhibition pct substrate mm vs ph</p>
+      <img src="../images/195_rsm_inhibition_pct_substrate_mm_vs_ph.png" alt="RSM surface: inhibition pct substrate mm vs ph" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">inhibition pct substrate mm vs temp c</p>
+      <img src="../images/195_rsm_inhibition_pct_substrate_mm_vs_temp_c.png" alt="RSM surface: inhibition pct substrate mm vs temp c" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">reaction rate enzyme ug vs ph</p>
+      <img src="../images/195_rsm_reaction_rate_enzyme_ug_vs_ph.png" alt="RSM surface: reaction rate enzyme ug vs ph" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">reaction rate enzyme ug vs temp c</p>
+      <img src="../images/195_rsm_reaction_rate_enzyme_ug_vs_temp_c.png" alt="RSM surface: reaction rate enzyme ug vs temp c" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">reaction rate ph vs temp c</p>
+      <img src="../images/195_rsm_reaction_rate_ph_vs_temp_c.png" alt="RSM surface: reaction rate ph vs temp c" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">reaction rate substrate mm vs enzyme ug</p>
+      <img src="../images/195_rsm_reaction_rate_substrate_mm_vs_enzyme_ug.png" alt="RSM surface: reaction rate substrate mm vs enzyme ug" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">reaction rate substrate mm vs ph</p>
+      <img src="../images/195_rsm_reaction_rate_substrate_mm_vs_ph.png" alt="RSM surface: reaction rate substrate mm vs ph" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">reaction rate substrate mm vs temp c</p>
+      <img src="../images/195_rsm_reaction_rate_substrate_mm_vs_temp_c.png" alt="RSM surface: reaction rate substrate mm vs temp c" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_reaction_rate_substrate_mm_vs_enzyme_ug.png
+  RSM surface: rsm_reaction_rate_substrate_mm_vs_ph.png
+  RSM surface: rsm_reaction_rate_substrate_mm_vs_temp_c.png
+  RSM surface: rsm_reaction_rate_enzyme_ug_vs_ph.png
+  RSM surface: rsm_reaction_rate_enzyme_ug_vs_temp_c.png
+  RSM surface: rsm_reaction_rate_ph_vs_temp_c.png
+  RSM surface: rsm_inhibition_pct_substrate_mm_vs_enzyme_ug.png
+  RSM surface: rsm_inhibition_pct_substrate_mm_vs_ph.png
+  RSM surface: rsm_inhibition_pct_substrate_mm_vs_temp_c.png
+  RSM surface: rsm_inhibition_pct_enzyme_ug_vs_ph.png
+  RSM surface: rsm_inhibition_pct_enzyme_ug_vs_temp_c.png
+  RSM surface: rsm_inhibition_pct_ph_vs_temp_c.png
+
+=== Main Effects: reaction_rate ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+substrate_mm             0.6000       0.7208            39.3%
+ph                       0.4000       0.7208            26.2%
+enzyme_ug                0.3500       0.7208            23.0%
+temp_c                  -0.1750       0.7208            11.5%
+
+=== Interaction Effects: reaction_rate ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+substrate_mm         temp_c                     2.8750            30.7%
+ph                   temp_c                    -2.5250            26.9%
+enzyme_ug            ph                        -1.5500            16.5%
+substrate_mm         ph                        -1.4000            14.9%
+substrate_mm         enzyme_ug                  0.8000             8.5%
+enzyme_ug            temp_c                    -0.2250             2.4%
+
+=== Summary Statistics: reaction_rate ===
+
+substrate_mm:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.1                 8     2.0000     2.8899     0.0000     8.5000
+  10                  8     2.6000     3.0426    -0.2000     7.8000
+
+enzyme_ug:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   8     2.1250     3.1658    -0.1000     8.5000
+  20                  8     2.4750     2.7789    -0.2000     7.8000
+
+ph:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  5                   8     2.1000     2.9086    -0.1000     7.8000
+  9                   8     2.5000     3.0435    -0.2000     8.5000
+
+temp_c:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  20                  8     2.3875     3.1092    -0.1000     8.5000
+  45                  8     2.2125     2.8513    -0.2000     7.8000
+
+=== Main Effects: inhibition_pct ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+ph                       5.1250       2.0911            45.6%
+substrate_mm            -3.1250       2.0911            27.8%
+temp_c                  -2.1250       2.0911            18.9%
+enzyme_ug                0.8750       2.0911             7.8%
+
+=== Interaction Effects: inhibition_pct ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+substrate_mm         ph                        -9.6250            38.5%
+enzyme_ug            ph                        -4.1250            16.5%
+substrate_mm         temp_c                     3.6250            14.5%
+ph                   temp_c                    -3.6250            14.5%
+substrate_mm         enzyme_ug                 -2.8750            11.5%
+enzyme_ug            temp_c                     1.1250             4.5%
+
+=== Summary Statistics: inhibition_pct ===
+
+substrate_mm:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.1                 8    12.8750     9.2957    -1.0000    22.0000
+  10                  8     9.7500     7.6111     1.0000    20.0000
+
+enzyme_ug:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   8    10.8750     9.4633    -1.0000    21.0000
+  20                  8    11.7500     7.7414     3.0000    22.0000
+
+ph:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  5                   8     8.7500     7.4976    -1.0000    19.0000
+  9                   8    13.8750     8.8711     1.0000    22.0000
+
+temp_c:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  20                  8    12.3750     8.1229     4.0000    22.0000
+  45                  8    10.2500     9.0198    -1.0000    20.0000
+
+Pareto chart (reaction_rate): use_cases/195_enzyme_kinetics/results/analysis/pareto_reaction_rate.png
+
+Pareto chart (inhibition_pct): use_cases/195_enzyme_kinetics/results/analysis/pareto_inhibition_pct.png
+Main effects (reaction_rate): use_cases/195_enzyme_kinetics/results/analysis/main_effects_reaction_rate.png
+Main effects (inhibition_pct): use_cases/195_enzyme_kinetics/results/analysis/main_effects_inhibition_pct.png</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: reaction_rate ===
+Direction: maximize
+
+Best observed run: #12
+  substrate_mm = 10
+  enzyme_ug = 20
+  ph = 5
+  temp_c = 45
+  Value: 8.5
+
+RSM Model (linear, R² = 0.1721, Adj R² = -0.1289):
+  Coefficients:
+    intercept                      +2.3000
+    substrate_mm                   +0.5625
+    enzyme_ug                      +0.2500
+    ph                             -0.8125
+    temp_c                         +0.5500
+
+RSM Model (quadratic, R² = 0.6696, Adj R² = -3.9553):
+  Coefficients:
+    intercept                      +0.4600
+    substrate_mm                   +0.5625
+    enzyme_ug                      +0.2500
+    ph                             -0.8125
+    temp_c                         +0.5500
+    substrate_mm*enzyme_ug         +0.5875
+    substrate_mm*ph                -0.5250
+    substrate_mm*temp_c            +1.2125
+    enzyme_ug*ph                   -0.0375
+    enzyme_ug*temp_c               -0.2500
+    ph*temp_c                      -1.3125
+    substrate_mm^2                 +0.4600
+    enzyme_ug^2                    +0.4600
+    ph^2                           +0.4600
+    temp_c^2                       +0.4600
+
+  Curvature analysis:
+    temp_c                         coef=+0.4600  convex (has a minimum)
+    substrate_mm                   coef=+0.4600  convex (has a minimum)
+    ph                             coef=+0.4600  convex (has a minimum)
+    enzyme_ug                      coef=+0.4600  convex (has a minimum)
+
+  Notable interactions:
+    ph*temp_c                      coef=-1.3125  (antagonistic)
+    substrate_mm*temp_c            coef=+1.2125  (synergistic)
+    substrate_mm*enzyme_ug         coef=+0.5875  (synergistic)
+    substrate_mm*ph                coef=-0.5250  (antagonistic)
+
+  Predicted optimum (from linear model):
+    substrate_mm = 10
+    enzyme_ug = 20
+    ph = 5
+    temp_c = 45
+    Predicted value: 4.4750
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. ph  (effect: -1.6, contribution: 37.4%)
+  2. substrate_mm  (effect: 1.1, contribution: 25.9%)
+  3. temp_c  (effect: 1.1, contribution: 25.3%)
+  4. enzyme_ug  (effect: 0.5, contribution: 11.5%)
+
+=== Optimization: inhibition_pct ===
+Direction: minimize
+
+Best observed run: #13
+  substrate_mm = 10
+  enzyme_ug = 1
+  ph = 9
+  temp_c = 45
+  Value: -1.0
+
+RSM Model (linear, R² = 0.3390, Adj R² = 0.0986):
+  Coefficients:
+    intercept                      +11.3125
+    substrate_mm                   -0.0625
+    enzyme_ug                      +2.3125
+    ph                             -1.8125
+    temp_c                         +3.6875
+
+RSM Model (quadratic, R² = 0.6128, Adj R² = -4.8076):
+  Coefficients:
+    intercept                      +2.2625
+    substrate_mm                   -0.0625
+    enzyme_ug                      +2.3125
+    ph                             -1.8125
+    temp_c                         +3.6875
+    substrate_mm*enzyme_ug         -1.8125
+    substrate_mm*ph                +1.0625
+    substrate_mm*temp_c            +0.3125
+    enzyme_ug*ph                   +0.1875
+    enzyme_ug*temp_c               +2.9375
+    ph*temp_c                      -2.1875
+    substrate_mm^2                 +2.2625
+    enzyme_ug^2                    +2.2625
+    ph^2                           +2.2625
+    temp_c^2                       +2.2625
+
+  Curvature analysis:
+    temp_c                         coef=+2.2625  convex (has a minimum)
+    substrate_mm                   coef=+2.2625  convex (has a minimum)
+    ph                             coef=+2.2625  convex (has a minimum)
+    enzyme_ug                      coef=+2.2625  convex (has a minimum)
+
+  Notable interactions:
+    enzyme_ug*temp_c               coef=+2.9375  (synergistic)
+    ph*temp_c                      coef=-2.1875  (antagonistic)
+    substrate_mm*enzyme_ug         coef=-1.8125  (antagonistic)
+    substrate_mm*ph                coef=+1.0625  (synergistic)
+    substrate_mm*temp_c            coef=+0.3125  (synergistic)
+
+  Predicted optimum (from linear model):
+    substrate_mm = 0.1
+    enzyme_ug = 20
+    ph = 5
+    temp_c = 45
+    Predicted value: 19.1875
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. temp_c  (effect: 7.4, contribution: 46.8%)
+  2. enzyme_ug  (effect: 4.6, contribution: 29.4%)
+  3. ph  (effect: -3.6, contribution: 23.0%)
+  4. substrate_mm  (effect: -0.1, contribution: 0.8%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="194-electroplating.html">&larr; Previous: Electroplating Thickness Control</a>
+    <a href="196-gel-electrophoresis.html">Next: Gel Electrophoresis Resolution &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

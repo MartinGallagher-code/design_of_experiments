@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Moving Day Logistics &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #f1f5f9, #e2e8f0);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x2699;</div>
+    <div class="uc-badge" style="background:rgba(71,85,105,.12);color:#475569;">Box-Behnken Design</div>
+    <h1>Moving Day Logistics</h1>
+    <p class="uc-subtitle">Box-Behnken design to minimize total move time and breakage by tuning box size, crew size, and truck loading strategy padding thickness</p>
+  </div>
+</section>
+
+<div class="container-narrow uc-content">
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>box_volume_L</code></td><td>30</td><td>80</td><td>L</td></tr>
+            <tr><td><code>crew_size</code></td><td>2</td><td>6</td><td>people</td></tr>
+            <tr><td><code>padding_layers</code></td><td>1</td><td>4</td><td>layers</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> distance_km = 20, apartment_floor = 3</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>total_hours</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>hrs</td></tr>
+            <tr><td><code>breakage_pct</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>%</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/197_moving_day_logistics/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Moving Day Logistics&quot;,
+    &quot;description&quot;: &quot;Box-Behnken design to minimize total move time and breakage by tuning box size, crew size, and truck loading strategy padding thickness&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;box_volume_L&quot;,
+      &quot;levels&quot;: [
+        &quot;30&quot;,
+        &quot;80&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;L&quot;
+    },
+    {
+      &quot;name&quot;: &quot;crew_size&quot;,
+      &quot;levels&quot;: [
+        &quot;2&quot;,
+        &quot;6&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;people&quot;
+    },
+    {
+      &quot;name&quot;: &quot;padding_layers&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;4&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;layers&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;distance_km&quot;: &quot;20&quot;,
+    &quot;apartment_floor&quot;: &quot;3&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;total_hours&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;hrs&quot;
+    },
+    {
+      &quot;name&quot;: &quot;breakage_pct&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;box_behnken&quot;,
+    &quot;test_script&quot;: &quot;use_cases/197_moving_day_logistics/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Box-Behnken Design produces <strong>15 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>box_volume_L</code></th><th><code>crew_size</code></th><th><code>padding_layers</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>55</td><td>2</td><td>1</td></tr>
+        <tr><td>2</td><td>55</td><td>4</td><td>2.5</td></tr>
+        <tr><td>3</td><td>80</td><td>4</td><td>4</td></tr>
+        <tr><td>4</td><td>80</td><td>4</td><td>1</td></tr>
+        <tr><td>5</td><td>55</td><td>4</td><td>2.5</td></tr>
+        <tr><td>6</td><td>55</td><td>4</td><td>2.5</td></tr>
+        <tr><td>7</td><td>30</td><td>4</td><td>4</td></tr>
+        <tr><td>8</td><td>80</td><td>2</td><td>2.5</td></tr>
+        <tr><td>9</td><td>55</td><td>2</td><td>4</td></tr>
+        <tr><td>10</td><td>80</td><td>6</td><td>2.5</td></tr>
+        <tr><td>11</td><td>30</td><td>4</td><td>1</td></tr>
+        <tr><td>12</td><td>55</td><td>6</td><td>4</td></tr>
+        <tr><td>13</td><td>30</td><td>2</td><td>2.5</td></tr>
+        <tr><td>14</td><td>30</td><td>6</td><td>2.5</td></tr>
+        <tr><td>15</td><td>55</td><td>6</td><td>1</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/197_moving_day_logistics/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/197_moving_day_logistics/config.json \
+    <span class="flag">--output</span> use_cases/197_moving_day_logistics/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/197_moving_day_logistics/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/197_moving_day_logistics/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/197_moving_day_logistics/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/197_moving_day_logistics/config.json \
+    <span class="flag">--output</span> use_cases/197_moving_day_logistics/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>box_behnken</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (total_hours &#x2193;, breakage_pct &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>15</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: total_hours</h3>
+    <p>Top factors: box_volume_L (45.8%), crew_size (31.7%), padding_layers (22.5%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/197_pareto_total_hours.png" alt="Pareto chart for total_hours">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/197_main_effects_total_hours.png" alt="Main effects plot for total_hours">
+      </div>
+    </div>
+
+    <h3>Response: breakage_pct</h3>
+    <p>Top factors: padding_layers (50.6%), box_volume_L (40.6%), crew_size (8.8%).</p>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/197_pareto_breakage_pct.png" alt="Pareto chart for breakage_pct">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/197_main_effects_breakage_pct.png" alt="Main effects plot for breakage_pct">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">breakage pct box volume L vs crew size</p>
+      <img src="../images/197_rsm_breakage_pct_box_volume_L_vs_crew_size.png" alt="RSM surface: breakage pct box volume L vs crew size" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">breakage pct box volume L vs padding layers</p>
+      <img src="../images/197_rsm_breakage_pct_box_volume_L_vs_padding_layers.png" alt="RSM surface: breakage pct box volume L vs padding layers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">breakage pct crew size vs padding layers</p>
+      <img src="../images/197_rsm_breakage_pct_crew_size_vs_padding_layers.png" alt="RSM surface: breakage pct crew size vs padding layers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">total hours box volume L vs crew size</p>
+      <img src="../images/197_rsm_total_hours_box_volume_L_vs_crew_size.png" alt="RSM surface: total hours box volume L vs crew size" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">total hours box volume L vs padding layers</p>
+      <img src="../images/197_rsm_total_hours_box_volume_L_vs_padding_layers.png" alt="RSM surface: total hours box volume L vs padding layers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">total hours crew size vs padding layers</p>
+      <img src="../images/197_rsm_total_hours_crew_size_vs_padding_layers.png" alt="RSM surface: total hours crew size vs padding layers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_total_hours_box_volume_L_vs_crew_size.png
+  RSM surface: rsm_total_hours_box_volume_L_vs_padding_layers.png
+  RSM surface: rsm_total_hours_crew_size_vs_padding_layers.png
+  RSM surface: rsm_breakage_pct_box_volume_L_vs_crew_size.png
+  RSM surface: rsm_breakage_pct_box_volume_L_vs_padding_layers.png
+  RSM surface: rsm_breakage_pct_crew_size_vs_padding_layers.png
+
+=== Main Effects: total_hours ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+box_volume_L             1.4786       0.3883            45.8%
+crew_size                1.0250       0.3883            31.7%
+padding_layers           0.7250       0.3883            22.5%
+
+=== Summary Statistics: total_hours ===
+
+box_volume_L:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  30                  4     7.0000     0.9487     6.2000     8.3000
+  55                  7     5.6714     1.3635     4.1000     7.9000
+  80                  4     7.1500     1.8628     5.3000     8.9000
+
+crew_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2                   4     5.8250     1.0500     4.7000     7.1000
+  4                   7     6.5143     1.5497     4.1000     8.6000
+  6                   4     6.8500     1.9774     4.4000     8.9000
+
+padding_layers:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4     6.9000     1.7301     4.7000     8.6000
+  2.5                 7     6.2857     1.5049     4.1000     8.9000
+  4                   4     6.1750     1.6132     4.4000     8.3000
+
+=== Main Effects: breakage_pct ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+padding_layers           1.9571       0.4237            50.6%
+box_volume_L             1.5714       0.4237            40.6%
+crew_size                0.3393       0.4237             8.8%
+
+=== Summary Statistics: breakage_pct ===
+
+box_volume_L:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  30                  4     4.4000     0.8287     3.2000     5.0000
+  55                  7     5.9714     1.7802     3.9000     8.7000
+  80                  4     5.7750     1.8191     3.2000     7.2000
+
+crew_size:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2                   4     5.2750     1.2393     3.9000     6.9000
+  4                   7     5.6143     2.2132     3.2000     8.7000
+  6                   4     5.5250     1.0658     4.5000     6.9000
+
+padding_layers:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4     4.3000     1.7645     3.2000     6.9000
+  2.5                 7     6.2571     1.5087     4.9000     8.7000
+  4                   4     5.3750     1.2738     4.5000     7.2000
+
+Pareto chart (total_hours): use_cases/197_moving_day_logistics/results/analysis/pareto_total_hours.png
+
+Pareto chart (breakage_pct): use_cases/197_moving_day_logistics/results/analysis/pareto_breakage_pct.png
+Main effects (total_hours): use_cases/197_moving_day_logistics/results/analysis/main_effects_total_hours.png
+Main effects (breakage_pct): use_cases/197_moving_day_logistics/results/analysis/main_effects_breakage_pct.png</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: total_hours ===
+Direction: minimize
+
+Best observed run: #15
+  box_volume_L = 55
+  crew_size = 4
+  padding_layers = 2.5
+  Value: 4.1
+
+RSM Model (linear, R² = 0.3945, Adj R² = 0.2294):
+  Coefficients:
+    intercept                      +6.4200
+    box_volume_L                   -0.5375
+    crew_size                      +0.4125
+    padding_layers                 +1.0500
+
+RSM Model (quadratic, R² = 0.6105, Adj R² = -0.0905):
+  Coefficients:
+    intercept                      +5.8000
+    box_volume_L                   -0.5375
+    crew_size                      +0.4125
+    padding_layers                 +1.0500
+    box_volume_L*crew_size         -0.1250
+    box_volume_L*padding_layers    +0.5000
+    crew_size*padding_layers       +0.7500
+    box_volume_L^2                 +0.2125
+    crew_size^2                    +0.9625
+    padding_layers^2               -0.0125
+
+  Curvature analysis:
+    crew_size                      coef=+0.9625  convex (has a minimum)
+    box_volume_L                   coef=+0.2125  convex (has a minimum)
+    padding_layers                 coef=-0.0125  negligible curvature
+
+  Notable interactions:
+    crew_size*padding_layers       coef=+0.7500  (synergistic)
+    box_volume_L*padding_layers    coef=+0.5000  (synergistic)
+
+  Predicted optimum (from linear model):
+    box_volume_L = 30
+    crew_size = 4
+    padding_layers = 4
+    Predicted value: 8.0075
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. padding_layers  (effect: 2.1, contribution: 46.3%)
+  2. crew_size  (effect: 1.4, contribution: 30.0%)
+  3. box_volume_L  (effect: 1.1, contribution: 23.7%)
+
+=== Optimization: breakage_pct ===
+Direction: minimize
+
+Best observed run: #7
+  box_volume_L = 55
+  crew_size = 2
+  padding_layers = 1
+  Value: 3.2
+
+RSM Model (linear, R² = 0.0998, Adj R² = -0.1457):
+  Coefficients:
+    intercept                      +5.5000
+    box_volume_L                   -0.5625
+    crew_size                      -0.1500
+    padding_layers                 +0.3625
+
+RSM Model (quadratic, R² = 0.6198, Adj R² = -0.0646):
+  Coefficients:
+    intercept                      +5.8333
+    box_volume_L                   -0.5625
+    crew_size                      -0.1500
+    padding_layers                 +0.3625
+    box_volume_L*crew_size         -0.2250
+    box_volume_L*padding_layers    -1.2000
+    crew_size*padding_layers       -1.5250
+    box_volume_L^2                 +0.4833
+    crew_size^2                    -0.1917
+    padding_layers^2               -0.9167
+
+  Curvature analysis:
+    padding_layers                 coef=-0.9167  concave (has a maximum)
+    box_volume_L                   coef=+0.4833  convex (has a minimum)
+    crew_size                      coef=-0.1917  concave (has a maximum)
+
+  Notable interactions:
+    crew_size*padding_layers       coef=-1.5250  (antagonistic)
+    box_volume_L*padding_layers    coef=-1.2000  (antagonistic)
+
+  Predicted optimum (from quadratic model):
+    box_volume_L = 30
+    crew_size = 4
+    padding_layers = 4
+    Predicted value: 7.5250
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
+
+Factor importance:
+  1. padding_layers  (effect: 1.3, contribution: 47.5%)
+  2. box_volume_L  (effect: 1.1, contribution: 41.1%)
+  3. crew_size  (effect: 0.3, contribution: 11.4%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="196-gel-electrophoresis.html">&larr; Previous: Gel Electrophoresis Resolution</a>
+    <a href="198-party-planning.html">Next: Party Planning Optimization &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+</body>
+</html>

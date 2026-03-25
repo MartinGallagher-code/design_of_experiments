@@ -1,0 +1,71 @@
+{
+    "metadata": {
+        "name": "EPYC NUMA Transfer Rate — Characterization",
+        "description": "Full factorial design on the top factors from screening to quantify main effects and two-factor interactions for cross-NUMA bandwidth"
+    },
+    "factors": [
+        {
+            "name": "numa_distance",
+            "levels": ["local", "remote"],
+            "type": "categorical",
+            "unit": "",
+            "description": "NUMA topology: local (same socket) vs. remote (cross-socket)"
+        },
+        {
+            "name": "transfer_mode",
+            "levels": ["memcpy", "ntstore"],
+            "type": "categorical",
+            "unit": "",
+            "description": "Data movement method: standard memcpy vs. non-temporal streaming stores"
+        },
+        {
+            "name": "thread_count",
+            "levels": ["1", "24"],
+            "type": "continuous",
+            "unit": "threads",
+            "description": "Number of threads performing the transfer"
+        },
+        {
+            "name": "buffer_size_mb",
+            "levels": ["1", "512"],
+            "type": "continuous",
+            "unit": "MB",
+            "description": "Transfer buffer size in MB"
+        }
+    ],
+    "fixed_factors": {
+        "sockets": "2",
+        "cores_per_socket": "96",
+        "cpu_governor": "performance",
+        "turbo_boost": "off",
+        "smt": "off",
+        "nps_setting": "NPS1",
+        "hugepages": "2M",
+        "numa_balancing": "off",
+        "mem_policy": "local"
+    },
+    "responses": [
+        {
+            "name": "bandwidth_GBs",
+            "optimize": "maximize",
+            "unit": "GB/s",
+            "description": "Memory transfer bandwidth"
+        },
+        {
+            "name": "latency_ns",
+            "optimize": "minimize",
+            "unit": "ns",
+            "description": "Average per-cacheline memory access latency"
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "operation": "full_factorial",
+        "test_script": "numa_experiment/sim.sh",
+        "block_count": 3,
+        "out_directory": "numa_experiment/results/characterization",
+        "processed_directory": "numa_experiment/results/characterization/analysis"
+    }
+}
