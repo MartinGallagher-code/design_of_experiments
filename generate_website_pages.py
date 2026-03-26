@@ -870,6 +870,9 @@ def build_page(num, uc_dir):
   </div>
 </section>
 
+<!-- Table of Contents -->
+<nav class="uc-toc" id="uc-toc"><div class="uc-toc-inner" id="uc-toc-inner"></div></nav>
+
 <div class="container-narrow uc-content">
 
 {summary_html}
