@@ -44,6 +44,7 @@ def main():
     opt.add_argument("--results-dir", default=None, help="Override out_directory from config")
     opt.add_argument("--response", default=None, help="Optimize for a specific response (default: all)")
     opt.add_argument("--partial", action="store_true", help="Analyze only completed runs, skipping missing results")
+    opt.add_argument("--multi", action="store_true", help="Multi-objective optimization using desirability functions")
 
     # --- report ---
     rep = subparsers.add_parser("report", help="Generate an interactive HTML report")
@@ -103,8 +104,12 @@ def main():
     elif args.command == "optimize":
         cfg = load_config(args.config)
         matrix = generate_design(cfg)
-        from doe.optimize import recommend
-        recommend(matrix, cfg, results_dir=args.results_dir, response_name=args.response, partial=args.partial)
+        if args.multi:
+            from doe.optimize import multi_objective
+            multi_objective(matrix, cfg, results_dir=args.results_dir, partial=args.partial)
+        else:
+            from doe.optimize import recommend
+            recommend(matrix, cfg, results_dir=args.results_dir, response_name=args.response, partial=args.partial)
 
     elif args.command == "report":
         cfg = load_config(args.config)

@@ -2965,6 +2965,47 @@ Temperature = 187°C,  Catalyst = 3.7%
         <strong>D = 0:</strong> At least one response is completely unacceptable. The geometric mean makes D = 0 if <em>any</em> individual d<sub>i</sub> = 0 &mdash; this is a safety feature that prevents accepting solutions where any single response is terrible.</p>
       </div>
 
+      <h3>Using Multi-Objective Optimization in the DOE Helper Tool</h3>
+
+      <p>The <code>--multi</code> flag on <code>doe optimize</code> implements Derringer-Suich desirability automatically. It fits RSM models for each response, evaluates desirability across the factor space, and reports the best compromise.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span>Multi-objective optimization</span></div>
+        <div class="code-body"><span class="comment"># Basic multi-objective (equal weights, auto bounds)</span>
+<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> config.json <span class="flag">--multi</span></div>
+      </div>
+
+      <p style="margin-top:16px">To control the trade-off, add <code>weight</code> and <code>bounds</code> to responses in your config:</p>
+
+      <div class="code-block" style="margin-top:8px">
+        <div class="code-header"><span>config.json &mdash; weighted responses</span></div>
+        <div class="code-body"><span class="key">"responses"</span>: [
+  {<span class="key">"name"</span>: <span class="string">"yield"</span>,  <span class="key">"optimize"</span>: <span class="string">"maximize"</span>, <span class="key">"weight"</span>: <span class="number">3</span>,   <span class="key">"bounds"</span>: [<span class="number">70</span>, <span class="number">95</span>]},
+  {<span class="key">"name"</span>: <span class="string">"purity"</span>, <span class="key">"optimize"</span>: <span class="string">"maximize"</span>, <span class="key">"weight"</span>: <span class="number">2</span>,   <span class="key">"bounds"</span>: [<span class="number">90</span>, <span class="number">99</span>]},
+  {<span class="key">"name"</span>: <span class="string">"cost"</span>,   <span class="key">"optimize"</span>: <span class="string">"minimize"</span>, <span class="key">"weight"</span>: <span class="number">1</span>,   <span class="key">"bounds"</span>: [<span class="number">15</span>, <span class="number">40</span>]}
+]</div>
+      </div>
+
+      <ul style="margin-top:12px">
+        <li><strong>weight</strong> (default 1.0) &mdash; relative importance. A weight of 3 means "this response matters 3&times; more" in the geometric mean.</li>
+        <li><strong>bounds</strong> (optional) &mdash; [worst, best] values for desirability scaling. For "maximize," the first value is the worst acceptable (d=0) and the second is the ideal (d=1). For "minimize," the first is ideal and the second is the worst. If omitted, bounds are auto-computed from observed data.</li>
+      </ul>
+
+      <p style="margin-top:16px">The output includes:</p>
+
+      <ul>
+        <li><strong>Overall desirability D</strong> &mdash; the weighted geometric mean across all responses</li>
+        <li><strong>Per-response desirability</strong> &mdash; how well each response meets its target</li>
+        <li><strong>Recommended settings</strong> &mdash; either from observed runs or RSM-predicted optima</li>
+        <li><strong>Trade-off summary</strong> &mdash; how much each response sacrifices compared to its individual best</li>
+        <li><strong>Top 3 runs</strong> &mdash; the best observed factor combinations ranked by D</li>
+      </ul>
+
+      <div class="warning-box" style="margin-top:16px">
+        <h4>Choosing Weights Carefully</h4>
+        <p>Weights express relative priority, not absolute importance. If you're unsure, start with equal weights (all 1.0) and examine the trade-offs. Then adjust: if the compromise sacrifices too much yield, increase yield's weight and re-run. Iterate until the trade-off is acceptable. Document your final weights &mdash; they encode a business decision about what matters most.</p>
+      </div>
+
       <h2 id="rsm-workflow">The Complete RSM Workflow</h2>
 
       <p>Bringing together everything in this chapter, here's the recommended sequence:</p>
@@ -2976,7 +3017,7 @@ Temperature = 187°C,  Catalyst = 3.7%
         <li><strong>Check model adequacy.</strong> R&sup2; &gt; 0.9? Lack of fit not significant? Residuals look random? If yes, proceed. If no, diagnose and fix.</li>
         <li><strong>Interpret the contour plot.</strong> Concentric ellipses with the optimum inside? Great. Saddle or open contours? Use ridge analysis or expand the region.</li>
         <li><strong>Run canonical analysis.</strong> Confirm the stationary point type. Check eigenvalue magnitudes for sensitivity information.</li>
-        <li><strong>For multiple responses, compute desirability.</strong> Set targets and weights. Find the best compromise.</li>
+        <li><strong>For multiple responses, compute desirability.</strong> Set targets and weights in your config, then run <code>python doe.py optimize --config config.json --multi</code> to find the best compromise.</li>
         <li><strong>Confirm.</strong> Run 3&ndash;5 experiments at the predicted optimum. Compare to the prediction interval.</li>
       </ol>
 

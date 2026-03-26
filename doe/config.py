@@ -95,6 +95,8 @@ def _parse_responses(raw: list) -> list[ResponseVar]:
                 optimize=item.get("optimize", "maximize"),
                 unit=item.get("unit", ""),
                 description=item.get("description", ""),
+                weight=float(item.get("weight", 1.0)),
+                bounds=item.get("bounds"),
             ))
         elif isinstance(item, str):
             responses.append(ResponseVar(name=item))

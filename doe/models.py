@@ -16,6 +16,8 @@ class ResponseVar:
     optimize: str = "maximize"  # maximize | minimize
     unit: str = ""
     description: str = ""
+    weight: float = 1.0
+    bounds: list[float] | None = None  # [low, high] for desirability
 
 
 @dataclass
