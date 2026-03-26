@@ -56,8 +56,8 @@
 
     
     <h3>Key Findings</h3>
-    <p>For <strong>io throughput</strong>, the most influential factors were burst buffer (44.8%), stage in (41.1%), prefetch (13.0%). The best observed value was <strong>65.25</strong> (at burst buffer = on, stage in = sync, cache size = 64).</p>
-<p>For <strong>stage time</strong>, the most influential factors were burst buffer (43.9%), stage in (26.2%), write policy (17.7%). The best observed value was <strong>110.1</strong> (at burst buffer = on, stage in = async, cache size = 512).</p>
+    <p>For <strong>io throughput</strong>, the most influential factors were prefetch (38.0%), burst buffer (26.8%), write policy (12.5%). The best observed value was <strong>65.25</strong> (at burst buffer = off, stage in = sync, cache size = 512).</p>
+<p>For <strong>stage time</strong>, the most influential factors were write policy (36.5%), cache size (26.7%), prefetch (17.9%). The best observed value was <strong>110.1</strong> (at burst buffer = on, stage in = sync, cache size = 64).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -67,6 +67,7 @@
     <li>The screening results can guide factor reduction &mdash; drop factors contributing less than 5% and re-run with a smaller, more focused design.</li>
   </ul>
   </section>
+
 
 
   <section class="uc-section">
@@ -98,6 +99,7 @@
       </div>
     </div>
   </section>
+
 
 
 
@@ -347,6 +349,139 @@ Factor importance:
   3. write_policy  (effect: 7.1, contribution: 13.3%)
   4. stage_in  (effect: -5.6, contribution: 10.5%)
   5. cache_size  (effect: -1.5, contribution: 2.8%)</div></div>
+  </section>
+
+  
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.6840</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>io_throughput</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:77.14%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7714</span>
+                </div>
+              </td>
+              <td>56.43 0.7714       56.43 GB/s</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>stage_time</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:57.099999999999994%;height:100%;background:#f97316;border-radius:4px;"></div>
+                  </div>
+                  <span>0.5710</span>
+                </div>
+              </td>
+              <td>75.75 0.5710       75.75 sec</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>burst_buffer</code></td><td>off</td></tr>
+            <tr><td><code>stage_in</code></td><td>sync</td></tr>
+            <tr><td><code>cache_size</code></td><td>511.6 GB</td></tr>
+            <tr><td><code>write_policy</code></td><td>write_through</td></tr>
+            <tr><td><code>prefetch</code></td><td>off</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from RSM model prediction</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>stage_time</code></td><td>75.75</td><td>110.10</td><td><span style="color:#dc2626;">+34.35</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#6</td><td><strong>0.6083</strong></td><td style="font-size:.78rem;">burst_buffer=off,  stage_in=sync,  cache_size=64,  write_policy=write_through,  prefetch=on</td></tr>
+            <tr><td>#3</td><td><strong>0.4318</strong></td><td style="font-size:.78rem;">burst_buffer=off,  stage_in=async,  cache_size=512,  write_policy=write_back,  prefetch=off</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>stage_time</code></td><td style="color:#dc2626;font-weight:600;">0.2019</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.6840
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+io_throughput                1.5       0.7714       56.43 GB/s   ↑
+stage_time                   1.0       0.5710       75.75 sec   ↑
+
+Recommended settings:
+  burst_buffer = off
+  stage_in = sync
+  cache_size = 511.6 GB
+  write_policy = write_through
+  prefetch = off
+  (from RSM model prediction)
+
+Trade-off summary:
+  io_throughput: 56.43 (best observed: 65.25, sacrifice: +8.82)
+  stage_time: 75.75 (best observed: 110.10, sacrifice: +34.35)
+
+Model quality:
+  io_throughput: R² = 0.4986 (linear)
+  stage_time: R² = 0.2019 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #2 (D=0.6463): burst_buffer=off, stage_in=sync, cache_size=512, write_policy=write_through, prefetch=off
+  2. Run #6 (D=0.6083): burst_buffer=off, stage_in=sync, cache_size=64, write_policy=write_through, prefetch=on
+  3. Run #3 (D=0.4318): burst_buffer=off, stage_in=async, cache_size=512, write_policy=write_back, prefetch=off</div></div>
   </section>
 
   <div class="chapter-nav">

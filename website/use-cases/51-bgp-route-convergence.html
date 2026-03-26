@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -51,8 +50,8 @@
 
     
     <h3>Key Findings</h3>
-    <p>For <strong>convergence time s</strong>, the most influential factors were bfd (40.4%), mrai s (31.4%), hold time s (25.3%). The best observed value was <strong>-0.3</strong> (at keepalive s = 10, hold time s = 30, mrai s = 30).</p>
-<p>For <strong>route stability</strong>, the most influential factors were hold time s (40.8%), mrai s (31.7%), dampening (13.7%). The best observed value was <strong>100.0</strong> (at keepalive s = 10, hold time s = 30, mrai s = 30).</p>
+    <p>For <strong>convergence time s</strong>, the most influential factors were dampening (28.1%), hold time s (27.2%), keepalive s (27.0%). The best observed value was <strong>-0.3</strong> (at keepalive s = 60, hold time s = 30, mrai s = 5).</p>
+<p>For <strong>route stability</strong>, the most influential factors were mrai s (44.4%), bfd (24.7%), keepalive s (22.7%). The best observed value was <strong>100.0</strong> (at keepalive s = 60, hold time s = 30, mrai s = 5).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -256,12 +255,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (convergence_time_s (↓), route_stability (↑)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/51_bgp_route_convergence/config.json <span class="flag">--multi</span></div>
         </div>
@@ -269,7 +269,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -308,7 +308,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: convergence_time_s</h3>
-    <p>Top factors: bfd (40.4%), mrai_s (31.4%), hold_time_s (25.3%).</p>
+    <p>Top factors: dampening (28.1%), hold_time_s (27.2%), keepalive_s (27.0%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -321,7 +321,7 @@
     </div>
 
     <h3>Response: route_stability</h3>
-    <p>Top factors: hold_time_s (40.8%), mrai_s (31.7%), dampening (13.7%).</p>
+    <p>Top factors: mrai_s (44.4%), bfd (24.7%), keepalive_s (22.7%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -372,192 +372,386 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9545</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>convergence_time_s</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>-0.30 0.9545       -0.30 s</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>route_stability</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>100.00 0.9545      100.00 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>keepalive_s</code></td><td>10 s</td></tr>
+            <tr><td><code>hold_time_s</code></td><td>180 s</td></tr>
+            <tr><td><code>mrai_s</code></td><td>5 s</td></tr>
+            <tr><td><code>dampening</code></td><td>off</td></tr>
+            <tr><td><code>bfd</code></td><td>on</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #7</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>route_stability</code></td><td>100.00</td><td>100.00</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#8</td><td><strong>0.5647</strong></td><td style="font-size:.78rem;">keepalive_s=60,  hold_time_s=180,  mrai_s=30,  dampening=on,  bfd=on</td></tr>
+            <tr><td>#4</td><td><strong>0.4009</strong></td><td style="font-size:.78rem;">keepalive_s=60,  hold_time_s=30,  mrai_s=30,  dampening=off,  bfd=on</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>route_stability</code></td><td style="color:#ca8a04;font-weight:600;">0.7580</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9545
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+convergence_time_s           1.0       0.9545       -0.30 s   ↓
+route_stability              1.5       0.9545      100.00 %   ↑
+
+Recommended settings:
+  keepalive_s = 10 s
+  hold_time_s = 180 s
+  mrai_s = 5 s
+  dampening = off
+  bfd = on
+  (from observed run #7)
+
+Trade-off summary:
+  convergence_time_s: -0.30 (best observed: -0.30, sacrifice: +0.00)
+  route_stability: 100.00 (best observed: 100.00, sacrifice: +0.00)
+
+Model quality:
+  convergence_time_s: R² = 0.8997 (linear)
+  route_stability: R² = 0.7580 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #7 (D=0.9545): keepalive_s=10, hold_time_s=180, mrai_s=5, dampening=off, bfd=on
+  2. Run #8 (D=0.5647): keepalive_s=60, hold_time_s=180, mrai_s=30, dampening=on, bfd=on
+  3. Run #4 (D=0.4009): keepalive_s=60, hold_time_s=30, mrai_s=30, dampening=off, bfd=on</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: convergence_time_s ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-bfd                     40.4750      11.4450            40.4%
-mrai_s                 -31.4750      11.4450            31.4%
-hold_time_s            -25.3750      11.4450            25.3%
-dampening                1.8750      11.4450             1.9%
-keepalive_s             -1.0750      11.4450             1.1%
+dampening               24.2250      11.4450            28.1%
+hold_time_s            -23.4250      11.4450            27.2%
+keepalive_s             23.2250      11.4450            27.0%
+mrai_s                   9.1250      11.4450            10.6%
+bfd                      6.1750      11.4450             7.2%
+
+=== ANOVA Table: convergence_time_s ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+keepalive_s                  1    1078.8013    1078.8013      0.667     0.4513
+hold_time_s                  1    1097.4613    1097.4613      0.678     0.4477
+mrai_s                       1     166.5313     166.5313      0.103     0.7613
+dampening                    1    1173.7013    1173.7013      0.725     0.4333
+bfd                          1      76.2613      76.2613      0.047     0.8367
+keepalive_s*hold_time_s      1    1173.7013    1173.7013      0.725     0.4333
+keepalive_s*mrai_s           1      76.2612      76.2612      0.047     0.8367
+keepalive_s*dampening        1    1097.4613    1097.4613      0.678     0.4477
+keepalive_s*bfd              1     166.5312     166.5312      0.103     0.7613
+hold_time_s*mrai_s           1    3633.7812    3633.7812      2.246     0.1943
+hold_time_s*dampening        1    1078.8013    1078.8013      0.667     0.4513
+hold_time_s*bfd              1     108.7812     108.7812      0.067     0.8058
+mrai_s*dampening             1     108.7812     108.7812      0.067     0.8058
+mrai_s*bfd                   1    1078.8012    1078.8012      0.667     0.4513
+dampening*bfd                1    3633.7812    3633.7812      2.246     0.1943
+Error (Lenth PSE)            5    8091.0094    1618.2019
+Total                        7    7335.3188    1047.9027
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
 
 === Interaction Effects: convergence_time_s ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-keepalive_s          mrai_s                   -40.4750            26.5%
-keepalive_s          bfd                       31.4750            20.6%
-keepalive_s          dampening                 25.3750            16.6%
-hold_time_s          mrai_s                    18.3250            12.0%
-dampening            bfd                       18.3250            12.0%
-hold_time_s          bfd                        7.3750             4.8%
-mrai_s               dampening                  7.3750             4.8%
-keepalive_s          hold_time_s               -1.8750             1.2%
-hold_time_s          dampening                  1.0750             0.7%
-mrai_s               bfd                        1.0750             0.7%
+hold_time_s          mrai_s                   -42.6250            20.4%
+dampening            bfd                      -42.6250            20.4%
+keepalive_s          hold_time_s              -24.2250            11.6%
+keepalive_s          dampening                 23.4250            11.2%
+hold_time_s          dampening                -23.2250            11.1%
+mrai_s               bfd                      -23.2250            11.1%
+keepalive_s          bfd                       -9.1250             4.4%
+hold_time_s          bfd                       -7.3750             3.5%
+mrai_s               dampening                 -7.3750             3.5%
+keepalive_s          mrai_s                    -6.1750             2.9%
 
 === Summary Statistics: convergence_time_s ===
 
 keepalive_s:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4    44.9000    20.7665    15.8000    65.0000
-  60                  4    43.8250    44.8675    -0.3000    98.9000
+  10                  4    32.7500    30.1923    -0.3000    65.0000
+  60                  4    55.9750    34.2626    16.0000    98.9000
 
 hold_time_s:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  180                 4    57.0500    34.5268    16.0000    98.9000
-  30                  4    31.6750    28.7010    -0.3000    60.7000
+  180                 4    56.0750    41.2842    -0.3000    98.9000
+  30                  4    32.6500    19.3622    15.8000    50.5000
 
 mrai_s:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  30                  4    60.1000    34.1189    15.8000    98.9000
-  5                   4    28.6250    24.9110    -0.3000    50.5000
+  30                  4    39.8000    27.2737    -0.3000    60.7000
+  5                   4    48.9250    40.5678    15.8000    98.9000
 
 dampening:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4    43.4250    29.9975    -0.3000    65.0000
-  on                  4    45.3000    39.2799    15.8000    98.9000
+  off                 4    32.2500    29.7418    -0.3000    65.0000
+  on                  4    56.4750    34.1950    15.8000    98.9000
 
 bfd:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4    24.1250    28.3000    -0.3000    65.0000
-  on                  4    64.6000    23.4961    48.3000    98.9000
+  off                 4    41.2750    43.8674    -0.3000    98.9000
+  on                  4    47.4500    22.2562    15.8000    65.0000
 
 === Main Effects: route_stability ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-hold_time_s             10.5500       2.8504            40.8%
-mrai_s                   8.2000       2.8504            31.7%
-dampening               -3.5500       2.8504            13.7%
-keepalive_s              3.3500       2.8504            13.0%
-bfd                      0.2000       2.8504             0.8%
+mrai_s                 -11.2500       2.8504            44.4%
+bfd                     -6.2500       2.8504            24.7%
+keepalive_s             -5.7500       2.8504            22.7%
+hold_time_s             -1.6000       2.8504             6.3%
+dampening               -0.5000       2.8504             2.0%
+
+=== ANOVA Table: route_stability ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+keepalive_s                  1      66.1250      66.1250      1.042     0.3543
+hold_time_s                  1       5.1200       5.1200      0.081     0.7878
+mrai_s                       1     253.1250     253.1250      3.987     0.1023
+dampening                    1       0.5000       0.5000      0.008     0.9327
+bfd                          1      78.1250      78.1250      1.231     0.3178
+keepalive_s*hold_time_s      1       0.5000       0.5000      0.008     0.9327
+keepalive_s*mrai_s           1      78.1250      78.1250      1.231     0.3178
+keepalive_s*dampening        1       5.1200       5.1200      0.081     0.7878
+keepalive_s*bfd              1     253.1250     253.1250      3.987     0.1023
+hold_time_s*mrai_s           1      42.3200      42.3200      0.667     0.4513
+hold_time_s*dampening        1      66.1250      66.1250      1.042     0.3543
+hold_time_s*bfd              1       9.6800       9.6800      0.152     0.7123
+mrai_s*dampening             1       9.6800       9.6800      0.152     0.7123
+mrai_s*bfd                   1      66.1250      66.1250      1.042     0.3543
+dampening*bfd                1      42.3200      42.3200      0.667     0.4513
+Error (Lenth PSE)            5     317.4000      63.4800
+Total                        7     454.9950      64.9993
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
 
 === Interaction Effects: route_stability ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-keepalive_s          dampening                -10.5500            24.8%
-keepalive_s          bfd                       -8.2000            19.2%
-hold_time_s          mrai_s                     4.5000            10.6%
-dampening            bfd                        4.5000            10.6%
-keepalive_s          hold_time_s                3.5500             8.3%
-hold_time_s          dampening                 -3.3500             7.9%
-mrai_s               bfd                       -3.3500             7.9%
-hold_time_s          bfd                       -2.2000             5.2%
-mrai_s               dampening                 -2.2000             5.2%
-keepalive_s          mrai_s                    -0.2000             0.5%
+keepalive_s          bfd                       11.2500            25.2%
+keepalive_s          mrai_s                     6.2500            14.0%
+hold_time_s          dampening                  5.7500            12.9%
+mrai_s               bfd                        5.7500            12.9%
+hold_time_s          mrai_s                     4.6000            10.3%
+dampening            bfd                        4.6000            10.3%
+hold_time_s          bfd                        2.2000             4.9%
+mrai_s               dampening                  2.2000             4.9%
+keepalive_s          dampening                  1.6000             3.6%
+keepalive_s          hold_time_s                0.5000             1.1%
 
 === Summary Statistics: route_stability ===
 
 keepalive_s:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4    82.2500     6.4511    75.7000    91.1000
-  60                  4    85.6000    10.1275    77.9000   100.0000
+  10                  4    86.8000    10.9072    75.7000   100.0000
+  60                  4    81.0500     3.2645    77.9000    85.3000
 
 hold_time_s:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  180                 4    78.6500     2.5489    75.7000    81.8000
-  30                  4    89.2000     8.4242    80.4000   100.0000
+  180                 4    84.7250    10.9801    75.7000   100.0000
+  30                  4    83.1250     5.4218    79.2000    91.1000
 
 mrai_s:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  30                  4    79.8250     4.1242    75.7000    85.3000
-  5                   4    88.0250     9.4778    79.2000   100.0000
+  30                  4    89.5500     7.9526    81.8000   100.0000
+  5                   4    78.3000     2.0116    75.7000    80.4000
 
 dampening:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4    85.7000    10.3257    75.7000   100.0000
-  on                  4    82.1500     6.0534    77.9000    91.1000
+  off                 4    84.1750    10.8420    75.7000   100.0000
+  on                  4    83.6750     5.8266    77.9000    91.1000
 
 bfd:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4    83.8250    10.9661    75.7000   100.0000
-  on                  4    84.0250     5.6020    77.9000    91.1000</div></div>
+  off                 4    87.0500    10.4793    77.9000   100.0000
+  on                  4    80.8000     3.9758    75.7000    85.3000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: convergence_time_s ===
 Direction: minimize
 
 Best observed run: #7
-  keepalive_s = 10
+  keepalive_s = 60
   hold_time_s = 30
-  mrai_s = 30
-  dampening = on
+  mrai_s = 5
+  dampening = off
   bfd = off
   Value: -0.3
 
-RSM Model (linear, R² = 0.7595, Adj R² = 0.1584):
+RSM Model (linear, R² = 0.3519, Adj R² = -1.2685):
   Coefficients:
     intercept                      +44.3625
-    keepalive_s                    +15.7875
-    hold_time_s                    -9.1625
-    mrai_s                         -12.1125
-    dampening                      -12.6375
-    bfd                            -7.5375
+    keepalive_s                    -0.3875
+    hold_time_s                    +13.2375
+    mrai_s                         +12.1125
+    dampening                      +0.5375
+    bfd                            -0.4875
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
+    keepalive_s = 10
+    hold_time_s = 180
+    mrai_s = 30
+    dampening = off
+    bfd = off
+    Predicted value: 70.0500
+
+  Surface optimum (via L-BFGS-B, linear model):
     keepalive_s = 60
     hold_time_s = 30
     mrai_s = 5
     dampening = off
-    bfd = off
-    Predicted value: 101.6000
+    bfd = on
+    Predicted value: 17.6000
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. keepalive_s  (effect: 31.6, contribution: 27.6%)
-  2. dampening  (effect: -25.3, contribution: 22.1%)
-  3. mrai_s  (effect: 24.2, contribution: 21.2%)
-  4. hold_time_s  (effect: 18.3, contribution: 16.0%)
-  5. bfd  (effect: -15.1, contribution: 13.2%)
+  1. hold_time_s  (effect: -26.5, contribution: 49.5%)
+  2. mrai_s  (effect: -24.2, contribution: 45.3%)
+  3. dampening  (effect: 1.1, contribution: 2.0%)
+  4. bfd  (effect: -1.0, contribution: 1.8%)
+  5. keepalive_s  (effect: -0.8, contribution: 1.4%)
 
 === Optimization: route_stability ===
 Direction: maximize
 
 Best observed run: #7
-  keepalive_s = 10
+  keepalive_s = 60
   hold_time_s = 30
-  mrai_s = 30
-  dampening = on
+  mrai_s = 5
+  dampening = off
   bfd = off
   Value: 100.0
 
-RSM Model (linear, R² = 0.9607, Adj R² = 0.8626):
+RSM Model (linear, R² = 0.5022, Adj R² = -0.7424):
   Coefficients:
     intercept                      +83.9250
-    keepalive_s                    -4.4000
-    hold_time_s                    -2.2500
-    mrai_s                         +0.2500
-    dampening                      +4.9750
-    bfd                            -2.3250
+    keepalive_s                    +4.1000
+    hold_time_s                    -2.9500
+    mrai_s                         -0.2500
+    dampening                      -1.6750
+    bfd                            +0.4250
 
-  Predicted optimum (from linear model):
-    keepalive_s = 10
+  Predicted optimum (from linear model, at observed points):
+    keepalive_s = 60
     hold_time_s = 30
     mrai_s = 30
-    dampening = on
-    bfd = off
-    Predicted value: 98.1250
+    dampening = off
+    bfd = on
+    Predicted value: 92.8250
 
-  Model quality: Excellent fit — surface predictions are reliable.
+  Surface optimum (via L-BFGS-B, linear model):
+    keepalive_s = 60
+    hold_time_s = 30
+    mrai_s = 5
+    dampening = off
+    bfd = on
+    Predicted value: 93.3250
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. dampening  (effect: 10.0, contribution: 35.0%)
-  2. keepalive_s  (effect: -8.8, contribution: 31.0%)
-  3. bfd  (effect: -4.7, contribution: 16.4%)
-  4. hold_time_s  (effect: 4.5, contribution: 15.8%)
-  5. mrai_s  (effect: -0.5, contribution: 1.8%)</div></div>
+  1. keepalive_s  (effect: 8.2, contribution: 43.6%)
+  2. hold_time_s  (effect: 5.9, contribution: 31.4%)
+  3. dampening  (effect: -3.3, contribution: 17.8%)
+  4. bfd  (effect: 0.8, contribution: 4.5%)
+  5. mrai_s  (effect: 0.5, contribution: 2.7%)</div></div>
   </section>
 
   <!-- Nav -->

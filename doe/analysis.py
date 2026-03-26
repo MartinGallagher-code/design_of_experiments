@@ -2,7 +2,12 @@ import csv
 import json
 import math
 import os
-from .models import AnalysisReport, DesignMatrix, DOEConfig, EffectResult, ExperimentRun, InteractionEffect, ResponseAnalysis
+import numpy as np
+
+from .models import (
+    AnalysisReport, AnovaRow, AnovaTable, DesignMatrix, DOEConfig,
+    EffectResult, ExperimentRun, InteractionEffect, ResponseAnalysis,
+)
 
 
 def analyze(
@@ -21,6 +26,9 @@ def analyze(
     results_by_response: dict[str, ResponseAnalysis] = {}
     pareto_chart_paths: dict[str, str] = {}
     effects_plot_paths: dict[str, str] = {}
+    normal_plot_paths: dict[str, str] = {}
+    half_normal_plot_paths: dict[str, str] = {}
+    diagnostics_plot_paths: dict[str, str] = {}
 
     for resp in cfg.responses:
         responses: dict[int, float] = {}
@@ -48,11 +56,20 @@ def analyze(
         interactions = _compute_interaction_effects(valid_runs, responses, matrix.factor_names)
         summary_stats = _compute_summary_stats(valid_runs, responses, matrix.factor_names)
 
+        # ANOVA table
+        anova_table = None
+        if len(valid_runs) > len(matrix.factor_names):
+            try:
+                anova_table = _compute_anova(valid_runs, responses, matrix.factor_names, cfg.factors)
+            except Exception:
+                pass  # graceful fallback if ANOVA fails
+
         results_by_response[resp.name] = ResponseAnalysis(
             response_name=resp.name,
             effects=effects,
             summary_stats=summary_stats,
             interactions=interactions,
+            anova_table=anova_table,
         )
 
         if not no_plots:
@@ -74,6 +91,21 @@ def analyze(
                 plot_main_effects(valid_runs, responses, matrix.factor_names, effects_path, ylabel=ylabel)
                 effects_plot_paths[resp.name] = effects_path
 
+                # Normal/half-normal probability plots of effects
+                try:
+                    from scipy.stats import norm as _norm_check  # noqa: F401
+                    normal_path = os.path.join(processed_dir, f"normal_effects_{safe}.png")
+                    plot_normal_effects(effects, normal_path,
+                                       title=f"Normal Probability Plot — {resp.name}{unit_label}")
+                    normal_plot_paths[resp.name] = normal_path
+
+                    half_normal_path = os.path.join(processed_dir, f"half_normal_effects_{safe}.png")
+                    plot_half_normal_effects(effects, half_normal_path,
+                                           title=f"Half-Normal Plot — {resp.name}{unit_label}")
+                    half_normal_plot_paths[resp.name] = half_normal_path
+                except ImportError:
+                    pass  # scipy not available
+
                 # RSM surface plots for designs with continuous factors
                 rsm_paths = plot_rsm_surface(
                     valid_runs, responses, cfg.factors, matrix.factor_names,
@@ -82,6 +114,19 @@ def analyze(
                 for p in rsm_paths:
                     print(f"  RSM surface: {os.path.basename(p)}")
 
+                # Model diagnostic plots (fit RSM and plot residuals)
+                try:
+                    from .rsm import fit_rsm as _fit_rsm
+                    valid_runs_for_rsm = [r for r in matrix.runs if r.run_id in responses]
+                    diag_model = _fit_rsm(valid_runs_for_rsm, responses, matrix.factor_names, cfg.factors, model_type="linear")
+                    if diag_model.diagnostics and len(diag_model.diagnostics.residuals) >= 3:
+                        diag_path = os.path.join(processed_dir, f"diagnostics_{safe}.png")
+                        plot_diagnostics(diag_model.diagnostics, diag_path,
+                                        title=f"Model Diagnostics — {resp.name}{unit_label}")
+                        diagnostics_plot_paths[resp.name] = diag_path
+                except Exception:
+                    pass
+
             except ImportError:
                 print("Warning: matplotlib not available; skipping plots.")
 
@@ -89,6 +134,9 @@ def analyze(
         results_by_response=results_by_response,
         pareto_chart_paths=pareto_chart_paths,
         effects_plot_paths=effects_plot_paths,
+        normal_plot_paths=normal_plot_paths,
+        half_normal_plot_paths=half_normal_plot_paths,
+        diagnostics_plot_paths=diagnostics_plot_paths,
     )
 
 
@@ -280,6 +328,230 @@ def _compute_summary_stats(
                 "max": max(vals),
             }
     return stats
+
+
+def _compute_anova(
+    runs: list[ExperimentRun],
+    responses: dict[int, float],
+    factor_names: list[str],
+    factors: list,
+) -> AnovaTable:
+    """Compute ANOVA table using Type I (sequential) SS decomposition.
+
+    For unreplicated designs, uses Lenth's pseudo-standard-error to construct
+    an error estimate from the median of absolute effects (same approach as
+    R's FrF2 package).
+    """
+    from .rsm import _build_design_matrix, _encode_factor_value
+
+    try:
+        from scipy.stats import f as f_dist
+        _has_scipy = True
+    except ImportError:
+        _has_scipy = False
+
+    valid_runs = [r for r in runs if r.run_id in responses]
+    n = len(valid_runs)
+    y = np.array([responses[r.run_id] for r in valid_runs])
+    grand_mean = np.mean(y)
+    ss_total = float(np.sum((y - grand_mean) ** 2))
+
+    # Detect replicates (runs with identical factor settings)
+    from collections import Counter
+    setting_counts = Counter()
+    setting_responses: dict[tuple, list[float]] = {}
+    for run in valid_runs:
+        key = tuple(run.factor_values[f] for f in factor_names)
+        setting_counts[key] += 1
+        setting_responses.setdefault(key, []).append(responses[run.run_id])
+
+    has_replicates = any(c > 1 for c in setting_counts.values())
+
+    # Build full design matrix (linear model with main effects only)
+    factor_map = {f.name: f for f in factors}
+
+    # Compute SS for each factor using Type I approach
+    # Build X column by column, compute sequential SS
+    anova_rows: list[AnovaRow] = []
+
+    # Identify factor levels for each factor
+    factor_level_map: dict[str, list[str]] = {}
+    for fname in factor_names:
+        levels = set()
+        for run in valid_runs:
+            levels.add(run.factor_values[fname])
+        factor_level_map[fname] = sorted(levels)
+
+    # Compute SS for each main effect factor
+    ss_model = 0.0
+    for fname in factor_names:
+        levels = factor_level_map[fname]
+        df_factor = len(levels) - 1
+
+        # Group responses by level
+        level_vals: dict[str, list[float]] = {}
+        for run in valid_runs:
+            lv = run.factor_values[fname]
+            level_vals.setdefault(lv, []).append(responses[run.run_id])
+
+        # SS = sum over levels of n_i * (mean_i - grand_mean)^2
+        ss_factor = 0.0
+        for lv, vals in level_vals.items():
+            lv_mean = sum(vals) / len(vals)
+            ss_factor += len(vals) * (lv_mean - grand_mean) ** 2
+
+        ss_model += ss_factor
+        ms_factor = ss_factor / df_factor if df_factor > 0 else 0.0
+
+        anova_rows.append(AnovaRow(
+            source=fname,
+            df=df_factor,
+            ss=ss_factor,
+            ms=ms_factor,
+        ))
+
+    # Compute interaction SS for 2-level factor pairs
+    two_level_factors = [f for f in factor_names if len(factor_level_map[f]) == 2]
+    from itertools import combinations
+    for fa, fb in combinations(two_level_factors, 2):
+        levels_a = factor_level_map[fa]
+        levels_b = factor_level_map[fb]
+
+        # Group by (level_a, level_b) combination
+        combo_vals: dict[tuple, list[float]] = {}
+        for run in valid_runs:
+            key = (run.factor_values[fa], run.factor_values[fb])
+            combo_vals.setdefault(key, []).append(responses[run.run_id])
+
+        # SS_interaction = SS_AB_total - SS_A - SS_B
+        # where SS_AB_total = sum n_ij * (mean_ij - grand_mean)^2
+        ss_ab_total = 0.0
+        for key, vals in combo_vals.items():
+            combo_mean = sum(vals) / len(vals)
+            ss_ab_total += len(vals) * (combo_mean - grand_mean) ** 2
+
+        # Get individual SS for A and B
+        ss_a = 0.0
+        for lv in levels_a:
+            vals_a = []
+            for run in valid_runs:
+                if run.factor_values[fa] == lv:
+                    vals_a.append(responses[run.run_id])
+            if vals_a:
+                ss_a += len(vals_a) * (sum(vals_a) / len(vals_a) - grand_mean) ** 2
+
+        ss_b = 0.0
+        for lv in levels_b:
+            vals_b = []
+            for run in valid_runs:
+                if run.factor_values[fb] == lv:
+                    vals_b.append(responses[run.run_id])
+            if vals_b:
+                ss_b += len(vals_b) * (sum(vals_b) / len(vals_b) - grand_mean) ** 2
+
+        ss_interaction = max(0.0, ss_ab_total - ss_a - ss_b)
+        df_interaction = 1  # (2-1)(2-1) = 1
+        ms_interaction = ss_interaction / df_interaction if df_interaction > 0 else 0.0
+        ss_model += ss_interaction
+
+        anova_rows.append(AnovaRow(
+            source=f"{fa}*{fb}",
+            df=df_interaction,
+            ss=ss_interaction,
+            ms=ms_interaction,
+        ))
+
+    # Error estimation
+    ss_error = max(0.0, ss_total - ss_model)
+    df_model = sum(row.df for row in anova_rows)
+    df_error = n - 1 - df_model
+
+    error_method = "pooled"
+    lack_of_fit_row = None
+    pure_error_row = None
+
+    if has_replicates:
+        # Pure error from replicates
+        ss_pure_error = 0.0
+        df_pure_error = 0
+        for key, vals in setting_responses.items():
+            if len(vals) > 1:
+                group_mean = sum(vals) / len(vals)
+                ss_pure_error += sum((v - group_mean) ** 2 for v in vals)
+                df_pure_error += len(vals) - 1
+
+        ss_lack_of_fit = max(0.0, ss_error - ss_pure_error)
+        n_unique = len(setting_responses)
+        df_lack_of_fit = max(0, n_unique - 1 - df_model)
+
+        ms_pure_error = ss_pure_error / df_pure_error if df_pure_error > 0 else 0.0
+        ms_lack_of_fit = ss_lack_of_fit / df_lack_of_fit if df_lack_of_fit > 0 else 0.0
+
+        # Lack-of-fit F-test
+        lof_f = ms_lack_of_fit / ms_pure_error if ms_pure_error > 0 else None
+        lof_p = None
+        if lof_f is not None and _has_scipy and df_lack_of_fit > 0 and df_pure_error > 0:
+            lof_p = float(f_dist.sf(lof_f, df_lack_of_fit, df_pure_error))
+
+        lack_of_fit_row = AnovaRow(
+            source="Lack of Fit", df=df_lack_of_fit,
+            ss=ss_lack_of_fit, ms=ms_lack_of_fit,
+            f_value=lof_f, p_value=lof_p,
+        )
+        pure_error_row = AnovaRow(
+            source="Pure Error", df=df_pure_error,
+            ss=ss_pure_error, ms=ms_pure_error,
+        )
+        ms_error = ms_pure_error
+        error_method = "replicates"
+    elif df_error > 0:
+        ms_error = ss_error / df_error
+        error_method = "pooled"
+    else:
+        # Unreplicated design — use Lenth's pseudo-standard-error
+        all_effects = [row.ms for row in anova_rows if row.df == 1]
+        if all_effects:
+            s0 = 1.5 * float(np.median(np.abs(all_effects)))
+            # Trim effects larger than 2.5*s0 and recompute
+            trimmed = [e for e in all_effects if abs(e) < 2.5 * s0]
+            pse = 1.5 * float(np.median(np.abs(trimmed))) if trimmed else s0
+            ms_error = pse
+            # Approximate df using Lenth's method: df ≈ n_effects / 3
+            df_error = max(1, len(all_effects) // 3)
+            ss_error = ms_error * df_error
+        else:
+            ms_error = 0.0
+            df_error = 0
+        error_method = "lenth"
+
+    # Compute F-values and p-values for each term
+    if ms_error > 0:
+        for row in anova_rows:
+            row.f_value = row.ms / ms_error
+            if _has_scipy and df_error > 0:
+                row.p_value = float(f_dist.sf(row.f_value, row.df, df_error))
+
+    error_row = AnovaRow(
+        source="Error" if error_method != "lenth" else "Error (Lenth PSE)",
+        df=df_error,
+        ss=ss_error,
+        ms=ms_error,
+    )
+    total_row = AnovaRow(
+        source="Total",
+        df=n - 1,
+        ss=ss_total,
+        ms=ss_total / (n - 1) if n > 1 else 0.0,
+    )
+
+    return AnovaTable(
+        rows=anova_rows,
+        error_row=error_row,
+        total_row=total_row,
+        lack_of_fit_row=lack_of_fit_row,
+        pure_error_row=pure_error_row,
+        error_method=error_method,
+    )
 
 
 def plot_pareto(
@@ -521,6 +793,161 @@ def plot_rsm_surface(
         created.append(path)
 
     return created
+
+
+def plot_diagnostics(
+    diagnostics,
+    output_path: str,
+    title: str = "Model Diagnostics",
+) -> None:
+    """Generate a 2x2 diagnostic plot panel: residuals vs fitted, normal probability,
+    residuals vs run order, and predicted vs actual."""
+    import matplotlib.pyplot as plt
+    from scipy.stats import probplot
+
+    resid = diagnostics.residuals
+    fitted = diagnostics.fitted_values
+    run_ids = diagnostics.run_ids
+    n = len(resid)
+    if n < 3:
+        return
+
+    actual = [f + r for f, r in zip(fitted, resid)]
+
+    fig, axes = plt.subplots(2, 2, figsize=(10, 8))
+    fig.suptitle(title, fontsize=13)
+
+    # 1. Residuals vs Fitted
+    ax = axes[0][0]
+    ax.scatter(fitted, resid, c="steelblue", s=30, edgecolors="white", linewidths=0.5)
+    ax.axhline(0, color="red", linestyle="--", linewidth=0.8, alpha=0.7)
+    ax.set_xlabel("Fitted Values")
+    ax.set_ylabel("Residuals")
+    ax.set_title("Residuals vs Fitted")
+    ax.grid(True, alpha=0.3)
+
+    # 2. Normal Probability Plot of Residuals
+    ax = axes[0][1]
+    probplot(resid, plot=ax)
+    ax.set_title("Normal Probability Plot")
+    ax.grid(True, alpha=0.3)
+
+    # 3. Residuals vs Run Order
+    ax = axes[1][0]
+    ax.scatter(range(1, n + 1), resid, c="steelblue", s=30, edgecolors="white", linewidths=0.5)
+    ax.axhline(0, color="red", linestyle="--", linewidth=0.8, alpha=0.7)
+    ax.set_xlabel("Run Order")
+    ax.set_ylabel("Residuals")
+    ax.set_title("Residuals vs Run Order")
+    ax.grid(True, alpha=0.3)
+
+    # 4. Predicted vs Actual
+    ax = axes[1][1]
+    ax.scatter(actual, fitted, c="steelblue", s=30, edgecolors="white", linewidths=0.5)
+    lims = [min(min(actual), min(fitted)), max(max(actual), max(fitted))]
+    margin = (lims[1] - lims[0]) * 0.05
+    ax.plot([lims[0] - margin, lims[1] + margin], [lims[0] - margin, lims[1] + margin],
+            "r--", linewidth=0.8, alpha=0.7)
+    ax.set_xlabel("Actual")
+    ax.set_ylabel("Predicted")
+    ax.set_title("Predicted vs Actual")
+    ax.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150)
+    plt.close()
+
+
+def plot_normal_effects(
+    effects: list[EffectResult],
+    output_path: str,
+    title: str = "Normal Probability Plot of Effects",
+) -> None:
+    """Plot effects against normal quantiles. Significant effects deviate from the line."""
+    import matplotlib.pyplot as plt
+    from scipy.stats import norm
+
+    sorted_effects = sorted(effects, key=lambda e: e.main_effect)
+    n = len(sorted_effects)
+    if n < 2:
+        return
+
+    values = [e.main_effect for e in sorted_effects]
+    names = [e.factor_name for e in sorted_effects]
+    # Filliben approximation for expected normal order statistics
+    quantiles = [norm.ppf((i + 1 - 0.375) / (n + 0.25)) for i in range(n)]
+
+    fig, ax = plt.subplots(figsize=(7, 5))
+    ax.scatter(quantiles, values, c="steelblue", s=50, zorder=5, edgecolors="white", linewidths=0.5)
+
+    # Reference line through Q1/Q3
+    q1_idx, q3_idx = n // 4, 3 * n // 4
+    if q3_idx > q1_idx and quantiles[q3_idx] != quantiles[q1_idx]:
+        slope = (values[q3_idx] - values[q1_idx]) / (quantiles[q3_idx] - quantiles[q1_idx])
+        intercept = values[q1_idx] - slope * quantiles[q1_idx]
+        x_line = [quantiles[0] - 0.5, quantiles[-1] + 0.5]
+        ax.plot(x_line, [slope * x + intercept for x in x_line], "r--", alpha=0.6, linewidth=1)
+
+        # Label points that deviate significantly from the line
+        residuals = [abs(v - (slope * q + intercept)) for v, q in zip(values, quantiles)]
+        threshold = 1.5 * (sum(residuals) / len(residuals)) if residuals else 0
+        for i, (q, v, name) in enumerate(zip(quantiles, values, names)):
+            if residuals[i] > threshold:
+                ax.annotate(name, (q, v), textcoords="offset points",
+                           xytext=(5, 5), fontsize=8, color="red", fontweight="bold")
+
+    ax.set_xlabel("Theoretical Quantiles")
+    ax.set_ylabel("Effects")
+    ax.set_title(title)
+    ax.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150)
+    plt.close()
+
+
+def plot_half_normal_effects(
+    effects: list[EffectResult],
+    output_path: str,
+    title: str = "Half-Normal Probability Plot of Effects",
+) -> None:
+    """Plot absolute effects against half-normal quantiles. Significant effects are labeled."""
+    import matplotlib.pyplot as plt
+    from scipy.stats import halfnorm
+
+    abs_effects = sorted([(abs(e.main_effect), e.factor_name) for e in effects])
+    n = len(abs_effects)
+    if n < 2:
+        return
+
+    values = [v for v, _ in abs_effects]
+    names = [name for _, name in abs_effects]
+    quantiles = [halfnorm.ppf((i + 1 - 0.375) / (n + 0.25)) for i in range(n)]
+
+    fig, ax = plt.subplots(figsize=(7, 5))
+    ax.scatter(quantiles, values, c="steelblue", s=50, zorder=5, edgecolors="white", linewidths=0.5)
+
+    # Reference line through origin and median point
+    mid = n // 2
+    if quantiles[mid] > 0:
+        slope = values[mid] / quantiles[mid]
+        x_line = [0, quantiles[-1] + 0.3]
+        ax.plot(x_line, [slope * x for x in x_line], "r--", alpha=0.6, linewidth=1)
+
+        # Label points deviating from line
+        residuals = [abs(v - slope * q) for v, q in zip(values, quantiles)]
+        threshold = 1.5 * (sum(residuals) / len(residuals)) if residuals else 0
+        for i, (q, v, name) in enumerate(zip(quantiles, values, names)):
+            if residuals[i] > threshold:
+                ax.annotate(name, (q, v), textcoords="offset points",
+                           xytext=(5, 5), fontsize=8, color="red", fontweight="bold")
+
+    ax.set_xlabel("Half-Normal Quantiles")
+    ax.set_ylabel("|Effect|")
+    ax.set_title(title)
+    ax.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.savefig(output_path, dpi=150)
+    plt.close()
 
 
 def export_csv(report: AnalysisReport, output_dir: str) -> list[str]:

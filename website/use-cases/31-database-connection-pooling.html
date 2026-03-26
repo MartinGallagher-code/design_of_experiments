@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>throughput qps</strong>, the most influential factors were idle timeout (45.0%), max lifetime (28.9%), pool size (26.1%). The best observed value was <strong>5964.0</strong> (at pool size = 50, idle timeout = 30, max lifetime = 1950).</p>
-<p>For <strong>p95 latency ms</strong>, the most influential factors were idle timeout (42.5%), max lifetime (39.2%), pool size (18.3%). The best observed value was <strong>9.3</strong> (at pool size = 5, idle timeout = 300, max lifetime = 1950).</p>
+    <p>For <strong>throughput qps</strong>, the most influential factors were idle timeout (60.3%), max lifetime (36.6%), pool size (3.2%). The best observed value was <strong>5964.0</strong> (at pool size = 27.5, idle timeout = 300, max lifetime = 3600).</p>
+<p>For <strong>p95 latency ms</strong>, the most influential factors were idle timeout (57.3%), max lifetime (34.5%), pool size (8.2%). The best observed value was <strong>9.3</strong> (at pool size = 27.5, idle timeout = 165, max lifetime = 1950).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (throughput_qps (↑), p95_latency_ms (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/31_database_connection_pooling/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -295,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: throughput_qps</h3>
-    <p>Top factors: idle_timeout (45.0%), max_lifetime (28.9%), pool_size (26.1%).</p>
+    <p>Top factors: idle_timeout (60.3%), max_lifetime (36.6%), pool_size (3.2%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -308,7 +308,7 @@
     </div>
 
     <h3>Response: p95_latency_ms</h3>
-    <p>Top factors: idle_timeout (42.5%), max_lifetime (39.2%), pool_size (18.3%).</p>
+    <p>Top factors: idle_timeout (57.3%), max_lifetime (34.5%), pool_size (8.2%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -359,171 +359,335 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9268</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>throughput_qps</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>5964.00 0.9545     5964.00 qps</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>p95_latency_ms</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:88.67%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.8867</span>
+                </div>
+              </td>
+              <td>10.30 0.8867       10.30 ms</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>pool_size</code></td><td>27.5 conns</td></tr>
+            <tr><td><code>idle_timeout</code></td><td>300 s</td></tr>
+            <tr><td><code>max_lifetime</code></td><td>300 s</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #3</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>p95_latency_ms</code></td><td>10.30</td><td>9.30</td><td><span style="color:#dc2626;">+1.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#8</td><td><strong>0.9048</strong></td><td style="font-size:.78rem;">pool_size=27.5,  idle_timeout=30,  max_lifetime=3600</td></tr>
+            <tr><td>#9</td><td><strong>0.8423</strong></td><td style="font-size:.78rem;">pool_size=27.5,  idle_timeout=165,  max_lifetime=1950</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>p95_latency_ms</code></td><td style="color:#dc2626;font-weight:600;">0.2719</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9268
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+throughput_qps               1.5       0.9545     5964.00 qps   ↑
+p95_latency_ms               1.0       0.8867       10.30 ms   ↓
+
+Recommended settings:
+  pool_size = 27.5 conns
+  idle_timeout = 300 s
+  max_lifetime = 300 s
+  (from observed run #3)
+
+Trade-off summary:
+  throughput_qps: 5964.00 (best observed: 5964.00, sacrifice: +0.00)
+  p95_latency_ms: 10.30 (best observed: 9.30, sacrifice: +1.00)
+
+Model quality:
+  throughput_qps: R² = 0.2267 (linear)
+  p95_latency_ms: R² = 0.2719 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #3 (D=0.9268): pool_size=27.5, idle_timeout=300, max_lifetime=300
+  2. Run #8 (D=0.9048): pool_size=27.5, idle_timeout=30, max_lifetime=3600
+  3. Run #9 (D=0.8423): pool_size=27.5, idle_timeout=165, max_lifetime=1950</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: throughput_qps ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-idle_timeout          1792.6786     325.0559            45.0%
-max_lifetime          1153.1429     325.0559            28.9%
-pool_size             1039.6786     325.0559            26.1%
+idle_timeout          2047.7500     325.0559            60.3%
+max_lifetime          1243.2500     325.0559            36.6%
+pool_size              107.2143     325.0559             3.2%
+
+=== ANOVA Table: throughput_qps ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+pool_size                    2   32212.5048   16106.2524      0.009     0.9907
+idle_timeout                 2 10240522.4690 5120261.2345      2.976     0.1081
+max_lifetime                 2 4458399.1833 2229199.5917      1.296     0.3255
+Lack of Fit                  6 4017068.1095  669511.3516      0.389     0.8437
+Pure Error                   2 3440674.6667 1720337.3333
+Error                        8 7457742.7762 1720337.3333
+Total                       14 22188876.9333 1584919.7810
 
 === Summary Statistics: throughput_qps ===
 
 pool_size:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  27.5                7  4080.5714  1501.1140  1926.0000  5602.0000
-  5                   4  4597.7500  1222.4708  2818.0000  5549.0000
-  50                  4  5120.2500   677.5649  4451.0000  5964.0000
+  27.5                7  4448.2857  1139.2819  2632.0000  5549.0000
+  5                   4  4555.5000  1259.3396  2818.0000  5602.0000
+  50                  4  4519.0000  1789.8860  1926.0000  5964.0000
 
 idle_timeout:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  165                 7  3825.5714  1273.4147  1926.0000  5196.0000
-  30                  4  4546.0000  1165.1801  2818.0000  5351.0000
-  300                 4  5618.2500   253.2013  5358.0000  5964.0000
+  165                 7  4871.5714   953.2152  3031.0000  5964.0000
+  30                  4  3143.0000  1421.5771  1926.0000  5196.0000
+  300                 4  5190.7500   380.3484  4715.0000  5602.0000
 
 max_lifetime:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1950                7  3895.8571  1659.0641  1926.0000  5964.0000
-  300                 4  5049.0000   284.9152  4715.0000  5358.0000
-  3600                4  4992.2500   483.3538  4451.0000  5602.0000
+  1950                7  4173.0000  1532.8272  1926.0000  5602.0000
+  300                 4  4156.5000  1028.5370  2632.0000  4828.0000
+  3600                4  5399.7500   391.3467  5088.0000  5964.0000
 
 === Main Effects: p95_latency_ms ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-idle_timeout             5.6357       1.0427            42.5%
-max_lifetime             5.1893       1.0427            39.2%
-pool_size                2.4250       1.0427            18.3%
+idle_timeout             6.8500       1.0427            57.3%
+max_lifetime             4.1250       1.0427            34.5%
+pool_size                0.9750       1.0427             8.2%
+
+=== ANOVA Table: p95_latency_ms ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+pool_size                    2       1.9194       0.9597      0.047     0.9547
+idle_timeout                 2      94.6747      47.3374      2.300     0.1625
+max_lifetime                 2      42.2522      21.1261      1.026     0.4011
+Lack of Fit                  6      48.2910       8.0485      0.391     0.8427
+Pure Error                   2      41.1667      20.5833
+Error                        8      89.4577      20.5833
+Total                       14     228.3040      16.3074
 
 === Summary Statistics: p95_latency_ms ===
 
 pool_size:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  27.5                7    14.7571     5.4320     9.3000    22.7000
-  5                   4    15.0750     2.8135    11.8000    18.5000
-  50                  4    12.6500     2.0632    10.3000    15.3000
+  27.5                7    14.2429     3.5641    10.7000    19.7000
+  5                   4    13.8250     3.9643     9.3000    18.5000
+  50                  4    14.8000     5.8600    10.3000    22.7000
 
 idle_timeout:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  165                 7    16.6857     3.8942    11.8000    22.7000
-  30                  4    13.3000     3.5242    10.7000    18.5000
-  300                 4    11.0500     2.1579     9.3000    14.2000
+  165                 7    14.0286     3.2983    10.3000    19.7000
+  30                  4    17.9250     4.5184    11.8000    22.7000
+  300                 4    11.0750     1.5392     9.3000    12.8000
 
 max_lifetime:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1950                7    16.6143     4.4656    10.3000    22.7000
-  300                 4    11.4250     1.0966    10.4000    12.8000
-  3600                4    13.0500     3.0687     9.3000    15.8000</div></div>
+  1950                7    15.0714     5.2658     9.3000    22.7000
+  300                 4    15.6500     2.4201    12.8000    18.7000
+  3600                4    11.5250     0.8382    10.3000    12.2000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: throughput_qps ===
 Direction: maximize
 
 Best observed run: #3
-  pool_size = 50
-  idle_timeout = 30
-  max_lifetime = 1950
+  pool_size = 27.5
+  idle_timeout = 300
+  max_lifetime = 3600
   Value: 5964.0
 
-RSM Model (linear, R² = 0.0855, Adj R² = -0.1639):
+RSM Model (linear, R² = 0.3295, Adj R² = 0.1466):
   Coefficients:
     intercept                      +4495.7333
-    pool_size                      +455.5000
-    idle_timeout                   -168.8750
-    max_lifetime                   +35.1250
+    pool_size                      -47.6250
+    idle_timeout                   -887.8750
+    max_lifetime                   +351.0000
 
-RSM Model (quadratic, R² = 0.4599, Adj R² = -0.5124):
+RSM Model (quadratic, R² = 0.7183, Adj R² = 0.2113):
   Coefficients:
-    intercept                      +4251.6667
-    pool_size                      +455.5000
-    idle_timeout                   -168.8750
-    max_lifetime                   +35.1250
-    pool_size*idle_timeout         -1138.0000
-    pool_size*max_lifetime         -26.5000
-    idle_timeout*max_lifetime      +327.7500
-    pool_size^2                    +747.0417
-    idle_timeout^2                 -353.7083
-    max_lifetime^2                 +64.2917
+    intercept                      +4361.3333
+    pool_size                      -47.6250
+    idle_timeout                   -887.8750
+    max_lifetime                   +351.0000
+    pool_size*idle_timeout         -431.5000
+    pool_size*max_lifetime         +134.7500
+    idle_timeout*max_lifetime      +963.7500
+    pool_size^2                    -80.4167
+    idle_timeout^2                 -528.9167
+    max_lifetime^2                 +861.3333
 
   Curvature analysis:
-    pool_size                      coef=+747.0417  convex (has a minimum)
-    idle_timeout                   coef=-353.7083  concave (has a maximum)
-    max_lifetime                   coef=+64.2917  convex (has a minimum)
+    max_lifetime                   coef=+861.3333  convex (has a minimum)
+    idle_timeout                   coef=-528.9167  concave (has a maximum)
+    pool_size                      coef=-80.4167  concave (has a maximum)
 
   Notable interactions:
-    pool_size*idle_timeout         coef=-1138.0000  (antagonistic)
-    idle_timeout*max_lifetime      coef=+327.7500  (synergistic)
-    pool_size*max_lifetime         coef=-26.5000  (antagonistic)
+    idle_timeout*max_lifetime      coef=+963.7500  (synergistic)
+    pool_size*idle_timeout         coef=-431.5000  (antagonistic)
+    pool_size*max_lifetime         coef=+134.7500  (synergistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from quadratic model, at observed points):
+    pool_size = 27.5
+    idle_timeout = 30
+    max_lifetime = 300
+    Predicted value: 6194.3750
+
+  Surface optimum (via L-BFGS-B, quadratic model):
     pool_size = 50
     idle_timeout = 30
-    max_lifetime = 1950
-    Predicted value: 5120.1083
+    max_lifetime = 300
+    Predicted value: 6363.0833
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. pool_size  (effect: 1223.2, contribution: 65.2%)
-  2. idle_timeout  (effect: 580.5, contribution: 31.0%)
-  3. max_lifetime  (effect: 71.3, contribution: 3.8%)
+  1. idle_timeout  (effect: 1775.8, contribution: 55.8%)
+  2. max_lifetime  (effect: 1255.9, contribution: 39.5%)
+  3. pool_size  (effect: 151.8, contribution: 4.8%)
 
 === Optimization: p95_latency_ms ===
 Direction: minimize
 
 Best observed run: #8
-  pool_size = 5
-  idle_timeout = 300
+  pool_size = 27.5
+  idle_timeout = 165
   max_lifetime = 1950
   Value: 9.3
 
-RSM Model (linear, R² = 0.0545, Adj R² = -0.2033):
+RSM Model (linear, R² = 0.1485, Adj R² = -0.0838):
   Coefficients:
     intercept                      +14.2800
-    pool_size                      -1.0875
-    idle_timeout                   -0.4000
-    max_lifetime                   -0.4625
+    pool_size                      +0.7375
+    idle_timeout                   +1.9000
+    max_lifetime                   -0.2875
 
-RSM Model (quadratic, R² = 0.4978, Adj R² = -0.4063):
+RSM Model (quadratic, R² = 0.6213, Adj R² = -0.0604):
   Coefficients:
-    intercept                      +13.7333
-    pool_size                      -1.0875
-    idle_timeout                   -0.4000
-    max_lifetime                   -0.4625
-    pool_size*idle_timeout         +3.7250
-    pool_size*max_lifetime         -1.2000
-    idle_timeout*max_lifetime      +0.0250
-    pool_size^2                    -2.1667
-    idle_timeout^2                 +1.9583
-    max_lifetime^2                 +1.2333
+    intercept                      +14.7667
+    pool_size                      +0.7375
+    idle_timeout                   +1.9000
+    max_lifetime                   -0.2875
+    pool_size*idle_timeout         +0.7000
+    pool_size*max_lifetime         -0.0750
+    idle_timeout*max_lifetime      -3.0000
+    pool_size^2                    -0.3958
+    idle_timeout^2                 +2.6792
+    max_lifetime^2                 -3.1958
 
   Curvature analysis:
-    pool_size                      coef=-2.1667  concave (has a maximum)
-    idle_timeout                   coef=+1.9583  convex (has a minimum)
-    max_lifetime                   coef=+1.2333  convex (has a minimum)
+    max_lifetime                   coef=-3.1958  concave (has a maximum)
+    idle_timeout                   coef=+2.6792  convex (has a minimum)
+    pool_size                      coef=-0.3958  concave (has a maximum)
 
   Notable interactions:
-    pool_size*idle_timeout         coef=+3.7250  (synergistic)
-    pool_size*max_lifetime         coef=-1.2000  (antagonistic)
+    idle_timeout*max_lifetime      coef=-3.0000  (antagonistic)
+    pool_size*idle_timeout         coef=+0.7000  (synergistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from quadratic model, at observed points):
+    pool_size = 50
+    idle_timeout = 300
+    max_lifetime = 1950
+    Predicted value: 20.3875
+
+  Surface optimum (via L-BFGS-B, quadratic model):
     pool_size = 5
-    idle_timeout = 165
+    idle_timeout = 59.1835
     max_lifetime = 300
-    Predicted value: 15.8300
+    Predicted value: 9.0040
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. pool_size  (effect: 3.5, contribution: 45.7%)
-  2. idle_timeout  (effect: 2.4, contribution: 31.8%)
-  3. max_lifetime  (effect: 1.7, contribution: 22.5%)</div></div>
+  1. idle_timeout  (effect: 4.8, contribution: 48.6%)
+  2. max_lifetime  (effect: 3.6, contribution: 36.6%)
+  3. pool_size  (effect: 1.5, contribution: 14.8%)</div></div>
   </section>
 
   <!-- Nav -->

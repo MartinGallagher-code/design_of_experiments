@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -51,8 +50,8 @@
 
     
     <h3>Key Findings</h3>
-    <p>For <strong>rotation success rate</strong>, the most influential factors were renewal window pct (59.3%), stapling cache sec (24.2%), cert lifetime days (16.5%). The best observed value was <strong>99.65</strong> (at cert lifetime days = 30, renewal window pct = 10, stapling cache sec = 3600).</p>
-<p>For <strong>downtime sec</strong>, the most influential factors were renewal window pct (44.3%), stapling cache sec (35.4%), cert lifetime days (20.3%). The best observed value was <strong>1.8</strong> (at cert lifetime days = 30, renewal window pct = 30, stapling cache sec = 3600).</p>
+    <p>For <strong>rotation success rate</strong>, the most influential factors were renewal window pct (65.3%), stapling cache sec (24.2%), cert lifetime days (10.5%). The best observed value was <strong>99.65</strong> (at cert lifetime days = 90, renewal window pct = 30, stapling cache sec = 300).</p>
+<p>For <strong>downtime sec</strong>, the most influential factors were renewal window pct (82.8%), stapling cache sec (14.0%), cert lifetime days (3.2%). The best observed value was <strong>1.8</strong> (at cert lifetime days = 30, renewal window pct = 30, stapling cache sec = 3600).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -234,12 +233,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (rotation_success_rate (↑), downtime_sec (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/62_certificate_rotation/config.json <span class="flag">--multi</span></div>
         </div>
@@ -247,7 +247,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -286,7 +286,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: rotation_success_rate</h3>
-    <p>Top factors: renewal_window_pct (59.3%), stapling_cache_sec (24.2%), cert_lifetime_days (16.5%).</p>
+    <p>Top factors: renewal_window_pct (65.3%), stapling_cache_sec (24.2%), cert_lifetime_days (10.5%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -299,7 +299,7 @@
     </div>
 
     <h3>Response: downtime_sec</h3>
-    <p>Top factors: renewal_window_pct (44.3%), stapling_cache_sec (35.4%), cert_lifetime_days (20.3%).</p>
+    <p>Top factors: renewal_window_pct (82.8%), stapling_cache_sec (14.0%), cert_lifetime_days (3.2%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -350,105 +350,265 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9540</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>rotation_success_rate</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.37%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9537</span>
+                </div>
+              </td>
+              <td>99.64 0.9537       99.64 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>downtime_sec</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>1.80 0.9545        1.80 sec</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>cert_lifetime_days</code></td><td>90 days</td></tr>
+            <tr><td><code>renewal_window_pct</code></td><td>30 %</td></tr>
+            <tr><td><code>stapling_cache_sec</code></td><td>300 sec</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #4</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>downtime_sec</code></td><td>1.80</td><td>1.80</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#3</td><td><strong>0.8868</strong></td><td style="font-size:.78rem;">cert_lifetime_days=90,  renewal_window_pct=10,  stapling_cache_sec=300</td></tr>
+            <tr><td>#1</td><td><strong>0.6770</strong></td><td style="font-size:.78rem;">cert_lifetime_days=90,  renewal_window_pct=10,  stapling_cache_sec=3600</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>downtime_sec</code></td><td style="color:#ca8a04;font-weight:600;">0.5475</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9540
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+rotation_success_rate        1.5       0.9537       99.64 %   ↑
+downtime_sec                 1.0       0.9545        1.80 sec   ↓
+
+Recommended settings:
+  cert_lifetime_days = 90 days
+  renewal_window_pct = 30 %
+  stapling_cache_sec = 300 sec
+  (from observed run #4)
+
+Trade-off summary:
+  rotation_success_rate: 99.64 (best observed: 99.65, sacrifice: +0.01)
+  downtime_sec: 1.80 (best observed: 1.80, sacrifice: +0.00)
+
+Model quality:
+  rotation_success_rate: R² = 0.5799 (linear)
+  downtime_sec: R² = 0.5475 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #4 (D=0.9540): cert_lifetime_days=90, renewal_window_pct=30, stapling_cache_sec=300
+  2. Run #3 (D=0.8868): cert_lifetime_days=90, renewal_window_pct=10, stapling_cache_sec=300
+  3. Run #1 (D=0.6770): cert_lifetime_days=90, renewal_window_pct=10, stapling_cache_sec=3600</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: rotation_success_rate ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-renewal_window_pct       4.9975       1.3670            59.3%
-stapling_cache_sec      -2.0425       1.3670            24.2%
-cert_lifetime_days      -1.3925       1.3670            16.5%
+renewal_window_pct       3.4025       1.3670            65.3%
+stapling_cache_sec      -1.2625       1.3670            24.2%
+cert_lifetime_days      -0.5475       1.3670            10.5%
+
+=== ANOVA Table: rotation_success_rate ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+cert_lifetime_days           1       0.5995       0.5995      2.632     0.3517
+renewal_window_pct           1      23.1540      23.1540    101.636     0.0629
+stapling_cache_sec           1       3.1878       3.1878     13.993     0.1663
+cert_lifetime_days*renewal_window_pct    1       2.7261       2.7261     11.966     0.1791
+cert_lifetime_days*stapling_cache_sec    1       8.3436       8.3436     36.625     0.1043
+renewal_window_pct*stapling_cache_sec    1      66.4128      66.4128    291.524     0.0372
+Error                        1       0.2278       0.2278
+Total                        7     104.6517      14.9502
 
 === Interaction Effects: rotation_success_rate ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-cert_lifetime_days   stapling_cache_sec         3.2025            48.2%
-renewal_window_pct   stapling_cache_sec         1.9325            29.1%
-cert_lifetime_days   renewal_window_pct         1.5125            22.8%
+renewal_window_pct   stapling_cache_sec        -5.7625            64.2%
+cert_lifetime_days   stapling_cache_sec        -2.0425            22.8%
+cert_lifetime_days   renewal_window_pct        -1.1675            13.0%
 
 === Summary Statistics: rotation_success_rate ===
 
 cert_lifetime_days:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  30                  4    95.1275     3.6397    90.9100    99.6400
-  90                  4    93.7350     4.5104    88.9800    99.6500
+  30                  4    94.7050     4.4235    88.9800    99.6500
+  90                  4    94.1575     3.8880    90.9100    99.6400
 
 renewal_window_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4    91.9325     2.8977    88.9800    95.8600
-  30                  4    96.9300     3.1364    94.1000    99.6500
+  10                  4    92.7300     2.9608    88.9800    95.8600
+  30                  4    96.1325     4.2895    90.9100    99.6500
 
 stapling_cache_sec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  300                 4    95.4525     3.2156    91.9800    99.6400
-  3600                4    93.4100     4.6651    88.9800    99.6500
+  300                 4    95.0625     5.4313    88.9800    99.6500
+  3600                4    93.8000     2.0790    90.9100    95.8600
 
 === Main Effects: downtime_sec ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-renewal_window_pct      -3.2250       0.9938            44.3%
-stapling_cache_sec       2.5750       0.9938            35.4%
-cert_lifetime_days       1.4750       0.9938            20.3%
+renewal_window_pct      -1.9250       0.9938            82.8%
+stapling_cache_sec       0.3250       0.9938            14.0%
+cert_lifetime_days       0.0750       0.9938             3.2%
+
+=== ANOVA Table: downtime_sec ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+cert_lifetime_days           1       0.0112       0.0112      0.074     0.8305
+renewal_window_pct           1       7.4113       7.4113     49.000     0.0903
+stapling_cache_sec           1       0.2113       0.2113      1.397     0.4471
+cert_lifetime_days*renewal_window_pct    1       1.0512       1.0512      6.950     0.2308
+cert_lifetime_days*stapling_cache_sec    1      13.2613      13.2613     87.678     0.0677
+renewal_window_pct*stapling_cache_sec    1      33.2113      33.2113    219.579     0.0429
+Error                        1       0.1512       0.1512
+Total                        7      55.3088       7.9013
 
 === Interaction Effects: downtime_sec ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-cert_lifetime_days   stapling_cache_sec        -1.8750            42.4%
-renewal_window_pct   stapling_cache_sec        -1.5750            35.6%
-cert_lifetime_days   renewal_window_pct        -0.9750            22.0%
+renewal_window_pct   stapling_cache_sec         4.0750            55.3%
+cert_lifetime_days   stapling_cache_sec         2.5750            34.9%
+cert_lifetime_days   renewal_window_pct         0.7250             9.8%
 
 === Summary Statistics: downtime_sec ===
 
 cert_lifetime_days:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  30                  4     4.9750     2.8860     1.8000     8.5000
-  90                  4     6.4500     2.9422     3.3000    10.3000
+  30                  4     5.6750     3.2149     3.3000    10.3000
+  90                  4     5.7500     2.8455     1.8000     8.5000
 
 renewal_window_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4     7.3250     2.8076     3.7000    10.3000
-  30                  4     4.1000     1.9026     1.8000     5.9000
+  10                  4     6.6750     2.7451     3.7000    10.3000
+  30                  4     4.7500     2.9034     1.8000     8.5000
 
 stapling_cache_sec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  300                 4     4.4250     2.1608     1.8000     6.8000
-  3600                4     7.0000     3.0572     3.3000    10.3000</div></div>
+  300                 4     5.5500     3.7969     1.8000    10.3000
+  3600                4     5.8750     1.9873     3.7000     8.5000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: rotation_success_rate ===
 Direction: maximize
 
 Best observed run: #3
-  cert_lifetime_days = 30
-  renewal_window_pct = 10
-  stapling_cache_sec = 3600
+  cert_lifetime_days = 90
+  renewal_window_pct = 30
+  stapling_cache_sec = 300
   Value: 99.65
 
-RSM Model (linear, R² = 0.4531, Adj R² = 0.0429):
+RSM Model (linear, R² = 0.5200, Adj R² = 0.1600):
   Coefficients:
     intercept                      +94.4312
-    cert_lifetime_days             -1.2188
-    renewal_window_pct             -0.3163
-    stapling_cache_sec             +2.0837
+    cert_lifetime_days             -0.6962
+    renewal_window_pct             +2.4988
+    stapling_cache_sec             +0.2712
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     cert_lifetime_days = 30
-    renewal_window_pct = 10
+    renewal_window_pct = 30
     stapling_cache_sec = 3600
-    Predicted value: 98.0500
+    Predicted value: 97.8975
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Surface optimum (via L-BFGS-B, linear model):
+    cert_lifetime_days = 30
+    renewal_window_pct = 30
+    stapling_cache_sec = 3600
+    Predicted value: 97.8975
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. stapling_cache_sec  (effect: 4.2, contribution: 57.6%)
-  2. cert_lifetime_days  (effect: -2.4, contribution: 33.7%)
-  3. renewal_window_pct  (effect: -0.6, contribution: 8.7%)
+  1. renewal_window_pct  (effect: 5.0, contribution: 72.1%)
+  2. cert_lifetime_days  (effect: -1.4, contribution: 20.1%)
+  3. stapling_cache_sec  (effect: 0.5, contribution: 7.8%)
 
 === Optimization: downtime_sec ===
 Direction: minimize
@@ -459,25 +619,31 @@ Best observed run: #4
   stapling_cache_sec = 3600
   Value: 1.8
 
-RSM Model (linear, R² = 0.3170, Adj R² = -0.1952):
+RSM Model (linear, R² = 0.4794, Adj R² = 0.0889):
   Coefficients:
     intercept                      +5.7125
-    cert_lifetime_days             +0.5125
-    renewal_window_pct             -0.0625
-    stapling_cache_sec             -1.3875
+    cert_lifetime_days             +0.7375
+    renewal_window_pct             -1.6125
+    stapling_cache_sec             -0.4125
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     cert_lifetime_days = 90
     renewal_window_pct = 10
     stapling_cache_sec = 300
-    Predicted value: 7.6750
+    Predicted value: 8.4750
+
+  Surface optimum (via L-BFGS-B, linear model):
+    cert_lifetime_days = 30
+    renewal_window_pct = 30
+    stapling_cache_sec = 3600
+    Predicted value: 2.9500
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. stapling_cache_sec  (effect: -2.8, contribution: 70.7%)
-  2. cert_lifetime_days  (effect: 1.0, contribution: 26.1%)
-  3. renewal_window_pct  (effect: -0.1, contribution: 3.2%)</div></div>
+  1. renewal_window_pct  (effect: -3.2, contribution: 58.4%)
+  2. cert_lifetime_days  (effect: 1.5, contribution: 26.7%)
+  3. stapling_cache_sec  (effect: -0.8, contribution: 14.9%)</div></div>
   </section>
 
   <!-- Nav -->

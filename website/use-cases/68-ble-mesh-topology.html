@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>message delivery pct</strong>, the most influential factors were publish interval ms (40.4%), relay count (30.3%), ttl hops (29.3%). The best observed value was <strong>97.6</strong> (at relay count = 6, ttl hops = 5, publish interval ms = 1050).</p>
-<p>For <strong>network latency ms</strong>, the most influential factors were relay count (49.5%), publish interval ms (39.8%), ttl hops (10.7%). The best observed value was <strong>31.0</strong> (at relay count = 2, ttl hops = 5, publish interval ms = 2000).</p>
+    <p>For <strong>message delivery pct</strong>, the most influential factors were relay count (41.9%), publish interval ms (29.8%), ttl hops (28.3%). The best observed value was <strong>97.6</strong> (at relay count = 6, ttl hops = 5, publish interval ms = 1050).</p>
+<p>For <strong>network latency ms</strong>, the most influential factors were ttl hops (49.9%), relay count (40.1%), publish interval ms (10.0%). The best observed value was <strong>31.0</strong> (at relay count = 6, ttl hops = 5, publish interval ms = 1050).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (message_delivery_pct (↑), network_latency_ms (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/68_ble_mesh_topology/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -295,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: message_delivery_pct</h3>
-    <p>Top factors: publish_interval_ms (40.4%), relay_count (30.3%), ttl_hops (29.3%).</p>
+    <p>Top factors: relay_count (41.9%), publish_interval_ms (29.8%), ttl_hops (28.3%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -308,7 +308,7 @@
     </div>
 
     <h3>Response: network_latency_ms</h3>
-    <p>Top factors: relay_count (49.5%), publish_interval_ms (39.8%), ttl_hops (10.7%).</p>
+    <p>Top factors: ttl_hops (49.9%), relay_count (40.1%), publish_interval_ms (10.0%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -359,67 +359,219 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.8197</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>message_delivery_pct</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:86.48%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.8648</span>
+                </div>
+              </td>
+              <td>96.00 0.8648       96.00 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>network_latency_ms</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:75.64999999999999%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7565</span>
+                </div>
+              </td>
+              <td>53.00 0.7565       53.00 ms</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>relay_count</code></td><td>10 nodes</td></tr>
+            <tr><td><code>ttl_hops</code></td><td>8 hops</td></tr>
+            <tr><td><code>publish_interval_ms</code></td><td>1050 ms</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #4</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>network_latency_ms</code></td><td>53.00</td><td>31.00</td><td><span style="color:#dc2626;">+22.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#1</td><td><strong>0.7393</strong></td><td style="font-size:.78rem;">relay_count=10,  ttl_hops=2,  publish_interval_ms=1050</td></tr>
+            <tr><td>#15</td><td><strong>0.7224</strong></td><td style="font-size:.78rem;">relay_count=6,  ttl_hops=8,  publish_interval_ms=2000</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>network_latency_ms</code></td><td style="color:#dc2626;font-weight:600;">0.0552</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.8197
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+message_delivery_pct         1.5       0.8648       96.00 %   ↑
+network_latency_ms           1.0       0.7565       53.00 ms   ↓
+
+Recommended settings:
+  relay_count = 10 nodes
+  ttl_hops = 8 hops
+  publish_interval_ms = 1050 ms
+  (from observed run #4)
+
+Trade-off summary:
+  message_delivery_pct: 96.00 (best observed: 97.60, sacrifice: +1.60)
+  network_latency_ms: 53.00 (best observed: 31.00, sacrifice: +22.00)
+
+Model quality:
+  message_delivery_pct: R² = 0.8214 (quadratic)
+  network_latency_ms: R² = 0.0552 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #4 (D=0.8197): relay_count=10, ttl_hops=8, publish_interval_ms=1050
+  2. Run #1 (D=0.7393): relay_count=10, ttl_hops=2, publish_interval_ms=1050
+  3. Run #15 (D=0.7224): relay_count=6, ttl_hops=8, publish_interval_ms=2000</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: message_delivery_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-publish_interval_ms      4.4500       1.1454            40.4%
-relay_count              3.3357       1.1454            30.3%
-ttl_hops                 3.2250       1.1454            29.3%
+relay_count              5.9250       1.1454            41.9%
+publish_interval_ms      4.2179       1.1454            29.8%
+ttl_hops                 4.0000       1.1454            28.3%
+
+=== ANOVA Table: message_delivery_pct ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+relay_count                  2      84.2775      42.1388      8.846     0.0094
+ttl_hops                     2      32.2972      16.1486      3.390     0.0858
+publish_interval_ms          2      45.2947      22.6473      4.755     0.0436
+Lack of Fit                  6     104.1332      17.3555      3.644     0.2310
+Pure Error                   2       9.5267       4.7633
+Error                        8     113.6599       4.7633
+Total                       14     275.5293      19.6807
 
 === Summary Statistics: message_delivery_pct ===
 
 relay_count:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4    89.1500     3.9871    85.7000    93.4000
-  2                   4    89.4750     6.8641    81.4000    97.6000
-  6                   7    92.4857     2.8486    88.7000    96.0000
+  10                  4    92.8500     3.7153    88.7000    97.6000
+  2                   4    86.9250     1.5435    85.7000    89.0000
+  6                   7    91.8286     4.8767    81.4000    96.0000
 
 ttl_hops:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  2                   4    88.4500     2.6665    85.7000    91.9000
-  5                   7    91.6286     5.3024    81.4000    97.6000
-  8                   4    91.6750     4.3030    85.8000    96.0000
+  2                   4    88.9250     6.0340    81.4000    95.4000
+  5                   7    90.6429     3.9920    85.7000    96.0000
+  8                   4    92.9250     3.5771    89.0000    97.6000
 
 publish_interval_ms:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4    94.0000     3.7559    89.0000    97.6000
-  1050                7    89.6714     3.8121    85.7000    95.4000
-  2000                4    89.5500     5.4739    81.4000    93.2000
+  100                 4    88.1250     5.5590    81.4000    93.4000
+  1050                7    92.3429     3.6560    87.2000    97.6000
+  2000                4    90.7500     4.3715    85.7000    95.4000
 
 === Main Effects: network_latency_ms ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-relay_count             30.0000       8.0391            49.5%
-publish_interval_ms     24.1071       8.0391            39.8%
-ttl_hops                 6.5000       8.0391            10.7%
+ttl_hops                30.4286       8.0391            49.9%
+relay_count             24.4286       8.0391            40.1%
+publish_interval_ms      6.0714       8.0391            10.0%
+
+=== ANOVA Table: network_latency_ms ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+relay_count                  2    1759.0190     879.5095      1.523     0.2751
+ttl_hops                     2    2562.0190    1281.0095      2.219     0.1712
+publish_interval_ms          2     104.0190      52.0095      0.090     0.9148
+Lack of Fit                  6    7992.0095    1332.0016      2.307     0.3329
+Pure Error                   2    1154.6667     577.3333
+Error                        8    9146.6762     577.3333
+Total                       14   13571.7333     969.4095
 
 === Summary Statistics: network_latency_ms ===
 
 relay_count:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4   101.0000    21.5561    83.0000   132.0000
-  2                   4    74.2500    42.0585    31.0000   126.0000
-  6                   7    71.0000    27.1047    31.0000   120.0000
+  10                  4    93.0000    46.7404    31.0000   132.0000
+  2                   4    86.5000    12.9228    68.0000    98.0000
+  6                   7    68.5714    28.1594    31.0000   120.0000
 
 ttl_hops:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  2                   4    80.5000    11.2694    68.0000    91.0000
-  5                   7    82.0000    36.7605    31.0000   132.0000
-  8                   4    75.5000    40.7145    31.0000   120.0000
+  2                   4    86.0000    34.3802    51.0000   132.0000
+  5                   7    66.5714    28.0586    31.0000    98.0000
+  8                   4    97.0000    30.2214    68.0000   126.0000
 
 publish_interval_ms:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4    82.5000    31.4802    53.0000   126.0000
-  1050                7    70.1429    28.0263    31.0000    98.0000
-  2000                4    94.2500    38.1608    51.0000   132.0000</div></div>
+  100                 4    76.5000    19.6723    51.0000    98.0000
+  1050                7    82.5714    36.8097    31.0000   132.0000
+  2000                4    78.5000    37.3140    31.0000   120.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: message_delivery_pct ===
@@ -431,100 +583,112 @@ Best observed run: #10
   publish_interval_ms = 1050
   Value: 97.6
 
-RSM Model (linear, R² = 0.0934, Adj R² = -0.1539):
+RSM Model (linear, R² = 0.3465, Adj R² = 0.1683):
   Coefficients:
     intercept                      +90.7933
-    relay_count                    -1.1125
-    ttl_hops                       +0.5375
-    publish_interval_ms            -1.3000
+    relay_count                    -0.6750
+    ttl_hops                       -2.8625
+    publish_interval_ms            -1.8125
 
-RSM Model (quadratic, R² = 0.8075, Adj R² = 0.4611):
+RSM Model (quadratic, R² = 0.4545, Adj R² = -0.5273):
   Coefficients:
-    intercept                      +95.4667
-    relay_count                    -1.1125
-    ttl_hops                       +0.5375
-    publish_interval_ms            -1.3000
-    relay_count*ttl_hops           -1.3750
-    relay_count*publish_interval_ms -2.9500
-    ttl_hops*publish_interval_ms   -0.4000
-    relay_count^2                  -3.1958
-    ttl_hops^2                     +0.2042
-    publish_interval_ms^2          -5.7708
+    intercept                      +90.2333
+    relay_count                    -0.6750
+    ttl_hops                       -2.8625
+    publish_interval_ms            -1.8125
+    relay_count*ttl_hops           -0.9250
+    relay_count*publish_interval_ms -1.5750
+    ttl_hops*publish_interval_ms   -0.9000
+    relay_count^2                  -0.4667
+    ttl_hops^2                     +1.7583
+    publish_interval_ms^2          -0.2417
 
   Curvature analysis:
-    publish_interval_ms            coef=-5.7708  concave (has a maximum)
-    relay_count                    coef=-3.1958  concave (has a maximum)
-    ttl_hops                       coef=+0.2042  convex (has a minimum)
+    ttl_hops                       coef=+1.7583  convex (has a minimum)
+    relay_count                    coef=-0.4667  concave (has a maximum)
+    publish_interval_ms            coef=-0.2417  concave (has a maximum)
 
   Notable interactions:
-    relay_count*publish_interval_ms coef=-2.9500  (antagonistic)
-    relay_count*ttl_hops           coef=-1.3750  (antagonistic)
-    ttl_hops*publish_interval_ms   coef=-0.4000  (antagonistic)
+    relay_count*publish_interval_ms coef=-1.5750  (antagonistic)
+    relay_count*ttl_hops           coef=-0.9250  (antagonistic)
+    ttl_hops*publish_interval_ms   coef=-0.9000  (antagonistic)
 
-  Predicted optimum (from quadratic model):
+  Predicted optimum (from linear model, at observed points):
+    relay_count = 6
+    ttl_hops = 2
+    publish_interval_ms = 100
+    Predicted value: 95.4683
+
+  Surface optimum (via L-BFGS-B, linear model):
     relay_count = 2
-    ttl_hops = 8
-    publish_interval_ms = 1050
-    Predicted value: 95.5000
+    ttl_hops = 2
+    publish_interval_ms = 100
+    Predicted value: 96.1433
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. publish_interval_ms  (effect: 6.9, contribution: 56.4%)
-  2. relay_count  (effect: 3.9, contribution: 32.2%)
-  3. ttl_hops  (effect: 1.4, contribution: 11.4%)
+  1. ttl_hops  (effect: 5.7, contribution: 53.5%)
+  2. publish_interval_ms  (effect: 3.6, contribution: 33.9%)
+  3. relay_count  (effect: 1.4, contribution: 12.6%)
 
 === Optimization: network_latency_ms ===
 Direction: minimize
 
 Best observed run: #1
-  relay_count = 2
+  relay_count = 6
   ttl_hops = 5
-  publish_interval_ms = 2000
+  publish_interval_ms = 1050
   Value: 31.0
 
-RSM Model (linear, R² = 0.3528, Adj R² = 0.1764):
+RSM Model (linear, R² = 0.1968, Adj R² = -0.0223):
   Coefficients:
     intercept                      +79.8667
-    relay_count                    +18.6250
-    ttl_hops                       +4.3750
-    publish_interval_ms            -15.2500
+    relay_count                    +10.3750
+    ttl_hops                       +13.5000
+    publish_interval_ms            +6.6250
 
-RSM Model (quadratic, R² = 0.6390, Adj R² = -0.0108):
+RSM Model (quadratic, R² = 0.4190, Adj R² = -0.6268):
   Coefficients:
-    intercept                      +93.6667
-    relay_count                    +18.6250
-    ttl_hops                       +4.3750
-    publish_interval_ms            -15.2500
-    relay_count*ttl_hops           +0.7500
-    relay_count*publish_interval_ms +5.5000
-    ttl_hops*publish_interval_ms   +18.0000
-    relay_count^2                  -2.7083
-    ttl_hops^2                     +2.2917
-    publish_interval_ms^2          -25.4583
+    intercept                      +69.3333
+    relay_count                    +10.3750
+    ttl_hops                       +13.5000
+    publish_interval_ms            +6.6250
+    relay_count*ttl_hops           -10.2500
+    relay_count*publish_interval_ms -17.0000
+    ttl_hops*publish_interval_ms   -3.2500
+    relay_count^2                  +13.8333
+    ttl_hops^2                     +12.0833
+    publish_interval_ms^2          -6.1667
 
   Curvature analysis:
-    publish_interval_ms            coef=-25.4583  concave (has a maximum)
-    relay_count                    coef=-2.7083  concave (has a maximum)
-    ttl_hops                       coef=+2.2917  convex (has a minimum)
+    relay_count                    coef=+13.8333  convex (has a minimum)
+    ttl_hops                       coef=+12.0833  convex (has a minimum)
+    publish_interval_ms            coef=-6.1667  concave (has a maximum)
 
   Notable interactions:
-    ttl_hops*publish_interval_ms   coef=+18.0000  (synergistic)
-    relay_count*publish_interval_ms coef=+5.5000  (synergistic)
-    relay_count*ttl_hops           coef=+0.7500  (synergistic)
+    relay_count*publish_interval_ms coef=-17.0000  (antagonistic)
+    relay_count*ttl_hops           coef=-10.2500  (antagonistic)
+    ttl_hops*publish_interval_ms   coef=-3.2500  (antagonistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     relay_count = 10
-    ttl_hops = 5
+    ttl_hops = 8
+    publish_interval_ms = 1050
+    Predicted value: 103.7417
+
+  Surface optimum (via L-BFGS-B, linear model):
+    relay_count = 2
+    ttl_hops = 2
     publish_interval_ms = 100
-    Predicted value: 113.7417
+    Predicted value: 49.3667
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. publish_interval_ms  (effect: 40.7, contribution: 46.9%)
-  2. relay_count  (effect: 37.2, contribution: 43.0%)
-  3. ttl_hops  (effect: 8.8, contribution: 10.1%)</div></div>
+  1. ttl_hops  (effect: 27.0, contribution: 41.3%)
+  2. relay_count  (effect: 23.8, contribution: 36.4%)
+  3. publish_interval_ms  (effect: 14.6, contribution: 22.4%)</div></div>
   </section>
 
   <!-- Nav -->

@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>accuracy pct</strong>, the most influential factors were bw mhz (68.8%), v div mv (19.5%), sample msa (11.7%). The best observed value was <strong>98.3</strong> (at v div mv = 255, bw mhz = 110, sample msa = 1050).</p>
-<p>For <strong>noise floor mv</strong>, the most influential factors were bw mhz (45.2%), sample msa (27.5%), v div mv (27.4%). The best observed value was <strong>3.2</strong> (at v div mv = 500, bw mhz = 110, sample msa = 100).</p>
+    <p>For <strong>accuracy pct</strong>, the most influential factors were v div mv (47.1%), sample msa (37.9%), bw mhz (15.0%). The best observed value was <strong>98.3</strong> (at v div mv = 255, bw mhz = 110, sample msa = 1050).</p>
+<p>For <strong>noise floor mv</strong>, the most influential factors were sample msa (36.5%), v div mv (32.3%), bw mhz (31.1%). The best observed value was <strong>3.2</strong> (at v div mv = 255, bw mhz = 200, sample msa = 2000).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (accuracy_pct (↑), noise_floor_mv (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/279_oscilloscope_measurement/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -264,48 +264,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/279_oscilloscope_measurement/config.json \
     <span class="flag">--output</span> use_cases/279_oscilloscope_measurement/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Electronics Test? Use the Manual Workflow</h4>
-        <p>Electronics experiments involve real circuits, components, and electromagnetic phenomena that must be measured with instruments. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/279_oscilloscope_measurement/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/279_oscilloscope_measurement/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/279_oscilloscope_measurement/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/279_oscilloscope_measurement/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/279_oscilloscope_measurement/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/279_oscilloscope_measurement/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/279_oscilloscope_measurement/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -337,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: accuracy_pct</h3>
-    <p>Top factors: bw_mhz (68.8%), v_div_mv (19.5%), sample_msa (11.7%).</p>
+    <p>Top factors: v_div_mv (47.1%), sample_msa (37.9%), bw_mhz (15.0%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -350,7 +308,7 @@
     </div>
 
     <h3>Response: noise_floor_mv</h3>
-    <p>Top factors: bw_mhz (45.2%), sample_msa (27.5%), v_div_mv (27.4%).</p>
+    <p>Top factors: sample_msa (36.5%), v_div_mv (32.3%), bw_mhz (31.1%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -401,80 +359,219 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.6628</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>accuracy_pct</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:59.28%;height:100%;background:#f97316;border-radius:4px;"></div>
+                  </div>
+                  <span>0.5928</span>
+                </div>
+              </td>
+              <td>95.12 0.5928       95.12 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>noise_floor_mv</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:78.36999999999999%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7837</span>
+                </div>
+              </td>
+              <td>4.31 0.7837        4.31 mV_rms</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>v_div_mv</code></td><td>59 mV/div</td></tr>
+            <tr><td><code>bw_mhz</code></td><td>20 MHz</td></tr>
+            <tr><td><code>sample_msa</code></td><td>860 MSa/s</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from RSM model prediction</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>noise_floor_mv</code></td><td>4.31</td><td>3.20</td><td><span style="color:#dc2626;">+1.11</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#5</td><td><strong>0.6425</strong></td><td style="font-size:.78rem;">v_div_mv=10,  bw_mhz=200,  sample_msa=1050</td></tr>
+            <tr><td>#2</td><td><strong>0.6095</strong></td><td style="font-size:.78rem;">v_div_mv=255,  bw_mhz=20,  sample_msa=100</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>noise_floor_mv</code></td><td style="color:#16a34a;font-weight:600;">0.8568</td><td>quadratic</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.6628
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+accuracy_pct                 1.5       0.5928       95.12 %   ↑
+noise_floor_mv               1.0       0.7837        4.31 mV_rms   ↓
+
+Recommended settings:
+  v_div_mv = 59 mV/div
+  bw_mhz = 20 MHz
+  sample_msa = 860 MSa/s
+  (from RSM model prediction)
+
+Trade-off summary:
+  accuracy_pct: 95.12 (best observed: 98.30, sacrifice: +3.18)
+  noise_floor_mv: 4.31 (best observed: 3.20, sacrifice: +1.11)
+
+Model quality:
+  accuracy_pct: R² = 0.1870 (linear)
+  noise_floor_mv: R² = 0.8568 (quadratic)
+
+Top 3 observed runs by overall desirability:
+  1. Run #3 (D=0.6464): v_div_mv=255, bw_mhz=110, sample_msa=1050
+  2. Run #5 (D=0.6425): v_div_mv=10, bw_mhz=200, sample_msa=1050
+  3. Run #2 (D=0.6095): v_div_mv=255, bw_mhz=20, sample_msa=100</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_accuracy_pct_v_div_mv_vs_bw_mhz.png
-  RSM surface: rsm_accuracy_pct_v_div_mv_vs_sample_msa.png
-  RSM surface: rsm_accuracy_pct_bw_mhz_vs_sample_msa.png
-  RSM surface: rsm_noise_floor_mv_v_div_mv_vs_bw_mhz.png
-  RSM surface: rsm_noise_floor_mv_v_div_mv_vs_sample_msa.png
-  RSM surface: rsm_noise_floor_mv_bw_mhz_vs_sample_msa.png
-
-=== Main Effects: accuracy_pct ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: accuracy_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-bw_mhz                   1.9143       0.5733            68.8%
-v_div_mv                 0.5429       0.5733            19.5%
-sample_msa               0.3250       0.5733            11.7%
+v_div_mv                 2.9036       0.5733            47.1%
+sample_msa               2.3393       0.5733            37.9%
+bw_mhz                   0.9250       0.5733            15.0%
+
+=== ANOVA Table: accuracy_pct ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+v_div_mv                     2      23.8240      11.9120     48.954     0.0000
+bw_mhz                       2       2.3783       1.1892      4.887     0.0410
+sample_msa                   2      13.9298       6.9649     28.623     0.0002
+Lack of Fit                  6      28.3945       4.7324     19.448     0.0497
+Pure Error                   2       0.4867       0.2433
+Error                        8      28.8812       0.2433
+Total                       14      69.0133       4.9295
 
 === Summary Statistics: accuracy_pct ===
 
 v_div_mv:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4    93.9250     2.4391    90.3000    95.5000
-  255                 7    94.0429     2.3042    90.7000    98.3000
-  500                 4    93.5000     2.4860    90.6000    96.5000
+  10                  4    94.5250     3.1160    90.7000    98.3000
+  255                 7    92.5714     1.5457    90.3000    94.2000
+  500                 4    95.4750     0.7588    94.7000    96.5000
 
 bw_mhz:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  110                 7    93.0857     1.9523    90.3000    95.2000
-  20                  4    94.1000     3.2629    90.6000    98.3000
-  200                 4    95.0000     1.2356    93.8000    96.5000
+  110                 7    93.6000     1.8184    90.7000    96.5000
+  20                  4    94.5250     0.6397    93.8000    95.2000
+  200                 4    93.6750     3.8973    90.3000    98.3000
 
 sample_msa:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4    94.1000     0.9866    92.8000    95.2000
-  1050                7    93.7857     2.3126    90.6000    96.5000
-  2000                4    93.7750     3.3520    90.3000    98.3000
+  100                 4    92.3750     2.2021    90.3000    94.7000
+  1050                7    94.7143     1.9454    92.7000    98.3000
+  2000                4    93.8750     2.4377    90.6000    96.5000
 
 === Main Effects: noise_floor_mv ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-bw_mhz                   2.0393       0.4549            45.2%
-sample_msa               1.2393       0.4549            27.5%
-v_div_mv                 1.2357       0.4549            27.4%
+sample_msa               1.6250       0.4549            36.5%
+v_div_mv                 1.4393       0.4549            32.3%
+bw_mhz                   1.3857       0.4549            31.1%
+
+=== ANOVA Table: noise_floor_mv ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+v_div_mv                     2       5.4013       2.7006     12.659     0.0033
+bw_mhz                       2       5.0613       2.5306     11.862     0.0040
+sample_msa                   2       6.8823       3.4412     16.130     0.0016
+Lack of Fit                  6      25.6858       4.2810     20.067     0.0482
+Pure Error                   2       0.4267       0.2133
+Error                        8      26.1125       0.2133
+Total                       14      43.4573       3.1041
 
 === Summary Statistics: noise_floor_mv ===
 
 v_div_mv:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4     4.9500     0.1291     4.8000     5.1000
-  255                 7     6.1857     2.0178     4.0000     9.1000
-  500                 4     5.0500     2.1378     3.2000     7.0000
+  10                  4     6.5250     1.3841     5.0000     8.2000
+  255                 7     5.0857     2.2229     3.2000     9.1000
+  500                 4     5.4000     0.9416     4.8000     6.8000
 
 bw_mhz:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  110                 7     4.9857     1.2308     3.2000     7.0000
-  20                  4     5.0750     2.1960     3.2000     8.2000
-  200                 4     7.0250     1.6399     5.1000     9.1000
+  110                 7     5.1143     1.4837     3.2000     7.0000
+  20                  4     6.5000     2.0216     4.8000     9.1000
+  200                 4     5.3750     2.0759     3.2000     8.2000
 
 sample_msa:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4     6.2250     2.2984     4.0000     9.1000
-  1050                7     4.9857     1.1768     3.2000     6.8000
-  2000                4     5.8750     2.2232     3.2000     8.2000
-
-Pareto chart (accuracy_pct): use_cases/279_oscilloscope_measurement/results/analysis/pareto_accuracy_pct.png
-
-Pareto chart (noise_floor_mv): use_cases/279_oscilloscope_measurement/results/analysis/pareto_noise_floor_mv.png
-Main effects (accuracy_pct): use_cases/279_oscilloscope_measurement/results/analysis/main_effects_accuracy_pct.png
-Main effects (noise_floor_mv): use_cases/279_oscilloscope_measurement/results/analysis/main_effects_noise_floor_mv.png</div></div>
+  100                 4     5.7250     1.0210     4.9000     7.1000
+  1050                7     4.9000     1.6052     3.2000     8.2000
+  2000                4     6.5250     2.4486     3.2000     9.1000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: accuracy_pct ===
@@ -486,97 +583,112 @@ Best observed run: #12
   sample_msa = 1050
   Value: 98.3
 
-RSM Model (linear, R² = 0.4151, Adj R² = 0.2556):
+RSM Model (linear, R² = 0.1427, Adj R² = -0.0911):
   Coefficients:
     intercept                      +93.8667
-    v_div_mv                       -0.0750
-    bw_mhz                         -0.1125
-    sample_msa                     +1.8875
+    v_div_mv                       -1.0250
+    bw_mhz                         +0.2000
+    sample_msa                     -0.3750
 
-RSM Model (quadratic, R² = 0.6897, Adj R² = 0.1313):
+RSM Model (quadratic, R² = 0.6836, Adj R² = 0.1140):
   Coefficients:
-    intercept                      +95.6000
-    v_div_mv                       -0.0750
-    bw_mhz                         -0.1125
-    sample_msa                     +1.8875
-    v_div_mv*bw_mhz                +0.0750
-    v_div_mv*sample_msa            -0.2250
-    bw_mhz*sample_msa              +1.3500
-    v_div_mv^2                     -1.2500
-    bw_mhz^2                       -0.9750
-    sample_msa^2                   -1.0250
+    intercept                      +96.0667
+    v_div_mv                       -1.0250
+    bw_mhz                         +0.2000
+    sample_msa                     -0.3750
+    v_div_mv*bw_mhz                -0.8500
+    v_div_mv*sample_msa            +0.6500
+    bw_mhz*sample_msa              -1.1500
+    v_div_mv^2                     -0.9083
+    bw_mhz^2                       -2.6083
+    sample_msa^2                   -0.6083
 
   Curvature analysis:
-    v_div_mv                       coef=-1.2500  concave (has a maximum)
-    sample_msa                     coef=-1.0250  concave (has a maximum)
-    bw_mhz                         coef=-0.9750  concave (has a maximum)
+    bw_mhz                         coef=-2.6083  concave (has a maximum)
+    v_div_mv                       coef=-0.9083  concave (has a maximum)
+    sample_msa                     coef=-0.6083  concave (has a maximum)
 
   Notable interactions:
-    bw_mhz*sample_msa              coef=+1.3500  (synergistic)
+    bw_mhz*sample_msa              coef=-1.1500  (antagonistic)
+    v_div_mv*bw_mhz                coef=-0.8500  (antagonistic)
+    v_div_mv*sample_msa            coef=+0.6500  (synergistic)
 
-  Predicted optimum (from linear model):
-    v_div_mv = 255
-    bw_mhz = 20
-    sample_msa = 2000
-    Predicted value: 95.8667
+  Predicted optimum (from quadratic model, at observed points):
+    v_div_mv = 10
+    bw_mhz = 110
+    sample_msa = 100
+    Predicted value: 96.6000
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Surface optimum (via L-BFGS-B, quadratic model):
+    v_div_mv = 10
+    bw_mhz = 147.955
+    sample_msa = 100
+    Predicted value: 97.0639
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. sample_msa  (effect: 3.8, contribution: 64.2%)
-  2. v_div_mv  (effect: 1.2, contribution: 20.1%)
-  3. bw_mhz  (effect: 0.9, contribution: 15.7%)
+  1. bw_mhz  (effect: 2.7, contribution: 49.1%)
+  2. v_div_mv  (effect: 2.0, contribution: 37.3%)
+  3. sample_msa  (effect: 0.8, contribution: 13.6%)
 
 === Optimization: noise_floor_mv ===
 Direction: minimize
 
 Best observed run: #1
-  v_div_mv = 500
-  bw_mhz = 110
-  sample_msa = 100
+  v_div_mv = 255
+  bw_mhz = 200
+  sample_msa = 2000
   Value: 3.2
 
-RSM Model (linear, R² = 0.2078, Adj R² = -0.0082):
+RSM Model (linear, R² = 0.2487, Adj R² = 0.0438):
   Coefficients:
     intercept                      +5.5533
-    v_div_mv                       -0.2000
-    bw_mhz                         +0.8625
-    sample_msa                     +0.5875
+    v_div_mv                       +0.7375
+    bw_mhz                         +0.4750
+    sample_msa                     -0.7625
 
-RSM Model (quadratic, R² = 0.2726, Adj R² = -1.0366):
+RSM Model (quadratic, R² = 0.6484, Adj R² = 0.0155):
   Coefficients:
-    intercept                      +5.7333
-    v_div_mv                       -0.2000
-    bw_mhz                         +0.8625
-    sample_msa                     +0.5875
-    v_div_mv*bw_mhz                +0.3000
-    v_div_mv*sample_msa            +0.2500
-    bw_mhz*sample_msa              -0.5750
-    v_div_mv^2                     -0.0292
-    bw_mhz^2                       +0.1458
-    sample_msa^2                   -0.4542
+    intercept                      +5.9667
+    v_div_mv                       +0.7375
+    bw_mhz                         +0.4750
+    sample_msa                     -0.7625
+    v_div_mv*bw_mhz                -0.6750
+    v_div_mv*sample_msa            -0.7500
+    bw_mhz*sample_msa              -1.7250
+    v_div_mv^2                     -0.1333
+    bw_mhz^2                       -0.6083
+    sample_msa^2                   -0.0333
 
   Curvature analysis:
-    sample_msa                     coef=-0.4542  concave (has a maximum)
-    bw_mhz                         coef=+0.1458  convex (has a minimum)
-    v_div_mv                       coef=-0.0292  negligible curvature
+    bw_mhz                         coef=-0.6083  concave (has a maximum)
+    v_div_mv                       coef=-0.1333  concave (has a maximum)
+    sample_msa                     coef=-0.0333  negligible curvature
 
   Notable interactions:
-    bw_mhz*sample_msa              coef=-0.5750  (antagonistic)
-    v_div_mv*bw_mhz                coef=+0.3000  (synergistic)
+    bw_mhz*sample_msa              coef=-1.7250  (antagonistic)
+    v_div_mv*sample_msa            coef=-0.7500  (antagonistic)
+    v_div_mv*bw_mhz                coef=-0.6750  (antagonistic)
 
-  Predicted optimum (from linear model):
-    v_div_mv = 255
-    bw_mhz = 200
+  Predicted optimum (from linear model, at observed points):
+    v_div_mv = 500
+    bw_mhz = 110
+    sample_msa = 100
+    Predicted value: 7.0533
+
+  Surface optimum (via L-BFGS-B, linear model):
+    v_div_mv = 10
+    bw_mhz = 20
     sample_msa = 2000
-    Predicted value: 7.0033
+    Predicted value: 3.5783
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. bw_mhz  (effect: 1.7, contribution: 52.3%)
-  2. sample_msa  (effect: 1.2, contribution: 35.6%)
-  3. v_div_mv  (effect: 0.4, contribution: 12.1%)</div></div>
+  1. sample_msa  (effect: 1.5, contribution: 37.5%)
+  2. v_div_mv  (effect: 1.5, contribution: 36.2%)
+  3. bw_mhz  (effect: 1.1, contribution: 26.3%)</div></div>
   </section>
 
   <!-- Nav -->

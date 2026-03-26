@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>joint quality</strong>, the most influential factors were iron temp c (39.5%), solder mm (31.8%), contact sec (28.7%). The best observed value was <strong>7.3</strong> (at iron temp c = 330, contact sec = 3, solder mm = 0.85).</p>
-<p>For <strong>bridge rate</strong>, the most influential factors were solder mm (46.0%), contact sec (33.4%), iron temp c (20.6%). The best observed value was <strong>1.4</strong> (at iron temp c = 330, contact sec = 3, solder mm = 1.48901).</p>
+    <p>For <strong>joint quality</strong>, the most influential factors were contact sec (48.4%), iron temp c (26.6%), solder mm (25.0%). The best observed value was <strong>7.3</strong> (at iron temp c = 330, contact sec = 3, solder mm = 0.85).</p>
+<p>For <strong>bridge rate</strong>, the most influential factors were solder mm (40.4%), iron temp c (30.8%), contact sec (28.8%). The best observed value was <strong>1.4</strong> (at iron temp c = 421.287, contact sec = 3, solder mm = 0.85).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -250,12 +249,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (joint_quality (↑), bridge_rate (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/272_pcb_soldering/config.json <span class="flag">--multi</span></div>
         </div>
@@ -263,7 +263,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -271,48 +271,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/272_pcb_soldering/config.json \
     <span class="flag">--output</span> use_cases/272_pcb_soldering/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Electronics Test? Use the Manual Workflow</h4>
-        <p>Electronics experiments involve real circuits, components, and electromagnetic phenomena that must be measured with instruments. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/272_pcb_soldering/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/272_pcb_soldering/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/272_pcb_soldering/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/272_pcb_soldering/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/272_pcb_soldering/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/272_pcb_soldering/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/272_pcb_soldering/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -344,7 +302,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: joint_quality</h3>
-    <p>Top factors: iron_temp_c (39.5%), solder_mm (31.8%), contact_sec (28.7%).</p>
+    <p>Top factors: contact_sec (48.4%), iron_temp_c (26.6%), solder_mm (25.0%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -357,7 +315,7 @@
     </div>
 
     <h3>Response: bridge_rate</h3>
-    <p>Top factors: solder_mm (46.0%), contact_sec (33.4%), iron_temp_c (20.6%).</p>
+    <p>Top factors: solder_mm (40.4%), iron_temp_c (30.8%), contact_sec (28.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -408,92 +366,231 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.7918</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>joint_quality</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:90.91%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9091</span>
+                </div>
+              </td>
+              <td>7.10 0.9091        7.10 pts</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>bridge_rate</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:64.35%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.6435</span>
+                </div>
+              </td>
+              <td>2.70 0.6435        2.70 per_100</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>iron_temp_c</code></td><td>330 C</td></tr>
+            <tr><td><code>contact_sec</code></td><td>3 sec</td></tr>
+            <tr><td><code>solder_mm</code></td><td>0.85 mm</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #22</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>bridge_rate</code></td><td>2.70</td><td>1.40</td><td><span style="color:#dc2626;">+1.30</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#5</td><td><strong>0.7678</strong></td><td style="font-size:.78rem;">iron_temp_c=380,  contact_sec=1,  solder_mm=1.2</td></tr>
+            <tr><td>#15</td><td><strong>0.7562</strong></td><td style="font-size:.78rem;">iron_temp_c=380,  contact_sec=5,  solder_mm=0.5</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>bridge_rate</code></td><td style="color:#dc2626;font-weight:600;">0.0532</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.7918
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+joint_quality                1.5       0.9091        7.10 pts   ↑
+bridge_rate                  1.0       0.6435        2.70 per_100   ↓
+
+Recommended settings:
+  iron_temp_c = 330 C
+  contact_sec = 3 sec
+  solder_mm = 0.85 mm
+  (from observed run #22)
+
+Trade-off summary:
+  joint_quality: 7.10 (best observed: 7.30, sacrifice: +0.20)
+  bridge_rate: 2.70 (best observed: 1.40, sacrifice: +1.30)
+
+Model quality:
+  joint_quality: R² = 0.0643 (linear)
+  bridge_rate: R² = 0.0532 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #22 (D=0.7918): iron_temp_c=330, contact_sec=3, solder_mm=0.85
+  2. Run #5 (D=0.7678): iron_temp_c=380, contact_sec=1, solder_mm=1.2
+  3. Run #15 (D=0.7562): iron_temp_c=380, contact_sec=5, solder_mm=0.5</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_joint_quality_iron_temp_c_vs_contact_sec.png
-  RSM surface: rsm_joint_quality_iron_temp_c_vs_solder_mm.png
-  RSM surface: rsm_joint_quality_contact_sec_vs_solder_mm.png
-  RSM surface: rsm_bridge_rate_iron_temp_c_vs_contact_sec.png
-  RSM surface: rsm_bridge_rate_iron_temp_c_vs_solder_mm.png
-  RSM surface: rsm_bridge_rate_contact_sec_vs_solder_mm.png
-
-=== Main Effects: joint_quality ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: joint_quality ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-iron_temp_c              2.2000       0.2604            39.5%
-solder_mm                1.7750       0.2604            31.8%
-contact_sec              1.6000       0.2604            28.7%
+contact_sec              3.0500       0.2604            48.4%
+iron_temp_c              1.6750       0.2604            26.6%
+solder_mm                1.5750       0.2604            25.0%
+
+=== ANOVA Table: joint_quality ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+iron_temp_c                  4       9.9795       2.4949      1.728     0.2275
+contact_sec                  4      10.5429       2.6357      1.825     0.2082
+solder_mm                    4       9.0595       2.2649      1.568     0.2636
+Lack of Fit                  2       0.0000       0.0000      0.000     1.0000
+Pure Error                   7      10.1087       1.4441
+Error                        9       1.7476       1.4441
+Total                       21      31.3295       1.4919
 
 === Summary Statistics: joint_quality ===
 
 iron_temp_c:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  238.713             1     4.9000     0.0000     4.9000     4.9000
-  280                 4     6.5500     0.8505     5.3000     7.2000
-  330                12     5.7417     1.4305     3.3000     7.3000
-  380                 4     6.2500     0.8103     5.5000     7.0000
-  421.287             1     7.1000     0.0000     7.1000     7.1000
+  238.713             1     7.1000     0.0000     7.1000     7.1000
+  280                 4     6.9750     0.2500     6.7000     7.3000
+  330                12     5.4250     1.2585     3.3000     7.1000
+  380                 4     6.3000     1.1165     5.1000     7.3000
+  421.287             1     6.8000     0.0000     6.8000     6.8000
 
 contact_sec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -0.651484           1     5.1000     0.0000     5.1000     5.1000
-  1                   4     6.6250     0.7676     5.5000     7.2000
-  3                  12     5.7583     1.4687     3.3000     7.3000
-  5                   4     6.1750     0.8461     5.3000     6.9000
-  6.65148             1     6.7000     0.0000     6.7000     6.7000
+  -0.651484           1     4.0000     0.0000     4.0000     4.0000
+  1                   4     6.2250     1.0436     5.1000     7.3000
+  3                  12     5.8583     1.2544     3.3000     7.1000
+  5                   4     7.0500     0.2646     6.7000     7.3000
+  6.65148             1     4.7000     0.0000     4.7000     4.7000
 
 solder_mm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.21099             1     7.3000     0.0000     7.3000     7.3000
-  0.5                 4     5.9000     0.8756     5.3000     7.2000
-  0.85               12     5.5250     1.3363     3.3000     7.1000
-  1.2                 4     6.9000     0.0816     6.8000     7.0000
-  1.48901             1     7.3000     0.0000     7.3000     7.3000
+  0.21099             1     7.0000     0.0000     7.0000     7.0000
+  0.5                 4     6.7000     0.7528     5.6000     7.3000
+  0.85               12     5.4250     1.2600     3.3000     7.1000
+  1.2                 4     6.5750     1.0178     5.1000     7.3000
+  1.48901             1     6.9000     0.0000     6.9000     6.9000
 
 === Main Effects: bridge_rate ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-solder_mm                2.4750       0.2066            46.0%
-contact_sec              1.8000       0.2066            33.4%
-iron_temp_c              1.1083       0.2066            20.6%
+solder_mm                1.0500       0.2066            40.4%
+iron_temp_c              0.8000       0.2066            30.8%
+contact_sec              0.7500       0.2066            28.8%
+
+=== ANOVA Table: bridge_rate ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+iron_temp_c                  4       0.6070       0.1517      0.081     0.9862
+contact_sec                  4       0.6970       0.1742      0.093     0.9822
+solder_mm                    4       2.3895       0.5974      0.319     0.8581
+Lack of Fit                  2       2.9352       1.4676      0.785     0.4927
+Pure Error                   7      13.0950       1.8707
+Error                        9      16.0302       1.8707
+Total                       21      19.7236       0.9392
 
 === Summary Statistics: bridge_rate ===
 
 iron_temp_c:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  238.713             1     2.9000     0.0000     2.9000     2.9000
-  280                 4     2.5750     0.8057     1.4000     3.1000
-  330                12     3.6833     1.0426     2.0000     5.2000
-  380                 4     2.9750     0.5852     2.3000     3.7000
-  421.287             1     2.7000     0.0000     2.7000     2.7000
+  238.713             1     2.7000     0.0000     2.7000     2.7000
+  280                 4     3.5000     1.0832     2.7000     5.1000
+  330                12     3.2917     1.1269     1.4000     5.2000
+  380                 4     3.1750     0.7365     2.3000     4.1000
+  421.287             1     3.1000     0.0000     3.1000     3.1000
 
 contact_sec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -0.651484           1     4.1000     0.0000     4.1000     4.1000
-  1                   4     3.2500     0.3000     3.1000     3.7000
-  3                  12     3.5500     1.0791     2.0000     5.2000
-  5                   4     2.3000     0.6377     1.4000     2.8000
-  6.65148             1     3.1000     0.0000     3.1000     3.1000
+  -0.651484           1     2.8000     0.0000     2.8000     2.8000
+  1                   4     3.5500     1.2897     2.3000     5.1000
+  3                  12     3.2917     1.1293     1.4000     5.2000
+  5                   4     3.1250     0.0500     3.1000     3.2000
+  6.65148             1     3.0000     0.0000     3.0000     3.0000
 
 solder_mm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.21099             1     3.2000     0.0000     3.2000     3.2000
-  0.5                 4     2.6250     0.9979     1.4000     3.7000
-  0.85               12     3.4583     0.9858     2.0000     5.2000
-  1.2                 4     2.9250     0.2062     2.7000     3.1000
-  1.48901             1     5.1000     0.0000     5.1000     5.1000
-
-Pareto chart (joint_quality): use_cases/272_pcb_soldering/results/analysis/pareto_joint_quality.png
-
-Pareto chart (bridge_rate): use_cases/272_pcb_soldering/results/analysis/pareto_bridge_rate.png
-Main effects (joint_quality): use_cases/272_pcb_soldering/results/analysis/main_effects_joint_quality.png
-Main effects (bridge_rate): use_cases/272_pcb_soldering/results/analysis/main_effects_bridge_rate.png</div></div>
+  0.21099             1     3.1000     0.0000     3.1000     3.1000
+  0.5                 4     2.8250     0.4113     2.3000     3.2000
+  0.85               12     3.2833     1.1312     1.4000     5.2000
+  1.2                 4     3.8500     0.9574     3.1000     5.1000
+  1.48901             1     2.8000     0.0000     2.8000     2.8000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: joint_quality ===
@@ -505,97 +602,105 @@ Best observed run: #1
   solder_mm = 0.85
   Value: 7.3
 
-RSM Model (linear, R² = 0.0890, Adj R² = -0.0629):
+RSM Model (linear, R² = 0.2870, Adj R² = 0.1682):
   Coefficients:
     intercept                      +6.0045
-    iron_temp_c                    +0.2629
-    contact_sec                    -0.2920
-    solder_mm                      -0.1888
+    iron_temp_c                    -0.7262
+    contact_sec                    +0.2887
+    solder_mm                      +0.0486
 
-RSM Model (quadratic, R² = 0.3271, Adj R² = -0.1776):
+RSM Model (quadratic, R² = 0.3655, Adj R² = -0.1104):
   Coefficients:
-    intercept                      +5.6401
-    iron_temp_c                    +0.2629
-    contact_sec                    -0.2920
-    solder_mm                      -0.1888
-    iron_temp_c*contact_sec        +0.3125
-    iron_temp_c*solder_mm          +0.1625
-    contact_sec*solder_mm          +0.0875
-    iron_temp_c^2                  -0.1678
-    contact_sec^2                  +0.4772
-    solder_mm^2                    +0.2372
+    intercept                      +5.9888
+    iron_temp_c                    -0.7262
+    contact_sec                    +0.2887
+    solder_mm                      +0.0486
+    iron_temp_c*contact_sec        +0.4000
+    iron_temp_c*solder_mm          +0.2750
+    contact_sec*solder_mm          -0.1000
+    iron_temp_c^2                  +0.0079
+    contact_sec^2                  -0.0971
+    solder_mm^2                    +0.1129
 
   Curvature analysis:
-    contact_sec                    coef=+0.4772  convex (has a minimum)
-    solder_mm                      coef=+0.2372  convex (has a minimum)
-    iron_temp_c                    coef=-0.1678  concave (has a maximum)
+    solder_mm                      coef=+0.1129  convex (has a minimum)
+    contact_sec                    coef=-0.0971  negligible curvature
+    iron_temp_c                    coef=+0.0079  negligible curvature
 
   Notable interactions:
-    iron_temp_c*contact_sec        coef=+0.3125  (synergistic)
+    iron_temp_c*contact_sec        coef=+0.4000  (synergistic)
 
-  Predicted optimum (from linear model):
-    iron_temp_c = 380
-    contact_sec = 1
-    solder_mm = 0.5
-    Predicted value: 6.7482
+  Predicted optimum (from linear model, at observed points):
+    iron_temp_c = 238.713
+    contact_sec = 3
+    solder_mm = 0.85
+    Predicted value: 7.3305
+
+  Surface optimum (via L-BFGS-B, linear model):
+    iron_temp_c = 280
+    contact_sec = 5
+    solder_mm = 1.2
+    Predicted value: 7.0681
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. iron_temp_c  (effect: 2.3, contribution: 40.4%)
-  2. solder_mm  (effect: 1.9, contribution: 33.4%)
-  3. contact_sec  (effect: 1.5, contribution: 26.2%)
+  1. iron_temp_c  (effect: 2.4, contribution: 42.5%)
+  2. contact_sec  (effect: 2.1, contribution: 37.2%)
+  3. solder_mm  (effect: 1.2, contribution: 20.4%)
 
 === Optimization: bridge_rate ===
 Direction: minimize
 
 Best observed run: #7
-  iron_temp_c = 330
+  iron_temp_c = 421.287
   contact_sec = 3
-  solder_mm = 1.48901
+  solder_mm = 0.85
   Value: 1.4
 
-RSM Model (linear, R² = 0.0146, Adj R² = -0.1496):
+RSM Model (linear, R² = 0.5236, Adj R² = 0.4442):
   Coefficients:
     intercept                      +3.2727
-    iron_temp_c                    +0.0578
-    contact_sec                    +0.1248
-    solder_mm                      -0.0275
+    iron_temp_c                    -0.7742
+    contact_sec                    +0.1340
+    solder_mm                      -0.2946
 
-RSM Model (quadratic, R² = 0.2210, Adj R² = -0.3633):
+RSM Model (quadratic, R² = 0.5826, Adj R² = 0.2696):
   Coefficients:
-    intercept                      +3.1872
-    iron_temp_c                    +0.0578
-    contact_sec                    +0.1248
-    solder_mm                      -0.0275
-    iron_temp_c*contact_sec        +0.2125
-    iron_temp_c*solder_mm          +0.3625
-    contact_sec*solder_mm          -0.4875
-    iron_temp_c^2                  -0.0422
-    contact_sec^2                  +0.1828
-    solder_mm^2                    -0.0122
+    intercept                      +3.1201
+    iron_temp_c                    -0.7742
+    contact_sec                    +0.1340
+    solder_mm                      -0.2946
+    iron_temp_c*contact_sec        +0.1500
+    iron_temp_c*solder_mm          -0.0250
+    contact_sec*solder_mm          +0.2000
+    iron_temp_c^2                  +0.0663
+    contact_sec^2                  -0.0087
+    solder_mm^2                    +0.1713
 
   Curvature analysis:
-    contact_sec                    coef=+0.1828  convex (has a minimum)
-    iron_temp_c                    coef=-0.0422  negligible curvature
-    solder_mm                      coef=-0.0122  negligible curvature
+    solder_mm                      coef=+0.1713  convex (has a minimum)
+    iron_temp_c                    coef=+0.0663  negligible curvature
+    contact_sec                    coef=-0.0087  negligible curvature
 
-  Notable interactions:
-    contact_sec*solder_mm          coef=-0.4875  (antagonistic)
-    iron_temp_c*solder_mm          coef=+0.3625  (synergistic)
-
-  Predicted optimum (from linear model):
-    iron_temp_c = 330
-    contact_sec = 6.65148
+  Predicted optimum (from linear model, at observed points):
+    iron_temp_c = 238.713
+    contact_sec = 3
     solder_mm = 0.85
-    Predicted value: 3.5006
+    Predicted value: 4.6863
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Surface optimum (via L-BFGS-B, linear model):
+    iron_temp_c = 380
+    contact_sec = 1
+    solder_mm = 1.2
+    Predicted value: 2.0699
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. solder_mm  (effect: 3.0, contribution: 45.5%)
-  2. iron_temp_c  (effect: 2.1, contribution: 31.8%)
-  3. contact_sec  (effect: 1.5, contribution: 22.7%)</div></div>
+  1. iron_temp_c  (effect: 3.7, contribution: 61.4%)
+  2. solder_mm  (effect: 1.6, contribution: 26.6%)
+  3. contact_sec  (effect: 0.7, contribution: 12.0%)</div></div>
   </section>
 
   <!-- Nav -->

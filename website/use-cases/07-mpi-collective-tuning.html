@@ -56,8 +56,8 @@
 
     
     <h3>Key Findings</h3>
-    <p>For <strong>allreduce latency</strong>, the most influential factors were coll tuning (40.6%), eager limit (24.3%), algorithm (15.4%). The best observed value was <strong>34.2</strong> (at msg size = 1048576, algorithm = recursive_doubling, ppn = 64).</p>
-<p>For <strong>bandwidth</strong>, the most influential factors were coll tuning (30.8%), algorithm (20.7%), msg size (19.1%). The best observed value was <strong>30.14</strong> (at msg size = 1048576, algorithm = ring, ppn = 16).</p>
+    <p>For <strong>allreduce latency</strong>, the most influential factors were msg size (40.3%), eager limit (18.3%), binding (18.1%). The best observed value was <strong>34.2</strong> (at msg size = 1048576, algorithm = ring, ppn = 16).</p>
+<p>For <strong>bandwidth</strong>, the most influential factors were eager limit (23.8%), binding (23.5%), algorithm (21.9%). The best observed value was <strong>30.14</strong> (at msg size = 1048576, algorithm = ring, ppn = 16).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -67,6 +67,7 @@
     <li>The screening results can guide factor reduction &mdash; drop factors contributing less than 5% and re-run with a smaller, more focused design.</li>
   </ul>
   </section>
+
 
 
   <section class="uc-section">
@@ -99,6 +100,7 @@
       </div>
     </div>
   </section>
+
 
 
 
@@ -442,6 +444,141 @@ Factor importance:
   4. binding  (effect: 2.0, contribution: 14.7%)
   5. algorithm  (effect: 1.9, contribution: 14.0%)
   6. msg_size  (effect: -0.3, contribution: 2.2%)</div></div>
+  </section>
+
+  
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.8027</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>allreduce_latency</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:62.88%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.6288</span>
+                </div>
+              </td>
+              <td>56.58 0.6288       56.58 us</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>bandwidth</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:94.46%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9446</span>
+                </div>
+              </td>
+              <td>29.91 0.9446       29.91 GB/s</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>msg_size</code></td><td>4096 bytes</td></tr>
+            <tr><td><code>algorithm</code></td><td>ring</td></tr>
+            <tr><td><code>ppn</code></td><td>64</td></tr>
+            <tr><td><code>eager_limit</code></td><td>262144 bytes</td></tr>
+            <tr><td><code>binding</code></td><td>core</td></tr>
+            <tr><td><code>coll_tuning</code></td><td>on</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #6</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>bandwidth</code></td><td>29.91</td><td>30.14</td><td><span style="color:#dc2626;">+0.23</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#15</td><td><strong>0.8024</strong></td><td style="font-size:.78rem;">msg_size=4096,  algorithm=ring,  ppn=64,  eager_limit=262144,  binding=core,  coll_tuning=on</td></tr>
+            <tr><td>#16</td><td><strong>0.6033</strong></td><td style="font-size:.78rem;">msg_size=4096,  algorithm=ring,  ppn=64,  eager_limit=4096,  binding=socket,  coll_tuning=off</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>bandwidth</code></td><td style="color:#16a34a;font-weight:600;">0.8022</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.8027
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+allreduce_latency            1.0       0.6288       56.58 us   ↓
+bandwidth                    1.5       0.9446       29.91 GB/s   ↑
+
+Recommended settings:
+  msg_size = 4096 bytes
+  algorithm = ring
+  ppn = 64
+  eager_limit = 262144 bytes
+  binding = core
+  coll_tuning = on
+  (from observed run #6)
+
+Trade-off summary:
+  allreduce_latency: 56.58 (best observed: 34.20, sacrifice: +22.38)
+  bandwidth: 29.91 (best observed: 30.14, sacrifice: +0.23)
+
+Model quality:
+  allreduce_latency: R² = 0.3893 (linear)
+  bandwidth: R² = 0.8022 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #6 (D=0.8027): msg_size=4096, algorithm=ring, ppn=64, eager_limit=262144, binding=core, coll_tuning=on
+  2. Run #15 (D=0.8024): msg_size=4096, algorithm=ring, ppn=64, eager_limit=262144, binding=core, coll_tuning=on
+  3. Run #16 (D=0.6033): msg_size=4096, algorithm=ring, ppn=64, eager_limit=4096, binding=socket, coll_tuning=off</div></div>
   </section>
 
   <div class="chapter-nav">

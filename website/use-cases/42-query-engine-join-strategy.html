@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -51,8 +50,8 @@
 
     
     <h3>Key Findings</h3>
-    <p>For <strong>query time s</strong>, the most influential factors were join algorithm (25.5%), hash table mb (25.0%), partitions (21.8%). The best observed value was <strong>34.5</strong> (at join algorithm = hash, hash table mb = 256, sort buffer mb = 512).</p>
-<p>For <strong>peak memory gb</strong>, the most influential factors were adaptive execution (35.7%), partitions (17.0%), sort buffer mb (16.0%). The best observed value was <strong>1.8</strong> (at join algorithm = sort_merge, hash table mb = 256, sort buffer mb = 64).</p>
+    <p>For <strong>query time s</strong>, the most influential factors were partitions (40.8%), hash table mb (21.7%), broadcast threshold mb (15.1%). The best observed value was <strong>34.5</strong> (at join algorithm = sort_merge, hash table mb = 4096, sort buffer mb = 512).</p>
+<p>For <strong>peak memory gb</strong>, the most influential factors were join algorithm (35.9%), hash table mb (18.8%), adaptive execution (15.9%). The best observed value was <strong>1.8</strong> (at join algorithm = hash, hash table mb = 256, sort buffer mb = 512).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -270,6 +269,18 @@
     <div class="uc-step">
       <div class="uc-step-num">6</div>
       <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/42_query_engine_join_strategy/config.json <span class="flag">--multi</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">7</div>
+      <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
@@ -307,7 +318,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: query_time_s</h3>
-    <p>Top factors: join_algorithm (25.5%), hash_table_mb (25.0%), partitions (21.8%).</p>
+    <p>Top factors: partitions (40.8%), hash_table_mb (21.7%), broadcast_threshold_mb (15.1%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -320,7 +331,7 @@
     </div>
 
     <h3>Response: peak_memory_gb</h3>
-    <p>Top factors: adaptive_execution (35.7%), partitions (17.0%), sort_buffer_mb (16.0%).</p>
+    <p>Top factors: join_algorithm (35.9%), hash_table_mb (18.8%), adaptive_execution (15.9%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -401,224 +412,434 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.8012</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>query_time_s</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:91.5%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9150</span>
+                </div>
+              </td>
+              <td>36.00 0.9150       36.00 s</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>peak_memory_gb</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:65.64999999999999%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.6565</span>
+                </div>
+              </td>
+              <td>9.70 0.6565        9.70 GB</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>join_algorithm</code></td><td>hash</td></tr>
+            <tr><td><code>hash_table_mb</code></td><td>256 MB</td></tr>
+            <tr><td><code>sort_buffer_mb</code></td><td>512 MB</td></tr>
+            <tr><td><code>broadcast_threshold_mb</code></td><td>256 MB</td></tr>
+            <tr><td><code>adaptive_execution</code></td><td>off</td></tr>
+            <tr><td><code>partitions</code></td><td>50 count</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #7</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>peak_memory_gb</code></td><td>9.70</td><td>1.80</td><td><span style="color:#dc2626;">+7.90</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#5</td><td><strong>0.7174</strong></td><td style="font-size:.78rem;">join_algorithm=hash,  hash_table_mb=256,  sort_buffer_mb=512,  broadcast_threshold_mb=10,  adaptive_execution=on,  partitions=400</td></tr>
+            <tr><td>#4</td><td><strong>0.6940</strong></td><td style="font-size:.78rem;">join_algorithm=sort_merge,  hash_table_mb=256,  sort_buffer_mb=64,  broadcast_threshold_mb=10,  adaptive_execution=off,  partitions=400</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>peak_memory_gb</code></td><td style="color:#16a34a;font-weight:600;">0.9618</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.8012
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+query_time_s                 1.5       0.9150       36.00 s   ↓
+peak_memory_gb               1.0       0.6565        9.70 GB   ↓
+
+Recommended settings:
+  join_algorithm = hash
+  hash_table_mb = 256 MB
+  sort_buffer_mb = 512 MB
+  broadcast_threshold_mb = 256 MB
+  adaptive_execution = off
+  partitions = 50 count
+  (from observed run #7)
+
+Trade-off summary:
+  query_time_s: 36.00 (best observed: 34.50, sacrifice: +1.50)
+  peak_memory_gb: 9.70 (best observed: 1.80, sacrifice: +7.90)
+
+Model quality:
+  query_time_s: R² = 0.8509 (linear)
+  peak_memory_gb: R² = 0.9618 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #7 (D=0.8012): join_algorithm=hash, hash_table_mb=256, sort_buffer_mb=512, broadcast_threshold_mb=256, adaptive_execution=off, partitions=50
+  2. Run #5 (D=0.7174): join_algorithm=hash, hash_table_mb=256, sort_buffer_mb=512, broadcast_threshold_mb=10, adaptive_execution=on, partitions=400
+  3. Run #4 (D=0.6940): join_algorithm=sort_merge, hash_table_mb=256, sort_buffer_mb=64, broadcast_threshold_mb=10, adaptive_execution=off, partitions=400</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: query_time_s ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-join_algorithm          -9.6750       4.7346            25.5%
-hash_table_mb           -9.4750       4.7346            25.0%
-partitions               8.2750       4.7346            21.8%
-adaptive_execution      -5.5750       4.7346            14.7%
-broadcast_threshold_mb    -2.8750       4.7346             7.6%
-sort_buffer_mb           2.0750       4.7346             5.5%
+partitions             -19.0250       4.7346            40.8%
+hash_table_mb           10.1250       4.7346            21.7%
+broadcast_threshold_mb     7.0250       4.7346            15.1%
+join_algorithm          -6.3250       4.7346            13.6%
+sort_buffer_mb          -3.1750       4.7346             6.8%
+adaptive_execution       0.9750       4.7346             2.1%
+
+=== ANOVA Table: query_time_s ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+join_algorithm               1      80.0112      80.0112      0.597     0.4650
+hash_table_mb                1     205.0312     205.0312      1.530     0.2560
+sort_buffer_mb               1      20.1613      20.1613      0.150     0.7097
+broadcast_threshold_mb       1      98.7012      98.7012      0.736     0.4192
+adaptive_execution           1       1.9013       1.9013      0.014     0.9085
+partitions                   1     723.9012     723.9012      5.401     0.0531
+join_algorithm*hash_table_mb    1      20.1613      20.1613      0.150     0.7097
+join_algorithm*sort_buffer_mb    1     205.0313     205.0313      1.530     0.2560
+join_algorithm*broadcast_threshold_mb    1       1.9013       1.9013      0.014     0.9085
+join_algorithm*adaptive_execution    1      98.7012      98.7012      0.736     0.4192
+join_algorithm*partitions    1     125.6113     125.6113      0.937     0.3653
+hash_table_mb*sort_buffer_mb    1      80.0112      80.0112      0.597     0.4650
+hash_table_mb*broadcast_threshold_mb    1     723.9013     723.9013      5.401     0.0531
+hash_table_mb*adaptive_execution    1     125.6112     125.6112      0.937     0.3653
+hash_table_mb*partitions     1      98.7013      98.7013      0.736     0.4192
+sort_buffer_mb*broadcast_threshold_mb    1     125.6113     125.6113      0.937     0.3653
+sort_buffer_mb*adaptive_execution    1     723.9012     723.9012      5.401     0.0531
+sort_buffer_mb*partitions    1       1.9012       1.9012      0.014     0.9085
+broadcast_threshold_mb*adaptive_execution    1      80.0112      80.0112      0.597     0.4650
+broadcast_threshold_mb*partitions    1     205.0313     205.0313      1.530     0.2560
+adaptive_execution*partitions    1      20.1612      20.1612      0.150     0.7097
+Error (Lenth PSE)            7     938.2406     134.0344
+Total                        7    1255.3187     179.3312
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
 
 === Interaction Effects: query_time_s ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-join_algorithm       partitions               -18.2250            14.0%
-hash_table_mb        adaptive_execution        18.2250            14.0%
-sort_buffer_mb       broadcast_threshold_mb     -18.2250            14.0%
-hash_table_mb        sort_buffer_mb             9.6750             7.4%
-broadcast_threshold_mb adaptive_execution        -9.6750             7.4%
-join_algorithm       sort_buffer_mb             9.4750             7.3%
-broadcast_threshold_mb partitions                 9.4750             7.3%
-hash_table_mb        broadcast_threshold_mb      -8.2750             6.3%
-sort_buffer_mb       adaptive_execution         8.2750             6.3%
-join_algorithm       broadcast_threshold_mb      -5.5750             4.3%
-sort_buffer_mb       partitions                -5.5750             4.3%
-join_algorithm       adaptive_execution        -2.8750             2.2%
-hash_table_mb        partitions                 2.8750             2.2%
-join_algorithm       hash_table_mb             -2.0750             1.6%
-adaptive_execution   partitions                 2.0750             1.6%
+hash_table_mb        broadcast_threshold_mb      19.0250            16.3%
+sort_buffer_mb       adaptive_execution       -19.0250            16.3%
+join_algorithm       sort_buffer_mb           -10.1250             8.6%
+broadcast_threshold_mb partitions               -10.1250             8.6%
+join_algorithm       partitions                 7.9250             6.8%
+hash_table_mb        adaptive_execution        -7.9250             6.8%
+sort_buffer_mb       broadcast_threshold_mb       7.9250             6.8%
+join_algorithm       adaptive_execution         7.0250             6.0%
+hash_table_mb        partitions                -7.0250             6.0%
+hash_table_mb        sort_buffer_mb             6.3250             5.4%
+broadcast_threshold_mb adaptive_execution        -6.3250             5.4%
+join_algorithm       hash_table_mb              3.1750             2.7%
+adaptive_execution   partitions                -3.1750             2.7%
+join_algorithm       broadcast_threshold_mb       0.9750             0.8%
+sort_buffer_mb       partitions                 0.9750             0.8%
 
 === Summary Statistics: query_time_s ===
 
 join_algorithm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  hash                4    50.7000    15.9614    35.1000    69.0000
-  sort_merge          4    41.0250    10.0633    34.5000    56.0000
+  hash                4    49.0250    16.4439    35.1000    69.0000
+  sort_merge          4    42.7000    11.0167    34.5000    58.9000
 
 hash_table_mb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  256                 4    50.6000    14.7576    37.6000    69.0000
-  4096                4    41.1250    11.8660    34.5000    58.9000
+  256                 4    40.8000    10.2219    34.5000    56.0000
+  4096                4    50.9250    15.6719    36.0000    69.0000
 
 sort_buffer_mb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  512                 4    44.8250    16.2703    34.5000    69.0000
-  64                  4    46.9000    12.2820    35.1000    58.9000
+  512                 4    47.4500    11.7651    35.1000    58.9000
+  64                  4    44.2750    16.5319    34.5000    69.0000
 
 broadcast_threshold_mb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4    47.3000    11.9769    34.5000    58.9000
-  256                 4    44.4250    16.4159    35.1000    69.0000
+  10                  4    42.3500     9.2324    36.0000    56.0000
+  256                 4    49.3750    17.3292    34.5000    69.0000
 
 adaptive_execution:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4    48.6500    16.8520    34.5000    69.0000
-  on                  4    43.0750    10.6644    36.0000    58.9000
+  off                 4    45.3750    15.8666    35.1000    69.0000
+  on                  4    46.3500    12.8863    34.5000    58.9000
 
 partitions:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  400                 4    41.7250     9.7322    35.1000    56.0000
-  50                  4    50.0000    16.6755    34.5000    69.0000
+  400                 4    55.3750    13.0946    37.6000    69.0000
+  50                  4    36.3500     2.3812    34.5000    39.8000
 
 === Main Effects: peak_memory_gb ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-adaptive_execution       6.8750       2.7310            35.7%
-partitions               3.2750       2.7310            17.0%
-sort_buffer_mb           3.0750       2.7310            16.0%
-join_algorithm           2.8250       2.7310            14.7%
-broadcast_threshold_mb     1.7250       2.7310             9.0%
-hash_table_mb            1.4750       2.7310             7.7%
+join_algorithm           9.8750       2.7310            35.9%
+hash_table_mb           -5.1750       2.7310            18.8%
+adaptive_execution      -4.3750       2.7310            15.9%
+partitions               3.2250       2.7310            11.7%
+broadcast_threshold_mb    -2.4750       2.7310             9.0%
+sort_buffer_mb           2.3750       2.7310             8.6%
+
+=== ANOVA Table: peak_memory_gb ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+join_algorithm               1     195.0312     195.0312      4.401     0.0741
+hash_table_mb                1      53.5612      53.5612      1.209     0.3080
+sort_buffer_mb               1      11.2812      11.2812      0.255     0.6294
+broadcast_threshold_mb       1      12.2512      12.2512      0.276     0.6153
+adaptive_execution           1      38.2812      38.2812      0.864     0.3836
+partitions                   1      20.8012      20.8012      0.469     0.5153
+join_algorithm*hash_table_mb    1      11.2812      11.2812      0.255     0.6294
+join_algorithm*sort_buffer_mb    1      53.5612      53.5612      1.209     0.3080
+join_algorithm*broadcast_threshold_mb    1      38.2813      38.2813      0.864     0.3836
+join_algorithm*adaptive_execution    1      12.2513      12.2513      0.276     0.6153
+join_algorithm*partitions    1      86.4613      86.4613      1.951     0.2051
+hash_table_mb*sort_buffer_mb    1     195.0312     195.0312      4.401     0.0741
+hash_table_mb*broadcast_threshold_mb    1      20.8013      20.8013      0.469     0.5153
+hash_table_mb*adaptive_execution    1      86.4612      86.4612      1.951     0.2051
+hash_table_mb*partitions     1      12.2513      12.2513      0.276     0.6153
+sort_buffer_mb*broadcast_threshold_mb    1      86.4612      86.4612      1.951     0.2051
+sort_buffer_mb*adaptive_execution    1      20.8013      20.8013      0.469     0.5153
+sort_buffer_mb*partitions    1      38.2813      38.2813      0.864     0.3836
+broadcast_threshold_mb*adaptive_execution    1     195.0312     195.0312      4.401     0.0741
+broadcast_threshold_mb*partitions    1      53.5613      53.5613      1.209     0.3080
+adaptive_execution*partitions    1      11.2812      11.2812      0.255     0.6294
+Error (Lenth PSE)            7     310.1831      44.3119
+Total                        7     417.6687      59.6670
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
 
 === Interaction Effects: peak_memory_gb ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-join_algorithm       partitions                11.3250            15.6%
-hash_table_mb        adaptive_execution       -11.3250            15.6%
-sort_buffer_mb       broadcast_threshold_mb      11.3250            15.6%
-join_algorithm       broadcast_threshold_mb       6.8750             9.5%
-sort_buffer_mb       partitions                 6.8750             9.5%
-hash_table_mb        broadcast_threshold_mb      -3.2750             4.5%
-sort_buffer_mb       adaptive_execution         3.2750             4.5%
-join_algorithm       hash_table_mb             -3.0750             4.2%
-adaptive_execution   partitions                 3.0750             4.2%
-hash_table_mb        sort_buffer_mb            -2.8250             3.9%
-broadcast_threshold_mb adaptive_execution         2.8250             3.9%
-join_algorithm       adaptive_execution         1.7250             2.4%
-hash_table_mb        partitions                -1.7250             2.4%
-join_algorithm       sort_buffer_mb            -1.4750             2.0%
-broadcast_threshold_mb partitions                -1.4750             2.0%
+hash_table_mb        sort_buffer_mb            -9.8750            13.2%
+broadcast_threshold_mb adaptive_execution         9.8750            13.2%
+join_algorithm       partitions                -6.5750             8.8%
+hash_table_mb        adaptive_execution         6.5750             8.8%
+sort_buffer_mb       broadcast_threshold_mb      -6.5750             8.8%
+join_algorithm       sort_buffer_mb             5.1750             6.9%
+broadcast_threshold_mb partitions                 5.1750             6.9%
+join_algorithm       broadcast_threshold_mb      -4.3750             5.9%
+sort_buffer_mb       partitions                -4.3750             5.9%
+hash_table_mb        broadcast_threshold_mb      -3.2250             4.3%
+sort_buffer_mb       adaptive_execution         3.2250             4.3%
+join_algorithm       adaptive_execution        -2.4750             3.3%
+hash_table_mb        partitions                 2.4750             3.3%
+join_algorithm       hash_table_mb             -2.3750             3.2%
+adaptive_execution   partitions                 2.3750             3.2%
 
 === Summary Statistics: peak_memory_gb ===
 
 join_algorithm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  hash                4    10.6750     6.1109     1.8000    15.0000
-  sort_merge          4    13.5000     9.8265     2.7000    25.9000
+  hash                4     7.1500     5.9858     1.8000    14.4000
+  sort_merge          4    17.0250     6.1954    11.5000    25.9000
 
 hash_table_mb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  256                 4    11.3500    11.4171     1.8000    25.9000
-  4096                4    12.8250     2.7244     9.7000    15.7000
+  256                 4    14.6750     9.4961     2.7000    25.9000
+  4096                4     9.5000     5.5851     1.8000    15.0000
 
 sort_buffer_mb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  512                 4    10.5500     6.4190     1.8000    15.7000
-  64                  4    13.6250     9.5768     2.7000    25.9000
+  512                 4    10.9000     5.6763     2.7000    15.0000
+  64                  4    13.2750    10.1608     1.8000    25.9000
 
 broadcast_threshold_mb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4    11.2250     5.9729     2.7000    15.7000
-  256                 4    12.9500    10.0779     1.8000    25.9000
+  10                  4    13.3250     9.7804     2.7000    25.9000
+  256                 4    10.8500     6.2836     1.8000    15.7000
 
 adaptive_execution:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4     8.6500     7.4182     1.8000    15.7000
-  on                  4    15.5250     7.2583     9.7000    25.9000
+  off                 4    14.2750     9.8541     1.8000    25.9000
+  on                  4     9.9000     5.4185     2.7000    15.7000
 
 partitions:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  400                 4    10.4500     5.6842     2.7000    15.0000
-  50                  4    13.7250     9.9881     1.8000    25.9000</div></div>
+  400                 4    10.4750    11.1757     1.8000    25.9000
+  50                  4    13.7000     2.7191     9.7000    15.7000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: query_time_s ===
 Direction: minimize
 
 Best observed run: #4
+  join_algorithm = sort_merge
+  hash_table_mb = 4096
+  sort_buffer_mb = 512
+  broadcast_threshold_mb = 10
+  adaptive_execution = off
+  partitions = 50
+  Value: 34.5
+
+RSM Model (linear, R² = 0.9996, Adj R² = 0.9969):
+  Coefficients:
+    intercept                      +45.8625
+    join_algorithm                 -4.2875
+    hash_table_mb                  -9.1125
+    sort_buffer_mb                 +4.6875
+    broadcast_threshold_mb         +4.1125
+    adaptive_execution             +2.2125
+    partitions                     -3.4125
+
+  Predicted optimum (from linear model, at observed points):
+    join_algorithm = hash
+    hash_table_mb = 256
+    sort_buffer_mb = 512
+    broadcast_threshold_mb = 256
+    adaptive_execution = off
+    partitions = 50
+    Predicted value: 69.2625
+
+  Surface optimum (via L-BFGS-B, linear model):
+    join_algorithm = sort_merge
+    hash_table_mb = 4096
+    sort_buffer_mb = 64
+    broadcast_threshold_mb = 10
+    adaptive_execution = off
+    partitions = 400
+    Predicted value: 18.0375
+
+  Model quality: Excellent fit — surface predictions are reliable.
+
+Factor importance:
+  1. hash_table_mb  (effect: -18.2, contribution: 32.7%)
+  2. sort_buffer_mb  (effect: -9.4, contribution: 16.8%)
+  3. join_algorithm  (effect: -8.6, contribution: 15.4%)
+  4. broadcast_threshold_mb  (effect: 8.2, contribution: 14.8%)
+  5. partitions  (effect: 6.8, contribution: 12.3%)
+  6. adaptive_execution  (effect: 4.4, contribution: 8.0%)
+
+=== Optimization: peak_memory_gb ===
+Direction: minimize
+
+Best observed run: #8
   join_algorithm = hash
   hash_table_mb = 256
   sort_buffer_mb = 512
   broadcast_threshold_mb = 256
   adaptive_execution = off
   partitions = 50
-  Value: 34.5
-
-RSM Model (linear, R² = 0.9974, Adj R² = 0.9819):
-  Coefficients:
-    intercept                      +45.8625
-    join_algorithm                 +4.8375
-    hash_table_mb                  -8.7375
-    sort_buffer_mb                 -4.5125
-    broadcast_threshold_mb         -3.5625
-    adaptive_execution             +2.2125
-    partitions                     +4.3375
-
-  Predicted optimum (from linear model):
-    join_algorithm = sort_merge
-    hash_table_mb = 256
-    sort_buffer_mb = 64
-    broadcast_threshold_mb = 10
-    adaptive_execution = off
-    partitions = 400
-    Predicted value: 69.6375
-
-  Model quality: Excellent fit — surface predictions are reliable.
-
-Factor importance:
-  1. hash_table_mb  (effect: -17.5, contribution: 31.0%)
-  2. join_algorithm  (effect: 9.7, contribution: 17.2%)
-  3. sort_buffer_mb  (effect: 9.0, contribution: 16.0%)
-  4. partitions  (effect: -8.7, contribution: 15.4%)
-  5. broadcast_threshold_mb  (effect: -7.1, contribution: 12.6%)
-  6. adaptive_execution  (effect: 4.4, contribution: 7.8%)
-
-=== Optimization: peak_memory_gb ===
-Direction: minimize
-
-Best observed run: #8
-  join_algorithm = sort_merge
-  hash_table_mb = 256
-  sort_buffer_mb = 64
-  broadcast_threshold_mb = 10
-  adaptive_execution = off
-  partitions = 400
   Value: 1.8
 
-RSM Model (linear, R² = 0.8791, Adj R² = 0.1536):
+RSM Model (linear, R² = 0.9804, Adj R² = 0.8625):
   Coefficients:
     intercept                      +12.0875
-    join_algorithm                 -1.4125
-    hash_table_mb                  +4.1625
-    sort_buffer_mb                 -0.1375
-    broadcast_threshold_mb         +0.8875
+    join_algorithm                 -1.3125
+    hash_table_mb                  +5.6625
+    sort_buffer_mb                 -1.0875
+    broadcast_threshold_mb         -3.6125
     adaptive_execution             +1.6875
-    partitions                     -4.7875
+    partitions                     +0.5625
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     join_algorithm = hash
     hash_table_mb = 4096
     sort_buffer_mb = 64
     broadcast_threshold_mb = 10
     adaptive_execution = on
     partitions = 50
-    Predicted value: 23.3875
+    Predicted value: 24.8875
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Surface optimum (via L-BFGS-B, linear model):
+    join_algorithm = sort_merge
+    hash_table_mb = 256
+    sort_buffer_mb = 512
+    broadcast_threshold_mb = 256
+    adaptive_execution = off
+    partitions = 50
+    Predicted value: -1.8375
+
+  Model quality: Excellent fit — surface predictions are reliable.
 
 Factor importance:
-  1. partitions  (effect: 9.6, contribution: 36.6%)
-  2. hash_table_mb  (effect: 8.3, contribution: 31.8%)
-  3. adaptive_execution  (effect: 3.4, contribution: 12.9%)
-  4. join_algorithm  (effect: -2.8, contribution: 10.8%)
-  5. broadcast_threshold_mb  (effect: 1.8, contribution: 6.8%)
-  6. sort_buffer_mb  (effect: 0.3, contribution: 1.1%)</div></div>
+  1. hash_table_mb  (effect: 11.3, contribution: 40.7%)
+  2. broadcast_threshold_mb  (effect: -7.2, contribution: 25.9%)
+  3. adaptive_execution  (effect: 3.4, contribution: 12.1%)
+  4. join_algorithm  (effect: -2.6, contribution: 9.4%)
+  5. sort_buffer_mb  (effect: 2.2, contribution: 7.8%)
+  6. partitions  (effect: -1.1, contribution: 4.0%)</div></div>
   </section>
 
   <!-- Nav -->

@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>infiltration pct</strong>, the most influential factors were berm height cm (39.7%), soil depth cm (38.2%), area m2 (22.1%). The best observed value was <strong>94.0</strong> (at area m2 = -1.19306, soil depth cm = 60, berm height cm = 20).</p>
-<p>For <strong>ponding hrs</strong>, the most influential factors were soil depth cm (48.2%), berm height cm (30.2%), area m2 (21.6%). The best observed value was <strong>10.7</strong> (at area m2 = 12.5, soil depth cm = 60, berm height cm = 20).</p>
+    <p>For <strong>infiltration pct</strong>, the most influential factors were area m2 (53.4%), berm height cm (26.3%), soil depth cm (20.3%). The best observed value was <strong>94.0</strong> (at area m2 = 12.5, soil depth cm = 60, berm height cm = 1.74258).</p>
+<p>For <strong>ponding hrs</strong>, the most influential factors were soil depth cm (50.5%), area m2 (27.7%), berm height cm (21.8%). The best observed value was <strong>10.7</strong> (at area m2 = 5, soil depth cm = 30, berm height cm = 30).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -250,12 +249,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (infiltration_pct (↑), ponding_hrs (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/136_rain_garden_sizing/config.json <span class="flag">--multi</span></div>
         </div>
@@ -263,7 +263,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -271,48 +271,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/136_rain_garden_sizing/config.json \
     <span class="flag">--output</span> use_cases/136_rain_garden_sizing/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Landscaping Experiment? Use the Manual Workflow</h4>
-        <p>Rain garden experiments involve real soil, drainage, and weather conditions. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/136_rain_garden_sizing/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/136_rain_garden_sizing/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/136_rain_garden_sizing/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/136_rain_garden_sizing/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/136_rain_garden_sizing/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/136_rain_garden_sizing/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/136_rain_garden_sizing/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -344,7 +302,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: infiltration_pct</h3>
-    <p>Top factors: berm_height_cm (39.7%), soil_depth_cm (38.2%), area_m2 (22.1%).</p>
+    <p>Top factors: area_m2 (53.4%), berm_height_cm (26.3%), soil_depth_cm (20.3%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -357,7 +315,7 @@
     </div>
 
     <h3>Response: ponding_hrs</h3>
-    <p>Top factors: soil_depth_cm (48.2%), berm_height_cm (30.2%), area_m2 (21.6%).</p>
+    <p>Top factors: soil_depth_cm (50.5%), area_m2 (27.7%), berm_height_cm (21.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -408,197 +366,347 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.8862</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>infiltration_pct</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>94.00 0.9545       94.00 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>ponding_hrs</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:79.27%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7927</span>
+                </div>
+              </td>
+              <td>14.10 0.7927       14.10 hrs</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>area_m2</code></td><td>12.5 m2</td></tr>
+            <tr><td><code>soil_depth_cm</code></td><td>60 cm</td></tr>
+            <tr><td><code>berm_height_cm</code></td><td>20 cm</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #18</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>ponding_hrs</code></td><td>14.10</td><td>10.70</td><td><span style="color:#dc2626;">+3.40</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#9</td><td><strong>0.7631</strong></td><td style="font-size:.78rem;">area_m2=20,  soil_depth_cm=90,  berm_height_cm=30</td></tr>
+            <tr><td>#4</td><td><strong>0.6801</strong></td><td style="font-size:.78rem;">area_m2=12.5,  soil_depth_cm=60,  berm_height_cm=38.2574</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>ponding_hrs</code></td><td style="color:#ca8a04;font-weight:600;">0.5044</td><td>quadratic</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.8862
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+infiltration_pct             1.5       0.9545       94.00 %   ↑
+ponding_hrs                  1.0       0.7927       14.10 hrs   ↓
+
+Recommended settings:
+  area_m2 = 12.5 m2
+  soil_depth_cm = 60 cm
+  berm_height_cm = 20 cm
+  (from observed run #18)
+
+Trade-off summary:
+  infiltration_pct: 94.00 (best observed: 94.00, sacrifice: +0.00)
+  ponding_hrs: 14.10 (best observed: 10.70, sacrifice: +3.40)
+
+Model quality:
+  infiltration_pct: R² = 0.5631 (quadratic)
+  ponding_hrs: R² = 0.5044 (quadratic)
+
+Top 3 observed runs by overall desirability:
+  1. Run #18 (D=0.8862): area_m2=12.5, soil_depth_cm=60, berm_height_cm=20
+  2. Run #9 (D=0.7631): area_m2=20, soil_depth_cm=90, berm_height_cm=30
+  3. Run #4 (D=0.6801): area_m2=12.5, soil_depth_cm=60, berm_height_cm=38.2574</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_infiltration_pct_area_m2_vs_soil_depth_cm.png
-  RSM surface: rsm_infiltration_pct_area_m2_vs_berm_height_cm.png
-  RSM surface: rsm_infiltration_pct_soil_depth_cm_vs_berm_height_cm.png
-  RSM surface: rsm_ponding_hrs_area_m2_vs_soil_depth_cm.png
-  RSM surface: rsm_ponding_hrs_area_m2_vs_berm_height_cm.png
-  RSM surface: rsm_ponding_hrs_soil_depth_cm_vs_berm_height_cm.png
-
-=== Main Effects: infiltration_pct ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: infiltration_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-berm_height_cm          29.6667       2.5864            39.7%
-soil_depth_cm           28.5000       2.5864            38.2%
-area_m2                 16.5000       2.5864            22.1%
+area_m2                 31.0000       2.5864            53.4%
+berm_height_cm          15.2500       2.5864            26.3%
+soil_depth_cm           11.7500       2.5864            20.3%
+
+=== ANOVA Table: infiltration_pct ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+area_m2                      4     903.1742     225.7936      1.855     0.2027
+soil_depth_cm                4     233.1742      58.2936      0.479     0.7510
+berm_height_cm               4     512.1742     128.0436      1.052     0.4331
+Lack of Fit                  2     590.0682     295.0341      2.424     0.1585
+Pure Error                   7     852.0000     121.7143
+Error                        9    1442.0682     121.7143
+Total                       21    3090.5909     147.1710
 
 === Summary Statistics: infiltration_pct ===
 
 area_m2:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -1.19306            1    74.0000     0.0000    74.0000    74.0000
-  12.5               12    65.2500    13.8178    42.0000    94.0000
-  20                  4    72.5000     6.6081    63.0000    77.0000
-  26.1931             1    78.0000     0.0000    78.0000    78.0000
-  5                   4    61.5000    11.7047    47.0000    71.0000
+  -1.19306            1    94.0000     0.0000    94.0000    94.0000
+  12.5               12    64.6667    11.3565    42.0000    77.0000
+  20                  4    63.0000     9.9331    49.0000    71.0000
+  26.1931             1    72.0000     0.0000    72.0000    72.0000
+  5                   4    69.2500    12.5532    51.0000    78.0000
 
 soil_depth_cm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  114.772             1    42.0000     0.0000    42.0000    42.0000
-  30                  4    70.5000     9.4340    57.0000    77.0000
-  5.22774             1    69.0000     0.0000    69.0000    69.0000
-  60                 12    68.6667    12.2276    49.0000    94.0000
-  90                  4    63.5000    11.8181    47.0000    73.0000
+  114.772             1    77.0000     0.0000    77.0000    77.0000
+  30                  4    67.0000    12.3288    49.0000    77.0000
+  5.22774             1    77.0000     0.0000    77.0000    77.0000
+  60                 12    65.6667    13.5401    42.0000    94.0000
+  90                  4    65.2500    11.3248    51.0000    78.0000
 
 berm_height_cm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1.74258             1    94.0000     0.0000    94.0000    94.0000
-  10                  4    67.0000    13.5647    47.0000    77.0000
-  20                 12    64.3333    11.6333    42.0000    78.0000
-  30                  4    67.0000     8.7939    57.0000    77.0000
+  1.74258             1    73.0000     0.0000    73.0000    73.0000
+  10                  4    73.7500     4.4253    69.0000    78.0000
+  20                 12    66.6667    14.1314    42.0000    94.0000
+  30                  4    58.5000    10.3763    49.0000    71.0000
   38.2574             1    69.0000     0.0000    69.0000    69.0000
 
 === Main Effects: ponding_hrs ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-soil_depth_cm           12.0250       1.0234            48.2%
-berm_height_cm           7.5250       1.0234            30.2%
-area_m2                  5.4000       1.0234            21.6%
+soil_depth_cm           11.9000       1.0234            50.5%
+area_m2                  6.5250       1.0234            27.7%
+berm_height_cm           5.1250       1.0234            21.8%
+
+=== ANOVA Table: ponding_hrs ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+area_m2                      4      41.4677      10.3669      0.647     0.6427
+soil_depth_cm                4      97.7777      24.4444      1.526     0.2742
+berm_height_cm               4      58.8577      14.7144      0.919     0.4936
+Lack of Fit                  2     173.7058      86.8529      5.424     0.0378
+Pure Error                   7     112.0988      16.0141
+Error                        9     285.8045      16.0141
+Total                       21     483.9077      23.0432
 
 === Summary Statistics: ponding_hrs ===
 
 area_m2:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -1.19306            1    21.7000     0.0000    21.7000    21.7000
-  12.5               12    21.2083     5.1755    14.1000    29.8000
-  20                  4    16.5250     5.0122    10.7000    22.6000
-  26.1931             1    16.3000     0.0000    16.3000    16.3000
-  5                   4    20.5250     3.1837    18.9000    25.3000
+  -1.19306            1    14.1000     0.0000    14.1000    14.1000
+  12.5               12    20.6250     4.7048    10.7000    29.8000
+  20                  4    20.0500     5.3126    14.9000    27.5000
+  26.1931             1    18.6000     0.0000    18.6000    18.6000
+  5                   4    20.0750     6.1722    15.9000    29.1000
 
 soil_depth_cm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  114.772             1    29.8000     0.0000    29.8000    29.8000
-  30                  4    17.7750     5.0288    10.7000    22.6000
-  5.22774             1    19.0000     0.0000    19.0000    19.0000
-  60                 12    20.3083     4.5783    14.1000    29.1000
-  90                  4    19.2750     4.3745    14.9000    25.3000
+  114.772             1    10.7000     0.0000    10.7000    10.7000
+  30                  4    20.3250     4.9949    15.9000    27.5000
+  5.22774             1    22.6000     0.0000    22.6000    22.6000
+  60                 12    20.5750     4.1311    14.1000    29.8000
+  90                  4    19.8000     6.4177    14.9000    29.1000
 
 berm_height_cm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1.74258             1    14.1000     0.0000    14.1000    14.1000
-  10                  4    21.1750     3.4131    17.9000    25.3000
-  20                 12    21.6250     4.8715    15.9000    29.8000
-  30                  4    15.8750     3.9432    10.7000    19.0000
-  38.2574             1    18.9000     0.0000    18.9000    18.9000
-
-Pareto chart (infiltration_pct): use_cases/136_rain_garden_sizing/results/analysis/pareto_infiltration_pct.png
-
-Pareto chart (ponding_hrs): use_cases/136_rain_garden_sizing/results/analysis/pareto_ponding_hrs.png
-Main effects (infiltration_pct): use_cases/136_rain_garden_sizing/results/analysis/main_effects_infiltration_pct.png
-Main effects (ponding_hrs): use_cases/136_rain_garden_sizing/results/analysis/main_effects_ponding_hrs.png</div></div>
+  1.74258             1    17.9000     0.0000    17.9000    17.9000
+  10                  4    17.5000     1.6248    15.9000    18.9000
+  20                 12    20.2750     5.0328    10.7000    29.8000
+  30                  4    22.6250     6.7948    14.9000    29.1000
+  38.2574             1    19.0000     0.0000    19.0000    19.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: infiltration_pct ===
 Direction: maximize
 
 Best observed run: #18
-  area_m2 = -1.19306
+  area_m2 = 12.5
   soil_depth_cm = 60
-  berm_height_cm = 20
+  berm_height_cm = 1.74258
   Value: 94.0
 
-RSM Model (linear, R² = 0.2488, Adj R² = 0.1236):
+RSM Model (linear, R² = 0.1438, Adj R² = 0.0011):
   Coefficients:
     intercept                      +66.8636
-    area_m2                        -6.8734
-    soil_depth_cm                  -2.2144
-    berm_height_cm                 +0.5367
+    area_m2                        +0.9076
+    soil_depth_cm                  -5.3182
+    berm_height_cm                 -1.0904
 
-RSM Model (quadratic, R² = 0.5473, Adj R² = 0.2078):
+RSM Model (quadratic, R² = 0.4511, Adj R² = 0.0395):
   Coefficients:
-    intercept                      +64.9031
-    area_m2                        -6.8734
-    soil_depth_cm                  -2.2144
-    berm_height_cm                 +0.5367
-    area_m2*soil_depth_cm          -5.3750
-    area_m2*berm_height_cm         -6.8750
-    soil_depth_cm*berm_height_cm   -5.3750
-    area_m2^2                      -0.0197
-    soil_depth_cm^2                +1.4803
-    berm_height_cm^2               +1.4803
+    intercept                      +67.2584
+    area_m2                        +0.9076
+    soil_depth_cm                  -5.3182
+    berm_height_cm                 -1.0904
+    area_m2*soil_depth_cm          +5.2500
+    area_m2*berm_height_cm         +0.7500
+    soil_depth_cm*berm_height_cm   +3.0000
+    area_m2^2                      -3.0474
+    soil_depth_cm^2                -1.6974
+    berm_height_cm^2               +4.1526
 
   Curvature analysis:
-    berm_height_cm                 coef=+1.4803  convex (has a minimum)
-    soil_depth_cm                  coef=+1.4803  convex (has a minimum)
-    area_m2                        coef=-0.0197  negligible curvature
+    berm_height_cm                 coef=+4.1526  convex (has a minimum)
+    area_m2                        coef=-3.0474  concave (has a maximum)
+    soil_depth_cm                  coef=-1.6974  concave (has a maximum)
 
   Notable interactions:
-    area_m2*berm_height_cm         coef=-6.8750  (antagonistic)
-    area_m2*soil_depth_cm          coef=-5.3750  (antagonistic)
-    soil_depth_cm*berm_height_cm   coef=-5.3750  (antagonistic)
+    area_m2*soil_depth_cm          coef=+5.2500  (synergistic)
+    soil_depth_cm*berm_height_cm   coef=+3.0000  (synergistic)
+    area_m2*berm_height_cm         coef=+0.7500  (synergistic)
 
-  Predicted optimum (from quadratic model):
-    area_m2 = 5
+  Predicted optimum (from quadratic model, at observed points):
+    area_m2 = 12.5
+    soil_depth_cm = 60
+    berm_height_cm = 1.74258
+    Predicted value: 83.0912
+
+  Surface optimum (via L-BFGS-B, quadratic model):
+    area_m2 = 6.23341
     soil_depth_cm = 30
-    berm_height_cm = 30
-    Predicted value: 84.3433
+    berm_height_cm = 10
+    Predicted value: 81.2497
 
-  Model quality: Moderate fit — use predictions directionally, not precisely.
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. area_m2  (effect: 47.0, contribution: 57.8%)
-  2. soil_depth_cm  (effect: 17.2, contribution: 21.2%)
-  3. berm_height_cm  (effect: 17.0, contribution: 20.9%)
+  1. berm_height_cm  (effect: 31.8, contribution: 43.1%)
+  2. area_m2  (effect: 22.5, contribution: 30.5%)
+  3. soil_depth_cm  (effect: 19.5, contribution: 26.4%)
 
 === Optimization: ponding_hrs ===
 Direction: minimize
 
 Best observed run: #9
-  area_m2 = 12.5
-  soil_depth_cm = 60
-  berm_height_cm = 20
+  area_m2 = 5
+  soil_depth_cm = 30
+  berm_height_cm = 30
   Value: 10.7
 
-RSM Model (linear, R² = 0.1723, Adj R² = 0.0344):
+RSM Model (linear, R² = 0.0513, Adj R² = -0.1068):
   Coefficients:
     intercept                      +20.0318
-    area_m2                        +2.3624
-    soil_depth_cm                  +0.3107
-    berm_height_cm                 +0.0901
+    area_m2                        +0.8734
+    soil_depth_cm                  +0.8898
+    berm_height_cm                 +0.3725
 
-RSM Model (quadratic, R² = 0.5714, Adj R² = 0.2500):
+RSM Model (quadratic, R² = 0.3782, Adj R² = -0.0881):
   Coefficients:
-    intercept                      +19.3213
-    area_m2                        +2.3624
-    soil_depth_cm                  +0.3107
-    berm_height_cm                 +0.0901
-    area_m2*soil_depth_cm          +3.1500
-    area_m2*berm_height_cm         +1.6750
-    soil_depth_cm*berm_height_cm   +2.7250
-    area_m2^2                      +0.3703
-    soil_depth_cm^2                +1.1053
-    berm_height_cm^2               -0.4097
+    intercept                      +20.0200
+    area_m2                        +0.8734
+    soil_depth_cm                  +0.8898
+    berm_height_cm                 +0.3725
+    area_m2*soil_depth_cm          -2.7875
+    area_m2*berm_height_cm         +2.6875
+    soil_depth_cm*berm_height_cm   +0.2125
+    area_m2^2                      +0.9509
+    soil_depth_cm^2                -0.0391
+    berm_height_cm^2               -0.8941
 
   Curvature analysis:
-    soil_depth_cm                  coef=+1.1053  convex (has a minimum)
-    berm_height_cm                 coef=-0.4097  concave (has a maximum)
-    area_m2                        coef=+0.3703  convex (has a minimum)
+    area_m2                        coef=+0.9509  convex (has a minimum)
+    berm_height_cm                 coef=-0.8941  concave (has a maximum)
+    soil_depth_cm                  coef=-0.0391  negligible curvature
 
   Notable interactions:
-    area_m2*soil_depth_cm          coef=+3.1500  (synergistic)
-    soil_depth_cm*berm_height_cm   coef=+2.7250  (synergistic)
-    area_m2*berm_height_cm         coef=+1.6750  (synergistic)
+    area_m2*soil_depth_cm          coef=-2.7875  (antagonistic)
+    area_m2*berm_height_cm         coef=+2.6875  (synergistic)
 
-  Predicted optimum (from quadratic model):
+  Predicted optimum (from quadratic model, at observed points):
     area_m2 = 20
-    soil_depth_cm = 90
+    soil_depth_cm = 30
     berm_height_cm = 30
-    Predicted value: 30.7002
+    Predicted value: 25.6563
 
-  Model quality: Moderate fit — use predictions directionally, not precisely.
+  Surface optimum (via L-BFGS-B, quadratic model):
+    area_m2 = 5
+    soil_depth_cm = 30
+    berm_height_cm = 30
+    Predicted value: 12.9595
+
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. area_m2  (effect: 11.2, contribution: 56.5%)
-  2. berm_height_cm  (effect: 5.0, contribution: 25.2%)
-  3. soil_depth_cm  (effect: 3.6, contribution: 18.3%)</div></div>
+  1. area_m2  (effect: 9.7, contribution: 37.7%)
+  2. soil_depth_cm  (effect: 9.2, contribution: 35.9%)
+  3. berm_height_cm  (effect: 6.8, contribution: 26.4%)</div></div>
   </section>
 
   <!-- Nav -->

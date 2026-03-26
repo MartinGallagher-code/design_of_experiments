@@ -57,8 +57,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>write throughput GBs</strong>, the most influential factors were stripe count (55.0%), checkpoint interval (32.6%), bb capacity pct (12.4%). The best observed value was <strong>98.17</strong> (at checkpoint interval = 30, stripe count = 64, bb capacity pct = 62.5).</p>
-<p>For <strong>app disruption sec</strong>, the most influential factors were checkpoint interval (34.9%), stripe count (34.3%), bb capacity pct (30.7%). The best observed value was <strong>8.21</strong> (at checkpoint interval = 30, stripe count = 64, bb capacity pct = 62.5).</p>
+    <p>For <strong>write throughput GBs</strong>, the most influential factors were checkpoint interval (40.6%), bb capacity pct (33.2%), stripe count (26.2%). The best observed value was <strong>98.17</strong> (at checkpoint interval = 5, stripe count = 4, bb capacity pct = 62.5).</p>
+<p>For <strong>app disruption sec</strong>, the most influential factors were checkpoint interval (45.0%), bb capacity pct (30.4%), stripe count (24.6%). The best observed value was <strong>8.21</strong> (at checkpoint interval = 5, stripe count = 4, bb capacity pct = 62.5).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -67,6 +67,7 @@
     <li>Consider whether any fixed factors should be varied in a future study.</li>
   </ul>
   </section>
+
 
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -95,6 +96,7 @@
       </div>
     </div>
   </section>
+
 
 
 
@@ -295,6 +297,135 @@ Factor importance:
   1. stripe_count  (effect: 9.1, contribution: 48.6%)
   2. bb_capacity_pct  (effect: 7.1, contribution: 37.9%)
   3. checkpoint_interval  (effect: 2.5, contribution: 13.4%)</div></div>
+  </section>
+
+  
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9545</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>write_throughput_GBs</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>98.17 0.9545       98.17 GB/s</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>app_disruption_sec</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>8.21 0.9545        8.21 seconds</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>checkpoint_interval</code></td><td>17.5 minutes</td></tr>
+            <tr><td><code>stripe_count</code></td><td>4</td></tr>
+            <tr><td><code>bb_capacity_pct</code></td><td>100 %</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #12</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>app_disruption_sec</code></td><td>8.21</td><td>8.21</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#3</td><td><strong>0.7852</strong></td><td style="font-size:.78rem;">checkpoint_interval=5,  stripe_count=64,  bb_capacity_pct=62.5</td></tr>
+            <tr><td>#10</td><td><strong>0.6762</strong></td><td style="font-size:.78rem;">checkpoint_interval=5,  stripe_count=4,  bb_capacity_pct=62.5</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>app_disruption_sec</code></td><td style="color:#dc2626;font-weight:600;">0.1933</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9545
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+write_throughput_GBs         1.5       0.9545       98.17 GB/s   ↑
+app_disruption_sec           1.0       0.9545        8.21 seconds   ↓
+
+Recommended settings:
+  checkpoint_interval = 17.5 minutes
+  stripe_count = 4
+  bb_capacity_pct = 100 %
+  (from observed run #12)
+
+Trade-off summary:
+  write_throughput_GBs: 98.17 (best observed: 98.17, sacrifice: +0.00)
+  app_disruption_sec: 8.21 (best observed: 8.21, sacrifice: +0.00)
+
+Model quality:
+  write_throughput_GBs: R² = 0.1064 (linear)
+  app_disruption_sec: R² = 0.1933 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #12 (D=0.9545): checkpoint_interval=17.5, stripe_count=4, bb_capacity_pct=100
+  2. Run #3 (D=0.7852): checkpoint_interval=5, stripe_count=64, bb_capacity_pct=62.5
+  3. Run #10 (D=0.6762): checkpoint_interval=5, stripe_count=4, bb_capacity_pct=62.5</div></div>
   </section>
 
   <div class="chapter-nav">

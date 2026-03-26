@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>removal pct</strong>, the most influential factors were filter um (46.9%), uv dose mj cm2 (33.6%), flow m3 hr (19.4%). The best observed value was <strong>100.7</strong> (at uv dose mj cm2 = 80, filter um = 4.35645, flow m3 hr = 175).</p>
-<p>For <strong>treatment min</strong>, the most influential factors were flow m3 hr (51.3%), filter um (32.9%), uv dose mj cm2 (15.7%). The best observed value was <strong>8.5</strong> (at uv dose mj cm2 = 80, filter um = 50, flow m3 hr = 403.218).</p>
+    <p>For <strong>removal pct</strong>, the most influential factors were flow m3 hr (44.5%), uv dose mj cm2 (39.4%), filter um (16.1%). The best observed value was <strong>100.7</strong> (at uv dose mj cm2 = 80, filter um = 50, flow m3 hr = 175).</p>
+<p>For <strong>treatment min</strong>, the most influential factors were filter um (42.9%), flow m3 hr (34.8%), uv dose mj cm2 (22.4%). The best observed value was <strong>8.5</strong> (at uv dose mj cm2 = 80, filter um = 50, flow m3 hr = 175).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -250,12 +249,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (removal_pct (↑), treatment_min (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/260_ballast_water/config.json <span class="flag">--multi</span></div>
         </div>
@@ -263,7 +263,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -271,48 +271,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/260_ballast_water/config.json \
     <span class="flag">--output</span> use_cases/260_ballast_water/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Marine &amp; Environmental Test? Use the Manual Workflow</h4>
-        <p>Marine experiments involve real water conditions, living organisms, and environmental factors that require field testing. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/260_ballast_water/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/260_ballast_water/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/260_ballast_water/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/260_ballast_water/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/260_ballast_water/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/260_ballast_water/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/260_ballast_water/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -344,7 +302,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: removal_pct</h3>
-    <p>Top factors: filter_um (46.9%), uv_dose_mj_cm2 (33.6%), flow_m3_hr (19.4%).</p>
+    <p>Top factors: flow_m3_hr (44.5%), uv_dose_mj_cm2 (39.4%), filter_um (16.1%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -357,7 +315,7 @@
     </div>
 
     <h3>Response: treatment_min</h3>
-    <p>Top factors: flow_m3_hr (51.3%), filter_um (32.9%), uv_dose_mj_cm2 (15.7%).</p>
+    <p>Top factors: filter_um (42.9%), flow_m3_hr (34.8%), uv_dose_mj_cm2 (22.4%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -408,92 +366,231 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.8484</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>removal_pct</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:78.44%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7844</span>
+                </div>
+              </td>
+              <td>96.60 0.7844       96.60 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>treatment_min</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>8.50 0.9545        8.50 min/100m3</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>uv_dose_mj_cm2</code></td><td>120 mJ/cm2</td></tr>
+            <tr><td><code>filter_um</code></td><td>25 um</td></tr>
+            <tr><td><code>flow_m3_hr</code></td><td>300 m3/hr</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #2</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>treatment_min</code></td><td>8.50</td><td>8.50</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#12</td><td><strong>0.8063</strong></td><td style="font-size:.78rem;">uv_dose_mj_cm2=80,  filter_um=50,  flow_m3_hr=175</td></tr>
+            <tr><td>#10</td><td><strong>0.7260</strong></td><td style="font-size:.78rem;">uv_dose_mj_cm2=80,  filter_um=50,  flow_m3_hr=175</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>treatment_min</code></td><td style="color:#dc2626;font-weight:600;">0.3886</td><td>quadratic</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.8484
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+removal_pct                  1.5       0.7844       96.60 %   ↑
+treatment_min                1.0       0.9545        8.50 min/100m3   ↓
+
+Recommended settings:
+  uv_dose_mj_cm2 = 120 mJ/cm2
+  filter_um = 25 um
+  flow_m3_hr = 300 m3/hr
+  (from observed run #2)
+
+Trade-off summary:
+  removal_pct: 96.60 (best observed: 100.70, sacrifice: +4.10)
+  treatment_min: 8.50 (best observed: 8.50, sacrifice: +0.00)
+
+Model quality:
+  removal_pct: R² = 0.4046 (quadratic)
+  treatment_min: R² = 0.3886 (quadratic)
+
+Top 3 observed runs by overall desirability:
+  1. Run #2 (D=0.8484): uv_dose_mj_cm2=120, filter_um=25, flow_m3_hr=300
+  2. Run #12 (D=0.8063): uv_dose_mj_cm2=80, filter_um=50, flow_m3_hr=175
+  3. Run #10 (D=0.7260): uv_dose_mj_cm2=80, filter_um=50, flow_m3_hr=175</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_removal_pct_uv_dose_mj_cm2_vs_filter_um.png
-  RSM surface: rsm_removal_pct_uv_dose_mj_cm2_vs_flow_m3_hr.png
-  RSM surface: rsm_removal_pct_filter_um_vs_flow_m3_hr.png
-  RSM surface: rsm_treatment_min_uv_dose_mj_cm2_vs_filter_um.png
-  RSM surface: rsm_treatment_min_uv_dose_mj_cm2_vs_flow_m3_hr.png
-  RSM surface: rsm_treatment_min_filter_um_vs_flow_m3_hr.png
-
-=== Main Effects: removal_pct ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: removal_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-filter_um               16.2000       1.0898            46.9%
-uv_dose_mj_cm2          11.6000       1.0898            33.6%
-flow_m3_hr               6.7083       1.0898            19.4%
+flow_m3_hr              16.7750       1.0898            44.5%
+uv_dose_mj_cm2          14.8500       1.0898            39.4%
+filter_um                6.0750       1.0898            16.1%
+
+=== ANOVA Table: removal_pct ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+uv_dose_mj_cm2               4     234.7295      58.6824     13.217     0.0008
+filter_um                    4     118.4570      29.6142      6.670     0.0089
+flow_m3_hr                   4     259.7811      64.9453     14.627     0.0006
+Lack of Fit                  2       0.0000       0.0000      0.000     1.0000
+Pure Error                   7      31.0800       4.4400
+Error                        9       0.0000       4.4400
+Total                       21     548.7186      26.1295
 
 === Summary Statistics: removal_pct ===
 
 uv_dose_mj_cm2:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  120                 4    93.9750     4.2571    89.6000    99.8000
-  153.03              1    89.1000     0.0000    89.1000    89.1000
-  40                  4    91.2750     4.4925    85.8000    96.8000
-  6.97033             1   100.7000     0.0000   100.7000   100.7000
-  80                 12    91.1417     5.4202    78.8000    97.8000
+  120                 4    92.2500     4.8508    85.8000    96.8000
+  153.03              1    82.9000     0.0000    82.9000    82.9000
+  40                  4    97.7500     3.5782    92.7000   100.7000
+  6.97033             1    89.1000     0.0000    89.1000    89.1000
+  80                 12    91.0417     4.3169    78.8000    96.6000
 
 filter_um:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  25                  4    94.4000     4.7244    89.6000    99.8000
-  4.35645             1    95.0000     0.0000    95.0000    95.0000
-  50                 12    92.4750     4.5743    82.9000   100.7000
-  75                  4    90.8500     3.5275    85.8000    93.6000
-  95.6435             1    78.8000     0.0000    78.8000    78.8000
+  25                  4    94.8250     6.4510    85.8000   100.7000
+  4.35645             1    92.6000     0.0000    92.6000    92.6000
+  50                 12    90.2333     4.8711    78.8000    96.6000
+  75                  4    95.1750     3.8474    91.4000    99.8000
+  95.6435             1    89.1000     0.0000    89.1000    89.1000
 
 flow_m3_hr:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -53.2177            1    92.6000     0.0000    92.6000    92.6000
-  175                12    91.0917     5.8170    78.8000   100.7000
-  300                 4    92.7750     3.1500    89.6000    96.8000
-  403.218             1    97.8000     0.0000    97.8000    97.8000
-  50                  4    92.4750     5.7604    85.8000    99.8000
+  -53.2177            1    92.8000     0.0000    92.8000    92.8000
+  175                12    91.0750     3.3314    82.9000    96.6000
+  300                 4    95.5750     2.2396    92.7000    97.8000
+  403.218             1    78.8000     0.0000    78.8000    78.8000
+  50                  4    94.4250     7.1135    85.8000   100.7000
 
 === Main Effects: treatment_min ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-flow_m3_hr              12.1500       0.9989            51.3%
-filter_um                7.8000       0.9989            32.9%
-uv_dose_mj_cm2           3.7250       0.9989            15.7%
+filter_um                7.7000       0.9989            42.9%
+flow_m3_hr               6.2500       0.9989            34.8%
+uv_dose_mj_cm2           4.0167       0.9989            22.4%
+
+=== ANOVA Table: treatment_min ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+uv_dose_mj_cm2               4      78.5042      19.6261      1.000     0.4556
+filter_um                    4     114.8617      28.7154      1.464     0.2909
+flow_m3_hr                   4     104.5259      26.1315      1.332     0.3299
+Lack of Fit                  2      25.7203      12.8601      0.655     0.5484
+Pure Error                   7     137.3387      19.6198
+Error                        9     163.0590      19.6198
+Total                       21     460.9509      21.9500
 
 === Summary Statistics: treatment_min ===
 
 uv_dose_mj_cm2:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  120                 4    15.2250     5.4689     9.1000    22.4000
-  153.03              1    18.1000     0.0000    18.1000    18.1000
-  40                  4    18.9500     5.1319    14.6000    25.2000
-  6.97033             1    18.5000     0.0000    18.5000    18.5000
-  80                 12    15.3250     4.6720     8.5000    27.0000
+  120                 4    18.4500     5.7216    12.9000    25.2000
+  153.03              1    15.1000     0.0000    15.1000    15.1000
+  40                  4    18.6500     5.8711    14.4000    27.0000
+  6.97033             1    18.1000     0.0000    18.1000    18.1000
+  80                 12    14.6333     4.0545     8.5000    22.4000
 
 filter_um:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  25                  4    14.8000     4.9119     9.1000    21.1000
-  4.35645             1    12.9000     0.0000    12.9000    12.9000
-  50                 12    15.5750     4.4961     8.5000    27.0000
-  75                  4    19.3750     5.2360    14.9000    25.2000
-  95.6435             1    20.7000     0.0000    20.7000    20.7000
+  25                  4    20.9000     6.4668    12.9000    27.0000
+  4.35645             1    15.5000     0.0000    15.5000    15.5000
+  50                 12    15.0083     4.1404     8.5000    22.4000
+  75                  4    16.2000     3.2690    14.4000    21.1000
+  95.6435             1    13.2000     0.0000    13.2000    13.2000
 
 flow_m3_hr:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -53.2177            1    15.3000     0.0000    15.3000    15.3000
-  175                12    14.8500     3.2873     8.5000    20.7000
-  300                 4    16.8750     6.1299     9.1000    22.4000
-  403.218             1    27.0000     0.0000    27.0000    27.0000
-  50                  4    17.3000     5.2726    14.4000    25.2000
-
-Pareto chart (removal_pct): use_cases/260_ballast_water/results/analysis/pareto_removal_pct.png
-
-Pareto chart (treatment_min): use_cases/260_ballast_water/results/analysis/pareto_treatment_min.png
-Main effects (removal_pct): use_cases/260_ballast_water/results/analysis/main_effects_removal_pct.png
-Main effects (treatment_min): use_cases/260_ballast_water/results/analysis/main_effects_treatment_min.png</div></div>
+  -53.2177            1    14.7000     0.0000    14.7000    14.7000
+  175                12    14.4500     3.7641     8.5000    22.4000
+  300                 4    18.9250     6.4314    12.9000    27.0000
+  403.218             1    20.7000     0.0000    20.7000    20.7000
+  50                  4    18.1750     5.0493    14.4000    25.2000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: removal_pct ===
@@ -501,52 +598,57 @@ Direction: maximize
 
 Best observed run: #16
   uv_dose_mj_cm2 = 80
-  filter_um = 4.35645
+  filter_um = 50
   flow_m3_hr = 175
   Value: 100.7
 
-RSM Model (linear, R² = 0.4567, Adj R² = 0.3661):
+RSM Model (linear, R² = 0.1076, Adj R² = -0.0412):
   Coefficients:
     intercept                      +92.0227
-    uv_dose_mj_cm2                 +0.3528
-    filter_um                      -2.5859
-    flow_m3_hr                     +3.2054
+    uv_dose_mj_cm2                 -0.4217
+    filter_um                      +1.9584
+    flow_m3_hr                     +0.1068
 
-RSM Model (quadratic, R² = 0.8024, Adj R² = 0.6542):
+RSM Model (quadratic, R² = 0.2844, Adj R² = -0.2523):
   Coefficients:
-    intercept                      +91.7543
-    uv_dose_mj_cm2                 +0.3528
-    filter_um                      -2.5859
-    flow_m3_hr                     +3.2054
-    uv_dose_mj_cm2*filter_um       +1.2250
-    uv_dose_mj_cm2*flow_m3_hr      -3.9750
-    filter_um*flow_m3_hr           +1.0750
-    uv_dose_mj_cm2^2               -0.1808
-    filter_um^2                    +1.2142
-    flow_m3_hr^2                   -0.6308
+    intercept                      +90.9767
+    uv_dose_mj_cm2                 -0.4217
+    filter_um                      +1.9584
+    flow_m3_hr                     +0.1068
+    uv_dose_mj_cm2*filter_um       +0.9875
+    uv_dose_mj_cm2*flow_m3_hr      -0.2875
+    filter_um*flow_m3_hr           -0.3875
+    uv_dose_mj_cm2^2               +1.2730
+    filter_um^2                    +1.2580
+    flow_m3_hr^2                   -0.9620
 
   Curvature analysis:
-    filter_um                      coef=+1.2142  convex (has a minimum)
-    flow_m3_hr                     coef=-0.6308  concave (has a maximum)
-    uv_dose_mj_cm2                 coef=-0.1808  concave (has a maximum)
+    uv_dose_mj_cm2                 coef=+1.2730  convex (has a minimum)
+    filter_um                      coef=+1.2580  convex (has a minimum)
+    flow_m3_hr                     coef=-0.9620  concave (has a maximum)
 
   Notable interactions:
-    uv_dose_mj_cm2*flow_m3_hr      coef=-3.9750  (antagonistic)
-    uv_dose_mj_cm2*filter_um       coef=+1.2250  (synergistic)
-    filter_um*flow_m3_hr           coef=+1.0750  (synergistic)
+    uv_dose_mj_cm2*filter_um       coef=+0.9875  (synergistic)
+    filter_um*flow_m3_hr           coef=-0.3875  (antagonistic)
 
-  Predicted optimum (from quadratic model):
+  Predicted optimum (from linear model, at observed points):
+    uv_dose_mj_cm2 = 80
+    filter_um = 95.6435
+    flow_m3_hr = 175
+    Predicted value: 95.5982
+
+  Surface optimum (via L-BFGS-B, linear model):
     uv_dose_mj_cm2 = 40
-    filter_um = 25
+    filter_um = 75
     flow_m3_hr = 300
-    Predicted value: 101.7204
+    Predicted value: 94.5096
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. flow_m3_hr  (effect: 13.7, contribution: 47.7%)
-  2. filter_um  (effect: 11.2, contribution: 38.9%)
-  3. uv_dose_mj_cm2  (effect: 3.9, contribution: 13.5%)
+  1. flow_m3_hr  (effect: 11.8, contribution: 42.5%)
+  2. filter_um  (effect: 10.2, contribution: 36.6%)
+  3. uv_dose_mj_cm2  (effect: 5.8, contribution: 20.9%)
 
 === Optimization: treatment_min ===
 Direction: minimize
@@ -554,51 +656,56 @@ Direction: minimize
 Best observed run: #2
   uv_dose_mj_cm2 = 80
   filter_um = 50
-  flow_m3_hr = 403.218
+  flow_m3_hr = 175
   Value: 8.5
 
-RSM Model (linear, R² = 0.1535, Adj R² = 0.0124):
+RSM Model (linear, R² = 0.1422, Adj R² = -0.0008):
   Coefficients:
     intercept                      +16.2364
-    uv_dose_mj_cm2                 -0.6458
-    filter_um                      -0.6346
-    flow_m3_hr                     -2.0011
+    uv_dose_mj_cm2                 -0.4081
+    filter_um                      +0.9529
+    flow_m3_hr                     -1.8423
 
-RSM Model (quadratic, R² = 0.5255, Adj R² = 0.1696):
+RSM Model (quadratic, R² = 0.4084, Adj R² = -0.0353):
   Coefficients:
-    intercept                      +19.0903
-    uv_dose_mj_cm2                 -0.6458
-    filter_um                      -0.6346
-    flow_m3_hr                     -2.0011
-    uv_dose_mj_cm2*filter_um       -1.8875
-    uv_dose_mj_cm2*flow_m3_hr      -0.5125
-    filter_um*flow_m3_hr           -0.8625
-    uv_dose_mj_cm2^2               -1.8770
-    filter_um^2                    -0.4520
-    flow_m3_hr^2                   -1.9520
+    intercept                      +17.1035
+    uv_dose_mj_cm2                 -0.4081
+    filter_um                      +0.9529
+    flow_m3_hr                     -1.8423
+    uv_dose_mj_cm2*filter_um       +2.7875
+    uv_dose_mj_cm2*flow_m3_hr      -1.0875
+    filter_um*flow_m3_hr           +0.0375
+    uv_dose_mj_cm2^2               +0.6564
+    filter_um^2                    -1.1886
+    flow_m3_hr^2                   -0.7686
 
   Curvature analysis:
-    flow_m3_hr                     coef=-1.9520  concave (has a maximum)
-    uv_dose_mj_cm2                 coef=-1.8770  concave (has a maximum)
-    filter_um                      coef=-0.4520  concave (has a maximum)
+    filter_um                      coef=-1.1886  concave (has a maximum)
+    flow_m3_hr                     coef=-0.7686  concave (has a maximum)
+    uv_dose_mj_cm2                 coef=+0.6564  convex (has a minimum)
 
   Notable interactions:
-    uv_dose_mj_cm2*filter_um       coef=-1.8875  (antagonistic)
-    filter_um*flow_m3_hr           coef=-0.8625  (antagonistic)
-    uv_dose_mj_cm2*flow_m3_hr      coef=-0.5125  (antagonistic)
+    uv_dose_mj_cm2*filter_um       coef=+2.7875  (synergistic)
+    uv_dose_mj_cm2*flow_m3_hr      coef=-1.0875  (antagonistic)
 
-  Predicted optimum (from quadratic model):
+  Predicted optimum (from linear model, at observed points):
     uv_dose_mj_cm2 = 80
     filter_um = 50
-    flow_m3_hr = 175
-    Predicted value: 19.0903
+    flow_m3_hr = -53.2177
+    Predicted value: 19.5999
 
-  Model quality: Moderate fit — use predictions directionally, not precisely.
+  Surface optimum (via L-BFGS-B, linear model):
+    uv_dose_mj_cm2 = 120
+    filter_um = 25
+    flow_m3_hr = 300
+    Predicted value: 13.0331
+
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. flow_m3_hr  (effect: 9.1, contribution: 43.7%)
-  2. uv_dose_mj_cm2  (effect: 8.3, contribution: 40.0%)
-  3. filter_um  (effect: 3.4, contribution: 16.4%)</div></div>
+  1. filter_um  (effect: 8.4, contribution: 36.4%)
+  2. flow_m3_hr  (effect: 8.2, contribution: 35.8%)
+  3. uv_dose_mj_cm2  (effect: 6.4, contribution: 27.8%)</div></div>
   </section>
 
   <!-- Nav -->

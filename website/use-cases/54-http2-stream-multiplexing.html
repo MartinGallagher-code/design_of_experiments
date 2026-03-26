@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>page load ms</strong>, the most influential factors were window size kb (60.5%), priority enabled (34.6%), max concurrent streams (4.1%). The best observed value was <strong>768.0</strong> (at max concurrent streams = 250, window size kb = 1024, header table kb = 64).</p>
-<p>For <strong>ttfb ms</strong>, the most influential factors were window size kb (71.2%), max concurrent streams (14.2%), header table kb (8.0%). The best observed value was <strong>59.0</strong> (at max concurrent streams = 250, window size kb = 1024, header table kb = 64).</p>
+    <p>For <strong>page load ms</strong>, the most influential factors were window size kb (39.1%), header table kb (36.2%), priority enabled (14.9%). The best observed value was <strong>768.0</strong> (at max concurrent streams = 250, window size kb = 1024, header table kb = 4).</p>
+<p>For <strong>ttfb ms</strong>, the most influential factors were priority enabled (53.0%), header table kb (29.6%), max concurrent streams (9.7%). The best observed value was <strong>59.0</strong> (at max concurrent streams = 250, window size kb = 1024, header table kb = 4).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -257,6 +256,18 @@
     <div class="uc-step">
       <div class="uc-step-num">6</div>
       <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/54_http2_stream_multiplexing/config.json <span class="flag">--multi</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">7</div>
+      <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
@@ -294,7 +305,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: page_load_ms</h3>
-    <p>Top factors: window_size_kb (60.5%), priority_enabled (34.6%), max_concurrent_streams (4.1%).</p>
+    <p>Top factors: window_size_kb (39.1%), header_table_kb (36.2%), priority_enabled (14.9%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -307,7 +318,7 @@
     </div>
 
     <h3>Response: ttfb_ms</h3>
-    <p>Top factors: window_size_kb (71.2%), max_concurrent_streams (14.2%), header_table_kb (8.0%).</p>
+    <p>Top factors: priority_enabled (53.0%), header_table_kb (29.6%), max_concurrent_streams (9.7%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -358,95 +369,259 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9545</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>page_load_ms</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>768.00 0.9545      768.00 ms</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>ttfb_ms</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>59.00 0.9545       59.00 ms</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>max_concurrent_streams</code></td><td>250 streams</td></tr>
+            <tr><td><code>window_size_kb</code></td><td>1024 KB</td></tr>
+            <tr><td><code>header_table_kb</code></td><td>4 KB</td></tr>
+            <tr><td><code>priority_enabled</code></td><td>off</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #12</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>ttfb_ms</code></td><td>59.00</td><td>59.00</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#1</td><td><strong>0.8000</strong></td><td style="font-size:.78rem;">max_concurrent_streams=50,  window_size_kb=1024,  header_table_kb=4,  priority_enabled=off</td></tr>
+            <tr><td>#11</td><td><strong>0.7989</strong></td><td style="font-size:.78rem;">max_concurrent_streams=250,  window_size_kb=64,  header_table_kb=64,  priority_enabled=on</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>ttfb_ms</code></td><td style="color:#dc2626;font-weight:600;">0.3317</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9545
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+page_load_ms                 1.5       0.9545      768.00 ms   ↓
+ttfb_ms                      1.0       0.9545       59.00 ms   ↓
+
+Recommended settings:
+  max_concurrent_streams = 250 streams
+  window_size_kb = 1024 KB
+  header_table_kb = 4 KB
+  priority_enabled = off
+  (from observed run #12)
+
+Trade-off summary:
+  page_load_ms: 768.00 (best observed: 768.00, sacrifice: +0.00)
+  ttfb_ms: 59.00 (best observed: 59.00, sacrifice: +0.00)
+
+Model quality:
+  page_load_ms: R² = 0.3958 (linear)
+  ttfb_ms: R² = 0.3317 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #12 (D=0.9545): max_concurrent_streams=250, window_size_kb=1024, header_table_kb=4, priority_enabled=off
+  2. Run #1 (D=0.8000): max_concurrent_streams=50, window_size_kb=1024, header_table_kb=4, priority_enabled=off
+  3. Run #11 (D=0.7989): max_concurrent_streams=250, window_size_kb=64, header_table_kb=64, priority_enabled=on</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: page_load_ms ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-window_size_kb        -224.1250      76.0311            60.5%
-priority_enabled      -128.1250      76.0311            34.6%
-max_concurrent_streams    15.3750      76.0311             4.1%
-header_table_kb         -2.8750      76.0311             0.8%
+window_size_kb          99.8750      76.0311            39.1%
+header_table_kb        -92.3750      76.0311            36.2%
+priority_enabled        38.1250      76.0311            14.9%
+max_concurrent_streams   -25.1250      76.0311             9.8%
+
+=== ANOVA Table: page_load_ms ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+max_concurrent_streams       1    2525.0625    2525.0625      0.012     0.9186
+window_size_kb               1   39900.0625   39900.0625      0.182     0.6870
+header_table_kb              1   34132.5625   34132.5625      0.156     0.7091
+priority_enabled             1    5814.0625    5814.0625      0.027     0.8769
+max_concurrent_streams*window_size_kb    1   63378.0625   63378.0625      0.290     0.6134
+max_concurrent_streams*header_table_kb    1  104490.5625  104490.5625      0.478     0.5202
+max_concurrent_streams*priority_enabled    1      10.5625      10.5625      0.000     0.9947
+window_size_kb*header_table_kb    1   13053.0625   13053.0625      0.060     0.8167
+window_size_kb*priority_enabled    1    6683.0625    6683.0625      0.031     0.8681
+header_table_kb*priority_enabled    1   23947.5625   23947.5625      0.110     0.7541
+Error                        5 1093438.3125  218687.6625
+Total                       15 1387372.9375   92491.5292
 
 === Interaction Effects: page_load_ms ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-max_concurrent_streams header_table_kb          365.1250            46.9%
-max_concurrent_streams window_size_kb          -233.1250            29.9%
-max_concurrent_streams priority_enabled          79.3750            10.2%
-window_size_kb       header_table_kb           52.6250             6.8%
-header_table_kb      priority_enabled          44.6250             5.7%
-window_size_kb       priority_enabled           3.8750             0.5%
+max_concurrent_streams header_table_kb          161.6250            34.8%
+max_concurrent_streams window_size_kb           125.8750            27.1%
+header_table_kb      priority_enabled          77.3750            16.7%
+window_size_kb       header_table_kb           57.1250            12.3%
+window_size_kb       priority_enabled         -40.8750             8.8%
+max_concurrent_streams priority_enabled           1.6250             0.3%
 
 === Summary Statistics: page_load_ms ===
 
 max_concurrent_streams:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  250                 8  1264.2500   285.2977   903.0000  1809.0000
-  50                  8  1279.6250   341.5644   768.0000  1693.0000
+  250                 8  1284.5000   301.9901   966.0000  1809.0000
+  50                  8  1259.3750   326.5538   768.0000  1680.0000
 
 window_size_kb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1024                8  1384.0000   328.4213   903.0000  1809.0000
-  64                  8  1159.8750   248.2570   768.0000  1502.0000
+  1024                8  1222.0000   289.3199   768.0000  1693.0000
+  64                  8  1321.8750   329.8335   903.0000  1809.0000
 
 header_table_kb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  4                   8  1273.3750   329.9225   768.0000  1809.0000
-  64                  8  1270.5000   298.9023   903.0000  1693.0000
+  4                   8  1318.1250   362.9858   903.0000  1809.0000
+  64                  8  1225.7500   248.1156   768.0000  1502.0000
 
 priority_enabled:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 8  1336.0000   312.1186   966.0000  1809.0000
-  on                  8  1207.8750   302.3203   768.0000  1693.0000
+  off                 8  1252.8750   342.7746   768.0000  1693.0000
+  on                  8  1291.0000   282.6148   903.0000  1809.0000
 
 === Main Effects: ttfb_ms ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-window_size_kb         -25.6250      10.2158            71.2%
-max_concurrent_streams    -5.1250      10.2158            14.2%
-header_table_kb         -2.8750      10.2158             8.0%
-priority_enabled        -2.3750      10.2158             6.6%
+priority_enabled        26.6250      10.2158            53.0%
+header_table_kb        -14.8750      10.2158            29.6%
+max_concurrent_streams    -4.8750      10.2158             9.7%
+window_size_kb           3.8750      10.2158             7.7%
+
+=== ANOVA Table: ttfb_ms ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+max_concurrent_streams       1      95.0625      95.0625      0.028     0.8745
+window_size_kb               1      60.0625      60.0625      0.017     0.9000
+header_table_kb              1     885.0625     885.0625      0.257     0.6336
+priority_enabled             1    2835.5625    2835.5625      0.824     0.4056
+max_concurrent_streams*window_size_kb    1    1958.0625    1958.0625      0.569     0.4846
+max_concurrent_streams*header_table_kb    1    1350.5625    1350.5625      0.393     0.5585
+max_concurrent_streams*priority_enabled    1     189.0625     189.0625      0.055     0.8240
+window_size_kb*header_table_kb    1       3.0625       3.0625      0.001     0.9774
+window_size_kb*priority_enabled    1     390.0625     390.0625      0.113     0.7500
+header_table_kb*priority_enabled    1      76.5625      76.5625      0.022     0.8872
+Error                        5   17203.8125    3440.7625
+Total                       15   25046.9375    1669.7958
 
 === Interaction Effects: ttfb_ms ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-max_concurrent_streams header_table_kb           61.6250            56.3%
-max_concurrent_streams window_size_kb           -21.6250            19.7%
-header_table_kb      priority_enabled          15.8750            14.5%
-max_concurrent_streams priority_enabled           4.1250             3.8%
-window_size_kb       priority_enabled           3.6250             3.3%
-window_size_kb       header_table_kb            2.6250             2.4%
+max_concurrent_streams window_size_kb            22.1250            35.4%
+max_concurrent_streams header_table_kb           18.3750            29.4%
+window_size_kb       priority_enabled          -9.8750            15.8%
+max_concurrent_streams priority_enabled           6.8750            11.0%
+header_table_kb      priority_enabled           4.3750             7.0%
+window_size_kb       header_table_kb           -0.8750             1.4%
 
 === Summary Statistics: ttfb_ms ===
 
 max_concurrent_streams:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  250                 8   130.5000    42.3489    68.0000   200.0000
-  50                  8   125.3750    42.0678    59.0000   181.0000
+  250                 8   130.3750    40.8129    79.0000   200.0000
+  50                  8   125.5000    43.5759    59.0000   169.0000
 
 window_size_kb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1024                8   140.7500    38.5477    99.0000   200.0000
-  64                  8   115.1250    41.4365    59.0000   168.0000
+  1024                8   126.0000    43.9090    59.0000   181.0000
+  64                  8   129.8750    40.5161    79.0000   200.0000
 
 header_table_kb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  4                   8   129.3750    46.6321    59.0000   200.0000
-  64                  8   126.5000    37.4013    68.0000   181.0000
+  4                   8   135.3750    48.6883    68.0000   200.0000
+  64                  8   120.5000    32.8807    59.0000   168.0000
 
 priority_enabled:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 8   129.1250    47.7536    68.0000   200.0000
-  on                  8   126.7500    35.9792    59.0000   181.0000</div></div>
+  off                 8   114.6250    45.9936    59.0000   181.0000
+  on                  8   141.2500    32.5214   103.0000   200.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: page_load_ms ===
@@ -455,64 +630,71 @@ Direction: minimize
 Best observed run: #12
   max_concurrent_streams = 250
   window_size_kb = 1024
-  header_table_kb = 64
+  header_table_kb = 4
   priority_enabled = on
   Value: 768.0
 
-RSM Model (linear, R² = 0.0662, Adj R² = -0.2734):
+RSM Model (linear, R² = 0.1902, Adj R² = -0.1042):
   Coefficients:
     intercept                      +1271.9375
-    max_concurrent_streams         +1.8125
-    window_size_kb                 -44.6875
-    header_table_kb                +46.8125
-    priority_enabled               -39.3125
+    max_concurrent_streams         -77.9375
+    window_size_kb                 +89.1875
+    header_table_kb                +12.5625
+    priority_enabled               -48.0625
 
-RSM Model (quadratic, R² = 0.5517, Adj R² = -5.7239):
+RSM Model (quadratic, R² = 0.8727, Adj R² = -0.9100):
   Coefficients:
     intercept                      +254.3875
-    max_concurrent_streams         +1.8125
-    window_size_kb                 -44.6875
-    header_table_kb                +46.8125
-    priority_enabled               -39.3125
-    max_concurrent_streams*window_size_kb -109.8125
-    max_concurrent_streams*header_table_kb -59.8125
-    max_concurrent_streams*priority_enabled +55.5625
-    window_size_kb*header_table_kb -89.8125
-    window_size_kb*priority_enabled -123.6875
-    header_table_kb*priority_enabled +4.0625
+    max_concurrent_streams         -77.9375
+    window_size_kb                 +89.1875
+    header_table_kb                +12.5625
+    priority_enabled               -48.0625
+    max_concurrent_streams*window_size_kb -82.9375
+    max_concurrent_streams*header_table_kb +83.6875
+    max_concurrent_streams*priority_enabled +107.0625
+    window_size_kb*header_table_kb +119.0625
+    window_size_kb*priority_enabled +58.6875
+    header_table_kb*priority_enabled +127.3125
     max_concurrent_streams^2       +254.3875
     window_size_kb^2               +254.3875
     header_table_kb^2              +254.3875
     priority_enabled^2             +254.3875
 
   Curvature analysis:
-    header_table_kb                coef=+254.3875  convex (has a minimum)
     max_concurrent_streams         coef=+254.3875  convex (has a minimum)
     window_size_kb                 coef=+254.3875  convex (has a minimum)
+    header_table_kb                coef=+254.3875  convex (has a minimum)
     priority_enabled               coef=+254.3875  convex (has a minimum)
 
   Notable interactions:
-    window_size_kb*priority_enabled coef=-123.6875  (antagonistic)
-    max_concurrent_streams*window_size_kb coef=-109.8125  (antagonistic)
-    window_size_kb*header_table_kb coef=-89.8125  (antagonistic)
-    max_concurrent_streams*header_table_kb coef=-59.8125  (antagonistic)
-    max_concurrent_streams*priority_enabled coef=+55.5625  (synergistic)
-    header_table_kb*priority_enabled coef=+4.0625  (synergistic)
+    header_table_kb*priority_enabled coef=+127.3125  (synergistic)
+    window_size_kb*header_table_kb coef=+119.0625  (synergistic)
+    max_concurrent_streams*priority_enabled coef=+107.0625  (synergistic)
+    max_concurrent_streams*header_table_kb coef=+83.6875  (synergistic)
+    max_concurrent_streams*window_size_kb coef=-82.9375  (antagonistic)
+    window_size_kb*priority_enabled coef=+58.6875  (synergistic)
 
-  Predicted optimum (from linear model):
-    max_concurrent_streams = 250
-    window_size_kb = 64
+  Predicted optimum (from linear model, at observed points):
+    max_concurrent_streams = 50
+    window_size_kb = 1024
     header_table_kb = 64
     priority_enabled = off
-    Predicted value: 1404.5625
+    Predicted value: 1499.6875
+
+  Surface optimum (via L-BFGS-B, linear model):
+    max_concurrent_streams = 250
+    window_size_kb = 64
+    header_table_kb = 4
+    priority_enabled = on
+    Predicted value: 1044.1875
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. header_table_kb  (effect: 93.6, contribution: 35.3%)
-  2. window_size_kb  (effect: 89.4, contribution: 33.7%)
-  3. priority_enabled  (effect: -78.6, contribution: 29.6%)
-  4. max_concurrent_streams  (effect: -3.6, contribution: 1.4%)
+  1. window_size_kb  (effect: -178.4, contribution: 39.2%)
+  2. max_concurrent_streams  (effect: 155.9, contribution: 34.2%)
+  3. priority_enabled  (effect: -96.1, contribution: 21.1%)
+  4. header_table_kb  (effect: 25.1, contribution: 5.5%)
 
 === Optimization: ttfb_ms ===
 Direction: minimize
@@ -520,31 +702,31 @@ Direction: minimize
 Best observed run: #12
   max_concurrent_streams = 250
   window_size_kb = 1024
-  header_table_kb = 64
+  header_table_kb = 4
   priority_enabled = on
   Value: 59.0
 
-RSM Model (linear, R² = 0.0783, Adj R² = -0.2568):
+RSM Model (linear, R² = 0.1262, Adj R² = -0.1916):
   Coefficients:
     intercept                      +127.9375
-    max_concurrent_streams         +7.9375
-    window_size_kb                 -0.6875
-    header_table_kb                +5.4375
-    priority_enabled               -5.4375
+    max_concurrent_streams         -7.1875
+    window_size_kb                 +10.9375
+    header_table_kb                -4.4375
+    priority_enabled               -2.5625
 
-RSM Model (quadratic, R² = 0.5089, Adj R² = -6.3658):
+RSM Model (quadratic, R² = 0.8757, Adj R² = -0.8642):
   Coefficients:
     intercept                      +25.5875
-    max_concurrent_streams         +7.9375
-    window_size_kb                 -0.6875
-    header_table_kb                +5.4375
-    priority_enabled               -5.4375
-    max_concurrent_streams*window_size_kb -13.9375
-    max_concurrent_streams*header_table_kb -11.0625
-    max_concurrent_streams*priority_enabled +2.3125
-    window_size_kb*header_table_kb -12.6875
-    window_size_kb*priority_enabled -13.5625
-    header_table_kb*priority_enabled -2.6875
+    max_concurrent_streams         -7.1875
+    window_size_kb                 +10.9375
+    header_table_kb                -4.4375
+    priority_enabled               -2.5625
+    max_concurrent_streams*window_size_kb -8.6875
+    max_concurrent_streams*header_table_kb +9.4375
+    max_concurrent_streams*priority_enabled +9.3125
+    window_size_kb*header_table_kb +19.0625
+    window_size_kb*priority_enabled +6.1875
+    header_table_kb*priority_enabled +22.8125
     max_concurrent_streams^2       +25.5875
     window_size_kb^2               +25.5875
     header_table_kb^2              +25.5875
@@ -552,32 +734,39 @@ RSM Model (quadratic, R² = 0.5089, Adj R² = -6.3658):
 
   Curvature analysis:
     max_concurrent_streams         coef=+25.5875  convex (has a minimum)
+    window_size_kb                 coef=+25.5875  convex (has a minimum)
     header_table_kb                coef=+25.5875  convex (has a minimum)
     priority_enabled               coef=+25.5875  convex (has a minimum)
-    window_size_kb                 coef=+25.5875  convex (has a minimum)
 
   Notable interactions:
-    max_concurrent_streams*window_size_kb coef=-13.9375  (antagonistic)
-    window_size_kb*priority_enabled coef=-13.5625  (antagonistic)
-    window_size_kb*header_table_kb coef=-12.6875  (antagonistic)
-    max_concurrent_streams*header_table_kb coef=-11.0625  (antagonistic)
-    header_table_kb*priority_enabled coef=-2.6875  (antagonistic)
-    max_concurrent_streams*priority_enabled coef=+2.3125  (synergistic)
+    header_table_kb*priority_enabled coef=+22.8125  (synergistic)
+    window_size_kb*header_table_kb coef=+19.0625  (synergistic)
+    max_concurrent_streams*header_table_kb coef=+9.4375  (synergistic)
+    max_concurrent_streams*priority_enabled coef=+9.3125  (synergistic)
+    max_concurrent_streams*window_size_kb coef=-8.6875  (antagonistic)
+    window_size_kb*priority_enabled coef=+6.1875  (synergistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
+    max_concurrent_streams = 50
+    window_size_kb = 1024
+    header_table_kb = 4
+    priority_enabled = off
+    Predicted value: 153.0625
+
+  Surface optimum (via L-BFGS-B, linear model):
     max_concurrent_streams = 250
     window_size_kb = 64
     header_table_kb = 64
-    priority_enabled = off
-    Predicted value: 147.4375
+    priority_enabled = on
+    Predicted value: 102.8125
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. max_concurrent_streams  (effect: -15.9, contribution: 40.7%)
-  2. header_table_kb  (effect: 10.9, contribution: 27.9%)
-  3. priority_enabled  (effect: -10.9, contribution: 27.9%)
-  4. window_size_kb  (effect: 1.4, contribution: 3.5%)</div></div>
+  1. window_size_kb  (effect: -21.9, contribution: 43.5%)
+  2. max_concurrent_streams  (effect: 14.4, contribution: 28.6%)
+  3. header_table_kb  (effect: -8.9, contribution: 17.7%)
+  4. priority_enabled  (effect: -5.1, contribution: 10.2%)</div></div>
   </section>
 
   <!-- Nav -->

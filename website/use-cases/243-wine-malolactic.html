@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>mlf completion pct</strong>, the most influential factors were cellar temp c (59.9%), inoc rate (28.6%), free so2 ppm (11.5%). The best observed value was <strong>97.0</strong> (at inoc rate = 0.5, cellar temp c = 18.5, free so2 ppm = 5).</p>
-<p>For <strong>va g L</strong>, the most influential factors were cellar temp c (44.5%), inoc rate (39.0%), free so2 ppm (16.5%). The best observed value was <strong>0.21</strong> (at inoc rate = 1.25, cellar temp c = 15, free so2 ppm = 25).</p>
+    <p>For <strong>mlf completion pct</strong>, the most influential factors were free so2 ppm (43.2%), inoc rate (33.5%), cellar temp c (23.3%). The best observed value was <strong>97.0</strong> (at inoc rate = 1.25, cellar temp c = 22, free so2 ppm = 25).</p>
+<p>For <strong>va g L</strong>, the most influential factors were inoc rate (51.9%), free so2 ppm (35.5%), cellar temp c (12.5%). The best observed value was <strong>0.21</strong> (at inoc rate = 1.25, cellar temp c = 15, free so2 ppm = 25).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (mlf_completion_pct (↑), va_g_L (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/243_wine_malolactic/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -264,48 +264,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/243_wine_malolactic/config.json \
     <span class="flag">--output</span> use_cases/243_wine_malolactic/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Fermentation Experiment? Use the Manual Workflow</h4>
-        <p>Fermentation experiments involve living cultures, temperature-sensitive biological processes, and flavors that must be tasted and measured. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/243_wine_malolactic/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/243_wine_malolactic/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/243_wine_malolactic/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/243_wine_malolactic/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/243_wine_malolactic/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/243_wine_malolactic/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/243_wine_malolactic/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -337,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: mlf_completion_pct</h3>
-    <p>Top factors: cellar_temp_c (59.9%), inoc_rate (28.6%), free_so2_ppm (11.5%).</p>
+    <p>Top factors: free_so2_ppm (43.2%), inoc_rate (33.5%), cellar_temp_c (23.3%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -350,7 +308,7 @@
     </div>
 
     <h3>Response: va_g_L</h3>
-    <p>Top factors: cellar_temp_c (44.5%), inoc_rate (39.0%), free_so2_ppm (16.5%).</p>
+    <p>Top factors: inoc_rate (51.9%), free_so2_ppm (35.5%), cellar_temp_c (12.5%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -401,133 +359,278 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.7584</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>mlf_completion_pct</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:90.25999999999999%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9026</span>
+                </div>
+              </td>
+              <td>95.00 0.9026       95.00 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>va_g_L</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:58.42%;height:100%;background:#f97316;border-radius:4px;"></div>
+                  </div>
+                  <span>0.5842</span>
+                </div>
+              </td>
+              <td>0.32 0.5842        0.32 g/L</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>inoc_rate</code></td><td>0.5 g/hL</td></tr>
+            <tr><td><code>cellar_temp_c</code></td><td>15 C</td></tr>
+            <tr><td><code>free_so2_ppm</code></td><td>15 ppm</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #4</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>va_g_L</code></td><td>0.32</td><td>0.21</td><td><span style="color:#dc2626;">+0.11</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#1</td><td><strong>0.7346</strong></td><td style="font-size:.78rem;">inoc_rate=1.25,  cellar_temp_c=18.5,  free_so2_ppm=15</td></tr>
+            <tr><td>#15</td><td><strong>0.7063</strong></td><td style="font-size:.78rem;">inoc_rate=1.25,  cellar_temp_c=15,  free_so2_ppm=5</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>va_g_L</code></td><td style="color:#dc2626;font-weight:600;">0.0784</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.7584
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+mlf_completion_pct           1.5       0.9026       95.00 %   ↑
+va_g_L                       1.0       0.5842        0.32 g/L   ↓
+
+Recommended settings:
+  inoc_rate = 0.5 g/hL
+  cellar_temp_c = 15 C
+  free_so2_ppm = 15 ppm
+  (from observed run #4)
+
+Trade-off summary:
+  mlf_completion_pct: 95.00 (best observed: 97.00, sacrifice: +2.00)
+  va_g_L: 0.32 (best observed: 0.21, sacrifice: +0.11)
+
+Model quality:
+  mlf_completion_pct: R² = 0.0241 (linear)
+  va_g_L: R² = 0.0784 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #4 (D=0.7584): inoc_rate=0.5, cellar_temp_c=15, free_so2_ppm=15
+  2. Run #1 (D=0.7346): inoc_rate=1.25, cellar_temp_c=18.5, free_so2_ppm=15
+  3. Run #15 (D=0.7063): inoc_rate=1.25, cellar_temp_c=15, free_so2_ppm=5</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_mlf_completion_pct_inoc_rate_vs_cellar_temp_c.png
-  RSM surface: rsm_mlf_completion_pct_inoc_rate_vs_free_so2_ppm.png
-  RSM surface: rsm_mlf_completion_pct_cellar_temp_c_vs_free_so2_ppm.png
-  RSM surface: rsm_va_g_L_inoc_rate_vs_cellar_temp_c.png
-  RSM surface: rsm_va_g_L_inoc_rate_vs_free_so2_ppm.png
-  RSM surface: rsm_va_g_L_cellar_temp_c_vs_free_so2_ppm.png
-
-=== Main Effects: mlf_completion_pct ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: mlf_completion_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-cellar_temp_c           13.2500       2.6565            59.9%
-inoc_rate                6.3214       2.6565            28.6%
-free_so2_ppm             2.5357       2.6565            11.5%
+free_so2_ppm            10.3929       2.6565            43.2%
+inoc_rate                8.0714       2.6565            33.5%
+cellar_temp_c            5.6071       2.6565            23.3%
+
+=== ANOVA Table: mlf_completion_pct ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+inoc_rate                    2     171.2857      85.6429      4.212     0.0563
+cellar_temp_c                2      81.3929      40.6964      2.001     0.1973
+free_so2_ppm                 2     280.3929     140.1964      6.895     0.0182
+Lack of Fit                  6     908.2619     151.3770      7.445     0.1231
+Pure Error                   2      40.6667      20.3333
+Error                        8     948.9286      20.3333
+Total                       14    1482.0000     105.8571
 
 === Summary Statistics: mlf_completion_pct ===
 
 inoc_rate:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.5                 4    74.2500     7.3201    64.0000    80.0000
-  1.25                7    80.5714    11.9563    66.0000    97.0000
-  2                   4    77.2500    10.9354    62.0000    88.0000
+  0.5                 4    79.0000    13.4907    62.0000    95.0000
+  1.25                7    80.5714    10.4699    64.0000    97.0000
+  2                   4    72.5000     5.9722    66.0000    80.0000
 
 cellar_temp_c:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  15                  4    85.2500     9.1788    77.0000    97.0000
-  18.5                7    77.2857    11.1462    62.0000    95.0000
-  22                  4    72.0000     6.4807    64.0000    79.0000
+  15                  4    81.7500     9.0692    75.0000    95.0000
+  18.5                7    76.1429     9.4239    62.0000    88.0000
+  22                  4    77.5000    14.3875    64.0000    97.0000
 
 free_so2_ppm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  15                  7    79.2857    11.2207    64.0000    95.0000
-  25                  4    77.0000    14.5831    62.0000    97.0000
-  5                   4    76.7500     4.7170    70.0000    80.0000
+  15                  7    82.1429     7.9042    70.0000    95.0000
+  25                  4    71.7500     7.9320    64.0000    80.0000
+  5                   4    77.0000    14.5831    62.0000    97.0000
 
 === Main Effects: va_g_L ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-cellar_temp_c            0.0857       0.0190            44.5%
-inoc_rate                0.0750       0.0190            39.0%
-free_so2_ppm             0.0318       0.0190            16.5%
+inoc_rate                0.0621       0.0190            51.9%
+free_so2_ppm             0.0425       0.0190            35.5%
+cellar_temp_c            0.0150       0.0190            12.5%
+
+=== ANOVA Table: va_g_L ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+inoc_rate                    2       0.0098       0.0049      0.264     0.7746
+cellar_temp_c                2       0.0006       0.0003      0.016     0.9841
+free_so2_ppm                 2       0.0037       0.0018      0.098     0.9076
+Lack of Fit                  6       0.0242       0.0040      0.217     0.9389
+Pure Error                   2       0.0373       0.0186
+Error                        8       0.0615       0.0186
+Total                       14       0.0756       0.0054
 
 === Summary Statistics: va_g_L ===
 
 inoc_rate:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.5                 4     0.2800     0.0408     0.2200     0.3100
-  1.25                7     0.3114     0.0743     0.2100     0.4200
-  2                   4     0.3550     0.0933     0.2700     0.4800
+  0.5                 4     0.3150     0.0420     0.2700     0.3700
+  1.25                7     0.3371     0.0905     0.2100     0.4800
+  2                   4     0.2750     0.0614     0.2200     0.3500
 
 cellar_temp_c:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  15                  4     0.3600     0.0852     0.2900     0.4800
-  18.5                7     0.2743     0.0591     0.2100     0.3700
-  22                  4     0.3400     0.0594     0.2900     0.4200
+  15                  4     0.3125     0.0830     0.2200     0.4200
+  18.5                7     0.3100     0.0918     0.2100     0.4800
+  22                  4     0.3250     0.0351     0.2900     0.3600
 
 free_so2_ppm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  15                  7     0.3057     0.0873     0.2100     0.4800
-  25                  4     0.3375     0.0665     0.2700     0.4200
-  5                   4     0.3075     0.0675     0.2200     0.3700
-
-Pareto chart (mlf_completion_pct): use_cases/243_wine_malolactic/results/analysis/pareto_mlf_completion_pct.png
-
-Pareto chart (va_g_L): use_cases/243_wine_malolactic/results/analysis/pareto_va_g_L.png
-Main effects (mlf_completion_pct): use_cases/243_wine_malolactic/results/analysis/main_effects_mlf_completion_pct.png
-Main effects (va_g_L): use_cases/243_wine_malolactic/results/analysis/main_effects_va_g_L.png</div></div>
+  15                  7     0.3129     0.0901     0.2100     0.4800
+  25                  4     0.2950     0.0574     0.2300     0.3700
+  5                   4     0.3375     0.0665     0.2700     0.4200</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: mlf_completion_pct ===
 Direction: maximize
 
 Best observed run: #15
-  inoc_rate = 0.5
-  cellar_temp_c = 18.5
-  free_so2_ppm = 5
+  inoc_rate = 1.25
+  cellar_temp_c = 22
+  free_so2_ppm = 25
   Value: 97.0
 
-RSM Model (linear, R² = 0.5103, Adj R² = 0.3767):
+RSM Model (linear, R² = 0.1712, Adj R² = -0.0548):
   Coefficients:
     intercept                      +78.0000
-    inoc_rate                      +1.8750
-    cellar_temp_c                  -9.5000
-    free_so2_ppm                   -0.8750
+    inoc_rate                      +1.1250
+    cellar_temp_c                  +5.3750
+    free_so2_ppm                   +1.2500
 
-RSM Model (quadratic, R² = 0.9047, Adj R² = 0.7331):
+RSM Model (quadratic, R² = 0.7143, Adj R² = 0.2000):
   Coefficients:
-    intercept                      +77.0000
-    inoc_rate                      +1.8750
-    cellar_temp_c                  -9.5000
-    free_so2_ppm                   -0.8750
-    inoc_rate*cellar_temp_c        -3.0000
-    inoc_rate*free_so2_ppm         +7.7500
-    cellar_temp_c*free_so2_ppm     -0.5000
-    inoc_rate^2                    +6.3750
-    cellar_temp_c^2                -5.8750
-    free_so2_ppm^2                 +1.3750
+    intercept                      +78.3333
+    inoc_rate                      +1.1250
+    cellar_temp_c                  +5.3750
+    free_so2_ppm                   +1.2500
+    inoc_rate*cellar_temp_c        -3.7500
+    inoc_rate*free_so2_ppm         -11.5000
+    cellar_temp_c*free_so2_ppm     +4.0000
+    inoc_rate^2                    -5.2917
+    cellar_temp_c^2                +2.2083
+    free_so2_ppm^2                 +2.4583
 
   Curvature analysis:
-    inoc_rate                      coef=+6.3750  convex (has a minimum)
-    cellar_temp_c                  coef=-5.8750  concave (has a maximum)
-    free_so2_ppm                   coef=+1.3750  convex (has a minimum)
+    inoc_rate                      coef=-5.2917  concave (has a maximum)
+    free_so2_ppm                   coef=+2.4583  convex (has a minimum)
+    cellar_temp_c                  coef=+2.2083  convex (has a minimum)
 
   Notable interactions:
-    inoc_rate*free_so2_ppm         coef=+7.7500  (synergistic)
-    inoc_rate*cellar_temp_c        coef=-3.0000  (antagonistic)
-    cellar_temp_c*free_so2_ppm     coef=-0.5000  (antagonistic)
+    inoc_rate*free_so2_ppm         coef=-11.5000  (antagonistic)
+    cellar_temp_c*free_so2_ppm     coef=+4.0000  (synergistic)
+    inoc_rate*cellar_temp_c        coef=-3.7500  (antagonistic)
 
-  Predicted optimum (from quadratic model):
-    inoc_rate = 2
-    cellar_temp_c = 18.5
+  Predicted optimum (from quadratic model, at observed points):
+    inoc_rate = 1.25
+    cellar_temp_c = 22
     free_so2_ppm = 25
-    Predicted value: 93.5000
+    Predicted value: 93.6250
 
-  Model quality: Excellent fit — surface predictions are reliable.
+  Surface optimum (via L-BFGS-B, quadratic model):
+    inoc_rate = 0.5
+    cellar_temp_c = 22
+    free_so2_ppm = 25
+    Predicted value: 102.4583
+
+  Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. cellar_temp_c  (effect: 19.0, contribution: 63.8%)
-  2. inoc_rate  (effect: 8.6, contribution: 28.8%)
-  3. free_so2_ppm  (effect: 2.2, contribution: 7.4%)
+  1. cellar_temp_c  (effect: 10.8, contribution: 50.2%)
+  2. inoc_rate  (effect: 6.8, contribution: 31.5%)
+  3. free_so2_ppm  (effect: 3.9, contribution: 18.3%)
 
 === Optimization: va_g_L ===
 Direction: minimize
@@ -538,43 +641,49 @@ Best observed run: #1
   free_so2_ppm = 25
   Value: 0.21
 
-RSM Model (linear, R² = 0.0526, Adj R² = -0.2058):
+RSM Model (linear, R² = 0.1571, Adj R² = -0.0727):
   Coefficients:
     intercept                      +0.3147
-    inoc_rate                      +0.0162
-    cellar_temp_c                  -0.0088
-    free_so2_ppm                   +0.0125
+    inoc_rate                      -0.0088
+    cellar_temp_c                  +0.0375
+    free_so2_ppm                   +0.0012
 
-RSM Model (quadratic, R² = 0.6814, Adj R² = 0.1080):
+RSM Model (quadratic, R² = 0.6607, Adj R² = 0.0500):
   Coefficients:
-    intercept                      +0.2700
-    inoc_rate                      +0.0163
-    cellar_temp_c                  -0.0088
-    free_so2_ppm                   +0.0125
-    inoc_rate*cellar_temp_c        +0.0275
-    inoc_rate*free_so2_ppm         +0.0300
-    cellar_temp_c*free_so2_ppm     +0.0450
-    inoc_rate^2                    +0.0687
-    cellar_temp_c^2                -0.0362
-    free_so2_ppm^2                 +0.0512
+    intercept                      +0.3367
+    inoc_rate                      -0.0087
+    cellar_temp_c                  +0.0375
+    free_so2_ppm                   +0.0013
+    inoc_rate*cellar_temp_c        -0.0600
+    inoc_rate*free_so2_ppm         -0.0325
+    cellar_temp_c*free_so2_ppm     +0.0350
+    inoc_rate^2                    +0.0054
+    cellar_temp_c^2                +0.0129
+    free_so2_ppm^2                 -0.0596
 
   Curvature analysis:
-    inoc_rate                      coef=+0.0687  negligible curvature
-    free_so2_ppm                   coef=+0.0512  negligible curvature
-    cellar_temp_c                  coef=-0.0362  negligible curvature
+    free_so2_ppm                   coef=-0.0596  negligible curvature
+    cellar_temp_c                  coef=+0.0129  negligible curvature
+    inoc_rate                      coef=+0.0054  negligible curvature
 
-  Predicted optimum (from quadratic model):
-    inoc_rate = 2
-    cellar_temp_c = 18.5
+  Predicted optimum (from quadratic model, at observed points):
+    inoc_rate = 0.5
+    cellar_temp_c = 22
+    free_so2_ppm = 15
+    Predicted value: 0.4612
+
+  Surface optimum (via L-BFGS-B, quadratic model):
+    inoc_rate = 0.5
+    cellar_temp_c = 15
     free_so2_ppm = 25
-    Predicted value: 0.4487
+    Predicted value: 0.2054
 
   Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. inoc_rate  (effect: 0.1, contribution: 42.2%)
-  2. free_so2_ppm  (effect: 0.1, contribution: 30.9%)
-  3. cellar_temp_c  (effect: 0.1, contribution: 26.9%)</div></div>
+  1. cellar_temp_c  (effect: 0.1, contribution: 48.5%)
+  2. free_so2_ppm  (effect: 0.1, contribution: 40.2%)
+  3. inoc_rate  (effect: 0.0, contribution: 11.3%)</div></div>
   </section>
 
   <!-- Nav -->

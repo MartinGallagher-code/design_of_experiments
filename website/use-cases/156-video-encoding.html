@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>vmaf score</strong>, the most influential factors were crf (51.9%), gop frames (27.1%), bitrate mbps (21.1%). The best observed value was <strong>92.0</strong> (at bitrate mbps = 27.5, crf = 23, gop frames = 163.351).</p>
-<p>For <strong>file size mb</strong>, the most influential factors were gop frames (42.9%), crf (32.6%), bitrate mbps (24.5%). The best observed value was <strong>48.0</strong> (at bitrate mbps = 27.5, crf = 23, gop frames = 67.5).</p>
+    <p>For <strong>vmaf score</strong>, the most influential factors were gop frames (54.3%), crf (30.5%), bitrate mbps (15.2%). The best observed value was <strong>92.0</strong> (at bitrate mbps = 50, crf = 18, gop frames = 120).</p>
+<p>For <strong>file size mb</strong>, the most influential factors were gop frames (34.8%), crf (33.8%), bitrate mbps (31.4%). The best observed value was <strong>48.0</strong> (at bitrate mbps = 5, crf = 18, gop frames = 120).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -250,12 +249,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (vmaf_score (↑), file_size_mb (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/156_video_encoding/config.json <span class="flag">--multi</span></div>
         </div>
@@ -263,7 +263,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -302,7 +302,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: vmaf_score</h3>
-    <p>Top factors: crf (51.9%), gop_frames (27.1%), bitrate_mbps (21.1%).</p>
+    <p>Top factors: gop_frames (54.3%), crf (30.5%), bitrate_mbps (15.2%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -315,7 +315,7 @@
     </div>
 
     <h3>Response: file_size_mb</h3>
-    <p>Top factors: gop_frames (42.9%), crf (32.6%), bitrate_mbps (24.5%).</p>
+    <p>Top factors: gop_frames (34.8%), crf (33.8%), bitrate_mbps (31.4%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -366,196 +366,348 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.6881</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>vmaf_score</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:72.72999999999999%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7273</span>
+                </div>
+              </td>
+              <td>86.00 0.7273       86.00 VMAF</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>file_size_mb</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:63.32%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.6332</span>
+                </div>
+              </td>
+              <td>200.00 0.6332      200.00 MB/min</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>bitrate_mbps</code></td><td>27.5 Mbps</td></tr>
+            <tr><td><code>crf</code></td><td>23 CRF</td></tr>
+            <tr><td><code>gop_frames</code></td><td>67.5 frames</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #15</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>file_size_mb</code></td><td>200.00</td><td>48.00</td><td><span style="color:#dc2626;">+152.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#20</td><td><strong>0.6867</strong></td><td style="font-size:.78rem;">bitrate_mbps=27.5,  crf=23,  gop_frames=67.5</td></tr>
+            <tr><td>#13</td><td><strong>0.6788</strong></td><td style="font-size:.78rem;">bitrate_mbps=27.5,  crf=32.1287,  gop_frames=67.5</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>file_size_mb</code></td><td style="color:#dc2626;font-weight:600;">0.0485</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.6881
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+vmaf_score                   1.5       0.7273       86.00 VMAF   ↑
+file_size_mb                 1.0       0.6332      200.00 MB/min   ↓
+
+Recommended settings:
+  bitrate_mbps = 27.5 Mbps
+  crf = 23 CRF
+  gop_frames = 67.5 frames
+  (from observed run #15)
+
+Trade-off summary:
+  vmaf_score: 86.00 (best observed: 92.00, sacrifice: +6.00)
+  file_size_mb: 200.00 (best observed: 48.00, sacrifice: +152.00)
+
+Model quality:
+  vmaf_score: R² = 0.0825 (linear)
+  file_size_mb: R² = 0.0485 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #15 (D=0.6881): bitrate_mbps=27.5, crf=23, gop_frames=67.5
+  2. Run #20 (D=0.6867): bitrate_mbps=27.5, crf=23, gop_frames=67.5
+  3. Run #13 (D=0.6788): bitrate_mbps=27.5, crf=32.1287, gop_frames=67.5</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_vmaf_score_bitrate_mbps_vs_crf.png
-  RSM surface: rsm_vmaf_score_bitrate_mbps_vs_gop_frames.png
-  RSM surface: rsm_vmaf_score_crf_vs_gop_frames.png
-  RSM surface: rsm_file_size_mb_bitrate_mbps_vs_crf.png
-  RSM surface: rsm_file_size_mb_bitrate_mbps_vs_gop_frames.png
-  RSM surface: rsm_file_size_mb_crf_vs_gop_frames.png
-
-=== Main Effects: vmaf_score ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: vmaf_score ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-crf                     17.2500       1.4735            51.9%
-gop_frames               9.0000       1.4735            27.1%
-bitrate_mbps             7.0000       1.4735            21.1%
+gop_frames              17.5000       1.4735            54.3%
+crf                      9.8333       1.4735            30.5%
+bitrate_mbps             4.9167       1.4735            15.2%
+
+=== ANOVA Table: vmaf_score ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+bitrate_mbps                 4     100.6742      25.1686      0.351     0.8371
+crf                          4     187.6742      46.9186      0.654     0.6384
+gop_frames                   4     436.4242     109.1061      1.522     0.2754
+Lack of Fit                  2       0.0000       0.0000      0.000     1.0000
+Pure Error                   7     501.8750      71.6964
+Error                        9     278.3182      71.6964
+Total                       21    1003.0909      47.7662
 
 === Summary Statistics: vmaf_score ===
 
 bitrate_mbps:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -13.5792            1    88.0000     0.0000    88.0000    88.0000
-  27.5               12    81.1667     7.7675    68.0000    90.0000
-  5                   4    81.0000     7.3485    70.0000    85.0000
-  50                  4    87.0000     3.3665    85.0000    92.0000
-  68.5792             1    84.0000     0.0000    84.0000    84.0000
+  -13.5792            1    83.0000     0.0000    83.0000    83.0000
+  27.5               12    80.8333     9.0034    68.0000    92.0000
+  5                   4    85.7500     1.7078    84.0000    88.0000
+  50                  4    85.0000     0.8165    84.0000    86.0000
+  68.5792             1    82.0000     0.0000    82.0000    82.0000
 
 crf:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  13.8713             1    68.0000     0.0000    68.0000    68.0000
-  18                  4    85.2500     0.5000    85.0000    86.0000
-  23                 12    82.8333     6.7667    69.0000    90.0000
-  28                  4    82.7500     9.2150    70.0000    92.0000
-  32.1287             1    84.0000     0.0000    84.0000    84.0000
+  13.8713             1    90.0000     0.0000    90.0000    90.0000
+  18                  4    85.2500     1.8930    84.0000    88.0000
+  23                 12    80.1667     8.5475    68.0000    92.0000
+  28                  4    85.5000     0.5774    85.0000    86.0000
+  32.1287             1    83.0000     0.0000    83.0000    83.0000
 
 gop_frames:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -28.3514            1    84.0000     0.0000    84.0000    84.0000
-  120                 4    86.5000     3.6968    84.0000    92.0000
-  15                  4    81.5000     7.6811    70.0000    86.0000
-  163.351             1    90.0000     0.0000    90.0000    90.0000
-  67.5               12    81.0000     7.5799    68.0000    90.0000
+  -28.3514            1    70.0000     0.0000    70.0000    70.0000
+  120                 4    85.2500     0.9574    84.0000    86.0000
+  15                  4    85.5000     1.7321    84.0000    88.0000
+  163.351             1    68.0000     0.0000    68.0000    68.0000
+  67.5               12    83.0833     7.1026    69.0000    92.0000
 
 === Main Effects: file_size_mb ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-gop_frames             218.7500      22.5629            42.9%
-crf                    166.1667      22.5629            32.6%
-bitrate_mbps           125.0000      22.5629            24.5%
+gop_frames             189.6667      22.5629            34.8%
+crf                    184.3333      22.5629            33.8%
+bitrate_mbps           171.0000      22.5629            31.4%
+
+=== ANOVA Table: file_size_mb ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+bitrate_mbps                 4   15326.6742    3831.6686      0.201     0.9315
+crf                          4   39530.4242    9882.6061      0.519     0.7248
+gop_frames                   4   56264.4242   14066.1061      0.738     0.5891
+Lack of Fit                  2       0.0000       0.0000      0.000     1.0000
+Pure Error                   7  133417.8750   19059.6964
+Error                        9  124075.5682   19059.6964
+Total                       21  235197.0909   11199.8615
 
 === Summary Statistics: file_size_mb ===
 
 bitrate_mbps:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -13.5792            1   278.0000     0.0000   278.0000   278.0000
-  27.5               12   220.9167   124.9047    53.0000   478.0000
-  5                   4   153.0000    75.5690    48.0000   212.0000
-  50                  4   242.7500    88.6656   187.0000   375.0000
-  68.5792             1   210.0000     0.0000   210.0000   210.0000
+  -13.5792            1   137.0000     0.0000   137.0000   137.0000
+  27.5               12   216.0833   139.7032    48.0000   478.0000
+  5                   4   217.7500    41.2664   187.0000   278.0000
+  50                  4   203.2500     4.9917   199.0000   210.0000
+  68.5792             1   308.0000     0.0000   308.0000   308.0000
 
 crf:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  13.8713             1    73.0000     0.0000    73.0000    73.0000
-  18                  4   206.2500     5.9090   199.0000   212.0000
-  23                 12   239.1667   116.1870    53.0000   478.0000
-  28                  4   189.5000   136.8223    48.0000   375.0000
-  32.1287             1   196.0000     0.0000   196.0000   196.0000
+  13.8713             1   381.0000     0.0000   381.0000   381.0000
+  18                  4   222.0000    37.7712   196.0000   278.0000
+  23                 12   196.6667   131.8128    48.0000   478.0000
+  28                  4   199.0000     9.4163   187.0000   210.0000
+  32.1287             1   297.0000     0.0000   297.0000   297.0000
 
 gop_frames:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -28.3514            1   193.0000     0.0000   193.0000   193.0000
-  120                 4   233.5000    98.2938   148.0000   375.0000
-  15                  4   162.2500    76.7870    48.0000   210.0000
-  163.351             1   381.0000     0.0000   381.0000   381.0000
-  67.5               12   213.7500   115.9813    53.0000   478.0000
-
-Pareto chart (vmaf_score): use_cases/156_video_encoding/results/analysis/pareto_vmaf_score.png
-
-Pareto chart (file_size_mb): use_cases/156_video_encoding/results/analysis/pareto_file_size_mb.png
-Main effects (vmaf_score): use_cases/156_video_encoding/results/analysis/main_effects_vmaf_score.png
-Main effects (file_size_mb): use_cases/156_video_encoding/results/analysis/main_effects_file_size_mb.png</div></div>
+  -28.3514            1    53.0000     0.0000    53.0000    53.0000
+  120                 4   202.5000     5.9722   196.0000   210.0000
+  15                  4   218.5000    40.7635   187.0000   278.0000
+  163.351             1    73.0000     0.0000    73.0000    73.0000
+  67.5               12   242.6667   125.7128    48.0000   478.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: vmaf_score ===
 Direction: maximize
 
 Best observed run: #2
-  bitrate_mbps = 27.5
-  crf = 23
-  gop_frames = 163.351
+  bitrate_mbps = 50
+  crf = 18
+  gop_frames = 120
   Value: 92.0
 
-RSM Model (linear, R² = 0.1822, Adj R² = 0.0459):
+RSM Model (linear, R² = 0.0861, Adj R² = -0.0662):
   Coefficients:
     intercept                      +82.6364
-    bitrate_mbps                   +1.4819
-    crf                            +3.1477
-    gop_frames                     +0.5986
+    bitrate_mbps                   +1.0703
+    crf                            +0.3528
+    gop_frames                     +2.1487
 
-RSM Model (quadratic, R² = 0.3675, Adj R² = -0.1068):
+RSM Model (quadratic, R² = 0.2402, Adj R² = -0.3297):
   Coefficients:
-    intercept                      +81.4258
-    bitrate_mbps                   +1.4819
-    crf                            +3.1477
-    gop_frames                     +0.5987
-    bitrate_mbps*crf               +0.5000
-    bitrate_mbps*gop_frames        -0.7500
-    crf*gop_frames                 -0.2500
-    bitrate_mbps^2                 -0.8447
-    crf^2                          -0.0947
-    gop_frames^2                   +2.7553
+    intercept                      +81.5179
+    bitrate_mbps                   +1.0703
+    crf                            +0.3528
+    gop_frames                     +2.1487
+    bitrate_mbps*crf               -2.6250
+    bitrate_mbps*gop_frames        +2.3750
+    crf*gop_frames                 +0.8750
+    bitrate_mbps^2                 +0.8092
+    crf^2                          +1.2592
+    gop_frames^2                   -0.3908
 
   Curvature analysis:
-    gop_frames                     coef=+2.7553  convex (has a minimum)
-    bitrate_mbps                   coef=-0.8447  concave (has a maximum)
-    crf                            coef=-0.0947  negligible curvature
+    crf                            coef=+1.2592  convex (has a minimum)
+    bitrate_mbps                   coef=+0.8092  convex (has a minimum)
+    gop_frames                     coef=-0.3908  concave (has a maximum)
 
   Notable interactions:
-    bitrate_mbps*gop_frames        coef=-0.7500  (antagonistic)
-    bitrate_mbps*crf               coef=+0.5000  (synergistic)
+    bitrate_mbps*crf               coef=-2.6250  (antagonistic)
+    bitrate_mbps*gop_frames        coef=+2.3750  (synergistic)
+    crf*gop_frames                 coef=+0.8750  (synergistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     bitrate_mbps = 27.5
-    crf = 32.1287
-    gop_frames = 67.5
-    Predicted value: 88.3833
+    crf = 23
+    gop_frames = 163.351
+    Predicted value: 86.5594
+
+  Surface optimum (via L-BFGS-B, linear model):
+    bitrate_mbps = 50
+    crf = 28
+    gop_frames = 120
+    Predicted value: 86.2081
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. crf  (effect: 22.0, contribution: 44.7%)
-  2. bitrate_mbps  (effect: 15.2, contribution: 31.0%)
-  3. gop_frames  (effect: 11.9, contribution: 24.2%)
+  1. gop_frames  (effect: 20.0, contribution: 66.5%)
+  2. bitrate_mbps  (effect: 5.8, contribution: 19.1%)
+  3. crf  (effect: 4.3, contribution: 14.4%)
 
 === Optimization: file_size_mb ===
 Direction: minimize
 
 Best observed run: #21
-  bitrate_mbps = 27.5
-  crf = 23
-  gop_frames = 67.5
+  bitrate_mbps = 5
+  crf = 18
+  gop_frames = 120
   Value: 48.0
 
-RSM Model (linear, R² = 0.2304, Adj R² = 0.1021):
+RSM Model (linear, R² = 0.3222, Adj R² = 0.2092):
   Coefficients:
     intercept                      +214.6364
-    bitrate_mbps                   +22.5929
-    crf                            +49.8699
-    gop_frames                     +26.3970
+    bitrate_mbps                   +40.0175
+    crf                            -5.5790
+    gop_frames                     +59.4505
 
-RSM Model (quadratic, R² = 0.4458, Adj R² = 0.0301):
+RSM Model (quadratic, R² = 0.4211, Adj R² = -0.0131):
   Coefficients:
-    intercept                      +203.9785
-    bitrate_mbps                   +22.5929
-    crf                            +49.8699
-    gop_frames                     +26.3971
-    bitrate_mbps*crf               +0.5000
-    bitrate_mbps*gop_frames        +1.0000
-    crf*gop_frames                 -19.2500
-    bitrate_mbps^2                 -31.8711
-    crf^2                          +22.2790
-    gop_frames^2                   +25.5790
+    intercept                      +214.0576
+    bitrate_mbps                   +40.0175
+    crf                            -5.5790
+    gop_frames                     +59.4505
+    bitrate_mbps*crf               -30.0000
+    bitrate_mbps*gop_frames        +36.5000
+    crf*gop_frames                 +3.5000
+    bitrate_mbps^2                 +5.5894
+    crf^2                          -12.2606
+    gop_frames^2                   +7.5394
 
   Curvature analysis:
-    bitrate_mbps                   coef=-31.8711  concave (has a maximum)
-    gop_frames                     coef=+25.5790  convex (has a minimum)
-    crf                            coef=+22.2790  convex (has a minimum)
+    crf                            coef=-12.2606  concave (has a maximum)
+    gop_frames                     coef=+7.5394  convex (has a minimum)
+    bitrate_mbps                   coef=+5.5894  convex (has a minimum)
 
   Notable interactions:
-    crf*gop_frames                 coef=-19.2500  (antagonistic)
-    bitrate_mbps*gop_frames        coef=+1.0000  (synergistic)
-    bitrate_mbps*crf               coef=+0.5000  (synergistic)
+    bitrate_mbps*gop_frames        coef=+36.5000  (synergistic)
+    bitrate_mbps*crf               coef=-30.0000  (antagonistic)
+    crf*gop_frames                 coef=+3.5000  (synergistic)
 
-  Predicted optimum (from linear model):
-    bitrate_mbps = 50
+  Predicted optimum (from linear model, at observed points):
+    bitrate_mbps = 27.5
+    crf = 23
+    gop_frames = 163.351
+    Predicted value: 323.1771
+
+  Surface optimum (via L-BFGS-B, linear model):
+    bitrate_mbps = 5
     crf = 28
-    gop_frames = 120
-    Predicted value: 313.4962
+    gop_frames = 15
+    Predicted value: 109.5894
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. crf  (effect: 405.0, contribution: 52.3%)
-  2. bitrate_mbps  (effect: 191.5, contribution: 24.7%)
-  3. gop_frames  (effect: 177.4, contribution: 22.9%)</div></div>
+  1. gop_frames  (effect: 425.0, contribution: 66.4%)
+  2. bitrate_mbps  (effect: 166.0, contribution: 26.0%)
+  3. crf  (effect: 48.6, contribution: 7.6%)</div></div>
   </section>
 
   <!-- Nav -->

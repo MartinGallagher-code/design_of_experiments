@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>torque ripple pct</strong>, the most influential factors were dead time ns (39.3%), pid gain kp (38.3%), pwm frequency khz (22.4%). The best observed value was <strong>5.6</strong> (at pwm frequency khz = 5, dead time ns = 2000, pid gain kp = 5.25).</p>
-<p>For <strong>efficiency pct</strong>, the most influential factors were dead time ns (46.3%), pid gain kp (41.5%), pwm frequency khz (12.2%). The best observed value was <strong>91.8</strong> (at pwm frequency khz = 50, dead time ns = 2000, pid gain kp = 5.25).</p>
+    <p>For <strong>torque ripple pct</strong>, the most influential factors were pwm frequency khz (41.0%), pid gain kp (38.3%), dead time ns (20.6%). The best observed value was <strong>5.6</strong> (at pwm frequency khz = 27.5, dead time ns = 2000, pid gain kp = 0.5).</p>
+<p>For <strong>efficiency pct</strong>, the most influential factors were pwm frequency khz (39.6%), dead time ns (31.6%), pid gain kp (28.8%). The best observed value was <strong>91.8</strong> (at pwm frequency khz = 27.5, dead time ns = 1050, pid gain kp = 5.25).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (torque_ripple_pct (↓), efficiency_pct (↑)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/73_pwm_motor_control/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -295,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: torque_ripple_pct</h3>
-    <p>Top factors: dead_time_ns (39.3%), pid_gain_kp (38.3%), pwm_frequency_khz (22.4%).</p>
+    <p>Top factors: pwm_frequency_khz (41.0%), pid_gain_kp (38.3%), dead_time_ns (20.6%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -308,7 +308,7 @@
     </div>
 
     <h3>Response: efficiency_pct</h3>
-    <p>Top factors: dead_time_ns (46.3%), pid_gain_kp (41.5%), pwm_frequency_khz (12.2%).</p>
+    <p>Top factors: pwm_frequency_khz (39.6%), dead_time_ns (31.6%), pid_gain_kp (28.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -359,172 +359,334 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9545</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>torque_ripple_pct</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>5.60 0.9545        5.60 %</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>efficiency_pct</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>91.80 0.9545       91.80 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>pwm_frequency_khz</code></td><td>27.5 kHz</td></tr>
+            <tr><td><code>dead_time_ns</code></td><td>1050 ns</td></tr>
+            <tr><td><code>pid_gain_kp</code></td><td>5.25 gain</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #9</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>efficiency_pct</code></td><td>91.80</td><td>91.80</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#3</td><td><strong>0.9362</strong></td><td style="font-size:.78rem;">pwm_frequency_khz=50,  dead_time_ns=1050,  pid_gain_kp=0.5</td></tr>
+            <tr><td>#8</td><td><strong>0.8690</strong></td><td style="font-size:.78rem;">pwm_frequency_khz=27.5,  dead_time_ns=100,  pid_gain_kp=10</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>efficiency_pct</code></td><td style="color:#dc2626;font-weight:600;">0.0320</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9545
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+torque_ripple_pct            1.0       0.9545        5.60 %   ↓
+efficiency_pct               1.5       0.9545       91.80 %   ↑
+
+Recommended settings:
+  pwm_frequency_khz = 27.5 kHz
+  dead_time_ns = 1050 ns
+  pid_gain_kp = 5.25 gain
+  (from observed run #9)
+
+Trade-off summary:
+  torque_ripple_pct: 5.60 (best observed: 5.60, sacrifice: +0.00)
+  efficiency_pct: 91.80 (best observed: 91.80, sacrifice: +0.00)
+
+Model quality:
+  torque_ripple_pct: R² = 0.0381 (linear)
+  efficiency_pct: R² = 0.0320 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #9 (D=0.9545): pwm_frequency_khz=27.5, dead_time_ns=1050, pid_gain_kp=5.25
+  2. Run #3 (D=0.9362): pwm_frequency_khz=50, dead_time_ns=1050, pid_gain_kp=0.5
+  3. Run #8 (D=0.8690): pwm_frequency_khz=27.5, dead_time_ns=100, pid_gain_kp=10</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: torque_ripple_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-dead_time_ns             2.1071       1.1600            39.3%
-pid_gain_kp              2.0500       1.1600            38.3%
-pwm_frequency_khz        1.2000       1.1600            22.4%
+pwm_frequency_khz        5.2143       1.1600            41.0%
+pid_gain_kp              4.8750       1.1600            38.3%
+dead_time_ns             2.6250       1.1600            20.6%
+
+=== ANOVA Table: torque_ripple_pct ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+pwm_frequency_khz            2      69.2214      34.6107      2.087     0.1865
+dead_time_ns                 2      13.7839       6.8920      0.416     0.6734
+pid_gain_kp                  2      50.8125      25.4062      1.532     0.2733
+Lack of Fit                  6     115.5755      19.2626      1.162     0.5309
+Pure Error                   2      33.1667      16.5833
+Error                        8     148.7421      16.5833
+Total                       14     282.5600      20.1829
 
 === Summary Statistics: torque_ripple_pct ===
 
 pwm_frequency_khz:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  27.5                7    11.1857     4.7097     5.6000    19.7000
-  5                   4    11.1750     5.1136     5.6000    16.0000
-  50                  4    12.3750     4.7204     6.8000    17.6000
+  27.5                7    13.4143     4.3210     7.3000    19.7000
+  5                   4    11.4500     4.9696     6.8000    17.6000
+  50                  4     8.2000     3.0122     5.6000    11.1000
 
 dead_time_ns:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4    10.0500     4.5618     5.6000    15.0000
-  1050                7    12.1571     3.6377     8.1000    17.6000
-  2000                4    11.8000     6.5559     5.6000    19.7000
+  100                 4    12.8000     1.7108    10.5000    14.6000
+  1050                7    11.5143     4.7569     5.6000    17.6000
+  2000                4    10.1750     6.4350     5.6000    19.7000
 
 pid_gain_kp:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.5                 4    12.7500     6.9419     5.6000    19.7000
-  10                  4    11.6500     3.6738     7.3000    16.0000
-  5.25                7    10.7000     3.8009     5.6000    15.0000
+  0.5                 4     9.5000     2.9200     6.8000    12.8000
+  10                  4    14.3750     6.2131     5.6000    19.7000
+  5.25                7    11.0000     3.8807     5.6000    16.0000
 
 === Main Effects: efficiency_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-dead_time_ns             3.8786       1.1711            46.3%
-pid_gain_kp              3.4821       1.1711            41.5%
-pwm_frequency_khz        1.0250       1.1711            12.2%
+pwm_frequency_khz        4.5357       1.1711            39.6%
+dead_time_ns             3.6250       1.1711            31.6%
+pid_gain_kp              3.3000       1.1711            28.8%
+
+=== ANOVA Table: efficiency_pct ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+pwm_frequency_khz            2      54.1913      27.0956      0.738     0.5081
+dead_time_ns                 2      26.4027      13.2013      0.359     0.7088
+pid_gain_kp                  2      22.0338      11.0169      0.300     0.7488
+Lack of Fit                  6     111.9096      18.6516      0.508     0.7800
+Pure Error                   2      73.4600      36.7300
+Error                        8     185.3696      36.7300
+Total                       14     287.9973      20.5712
 
 === Summary Statistics: efficiency_pct ===
 
 pwm_frequency_khz:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  27.5                7    85.8000     4.0538    80.4000    91.3000
-  5                   4    85.5250     6.4277    76.8000    91.8000
-  50                  4    84.7750     4.5734    79.1000    90.3000
+  27.5                7    84.0143     4.3064    76.8000    88.8000
+  5                   4    84.8750     5.3319    79.1000    90.3000
+  50                  4    88.5500     3.5237    84.8000    91.8000
 
 dead_time_ns:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4    87.5500     3.8310    83.5000    91.3000
-  1050                7    83.6714     4.5977    76.8000    88.6000
-  2000                4    86.4750     4.9379    80.4000    91.8000
+  100                 4    83.7250     1.4930    81.7000    84.9000
+  1050                7    85.3571     5.5317    76.8000    91.3000
+  2000                4    87.3500     4.8754    80.4000    91.8000
 
 pid_gain_kp:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.5                 4    84.8000     5.9738    79.1000    91.3000
-  10                  4    83.4750     4.9889    76.8000    88.8000
-  5.25                7    86.9571     3.4899    81.7000    91.8000</div></div>
+  0.5                 4    87.2250     2.9815    83.5000    90.3000
+  10                  4    83.9250     5.5090    79.1000    91.3000
+  5.25                7    85.3143     4.9707    76.8000    91.8000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: torque_ripple_pct ===
 Direction: minimize
 
 Best observed run: #3
-  pwm_frequency_khz = 5
+  pwm_frequency_khz = 27.5
   dead_time_ns = 2000
-  pid_gain_kp = 5.25
+  pid_gain_kp = 0.5
   Value: 5.6
 
-RSM Model (linear, R² = 0.6934, Adj R² = 0.6098):
+RSM Model (linear, R² = 0.2452, Adj R² = 0.0393):
   Coefficients:
     intercept                      +11.5000
-    pwm_frequency_khz              -1.0000
-    dead_time_ns                   -4.2250
-    pid_gain_kp                    -2.3750
+    pwm_frequency_khz              +1.3625
+    dead_time_ns                   -2.5125
+    pid_gain_kp                    +0.7000
 
-RSM Model (quadratic, R² = 0.8369, Adj R² = 0.5433):
+RSM Model (quadratic, R² = 0.5766, Adj R² = -0.1856):
   Coefficients:
-    intercept                      +11.5333
-    pwm_frequency_khz              -1.0000
-    dead_time_ns                   -4.2250
-    pid_gain_kp                    -2.3750
-    pwm_frequency_khz*dead_time_ns +0.6750
-    pwm_frequency_khz*pid_gain_kp  +1.0750
-    dead_time_ns*pid_gain_kp       +1.8750
-    pwm_frequency_khz^2            -1.7542
-    dead_time_ns^2                 +0.3458
-    pid_gain_kp^2                  +1.3458
+    intercept                      +12.7000
+    pwm_frequency_khz              +1.3625
+    dead_time_ns                   -2.5125
+    pid_gain_kp                    +0.7000
+    pwm_frequency_khz*dead_time_ns -0.0500
+    pwm_frequency_khz*pid_gain_kp  +0.0250
+    dead_time_ns*pid_gain_kp       +1.1250
+    pwm_frequency_khz^2            -1.4750
+    dead_time_ns^2                 +2.7750
+    pid_gain_kp^2                  -3.5500
 
   Curvature analysis:
-    pwm_frequency_khz              coef=-1.7542  concave (has a maximum)
-    pid_gain_kp                    coef=+1.3458  convex (has a minimum)
-    dead_time_ns                   coef=+0.3458  convex (has a minimum)
+    pid_gain_kp                    coef=-3.5500  concave (has a maximum)
+    dead_time_ns                   coef=+2.7750  convex (has a minimum)
+    pwm_frequency_khz              coef=-1.4750  concave (has a maximum)
 
   Notable interactions:
-    dead_time_ns*pid_gain_kp       coef=+1.8750  (synergistic)
-    pwm_frequency_khz*pid_gain_kp  coef=+1.0750  (synergistic)
-    pwm_frequency_khz*dead_time_ns coef=+0.6750  (synergistic)
+    dead_time_ns*pid_gain_kp       coef=+1.1250  (synergistic)
 
-  Predicted optimum (from linear model):
-    pwm_frequency_khz = 27.5
+  Predicted optimum (from linear model, at observed points):
+    pwm_frequency_khz = 50
     dead_time_ns = 100
-    pid_gain_kp = 0.5
-    Predicted value: 18.1000
+    pid_gain_kp = 5.25
+    Predicted value: 15.3750
 
-  Model quality: Moderate fit — use predictions directionally, not precisely.
+  Surface optimum (via L-BFGS-B, linear model):
+    pwm_frequency_khz = 5
+    dead_time_ns = 2000
+    pid_gain_kp = 0.5
+    Predicted value: 6.9250
+
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. dead_time_ns  (effect: 8.5, contribution: 52.6%)
-  2. pid_gain_kp  (effect: 4.8, contribution: 29.5%)
-  3. pwm_frequency_khz  (effect: 2.9, contribution: 17.9%)
+  1. dead_time_ns  (effect: 5.6, contribution: 44.2%)
+  2. pid_gain_kp  (effect: 4.3, contribution: 34.0%)
+  3. pwm_frequency_khz  (effect: 2.8, contribution: 21.8%)
 
 === Optimization: efficiency_pct ===
 Direction: maximize
 
 Best observed run: #9
-  pwm_frequency_khz = 50
-  dead_time_ns = 2000
+  pwm_frequency_khz = 27.5
+  dead_time_ns = 1050
   pid_gain_kp = 5.25
   Value: 91.8
 
-RSM Model (linear, R² = 0.6453, Adj R² = 0.5485):
+RSM Model (linear, R² = 0.3343, Adj R² = 0.1528):
   Coefficients:
     intercept                      +85.4533
-    pwm_frequency_khz              +1.4125
-    dead_time_ns                   +4.0625
-    pid_gain_kp                    +2.1750
+    pwm_frequency_khz              -0.5750
+    dead_time_ns                   +3.0750
+    pid_gain_kp                    -1.5000
 
-RSM Model (quadratic, R² = 0.7513, Adj R² = 0.3035):
+RSM Model (quadratic, R² = 0.6461, Adj R² = 0.0090):
   Coefficients:
-    intercept                      +86.6667
-    pwm_frequency_khz              +1.4125
-    dead_time_ns                   +4.0625
-    pid_gain_kp                    +2.1750
-    pwm_frequency_khz*dead_time_ns -1.1000
-    pwm_frequency_khz*pid_gain_kp  -0.7250
-    dead_time_ns*pid_gain_kp       -2.0250
-    pwm_frequency_khz^2            -0.2333
-    dead_time_ns^2                 -1.0333
-    pid_gain_kp^2                  -1.0083
+    intercept                      +85.2333
+    pwm_frequency_khz              -0.5750
+    dead_time_ns                   +3.0750
+    pid_gain_kp                    -1.5000
+    pwm_frequency_khz*dead_time_ns +0.6750
+    pwm_frequency_khz*pid_gain_kp  -0.4250
+    dead_time_ns*pid_gain_kp       +0.8250
+    pwm_frequency_khz^2            +0.7708
+    dead_time_ns^2                 -3.3792
+    pid_gain_kp^2                  +3.0208
 
   Curvature analysis:
-    dead_time_ns                   coef=-1.0333  concave (has a maximum)
-    pid_gain_kp                    coef=-1.0083  concave (has a maximum)
-    pwm_frequency_khz              coef=-0.2333  concave (has a maximum)
+    dead_time_ns                   coef=-3.3792  concave (has a maximum)
+    pid_gain_kp                    coef=+3.0208  convex (has a minimum)
+    pwm_frequency_khz              coef=+0.7708  convex (has a minimum)
 
   Notable interactions:
-    dead_time_ns*pid_gain_kp       coef=-2.0250  (antagonistic)
-    pwm_frequency_khz*dead_time_ns coef=-1.1000  (antagonistic)
-    pwm_frequency_khz*pid_gain_kp  coef=-0.7250  (antagonistic)
+    dead_time_ns*pid_gain_kp       coef=+0.8250  (synergistic)
+    pwm_frequency_khz*dead_time_ns coef=+0.6750  (synergistic)
+    pwm_frequency_khz*pid_gain_kp  coef=-0.4250  (antagonistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     pwm_frequency_khz = 27.5
     dead_time_ns = 2000
-    pid_gain_kp = 10
-    Predicted value: 91.6908
+    pid_gain_kp = 0.5
+    Predicted value: 90.0283
 
-  Model quality: Moderate fit — use predictions directionally, not precisely.
+  Surface optimum (via L-BFGS-B, linear model):
+    pwm_frequency_khz = 5
+    dead_time_ns = 2000
+    pid_gain_kp = 0.5
+    Predicted value: 90.6033
+
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. dead_time_ns  (effect: 8.1, contribution: 53.1%)
-  2. pid_gain_kp  (effect: 4.4, contribution: 28.4%)
-  3. pwm_frequency_khz  (effect: 2.8, contribution: 18.5%)</div></div>
+  1. dead_time_ns  (effect: 6.7, contribution: 52.5%)
+  2. pid_gain_kp  (effect: 4.7, contribution: 36.8%)
+  3. pwm_frequency_khz  (effect: 1.4, contribution: 10.7%)</div></div>
   </section>
 
   <!-- Nav -->

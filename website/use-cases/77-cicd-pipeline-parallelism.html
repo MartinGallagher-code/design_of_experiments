@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>pipeline duration min</strong>, the most influential factors were cache strategy (44.1%), artifact compression (31.7%), parallel jobs (14.7%). The best observed value was <strong>9.0</strong> (at parallel jobs = 8, runner cpu cores = 2, cache strategy = aggressive).</p>
-<p>For <strong>resource cost usd</strong>, the most influential factors were artifact compression (41.7%), cache strategy (26.3%), parallel jobs (23.4%). The best observed value was <strong>-0.03</strong> (at parallel jobs = 8, runner cpu cores = 8, cache strategy = none).</p>
+    <p>For <strong>pipeline duration min</strong>, the most influential factors were cache strategy (33.7%), artifact compression (33.1%), runner cpu cores (23.0%). The best observed value was <strong>9.0</strong> (at parallel jobs = 8, runner cpu cores = 8, cache strategy = aggressive).</p>
+<p>For <strong>resource cost usd</strong>, the most influential factors were artifact compression (43.1%), cache strategy (38.6%), runner cpu cores (9.4%). The best observed value was <strong>-0.03</strong> (at parallel jobs = 1, runner cpu cores = 8, cache strategy = aggressive).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -257,6 +256,18 @@
     <div class="uc-step">
       <div class="uc-step-num">6</div>
       <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/77_cicd_pipeline_parallelism/config.json <span class="flag">--multi</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">7</div>
+      <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
@@ -294,7 +305,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: pipeline_duration_min</h3>
-    <p>Top factors: cache_strategy (44.1%), artifact_compression (31.7%), parallel_jobs (14.7%).</p>
+    <p>Top factors: cache_strategy (33.7%), artifact_compression (33.1%), runner_cpu_cores (23.0%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -307,7 +318,7 @@
     </div>
 
     <h3>Response: resource_cost_usd</h3>
-    <p>Top factors: artifact_compression (41.7%), cache_strategy (26.3%), parallel_jobs (23.4%).</p>
+    <p>Top factors: artifact_compression (43.1%), cache_strategy (38.6%), runner_cpu_cores (9.4%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -338,95 +349,259 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.8014</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>pipeline_duration_min</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:84.06%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.8406</span>
+                </div>
+              </td>
+              <td>14.10 0.8406       14.10 min</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>resource_cost_usd</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:74.59%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7459</span>
+                </div>
+              </td>
+              <td>0.98 0.7459        0.98 USD</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>parallel_jobs</code></td><td>8 jobs</td></tr>
+            <tr><td><code>runner_cpu_cores</code></td><td>2 cores</td></tr>
+            <tr><td><code>cache_strategy</code></td><td>none</td></tr>
+            <tr><td><code>artifact_compression</code></td><td>on</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #14</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>resource_cost_usd</code></td><td>0.98</td><td>-0.03</td><td><span style="color:#dc2626;">+1.01</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#6</td><td><strong>0.7031</strong></td><td style="font-size:.78rem;">parallel_jobs=1,  runner_cpu_cores=8,  cache_strategy=none,  artifact_compression=off</td></tr>
+            <tr><td>#2</td><td><strong>0.5994</strong></td><td style="font-size:.78rem;">parallel_jobs=8,  runner_cpu_cores=8,  cache_strategy=aggressive,  artifact_compression=off</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>resource_cost_usd</code></td><td style="color:#ca8a04;font-weight:600;">0.5110</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.8014
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+pipeline_duration_min        1.5       0.8406       14.10 min   ↓
+resource_cost_usd            1.0       0.7459        0.98 USD   ↓
+
+Recommended settings:
+  parallel_jobs = 8 jobs
+  runner_cpu_cores = 2 cores
+  cache_strategy = none
+  artifact_compression = on
+  (from observed run #14)
+
+Trade-off summary:
+  pipeline_duration_min: 14.10 (best observed: 9.00, sacrifice: +5.10)
+  resource_cost_usd: 0.98 (best observed: -0.03, sacrifice: +1.01)
+
+Model quality:
+  pipeline_duration_min: R² = 0.2956 (linear)
+  resource_cost_usd: R² = 0.5110 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #14 (D=0.8014): parallel_jobs=8, runner_cpu_cores=2, cache_strategy=none, artifact_compression=on
+  2. Run #6 (D=0.7031): parallel_jobs=1, runner_cpu_cores=8, cache_strategy=none, artifact_compression=off
+  3. Run #2 (D=0.5994): parallel_jobs=8, runner_cpu_cores=8, cache_strategy=aggressive, artifact_compression=off</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: pipeline_duration_min ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-cache_strategy           6.5875       2.9826            44.1%
-artifact_compression     4.7375       2.9826            31.7%
-parallel_jobs           -2.1875       2.9826            14.7%
-runner_cpu_cores        -1.4125       2.9826             9.5%
+cache_strategy          -5.4625       2.9826            33.7%
+artifact_compression    -5.3625       2.9826            33.1%
+runner_cpu_cores         3.7375       2.9826            23.0%
+parallel_jobs           -1.6625       2.9826            10.2%
+
+=== ANOVA Table: pipeline_duration_min ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+parallel_jobs                1      11.0556      11.0556      0.065     0.8087
+runner_cpu_cores             1      55.8756      55.8756      0.329     0.5909
+cache_strategy               1     119.3556     119.3556      0.703     0.4399
+artifact_compression         1     115.0256     115.0256      0.678     0.4478
+parallel_jobs*runner_cpu_cores    1      22.8006      22.8006      0.134     0.7289
+parallel_jobs*cache_strategy    1     148.2306     148.2306      0.874     0.3928
+parallel_jobs*artifact_compression    1     679.9056     679.9056      4.007     0.1017
+runner_cpu_cores*cache_strategy    1     107.6406     107.6406      0.634     0.4619
+runner_cpu_cores*artifact_compression    1       0.6006       0.6006      0.004     0.9549
+cache_strategy*artifact_compression    1      26.2656      26.2656      0.155     0.7102
+Error                        5     848.3131     169.6626
+Total                       15    2135.0694     142.3380
 
 === Interaction Effects: pipeline_duration_min ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-parallel_jobs        runner_cpu_cores          16.6625            51.9%
-runner_cpu_cores     artifact_compression      -6.3125            19.7%
-parallel_jobs        cache_strategy            -4.4875            14.0%
-parallel_jobs        artifact_compression      -3.8375            12.0%
-cache_strategy       artifact_compression       0.5375             1.7%
-runner_cpu_cores     cache_strategy            -0.2625             0.8%
+parallel_jobs        artifact_compression      13.0375            44.0%
+parallel_jobs        cache_strategy             6.0875            20.5%
+runner_cpu_cores     cache_strategy             5.1875            17.5%
+cache_strategy       artifact_compression      -2.5625             8.6%
+parallel_jobs        runner_cpu_cores           2.3875             8.1%
+runner_cpu_cores     artifact_compression       0.3875             1.3%
 
 === Summary Statistics: pipeline_duration_min ===
 
 parallel_jobs:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   8    30.5875    12.8402     9.0000    49.7000
-  8                   8    28.4000    11.7220    10.4000    42.3000
+  1                   8    30.3250    13.4484     9.0000    42.6000
+  8                   8    28.6625    11.0712    14.1000    49.7000
 
 runner_cpu_cores:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  2                   8    30.2000    13.9051    10.4000    49.7000
-  8                   8    28.7875    10.5128     9.0000    42.3000
+  2                   8    27.6250    11.5219    10.4000    42.6000
+  8                   8    31.3625    12.8169     9.0000    49.7000
 
 cache_strategy:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  aggressive          8    26.2000    11.8556     9.0000    42.6000
-  none                8    32.7875    11.8177    10.4000    49.7000
+  aggressive          8    32.2250     7.3085    20.3000    42.3000
+  none                8    26.7625    15.3149     9.0000    49.7000
 
 artifact_compression:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 8    27.1250    12.4616     9.0000    42.3000
-  on                  8    31.8625    11.7002    14.1000    49.7000
+  off                 8    32.1750     9.4488    14.1000    42.6000
+  on                  8    26.8125    14.1173     9.0000    49.7000
 
 === Main Effects: resource_cost_usd ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-artifact_compression    -0.5813       0.3923            41.7%
-cache_strategy          -0.3663       0.3923            26.3%
-parallel_jobs            0.3262       0.3923            23.4%
-runner_cpu_cores         0.1213       0.3923             8.7%
+artifact_compression     0.9938       0.3923            43.1%
+cache_strategy           0.8887       0.3923            38.6%
+runner_cpu_cores        -0.2163       0.3923             9.4%
+parallel_jobs           -0.2063       0.3923             8.9%
+
+=== ANOVA Table: resource_cost_usd ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+parallel_jobs                1       0.1702       0.1702      0.111     0.7523
+runner_cpu_cores             1       0.1871       0.1871      0.122     0.7408
+cache_strategy               1       3.1595       3.1595      2.066     0.2101
+artifact_compression         1       3.9502       3.9502      2.583     0.1689
+parallel_jobs*runner_cpu_cores    1       0.0663       0.0663      0.043     0.8433
+parallel_jobs*cache_strategy    1       3.9502       3.9502      2.583     0.1689
+parallel_jobs*artifact_compression    1       6.9564       6.9564      4.548     0.0861
+runner_cpu_cores*cache_strategy    1       1.4340       1.4340      0.938     0.3774
+runner_cpu_cores*artifact_compression    1       2.7473       2.7473      1.796     0.2378
+cache_strategy*artifact_compression    1       6.6693       6.6693      4.361     0.0911
+Error                        5       7.6471       1.5294
+Total                       15      36.9374       2.4625
 
 === Interaction Effects: resource_cost_usd ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-parallel_jobs        runner_cpu_cores          -1.7138            36.1%
-runner_cpu_cores     artifact_compression       1.3738            28.9%
-cache_strategy       artifact_compression       0.8962            18.9%
-parallel_jobs        cache_strategy             0.4638             9.8%
-parallel_jobs        artifact_compression      -0.2212             4.7%
-runner_cpu_cores     cache_strategy             0.0788             1.7%
+parallel_jobs        artifact_compression      -1.3188            25.6%
+cache_strategy       artifact_compression       1.2913            25.0%
+parallel_jobs        cache_strategy            -0.9938            19.3%
+runner_cpu_cores     artifact_compression      -0.8288            16.1%
+runner_cpu_cores     cache_strategy            -0.5987            11.6%
+parallel_jobs        runner_cpu_cores          -0.1288             2.5%
 
 === Summary Statistics: resource_cost_usd ===
 
 parallel_jobs:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   8     1.4150     1.5693    -0.0300     4.1900
-  8                   8     1.7412     1.6593     0.0000     4.3700
+  1                   8     1.6813     1.7479     0.0000     4.3700
+  8                   8     1.4750     1.4823    -0.0300     4.0300
 
 runner_cpu_cores:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  2                   8     1.5175     1.7395    -0.0300     4.3700
-  8                   8     1.6388     1.4974     0.0000     4.1900
+  2                   8     1.6863     1.7058    -0.0300     4.3700
+  8                   8     1.4700     1.5298     0.0000     4.1900
 
 cache_strategy:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  aggressive          8     1.7613     1.5399     0.1700     4.1900
-  none                8     1.3950     1.6819    -0.0300     4.3700
+  aggressive          8     1.1338     1.1727    -0.0300     3.3500
+  none                8     2.0225     1.8575     0.0700     4.3700
 
 artifact_compression:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 8     1.8688     1.9982    -0.0300     4.3700
-  on                  8     1.2875     1.0444     0.0700     3.3500</div></div>
+  off                 8     1.0813     1.0998     0.0000     3.3500
+  on                  8     2.0750     1.8716    -0.0300     4.3700</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: pipeline_duration_min ===
@@ -434,128 +609,141 @@ Direction: minimize
 
 Best observed run: #12
   parallel_jobs = 8
-  runner_cpu_cores = 2
+  runner_cpu_cores = 8
   cache_strategy = aggressive
   artifact_compression = off
   Value: 9.0
 
-RSM Model (linear, R² = 0.4541, Adj R² = 0.2556):
+RSM Model (linear, R² = 0.1862, Adj R² = -0.1098):
   Coefficients:
     intercept                      +29.4938
-    parallel_jobs                  -3.3937
-    runner_cpu_cores               +3.0062
-    cache_strategy                 +0.7688
-    artifact_compression           +6.2812
+    parallel_jobs                  -3.7562
+    runner_cpu_cores               +0.8312
+    cache_strategy                 -0.2812
+    artifact_compression           +3.1563
 
-RSM Model (quadratic, R² = 0.8283, Adj R² = -1.5757):
+RSM Model (quadratic, R² = 0.4356, Adj R² = -7.4661):
   Coefficients:
     intercept                      +5.8988
-    parallel_jobs                  -3.3938
-    runner_cpu_cores               +3.0062
-    cache_strategy                 +0.7688
-    artifact_compression           +6.2813
-    parallel_jobs*runner_cpu_cores +3.5188
-    parallel_jobs*cache_strategy   +0.7063
-    parallel_jobs*artifact_compression -2.0813
-    runner_cpu_cores*cache_strategy -1.7188
-    runner_cpu_cores*artifact_compression +0.9687
-    cache_strategy*artifact_compression -5.3688
-    parallel_jobs^2                +5.8987
+    parallel_jobs                  -3.7562
+    runner_cpu_cores               +0.8312
+    cache_strategy                 -0.2812
+    artifact_compression           +3.1563
+    parallel_jobs*runner_cpu_cores -1.8938
+    parallel_jobs*cache_strategy   +0.6188
+    parallel_jobs*artifact_compression +3.0812
+    runner_cpu_cores*cache_strategy +1.5812
+    runner_cpu_cores*artifact_compression +3.7187
+    cache_strategy*artifact_compression -1.8687
+    parallel_jobs^2                +5.8988
     runner_cpu_cores^2             +5.8988
     cache_strategy^2               +5.8988
     artifact_compression^2         +5.8988
 
   Curvature analysis:
-    cache_strategy                 coef=+5.8988  convex (has a minimum)
     artifact_compression           coef=+5.8988  convex (has a minimum)
+    parallel_jobs                  coef=+5.8988  convex (has a minimum)
+    cache_strategy                 coef=+5.8988  convex (has a minimum)
     runner_cpu_cores               coef=+5.8988  convex (has a minimum)
-    parallel_jobs                  coef=+5.8987  convex (has a minimum)
 
   Notable interactions:
-    cache_strategy*artifact_compression coef=-5.3688  (antagonistic)
-    parallel_jobs*runner_cpu_cores coef=+3.5188  (synergistic)
-    parallel_jobs*artifact_compression coef=-2.0813  (antagonistic)
-    runner_cpu_cores*cache_strategy coef=-1.7188  (antagonistic)
-    runner_cpu_cores*artifact_compression coef=+0.9687  (synergistic)
-    parallel_jobs*cache_strategy   coef=+0.7063  (synergistic)
+    runner_cpu_cores*artifact_compression coef=+3.7187  (synergistic)
+    parallel_jobs*artifact_compression coef=+3.0812  (synergistic)
+    parallel_jobs*runner_cpu_cores coef=-1.8938  (antagonistic)
+    cache_strategy*artifact_compression coef=-1.8687  (antagonistic)
+    runner_cpu_cores*cache_strategy coef=+1.5812  (synergistic)
+    parallel_jobs*cache_strategy   coef=+0.6188  (synergistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     parallel_jobs = 1
     runner_cpu_cores = 8
-    cache_strategy = none
+    cache_strategy = aggressive
     artifact_compression = on
-    Predicted value: 42.9438
+    Predicted value: 37.5188
+
+  Surface optimum (via L-BFGS-B, linear model):
+    parallel_jobs = 8
+    runner_cpu_cores = 2
+    cache_strategy = aggressive
+    artifact_compression = off
+    Predicted value: 21.4688
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. artifact_compression  (effect: 12.6, contribution: 46.7%)
-  2. parallel_jobs  (effect: -6.8, contribution: 25.2%)
-  3. runner_cpu_cores  (effect: 6.0, contribution: 22.4%)
-  4. cache_strategy  (effect: 1.5, contribution: 5.7%)
+  1. parallel_jobs  (effect: -7.5, contribution: 46.8%)
+  2. artifact_compression  (effect: 6.3, contribution: 39.3%)
+  3. runner_cpu_cores  (effect: 1.7, contribution: 10.4%)
+  4. cache_strategy  (effect: -0.6, contribution: 3.5%)
 
 === Optimization: resource_cost_usd ===
 Direction: minimize
 
 Best observed run: #16
-  parallel_jobs = 8
+  parallel_jobs = 1
   runner_cpu_cores = 8
-  cache_strategy = none
-  artifact_compression = on
+  cache_strategy = aggressive
+  artifact_compression = off
   Value: -0.03
 
-RSM Model (linear, R² = 0.3256, Adj R² = 0.0803):
+RSM Model (linear, R² = 0.1859, Adj R² = -0.1101):
   Coefficients:
     intercept                      +1.5781
-    parallel_jobs                  -0.0919
-    runner_cpu_cores               -0.3606
-    cache_strategy                 -0.3619
-    artifact_compression           -0.6944
+    parallel_jobs                  +0.1906
+    runner_cpu_cores               +0.0669
+    cache_strategy                 -0.0969
+    artifact_compression           -0.6156
 
-RSM Model (quadratic, R² = 0.8619, Adj R² = -1.0709):
+RSM Model (quadratic, R² = 0.3848, Adj R² = -8.2283):
   Coefficients:
     intercept                      +0.3156
-    parallel_jobs                  -0.0919
-    runner_cpu_cores               -0.3606
-    cache_strategy                 -0.3619
-    artifact_compression           -0.6944
-    parallel_jobs*runner_cpu_cores -0.6856
-    parallel_jobs*cache_strategy   -0.3319
-    parallel_jobs*artifact_compression +0.2831
-    runner_cpu_cores*cache_strategy +0.6944
-    runner_cpu_cores*artifact_compression -0.0481
-    cache_strategy*artifact_compression +0.3056
+    parallel_jobs                  +0.1906
+    runner_cpu_cores               +0.0669
+    cache_strategy                 -0.0969
+    artifact_compression           -0.6156
+    parallel_jobs*runner_cpu_cores +0.3469
+    parallel_jobs*cache_strategy   +0.3706
+    parallel_jobs*artifact_compression -0.4131
+    runner_cpu_cores*cache_strategy -0.1356
+    runner_cpu_cores*artifact_compression -0.0644
+    cache_strategy*artifact_compression -0.0906
     parallel_jobs^2                +0.3156
     runner_cpu_cores^2             +0.3156
     cache_strategy^2               +0.3156
     artifact_compression^2         +0.3156
 
   Curvature analysis:
+    runner_cpu_cores               coef=+0.3156  convex (has a minimum)
     parallel_jobs                  coef=+0.3156  convex (has a minimum)
     cache_strategy                 coef=+0.3156  convex (has a minimum)
-    runner_cpu_cores               coef=+0.3156  convex (has a minimum)
     artifact_compression           coef=+0.3156  convex (has a minimum)
 
   Notable interactions:
-    runner_cpu_cores*cache_strategy coef=+0.6944  (synergistic)
-    parallel_jobs*runner_cpu_cores coef=-0.6856  (antagonistic)
-    parallel_jobs*cache_strategy   coef=-0.3319  (antagonistic)
-    cache_strategy*artifact_compression coef=+0.3056  (synergistic)
+    parallel_jobs*artifact_compression coef=-0.4131  (antagonistic)
+    parallel_jobs*cache_strategy   coef=+0.3706  (synergistic)
+    parallel_jobs*runner_cpu_cores coef=+0.3469  (synergistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
+    parallel_jobs = 8
+    runner_cpu_cores = 8
+    cache_strategy = aggressive
+    artifact_compression = off
+    Predicted value: 2.5481
+
+  Surface optimum (via L-BFGS-B, linear model):
     parallel_jobs = 1
     runner_cpu_cores = 2
     cache_strategy = aggressive
-    artifact_compression = off
-    Predicted value: 3.0869
+    artifact_compression = on
+    Predicted value: 0.6081
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. artifact_compression  (effect: -1.4, contribution: 46.0%)
-  2. cache_strategy  (effect: -0.7, contribution: 24.0%)
-  3. runner_cpu_cores  (effect: -0.7, contribution: 23.9%)
-  4. parallel_jobs  (effect: -0.2, contribution: 6.1%)</div></div>
+  1. artifact_compression  (effect: -1.2, contribution: 63.5%)
+  2. parallel_jobs  (effect: 0.4, contribution: 19.7%)
+  3. cache_strategy  (effect: -0.2, contribution: 10.0%)
+  4. runner_cpu_cores  (effect: 0.1, contribution: 6.9%)</div></div>
   </section>
 
   <!-- Nav -->

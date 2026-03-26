@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>honey character</strong>, the most influential factors were nutrient g L (35.3%), ph target (35.3%), honey ratio kg L (29.4%). The best observed value was <strong>7.2</strong> (at honey ratio kg L = 0.3, nutrient g L = 0.5, ph target = 4).</p>
-<p>For <strong>completion days</strong>, the most influential factors were honey ratio kg L (40.3%), nutrient g L (38.3%), ph target (21.3%). The best observed value was <strong>15.0</strong> (at honey ratio kg L = 0.5, nutrient g L = 0.5, ph target = 4).</p>
+    <p>For <strong>honey character</strong>, the most influential factors were ph target (78.8%), nutrient g L (16.4%), honey ratio kg L (4.8%). The best observed value was <strong>7.2</strong> (at honey ratio kg L = 0.4, nutrient g L = 1.75, ph target = 4).</p>
+<p>For <strong>completion days</strong>, the most influential factors were ph target (60.6%), nutrient g L (28.3%), honey ratio kg L (11.0%). The best observed value was <strong>15.0</strong> (at honey ratio kg L = 0.5, nutrient g L = 1.75, ph target = 4.5).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (honey_character (↑), completion_days (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/241_mead_honey_wine/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -264,48 +264,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/241_mead_honey_wine/config.json \
     <span class="flag">--output</span> use_cases/241_mead_honey_wine/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Fermentation Experiment? Use the Manual Workflow</h4>
-        <p>Fermentation experiments involve living cultures, temperature-sensitive biological processes, and flavors that must be tasted and measured. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/241_mead_honey_wine/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/241_mead_honey_wine/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/241_mead_honey_wine/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/241_mead_honey_wine/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/241_mead_honey_wine/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/241_mead_honey_wine/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/241_mead_honey_wine/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -337,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: honey_character</h3>
-    <p>Top factors: nutrient_g_L (35.3%), ph_target (35.3%), honey_ratio_kg_L (29.4%).</p>
+    <p>Top factors: ph_target (78.8%), nutrient_g_L (16.4%), honey_ratio_kg_L (4.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -350,7 +308,7 @@
     </div>
 
     <h3>Response: completion_days</h3>
-    <p>Top factors: honey_ratio_kg_L (40.3%), nutrient_g_L (38.3%), ph_target (21.3%).</p>
+    <p>Top factors: ph_target (60.6%), nutrient_g_L (28.3%), honey_ratio_kg_L (11.0%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -401,183 +359,334 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.8175</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>honey_character</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:94.55%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9455</span>
+                </div>
+              </td>
+              <td>7.18 0.9455        7.18 pts</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>completion_days</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:65.73%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.6573</span>
+                </div>
+              </td>
+              <td>26.12 0.6573       26.12 days</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>honey_ratio_kg_L</code></td><td>0.48 kg/L</td></tr>
+            <tr><td><code>nutrient_g_L</code></td><td>3 g/L</td></tr>
+            <tr><td><code>ph_target</code></td><td>4.5 pH</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from RSM model prediction</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>completion_days</code></td><td>26.12</td><td>15.00</td><td><span style="color:#dc2626;">+11.12</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#6</td><td><strong>0.6449</strong></td><td style="font-size:.78rem;">honey_ratio_kg_L=0.4,  nutrient_g_L=1.75,  ph_target=4</td></tr>
+            <tr><td>#3</td><td><strong>0.6313</strong></td><td style="font-size:.78rem;">honey_ratio_kg_L=0.3,  nutrient_g_L=0.5,  ph_target=4</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>completion_days</code></td><td style="color:#ca8a04;font-weight:600;">0.7374</td><td>quadratic</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.8175
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+honey_character              1.5       0.9455        7.18 pts   ↑
+completion_days              1.0       0.6573       26.12 days   ↓
+
+Recommended settings:
+  honey_ratio_kg_L = 0.48 kg/L
+  nutrient_g_L = 3 g/L
+  ph_target = 4.5 pH
+  (from RSM model prediction)
+
+Trade-off summary:
+  honey_character: 7.18 (best observed: 7.20, sacrifice: +0.02)
+  completion_days: 26.12 (best observed: 15.00, sacrifice: +11.12)
+
+Model quality:
+  honey_character: R² = 0.9013 (quadratic)
+  completion_days: R² = 0.7374 (quadratic)
+
+Top 3 observed runs by overall desirability:
+  1. Run #12 (D=0.7238): honey_ratio_kg_L=0.4, nutrient_g_L=3, ph_target=4.5
+  2. Run #6 (D=0.6449): honey_ratio_kg_L=0.4, nutrient_g_L=1.75, ph_target=4
+  3. Run #3 (D=0.6313): honey_ratio_kg_L=0.3, nutrient_g_L=0.5, ph_target=4</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_honey_character_honey_ratio_kg_L_vs_nutrient_g_L.png
-  RSM surface: rsm_honey_character_honey_ratio_kg_L_vs_ph_target.png
-  RSM surface: rsm_honey_character_nutrient_g_L_vs_ph_target.png
-  RSM surface: rsm_completion_days_honey_ratio_kg_L_vs_nutrient_g_L.png
-  RSM surface: rsm_completion_days_honey_ratio_kg_L_vs_ph_target.png
-  RSM surface: rsm_completion_days_nutrient_g_L_vs_ph_target.png
-
-=== Main Effects: honey_character ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: honey_character ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-nutrient_g_L             0.7250       0.1828            35.3%
-ph_target                0.7250       0.1828            35.3%
-honey_ratio_kg_L         0.6036       0.1828            29.4%
+ph_target                0.8250       0.1828            78.8%
+nutrient_g_L             0.1714       0.1828            16.4%
+honey_ratio_kg_L         0.0500       0.1828             4.8%
+
+=== ANOVA Table: honey_character ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+honey_ratio_kg_L             2       0.0073       0.0037      1.100     0.3784
+nutrient_g_L                 2       0.0955       0.0478     14.332     0.0023
+ph_target                    2       1.3727       0.6863    205.904     0.0000
+Lack of Fit                  6       5.5351       0.9225    276.755     0.0036
+Pure Error                   2       0.0067       0.0033
+Error                        8       5.5418       0.0033
+Total                       14       7.0173       0.5012
 
 === Summary Statistics: honey_character ===
 
 honey_ratio_kg_L:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.3                 4     6.2250     0.7805     5.1000     6.9000
-  0.4                 7     6.5286     0.7296     5.1000     7.2000
-  0.5                 4     5.9250     0.5909     5.1000     6.4000
+  0.3                 4     6.3000     0.8756     5.1000     7.2000
+  0.4                 7     6.3000     0.6608     5.1000     7.1000
+  0.5                 4     6.2500     0.8347     5.1000     7.0000
 
 nutrient_g_L:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.5                 4     6.5250     0.3403     6.2000     7.0000
-  1.75                7     6.4286     0.6676     5.1000     7.2000
-  3                   4     5.8000     0.9452     5.1000     7.1000
+  0.5                 4     6.2250     0.8995     5.1000     7.0000
+  1.75                7     6.3714     0.6370     5.1000     7.2000
+  3                   4     6.2000     0.8287     5.1000     7.1000
 
 ph_target:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  3.5                 4     5.9000     0.9557     5.1000     7.0000
-  4                   7     6.3143     0.6619     5.1000     7.2000
-  4.5                 4     6.6250     0.4425     6.2000     7.1000
+  3.5                 4     6.7250     0.5909     5.9000     7.2000
+  4                   7     6.2571     0.5711     5.1000     7.0000
+  4.5                 4     5.9000     0.9381     5.1000     6.9000
 
 === Main Effects: completion_days ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-honey_ratio_kg_L         3.6429       2.5388            40.3%
-nutrient_g_L             3.4643       2.5388            38.3%
-ph_target                1.9286       2.5388            21.3%
+ph_target               13.7500       2.5388            60.6%
+nutrient_g_L             6.4286       2.5388            28.3%
+honey_ratio_kg_L         2.5000       2.5388            11.0%
+
+=== ANOVA Table: completion_days ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+honey_ratio_kg_L             2      14.6000       7.3000      0.082     0.9223
+nutrient_g_L                 2     109.1357      54.5679      0.611     0.5664
+ph_target                    2     444.9929     222.4964      2.491     0.1442
+Lack of Fit                  6     606.2048     101.0341      1.131     0.5393
+Pure Error                   2     178.6667      89.3333
+Error                        8     784.8714      89.3333
+Total                       14    1353.6000      96.6857
 
 === Summary Statistics: completion_days ===
 
 honey_ratio_kg_L:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.3                 4    30.5000    11.2101    19.0000    44.0000
-  0.4                 7    34.1429     8.7831    26.0000    49.0000
-  0.5                 4    32.0000    12.6227    15.0000    43.0000
+  0.3                 4    31.0000    11.3431    19.0000    43.0000
+  0.4                 7    33.0000    10.1653    15.0000    44.0000
+  0.5                 4    33.5000    10.5357    26.0000    49.0000
 
 nutrient_g_L:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.5                 4    34.7500    13.7204    19.0000    49.0000
-  1.75                7    31.2857     9.2685    15.0000    44.0000
-  3                   4    32.7500     8.9954    24.0000    41.0000
+  0.5                 4    37.0000    10.4243    24.0000    49.0000
+  1.75                7    30.5714     8.2837    19.0000    44.0000
+  3                   4    31.7500    12.9968    15.0000    43.0000
 
 ph_target:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  3.5                 4    33.5000    15.8008    15.0000    49.0000
-  4                   7    31.5714     9.0343    19.0000    43.0000
-  4.5                 4    33.5000     5.8023    28.0000    41.0000
-
-Pareto chart (honey_character): use_cases/241_mead_honey_wine/results/analysis/pareto_honey_character.png
-
-Pareto chart (completion_days): use_cases/241_mead_honey_wine/results/analysis/pareto_completion_days.png
-Main effects (honey_character): use_cases/241_mead_honey_wine/results/analysis/main_effects_honey_character.png
-Main effects (completion_days): use_cases/241_mead_honey_wine/results/analysis/main_effects_completion_days.png</div></div>
+  3.5                 4    37.5000     4.5092    31.0000    41.0000
+  4                   7    34.8571    10.1395    24.0000    49.0000
+  4.5                 4    23.7500     8.7702    15.0000    35.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: honey_character ===
 Direction: maximize
 
 Best observed run: #3
-  honey_ratio_kg_L = 0.3
-  nutrient_g_L = 0.5
+  honey_ratio_kg_L = 0.4
+  nutrient_g_L = 1.75
   ph_target = 4
   Value: 7.2
 
-RSM Model (linear, R² = 0.3053, Adj R² = 0.1159):
+RSM Model (linear, R² = 0.3360, Adj R² = 0.1549):
   Coefficients:
     intercept                      +6.2867
-    honey_ratio_kg_L               -0.3000
-    nutrient_g_L                   +0.0875
-    ph_target                      +0.4125
+    honey_ratio_kg_L               -0.2375
+    nutrient_g_L                   +0.4875
+    ph_target                      -0.0250
 
-RSM Model (quadratic, R² = 0.6303, Adj R² = -0.0351):
+RSM Model (quadratic, R² = 0.8092, Adj R² = 0.4657):
   Coefficients:
-    intercept                      +6.5667
-    honey_ratio_kg_L               -0.3000
-    nutrient_g_L                   +0.0875
-    ph_target                      +0.4125
-    honey_ratio_kg_L*nutrient_g_L  +0.6250
-    honey_ratio_kg_L*ph_target     -0.0750
-    nutrient_g_L*ph_target         -0.1000
-    honey_ratio_kg_L^2             +0.0417
-    nutrient_g_L^2                 -0.1833
-    ph_target^2                    -0.3833
+    intercept                      +7.0333
+    honey_ratio_kg_L               -0.2375
+    nutrient_g_L                   +0.4875
+    ph_target                      -0.0250
+    honey_ratio_kg_L*nutrient_g_L  -0.2000
+    honey_ratio_kg_L*ph_target     -0.3750
+    nutrient_g_L*ph_target         -0.0750
+    honey_ratio_kg_L^2             -0.7417
+    nutrient_g_L^2                 -0.3917
+    ph_target^2                    -0.2667
 
   Curvature analysis:
-    ph_target                      coef=-0.3833  concave (has a maximum)
-    nutrient_g_L                   coef=-0.1833  concave (has a maximum)
-    honey_ratio_kg_L               coef=+0.0417  negligible curvature
+    honey_ratio_kg_L               coef=-0.7417  concave (has a maximum)
+    nutrient_g_L                   coef=-0.3917  concave (has a maximum)
+    ph_target                      coef=-0.2667  concave (has a maximum)
 
   Notable interactions:
-    honey_ratio_kg_L*nutrient_g_L  coef=+0.6250  (synergistic)
+    honey_ratio_kg_L*ph_target     coef=-0.3750  (antagonistic)
 
-  Predicted optimum (from linear model):
-    honey_ratio_kg_L = 0.3
+  Predicted optimum (from quadratic model, at observed points):
+    honey_ratio_kg_L = 0.4
     nutrient_g_L = 1.75
-    ph_target = 4.5
-    Predicted value: 6.9992
+    ph_target = 4
+    Predicted value: 7.0333
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Surface optimum (via L-BFGS-B, quadratic model):
+    honey_ratio_kg_L = 0.373691
+    nutrient_g_L = 2.6069
+    ph_target = 4.02085
+    Predicted value: 7.2311
+
+  Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. ph_target  (effect: 0.8, contribution: 49.4%)
-  2. honey_ratio_kg_L  (effect: 0.6, contribution: 35.9%)
-  3. nutrient_g_L  (effect: 0.2, contribution: 14.7%)
+  1. nutrient_g_L  (effect: 1.0, contribution: 46.0%)
+  2. honey_ratio_kg_L  (effect: 0.9, contribution: 44.0%)
+  3. ph_target  (effect: 0.2, contribution: 9.9%)
 
 === Optimization: completion_days ===
 Direction: minimize
 
 Best observed run: #14
   honey_ratio_kg_L = 0.5
-  nutrient_g_L = 0.5
-  ph_target = 4
+  nutrient_g_L = 1.75
+  ph_target = 4.5
   Value: 15.0
 
-RSM Model (linear, R² = 0.1801, Adj R² = -0.0435):
+RSM Model (linear, R² = 0.4994, Adj R² = 0.3629):
   Coefficients:
     intercept                      +32.6000
-    honey_ratio_kg_L               -3.2500
-    nutrient_g_L                   -0.8750
-    ph_target                      +4.3750
+    honey_ratio_kg_L               -0.5000
+    nutrient_g_L                   +4.5000
+    ph_target                      -8.0000
 
-RSM Model (quadratic, R² = 0.7486, Adj R² = 0.2962):
+RSM Model (quadratic, R² = 0.8979, Adj R² = 0.7142):
   Coefficients:
-    intercept                      +35.0000
-    honey_ratio_kg_L               -3.2500
-    nutrient_g_L                   -0.8750
-    ph_target                      +4.3750
-    honey_ratio_kg_L*nutrient_g_L  +9.7500
-    honey_ratio_kg_L*ph_target     +2.7500
-    nutrient_g_L*ph_target         -3.0000
-    honey_ratio_kg_L^2             +0.0000
-    nutrient_g_L^2                 -8.2500
-    ph_target^2                    +3.7500
+    intercept                      +40.6667
+    honey_ratio_kg_L               -0.5000
+    nutrient_g_L                   +4.5000
+    ph_target                      -8.0000
+    honey_ratio_kg_L*nutrient_g_L  -3.2500
+    honey_ratio_kg_L*ph_target     -6.7500
+    nutrient_g_L*ph_target         +2.2500
+    honey_ratio_kg_L^2             -7.7083
+    nutrient_g_L^2                 -2.7083
+    ph_target^2                    -4.7083
 
   Curvature analysis:
-    nutrient_g_L                   coef=-8.2500  concave (has a maximum)
-    ph_target                      coef=+3.7500  convex (has a minimum)
-    honey_ratio_kg_L               coef=+0.0000  negligible curvature
+    honey_ratio_kg_L               coef=-7.7083  concave (has a maximum)
+    ph_target                      coef=-4.7083  concave (has a maximum)
+    nutrient_g_L                   coef=-2.7083  concave (has a maximum)
 
   Notable interactions:
-    honey_ratio_kg_L*nutrient_g_L  coef=+9.7500  (synergistic)
-    nutrient_g_L*ph_target         coef=-3.0000  (antagonistic)
-    honey_ratio_kg_L*ph_target     coef=+2.7500  (synergistic)
+    honey_ratio_kg_L*ph_target     coef=-6.7500  (antagonistic)
+    honey_ratio_kg_L*nutrient_g_L  coef=-3.2500  (antagonistic)
+    nutrient_g_L*ph_target         coef=+2.2500  (synergistic)
 
-  Predicted optimum (from quadratic model):
-    honey_ratio_kg_L = 0.3
-    nutrient_g_L = 1.75
+  Predicted optimum (from quadratic model, at observed points):
+    honey_ratio_kg_L = 0.4
+    nutrient_g_L = 3
+    ph_target = 3.5
+    Predicted value: 43.5000
+
+  Surface optimum (via L-BFGS-B, quadratic model):
+    honey_ratio_kg_L = 0.5
+    nutrient_g_L = 0.5
     ph_target = 4.5
-    Predicted value: 43.6250
+    Predicted value: 6.7917
 
   Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. nutrient_g_L  (effect: 9.4, contribution: 38.1%)
-  2. ph_target  (effect: 8.8, contribution: 35.5%)
-  3. honey_ratio_kg_L  (effect: 6.5, contribution: 26.4%)</div></div>
+  1. ph_target  (effect: 16.0, contribution: 49.0%)
+  2. nutrient_g_L  (effect: 9.0, contribution: 27.5%)
+  3. honey_ratio_kg_L  (effect: 7.7, contribution: 23.5%)</div></div>
   </section>
 
   <!-- Nav -->

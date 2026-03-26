@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>maturity weeks</strong>, the most influential factors were moisture pct (41.2%), cn ratio (34.9%), turn freq (24.0%). The best observed value was <strong>8.4</strong> (at cn ratio = 30, moisture pct = 40, turn freq = 7).</p>
-<p>For <strong>nutrient score</strong>, the most influential factors were moisture pct (53.3%), cn ratio (35.7%), turn freq (11.0%). The best observed value was <strong>7.1</strong> (at cn ratio = 30, moisture pct = 40, turn freq = 7).</p>
+    <p>For <strong>maturity weeks</strong>, the most influential factors were turn freq (73.6%), moisture pct (16.0%), cn ratio (10.4%). The best observed value was <strong>8.4</strong> (at cn ratio = 20, moisture pct = 52.5, turn freq = 7).</p>
+<p>For <strong>nutrient score</strong>, the most influential factors were turn freq (59.1%), cn ratio (25.5%), moisture pct (15.4%). The best observed value was <strong>7.1</strong> (at cn ratio = 20, moisture pct = 52.5, turn freq = 7).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (maturity_weeks (↓), nutrient_score (↑)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/98_compost_maturity/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -264,48 +264,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/98_compost_maturity/config.json \
     <span class="flag">--output</span> use_cases/98_compost_maturity/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Agriculture Experiment? Use the Manual Workflow</h4>
-        <p>Agricultural experiments involve real soil, plants, weather, and growing seasons. Results depend on biological processes that can't be scripted. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/98_compost_maturity/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/98_compost_maturity/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/98_compost_maturity/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/98_compost_maturity/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/98_compost_maturity/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/98_compost_maturity/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/98_compost_maturity/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -337,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: maturity_weeks</h3>
-    <p>Top factors: moisture_pct (41.2%), cn_ratio (34.9%), turn_freq (24.0%).</p>
+    <p>Top factors: turn_freq (73.6%), moisture_pct (16.0%), cn_ratio (10.4%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -350,7 +308,7 @@
     </div>
 
     <h3>Response: nutrient_score</h3>
-    <p>Top factors: moisture_pct (53.3%), cn_ratio (35.7%), turn_freq (11.0%).</p>
+    <p>Top factors: turn_freq (59.1%), cn_ratio (25.5%), moisture_pct (15.4%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -401,180 +359,333 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9545</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>maturity_weeks</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>8.40 0.9545        8.40 weeks</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>nutrient_score</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>7.10 0.9545        7.10 pts</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>cn_ratio</code></td><td>30 ratio</td></tr>
+            <tr><td><code>moisture_pct</code></td><td>65 %</td></tr>
+            <tr><td><code>turn_freq</code></td><td>7 per_week</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #3</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>nutrient_score</code></td><td>7.10</td><td>7.10</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#12</td><td><strong>0.8132</strong></td><td style="font-size:.78rem;">cn_ratio=20,  moisture_pct=40,  turn_freq=4</td></tr>
+            <tr><td>#10</td><td><strong>0.7364</strong></td><td style="font-size:.78rem;">cn_ratio=30,  moisture_pct=52.5,  turn_freq=4</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>nutrient_score</code></td><td style="color:#dc2626;font-weight:600;">0.2973</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9545
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+maturity_weeks               1.0       0.9545        8.40 weeks   ↓
+nutrient_score               1.5       0.9545        7.10 pts   ↑
+
+Recommended settings:
+  cn_ratio = 30 ratio
+  moisture_pct = 65 %
+  turn_freq = 7 per_week
+  (from observed run #3)
+
+Trade-off summary:
+  maturity_weeks: 8.40 (best observed: 8.40, sacrifice: +0.00)
+  nutrient_score: 7.10 (best observed: 7.10, sacrifice: +0.00)
+
+Model quality:
+  maturity_weeks: R² = 0.3150 (linear)
+  nutrient_score: R² = 0.2973 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #3 (D=0.9545): cn_ratio=30, moisture_pct=65, turn_freq=7
+  2. Run #12 (D=0.8132): cn_ratio=20, moisture_pct=40, turn_freq=4
+  3. Run #10 (D=0.7364): cn_ratio=30, moisture_pct=52.5, turn_freq=4</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_maturity_weeks_cn_ratio_vs_moisture_pct.png
-  RSM surface: rsm_maturity_weeks_cn_ratio_vs_turn_freq.png
-  RSM surface: rsm_maturity_weeks_moisture_pct_vs_turn_freq.png
-  RSM surface: rsm_nutrient_score_cn_ratio_vs_moisture_pct.png
-  RSM surface: rsm_nutrient_score_cn_ratio_vs_turn_freq.png
-  RSM surface: rsm_nutrient_score_moisture_pct_vs_turn_freq.png
-
-=== Main Effects: maturity_weeks ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: maturity_weeks ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-moisture_pct             4.2536       0.8441            41.2%
-cn_ratio                 3.6000       0.8441            34.9%
-turn_freq                2.4750       0.8441            24.0%
+turn_freq                3.5750       0.8441            73.6%
+moisture_pct             0.7750       0.8441            16.0%
+cn_ratio                 0.5071       0.8441            10.4%
+
+=== ANOVA Table: maturity_weeks ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+cn_ratio                     2       0.7022       0.3511      0.029     0.9716
+moisture_pct                 2       2.0418       1.0209      0.084     0.9200
+turn_freq                    2      33.0018      16.5009      1.361     0.3099
+Lack of Fit                  6      89.6368      14.9395      1.232     0.5124
+Pure Error                   2      24.2467      12.1233
+Error                        8     113.8835      12.1233
+Total                       14     149.6293      10.6878
 
 === Summary Statistics: maturity_weeks ===
 
 cn_ratio:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  20                  4    11.9250     4.0533     8.4000    16.1000
-  30                  7    12.6143     2.7107    10.3000    18.5000
-  40                  4    15.5250     2.9285    12.7000    18.2000
+  20                  4    13.3000     3.2414    10.3000    17.9000
+  30                  7    13.3571     3.2341     8.5000    18.2000
+  40                  4    12.8500     4.2681     8.4000    18.5000
 
 moisture_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  40                  4    11.3500     1.9279     8.5000    12.7000
-  52.5                7    15.4286     3.1175    11.2000    18.5000
-  65                  4    11.1750     2.2589     8.4000    13.3000
+  40                  4    12.9000     3.8953     8.5000    17.9000
+  52.5                7    13.6000     3.9975     8.4000    18.5000
+  65                  4    12.8250     1.4361    11.2000    14.7000
 
 turn_freq:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    14.4750     2.6961    12.3000    18.2000
-  4                   7    12.0000     3.4312     8.4000    18.5000
-  7                   4    14.0500     3.5454    10.3000    17.9000
+  1                   4    10.8250     1.8998     8.4000    12.7000
+  4                   7    14.4000     2.9698    11.2000    18.2000
+  7                   4    13.5000     4.1984     8.5000    18.5000
 
 === Main Effects: nutrient_score ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-moisture_pct             1.0893       0.2382            53.3%
-cn_ratio                 0.7286       0.2382            35.7%
-turn_freq                0.2250       0.2382            11.0%
+turn_freq                1.1250       0.2382            59.1%
+cn_ratio                 0.4857       0.2382            25.5%
+moisture_pct             0.2929       0.2382            15.4%
+
+=== ANOVA Table: nutrient_score ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+cn_ratio                     2       0.6013       0.3006      4.295     0.0541
+moisture_pct                 2       0.2402       0.1201      1.716     0.2399
+turn_freq                    2       3.2113       1.6056     22.938     0.0005
+Lack of Fit                  6       7.7246       1.2874     18.392     0.0525
+Pure Error                   2       0.1400       0.0700
+Error                        8       7.8646       0.0700
+Total                       14      11.9173       0.8512
 
 === Summary Statistics: nutrient_score ===
 
 cn_ratio:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  20                  4     5.7500     1.0344     4.6000     7.1000
-  30                  7     5.8286     1.0259     3.9000     7.1000
-  40                  4     5.1000     0.5598     4.4000     5.6000
+  20                  4     5.6250     0.7632     4.9000     6.7000
+  30                  7     5.7857     0.7426     4.6000     7.1000
+  40                  4     5.3000     1.4445     3.9000     7.1000
 
 moisture_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  40                  4     6.2750     0.7500     5.5000     7.1000
-  52.5                7     5.1857     0.7515     3.9000     6.0000
-  65                  4     5.7000     1.1225     4.4000     7.1000
+  40                  4     5.5500     1.1846     4.4000     7.1000
+  52.5                7     5.7429     1.0342     3.9000     7.1000
+  65                  4     5.4500     0.5916     4.6000     5.9000
 
 turn_freq:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4     5.7000     0.8679     4.6000     6.7000
-  4                   7     5.5000     1.0614     3.9000     7.1000
-  7                   4     5.7250     0.9535     4.9000     7.1000
-
-Pareto chart (maturity_weeks): use_cases/98_compost_maturity/results/analysis/pareto_maturity_weeks.png
-
-Pareto chart (nutrient_score): use_cases/98_compost_maturity/results/analysis/pareto_nutrient_score.png
-Main effects (maturity_weeks): use_cases/98_compost_maturity/results/analysis/main_effects_maturity_weeks.png
-Main effects (nutrient_score): use_cases/98_compost_maturity/results/analysis/main_effects_nutrient_score.png</div></div>
+  1                   4     6.3750     0.8617     5.4000     7.1000
+  4                   7     5.3857     0.5521     4.4000     6.0000
+  7                   4     5.2500     1.2450     3.9000     6.7000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: maturity_weeks ===
 Direction: minimize
 
 Best observed run: #3
-  cn_ratio = 30
-  moisture_pct = 40
+  cn_ratio = 20
+  moisture_pct = 52.5
   turn_freq = 7
   Value: 8.4
 
-RSM Model (linear, R² = 0.0864, Adj R² = -0.1627):
+RSM Model (linear, R² = 0.5738, Adj R² = 0.4576):
   Coefficients:
     intercept                      +13.2067
-    cn_ratio                       -1.0000
-    moisture_pct                   +0.7750
-    turn_freq                      -0.1250
+    cn_ratio                       +0.4125
+    moisture_pct                   -0.0125
+    turn_freq                      -3.2500
 
-RSM Model (quadratic, R² = 0.4126, Adj R² = -0.6446):
+RSM Model (quadratic, R² = 0.6912, Adj R² = 0.1353):
   Coefficients:
-    intercept                      +14.6000
-    cn_ratio                       -1.0000
-    moisture_pct                   +0.7750
-    turn_freq                      -0.1250
-    cn_ratio*moisture_pct          +1.6250
-    cn_ratio*turn_freq             +0.6750
-    moisture_pct*turn_freq         -1.8750
-    cn_ratio^2                     +0.7125
-    moisture_pct^2                 -1.7375
-    turn_freq^2                    -1.5875
+    intercept                      +12.0667
+    cn_ratio                       +0.4125
+    moisture_pct                   -0.0125
+    turn_freq                      -3.2500
+    cn_ratio*moisture_pct          +0.9750
+    cn_ratio*turn_freq             -0.0500
+    moisture_pct*turn_freq         +1.2000
+    cn_ratio^2                     +0.0042
+    moisture_pct^2                 +0.9542
+    turn_freq^2                    +1.1792
 
   Curvature analysis:
-    moisture_pct                   coef=-1.7375  concave (has a maximum)
-    turn_freq                      coef=-1.5875  concave (has a maximum)
-    cn_ratio                       coef=+0.7125  convex (has a minimum)
+    turn_freq                      coef=+1.1792  convex (has a minimum)
+    moisture_pct                   coef=+0.9542  convex (has a minimum)
+    cn_ratio                       coef=+0.0042  negligible curvature
 
   Notable interactions:
-    moisture_pct*turn_freq         coef=-1.8750  (antagonistic)
-    cn_ratio*moisture_pct          coef=+1.6250  (synergistic)
-    cn_ratio*turn_freq             coef=+0.6750  (synergistic)
+    moisture_pct*turn_freq         coef=+1.2000  (synergistic)
+    cn_ratio*moisture_pct          coef=+0.9750  (synergistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
+    cn_ratio = 40
+    moisture_pct = 52.5
+    turn_freq = 1
+    Predicted value: 16.8692
+
+  Surface optimum (via L-BFGS-B, linear model):
     cn_ratio = 20
     moisture_pct = 65
-    turn_freq = 4
-    Predicted value: 14.9817
+    turn_freq = 7
+    Predicted value: 9.5317
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. moisture_pct  (effect: 2.4, contribution: 40.2%)
-  2. cn_ratio  (effect: 2.0, contribution: 32.8%)
-  3. turn_freq  (effect: 1.6, contribution: 26.9%)
+  1. turn_freq  (effect: 6.5, contribution: 79.2%)
+  2. moisture_pct  (effect: 0.9, contribution: 10.7%)
+  3. cn_ratio  (effect: 0.8, contribution: 10.1%)
 
 === Optimization: nutrient_score ===
 Direction: maximize
 
 Best observed run: #3
-  cn_ratio = 30
-  moisture_pct = 40
+  cn_ratio = 20
+  moisture_pct = 52.5
   turn_freq = 7
   Value: 7.1
 
-RSM Model (linear, R² = 0.2192, Adj R² = 0.0063):
+RSM Model (linear, R² = 0.5079, Adj R² = 0.3737):
   Coefficients:
     intercept                      +5.6133
-    cn_ratio                       +0.5625
-    moisture_pct                   +0.0875
-    turn_freq                      +0.0500
+    cn_ratio                       -0.2125
+    moisture_pct                   -0.1000
+    turn_freq                      +0.8375
 
-RSM Model (quadratic, R² = 0.2751, Adj R² = -1.0298):
+RSM Model (quadratic, R² = 0.7756, Adj R² = 0.3717):
   Coefficients:
-    intercept                      +5.5667
-    cn_ratio                       +0.5625
-    moisture_pct                   +0.0875
-    turn_freq                      +0.0500
-    cn_ratio*moisture_pct          -0.1750
-    cn_ratio*turn_freq             +0.1000
-    moisture_pct*turn_freq         -0.2000
-    cn_ratio^2                     -0.1458
-    moisture_pct^2                 +0.2542
-    turn_freq^2                    -0.0208
+    intercept                      +5.2667
+    cn_ratio                       -0.2125
+    moisture_pct                   -0.1000
+    turn_freq                      +0.8375
+    cn_ratio*moisture_pct          +0.2750
+    cn_ratio*turn_freq             -0.5000
+    moisture_pct*turn_freq         +0.0750
+    cn_ratio^2                     +0.6917
+    moisture_pct^2                 +0.0667
+    turn_freq^2                    -0.1083
 
   Curvature analysis:
-    moisture_pct                   coef=+0.2542  convex (has a minimum)
-    cn_ratio                       coef=-0.1458  concave (has a maximum)
-    turn_freq                      coef=-0.0208  negligible curvature
+    cn_ratio                       coef=+0.6917  convex (has a minimum)
+    turn_freq                      coef=-0.1083  concave (has a maximum)
+    moisture_pct                   coef=+0.0667  negligible curvature
 
-  Predicted optimum (from linear model):
-    cn_ratio = 40
-    moisture_pct = 65
-    turn_freq = 4
-    Predicted value: 6.2633
+  Notable interactions:
+    cn_ratio*turn_freq             coef=-0.5000  (antagonistic)
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Predicted optimum (from linear model, at observed points):
+    cn_ratio = 20
+    moisture_pct = 52.5
+    turn_freq = 7
+    Predicted value: 6.6633
+
+  Surface optimum (via L-BFGS-B, linear model):
+    cn_ratio = 20
+    moisture_pct = 40
+    turn_freq = 7
+    Predicted value: 6.7633
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. cn_ratio  (effect: 1.1, contribution: 71.3%)
-  2. moisture_pct  (effect: 0.4, contribution: 22.4%)
-  3. turn_freq  (effect: 0.1, contribution: 6.3%)</div></div>
+  1. turn_freq  (effect: 1.7, contribution: 60.2%)
+  2. cn_ratio  (effect: 0.9, contribution: 32.6%)
+  3. moisture_pct  (effect: 0.2, contribution: 7.2%)</div></div>
   </section>
 
   <!-- Nav -->

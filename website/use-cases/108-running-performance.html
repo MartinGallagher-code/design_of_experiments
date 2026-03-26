@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>vo2max gain</strong>, the most influential factors were long run pct (57.3%), weekly km (24.4%), interval pct max (18.2%). The best observed value was <strong>5.3</strong> (at weekly km = 20, long run pct = 30, interval pct max = 100).</p>
-<p>For <strong>injury risk</strong>, the most influential factors were long run pct (50.8%), weekly km (27.5%), interval pct max (21.7%). The best observed value was <strong>8.0</strong> (at weekly km = 20, long run pct = 20, interval pct max = 90).</p>
+    <p>For <strong>vo2max gain</strong>, the most influential factors were weekly km (37.7%), long run pct (37.2%), interval pct max (25.1%). The best observed value was <strong>5.3</strong> (at weekly km = 40, long run pct = 30, interval pct max = 90).</p>
+<p>For <strong>injury risk</strong>, the most influential factors were weekly km (50.9%), long run pct (28.3%), interval pct max (20.8%). The best observed value was <strong>8.0</strong> (at weekly km = 40, long run pct = 40, interval pct max = 80).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (vo2max_gain (↑), injury_risk (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/108_running_performance/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -264,48 +264,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/108_running_performance/config.json \
     <span class="flag">--output</span> use_cases/108_running_performance/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Health &amp; Fitness Experiment? Use the Manual Workflow</h4>
-        <p>Human performance experiments involve real physiological responses. Each participant's body responds differently, and results require actual measurement. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/108_running_performance/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/108_running_performance/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/108_running_performance/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/108_running_performance/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/108_running_performance/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/108_running_performance/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/108_running_performance/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -337,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: vo2max_gain</h3>
-    <p>Top factors: long_run_pct (57.3%), weekly_km (24.4%), interval_pct_max (18.2%).</p>
+    <p>Top factors: weekly_km (37.7%), long_run_pct (37.2%), interval_pct_max (25.1%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -350,7 +308,7 @@
     </div>
 
     <h3>Response: injury_risk</h3>
-    <p>Top factors: long_run_pct (50.8%), weekly_km (27.5%), interval_pct_max (21.7%).</p>
+    <p>Top factors: weekly_km (50.9%), long_run_pct (28.3%), interval_pct_max (20.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -401,185 +359,335 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.6182</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>vo2max_gain</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:56.24%;height:100%;background:#f97316;border-radius:4px;"></div>
+                  </div>
+                  <span>0.5624</span>
+                </div>
+              </td>
+              <td>3.10 0.5624        3.10 mL/kg/min</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>injury_risk</code></td>
+              <td>2.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:66.36%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.6636</span>
+                </div>
+              </td>
+              <td>16.00 0.6636       16.00 %</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>weekly_km</code></td><td>60 km</td></tr>
+            <tr><td><code>long_run_pct</code></td><td>40 %</td></tr>
+            <tr><td><code>interval_pct_max</code></td><td>90 %HR_max</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #2</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>injury_risk</code></td><td>16.00</td><td>8.00</td><td><span style="color:#dc2626;">+8.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#5</td><td><strong>0.6182</strong></td><td style="font-size:.78rem;">weekly_km=20,  long_run_pct=20,  interval_pct_max=90</td></tr>
+            <tr><td>#6</td><td><strong>0.5735</strong></td><td style="font-size:.78rem;">weekly_km=40,  long_run_pct=30,  interval_pct_max=90</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>injury_risk</code></td><td style="color:#ca8a04;font-weight:600;">0.6028</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.6182
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+vo2max_gain                  1.5       0.5624        3.10 mL/kg/min   ↑
+injury_risk                  2.0       0.6636       16.00 %   ↓
+
+Recommended settings:
+  weekly_km = 60 km
+  long_run_pct = 40 %
+  interval_pct_max = 90 %HR_max
+  (from observed run #2)
+
+Trade-off summary:
+  vo2max_gain: 3.10 (best observed: 5.30, sacrifice: +2.20)
+  injury_risk: 16.00 (best observed: 8.00, sacrifice: +8.00)
+
+Model quality:
+  vo2max_gain: R² = 0.4732 (linear)
+  injury_risk: R² = 0.6028 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #2 (D=0.6182): weekly_km=60, long_run_pct=40, interval_pct_max=90
+  2. Run #5 (D=0.6182): weekly_km=20, long_run_pct=20, interval_pct_max=90
+  3. Run #6 (D=0.5735): weekly_km=40, long_run_pct=30, interval_pct_max=90</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_vo2max_gain_weekly_km_vs_long_run_pct.png
-  RSM surface: rsm_vo2max_gain_weekly_km_vs_interval_pct_max.png
-  RSM surface: rsm_vo2max_gain_long_run_pct_vs_interval_pct_max.png
-  RSM surface: rsm_injury_risk_weekly_km_vs_long_run_pct.png
-  RSM surface: rsm_injury_risk_weekly_km_vs_interval_pct_max.png
-  RSM surface: rsm_injury_risk_long_run_pct_vs_interval_pct_max.png
-
-=== Main Effects: vo2max_gain ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: vo2max_gain ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-long_run_pct             2.5393       0.3814            57.3%
-weekly_km                1.0821       0.3814            24.4%
-interval_pct_max         0.8071       0.3814            18.2%
+weekly_km                1.7750       0.3814            37.7%
+long_run_pct             1.7500       0.3814            37.2%
+interval_pct_max         1.1821       0.3814            25.1%
+
+=== ANOVA Table: vo2max_gain ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+weekly_km                    2       8.9743       4.4872      9.685     0.0073
+long_run_pct                 2       6.9422       3.4711      7.492     0.0147
+interval_pct_max             2       4.2972       2.1486      4.637     0.0460
+Lack of Fit                  6       9.4090       1.5682      3.385     0.2456
+Pure Error                   2       0.9267       0.4633
+Error                        8      10.3356       0.4633
+Total                       14      30.5493       2.1821
 
 === Summary Statistics: vo2max_gain ===
 
 weekly_km:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  20                  4     2.3750     0.8995     1.5000     3.2000
-  40                  7     2.1429     1.6019     0.2000     4.2000
-  60                  4     3.2250     1.7951     1.4000     5.3000
+  20                  4     3.7750     1.6112     1.5000     5.3000
+  40                  7     2.0000     1.2702     0.2000     3.4000
+  60                  4     2.0750     1.1701     0.6000     3.2000
 
 long_run_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  20                  4     3.0000     1.0165     1.7000     4.1000
-  30                  7     1.3857     1.0254     0.2000     3.2000
-  40                  4     3.9250     1.0532     3.1000     5.3000
+  20                  4     1.4000     1.8129     0.2000     4.1000
+  30                  7     2.7429     0.9947     1.5000     4.2000
+  40                  4     3.1500     1.6135     1.4000     5.3000
 
 interval_pct_max:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4     2.3750     0.7182     1.5000     3.1000
-  80                  4     3.0500     1.1818     1.4000     4.2000
-  90                  7     2.2429     1.9612     0.2000     5.3000
+  100                 4     1.8750     1.6800     0.2000     4.2000
+  80                  4     2.1250     1.2285     0.7000     3.2000
+  90                  7     3.0571     1.4864     0.6000     5.3000
 
 === Main Effects: injury_risk ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-long_run_pct            11.1071       1.9924            50.8%
-weekly_km                6.0000       1.9924            27.5%
-interval_pct_max         4.7500       1.9924            21.7%
+weekly_km               12.2500       1.9924            50.9%
+long_run_pct             6.8214       1.9924            28.3%
+interval_pct_max         5.0000       1.9924            20.8%
+
+=== ANOVA Table: injury_risk ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+weekly_km                    2     409.4214     204.7107     21.933     0.0006
+long_run_pct                 2     129.1357      64.5679      6.918     0.0180
+interval_pct_max             2      77.6000      38.8000      4.157     0.0578
+Lack of Fit                  6     198.7762      33.1294      3.550     0.2361
+Pure Error                   2      18.6667       9.3333
+Error                        8     217.4429       9.3333
+Total                       14     833.6000      59.5429
 
 === Summary Statistics: injury_risk ===
 
 weekly_km:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  20                  4    15.7500     2.8723    12.0000    19.0000
-  40                  7    16.2857     8.5774     8.0000    32.0000
-  60                  4    21.7500     9.5350    10.0000    33.0000
+  20                  4    26.2500     7.9320    16.0000    33.0000
+  40                  7    14.7143     5.1870     9.0000    22.0000
+  60                  4    14.0000     4.9666     8.0000    19.0000
 
 long_run_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  20                  4    18.7500     5.3774    12.0000    24.0000
-  30                  7    13.1429     5.0474     8.0000    20.0000
-  40                  4    24.2500     9.5350    16.0000    33.0000
+  20                  4    12.7500     7.5443     8.0000    24.0000
+  30                  7    19.5714     6.3733    12.0000    32.0000
+  40                  4    19.0000     9.8319    10.0000    33.0000
 
 interval_pct_max:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4    17.2500     1.8930    16.0000    20.0000
-  80                  4    20.7500     9.0692    10.0000    32.0000
-  90                  7    16.0000     9.2916     8.0000    33.0000
-
-Pareto chart (vo2max_gain): use_cases/108_running_performance/results/analysis/pareto_vo2max_gain.png
-
-Pareto chart (injury_risk): use_cases/108_running_performance/results/analysis/pareto_injury_risk.png
-Main effects (vo2max_gain): use_cases/108_running_performance/results/analysis/main_effects_vo2max_gain.png
-Main effects (injury_risk): use_cases/108_running_performance/results/analysis/main_effects_injury_risk.png</div></div>
+  100                 4    16.0000    10.7083    10.0000    32.0000
+  80                  4    15.0000     4.2426     9.0000    19.0000
+  90                  7    20.0000     7.7244     8.0000    33.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: vo2max_gain ===
 Direction: maximize
 
 Best observed run: #3
-  weekly_km = 20
+  weekly_km = 40
   long_run_pct = 30
-  interval_pct_max = 100
+  interval_pct_max = 90
   Value: 5.3
 
-RSM Model (linear, R² = 0.0826, Adj R² = -0.1676):
+RSM Model (linear, R² = 0.2515, Adj R² = 0.0473):
   Coefficients:
     intercept                      +2.4933
-    weekly_km                      +0.0375
-    long_run_pct                   +0.4375
-    interval_pct_max               +0.3500
+    weekly_km                      +0.2875
+    long_run_pct                   -0.3000
+    interval_pct_max               +0.8875
 
-RSM Model (quadratic, R² = 0.6490, Adj R² = 0.0172):
+RSM Model (quadratic, R² = 0.5532, Adj R² = -0.2510):
   Coefficients:
-    intercept                      +2.9000
-    weekly_km                      +0.0375
-    long_run_pct                   +0.4375
-    interval_pct_max               +0.3500
-    weekly_km*long_run_pct         -0.4750
-    weekly_km*interval_pct_max     -1.7000
-    long_run_pct*interval_pct_max  +0.7500
-    weekly_km^2                    +0.2875
-    long_run_pct^2                 -0.3625
-    interval_pct_max^2             -0.6875
+    intercept                      +3.0333
+    weekly_km                      +0.2875
+    long_run_pct                   -0.3000
+    interval_pct_max               +0.8875
+    weekly_km*long_run_pct         +0.2000
+    weekly_km*interval_pct_max     +0.6750
+    long_run_pct*interval_pct_max  +0.8000
+    weekly_km^2                    +0.2208
+    long_run_pct^2                 -0.1542
+    interval_pct_max^2             -1.0792
 
   Curvature analysis:
-    interval_pct_max               coef=-0.6875  concave (has a maximum)
-    long_run_pct                   coef=-0.3625  concave (has a maximum)
-    weekly_km                      coef=+0.2875  convex (has a minimum)
+    interval_pct_max               coef=-1.0792  concave (has a maximum)
+    weekly_km                      coef=+0.2208  convex (has a minimum)
+    long_run_pct                   coef=-0.1542  concave (has a maximum)
 
   Notable interactions:
-    weekly_km*interval_pct_max     coef=-1.7000  (antagonistic)
-    long_run_pct*interval_pct_max  coef=+0.7500  (synergistic)
-    weekly_km*long_run_pct         coef=-0.4750  (antagonistic)
+    long_run_pct*interval_pct_max  coef=+0.8000  (synergistic)
+    weekly_km*interval_pct_max     coef=+0.6750  (synergistic)
 
-  Predicted optimum (from quadratic model):
-    weekly_km = 20
-    long_run_pct = 30
+  Predicted optimum (from linear model, at observed points):
+    weekly_km = 40
+    long_run_pct = 20
     interval_pct_max = 100
-    Predicted value: 4.5125
+    Predicted value: 3.6808
 
-  Model quality: Moderate fit — use predictions directionally, not precisely.
+  Surface optimum (via L-BFGS-B, linear model):
+    weekly_km = 60
+    long_run_pct = 20
+    interval_pct_max = 100
+    Predicted value: 3.9683
+
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. interval_pct_max  (effect: 1.0, contribution: 44.7%)
-  2. long_run_pct  (effect: 0.9, contribution: 37.9%)
-  3. weekly_km  (effect: 0.4, contribution: 17.3%)
+  1. interval_pct_max  (effect: 2.0, contribution: 62.2%)
+  2. long_run_pct  (effect: 0.6, contribution: 18.9%)
+  3. weekly_km  (effect: 0.6, contribution: 18.8%)
 
 === Optimization: injury_risk ===
 Direction: minimize
 
 Best observed run: #11
-  weekly_km = 20
-  long_run_pct = 20
-  interval_pct_max = 90
+  weekly_km = 40
+  long_run_pct = 40
+  interval_pct_max = 80
   Value: 8.0
 
-RSM Model (linear, R² = 0.0612, Adj R² = -0.1949):
+RSM Model (linear, R² = 0.1808, Adj R² = -0.0426):
   Coefficients:
     intercept                      +17.6000
-    weekly_km                      +0.2500
-    long_run_pct                   +0.2500
-    interval_pct_max               +2.5000
+    weekly_km                      +2.2500
+    long_run_pct                   -2.6250
+    interval_pct_max               +2.6250
 
-RSM Model (quadratic, R² = 0.4300, Adj R² = -0.5960):
+RSM Model (quadratic, R² = 0.5287, Adj R² = -0.3198):
   Coefficients:
-    intercept                      +20.3333
-    weekly_km                      +0.2500
-    long_run_pct                   +0.2500
-    interval_pct_max               +2.5000
-    weekly_km*long_run_pct         -2.2500
-    weekly_km*interval_pct_max     -7.2500
-    long_run_pct*interval_pct_max  +2.7500
-    weekly_km^2                    -0.0417
-    long_run_pct^2                 -2.0417
-    interval_pct_max^2             -3.0417
+    intercept                      +19.3333
+    weekly_km                      +2.2500
+    long_run_pct                   -2.6250
+    interval_pct_max               +2.6250
+    weekly_km*long_run_pct         +1.2500
+    weekly_km*interval_pct_max     +5.2500
+    long_run_pct*interval_pct_max  +4.5000
+    weekly_km^2                    +2.5833
+    long_run_pct^2                 -2.6667
+    interval_pct_max^2             -3.1667
 
   Curvature analysis:
-    interval_pct_max               coef=-3.0417  concave (has a maximum)
-    long_run_pct                   coef=-2.0417  concave (has a maximum)
-    weekly_km                      coef=-0.0417  negligible curvature
+    interval_pct_max               coef=-3.1667  concave (has a maximum)
+    long_run_pct                   coef=-2.6667  concave (has a maximum)
+    weekly_km                      coef=+2.5833  convex (has a minimum)
 
   Notable interactions:
-    weekly_km*interval_pct_max     coef=-7.2500  (antagonistic)
-    long_run_pct*interval_pct_max  coef=+2.7500  (synergistic)
-    weekly_km*long_run_pct         coef=-2.2500  (antagonistic)
+    weekly_km*interval_pct_max     coef=+5.2500  (synergistic)
+    long_run_pct*interval_pct_max  coef=+4.5000  (synergistic)
+    weekly_km*long_run_pct         coef=+1.2500  (synergistic)
 
-  Predicted optimum (from linear model):
-    weekly_km = 60
-    long_run_pct = 30
+  Predicted optimum (from linear model, at observed points):
+    weekly_km = 40
+    long_run_pct = 20
     interval_pct_max = 100
-    Predicted value: 20.3500
+    Predicted value: 22.8500
+
+  Surface optimum (via L-BFGS-B, linear model):
+    weekly_km = 20
+    long_run_pct = 40
+    interval_pct_max = 80
+    Predicted value: 10.1000
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. interval_pct_max  (effect: 5.4, contribution: 67.1%)
-  2. long_run_pct  (effect: 2.1, contribution: 25.8%)
-  3. weekly_km  (effect: 0.6, contribution: 7.1%)</div></div>
+  1. interval_pct_max  (effect: 5.8, contribution: 35.5%)
+  2. weekly_km  (effect: 5.2, contribution: 32.2%)
+  3. long_run_pct  (effect: 5.2, contribution: 32.2%)</div></div>
   </section>
 
   <!-- Nav -->

@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>permeate lmh</strong>, the most influential factors were pressure bar (45.2%), feed temp c (28.4%), recovery pct (26.4%). The best observed value was <strong>34.3</strong> (at pressure bar = 60, feed temp c = 22.5, recovery pct = 45).</p>
-<p>For <strong>sec kwh m3</strong>, the most influential factors were feed temp c (61.6%), recovery pct (21.1%), pressure bar (17.3%). The best observed value was <strong>2.67</strong> (at pressure bar = 70, feed temp c = 15, recovery pct = 35).</p>
+    <p>For <strong>permeate lmh</strong>, the most influential factors were recovery pct (38.8%), feed temp c (36.4%), pressure bar (24.8%). The best observed value was <strong>34.3</strong> (at pressure bar = 60, feed temp c = 22.5, recovery pct = 45).</p>
+<p>For <strong>sec kwh m3</strong>, the most influential factors were feed temp c (48.3%), recovery pct (27.6%), pressure bar (24.1%). The best observed value was <strong>2.67</strong> (at pressure bar = 60, feed temp c = 22.5, recovery pct = 45).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -250,12 +249,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (permeate_lmh (↑), sec_kwh_m3 (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/252_seawater_desalination/config.json <span class="flag">--multi</span></div>
         </div>
@@ -263,7 +263,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -271,48 +271,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/252_seawater_desalination/config.json \
     <span class="flag">--output</span> use_cases/252_seawater_desalination/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Marine &amp; Environmental Test? Use the Manual Workflow</h4>
-        <p>Marine experiments involve real water conditions, living organisms, and environmental factors that require field testing. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/252_seawater_desalination/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/252_seawater_desalination/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/252_seawater_desalination/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/252_seawater_desalination/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/252_seawater_desalination/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/252_seawater_desalination/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/252_seawater_desalination/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -344,7 +302,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: permeate_lmh</h3>
-    <p>Top factors: pressure_bar (45.2%), feed_temp_c (28.4%), recovery_pct (26.4%).</p>
+    <p>Top factors: recovery_pct (38.8%), feed_temp_c (36.4%), pressure_bar (24.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -357,7 +315,7 @@
     </div>
 
     <h3>Response: sec_kwh_m3</h3>
-    <p>Top factors: feed_temp_c (61.6%), recovery_pct (21.1%), pressure_bar (17.3%).</p>
+    <p>Top factors: feed_temp_c (48.3%), recovery_pct (27.6%), pressure_bar (24.1%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -408,92 +366,231 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.8931</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>permeate_lmh</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>34.30 0.9545       34.30 L/m2/hr</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>sec_kwh_m3</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:80.82000000000001%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.8082</span>
+                </div>
+              </td>
+              <td>3.19 0.8082        3.19 kWh/m3</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>pressure_bar</code></td><td>60 bar</td></tr>
+            <tr><td><code>feed_temp_c</code></td><td>36.1931 C</td></tr>
+            <tr><td><code>recovery_pct</code></td><td>45 %</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #9</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>sec_kwh_m3</code></td><td>3.19</td><td>2.67</td><td><span style="color:#dc2626;">+0.52</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#4</td><td><strong>0.7891</strong></td><td style="font-size:.78rem;">pressure_bar=41.7426,  feed_temp_c=22.5,  recovery_pct=45</td></tr>
+            <tr><td>#7</td><td><strong>0.7663</strong></td><td style="font-size:.78rem;">pressure_bar=50,  feed_temp_c=15,  recovery_pct=55</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>sec_kwh_m3</code></td><td style="color:#dc2626;font-weight:600;">0.1009</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.8931
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+permeate_lmh                 1.5       0.9545       34.30 L/m2/hr   ↑
+sec_kwh_m3                   1.0       0.8082        3.19 kWh/m3   ↓
+
+Recommended settings:
+  pressure_bar = 60 bar
+  feed_temp_c = 36.1931 C
+  recovery_pct = 45 %
+  (from observed run #9)
+
+Trade-off summary:
+  permeate_lmh: 34.30 (best observed: 34.30, sacrifice: +0.00)
+  sec_kwh_m3: 3.19 (best observed: 2.67, sacrifice: +0.52)
+
+Model quality:
+  permeate_lmh: R² = 0.0296 (linear)
+  sec_kwh_m3: R² = 0.1009 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #9 (D=0.8931): pressure_bar=60, feed_temp_c=36.1931, recovery_pct=45
+  2. Run #4 (D=0.7891): pressure_bar=41.7426, feed_temp_c=22.5, recovery_pct=45
+  3. Run #7 (D=0.7663): pressure_bar=50, feed_temp_c=15, recovery_pct=55</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_permeate_lmh_pressure_bar_vs_feed_temp_c.png
-  RSM surface: rsm_permeate_lmh_pressure_bar_vs_recovery_pct.png
-  RSM surface: rsm_permeate_lmh_feed_temp_c_vs_recovery_pct.png
-  RSM surface: rsm_sec_kwh_m3_pressure_bar_vs_feed_temp_c.png
-  RSM surface: rsm_sec_kwh_m3_pressure_bar_vs_recovery_pct.png
-  RSM surface: rsm_sec_kwh_m3_feed_temp_c_vs_recovery_pct.png
-
-=== Main Effects: permeate_lmh ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: permeate_lmh ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-pressure_bar            10.9750       1.3666            45.2%
-feed_temp_c              6.8833       1.3666            28.4%
-recovery_pct             6.4000       1.3666            26.4%
+recovery_pct            17.0750       1.3666            38.8%
+feed_temp_c             16.0000       1.3666            36.4%
+pressure_bar            10.9000       1.3666            24.8%
+
+=== ANOVA Table: permeate_lmh ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+pressure_bar                 4     217.5295      54.3824      2.382     0.1286
+feed_temp_c                  4     274.6870      68.6717      3.008     0.0784
+recovery_pct                 4     299.0095      74.7524      3.274     0.0644
+Lack of Fit                  2       0.0000       0.0000      0.000     1.0000
+Pure Error                   7     159.8187      22.8313
+Error                        9      71.6577      22.8313
+Total                       21     862.8836      41.0897
 
 === Summary Statistics: permeate_lmh ===
 
 pressure_bar:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  41.7426             1    16.9000     0.0000    16.9000    16.9000
-  50                  4    27.8750     4.4425    24.9000    34.3000
-  60                 12    20.6167     6.6379     8.3000    27.0000
-  70                  4    21.0000     6.3282    13.7000    27.7000
-  78.2574             1    24.8000     0.0000    24.8000    24.8000
+  41.7426             1    24.8000     0.0000    24.8000    24.8000
+  50                  4    22.8250     6.1814    13.7000    27.4000
+  60                 12    20.0333     6.5213     8.3000    27.0000
+  70                  4    27.8000     4.5797    24.3000    34.3000
+  78.2574             1    16.9000     0.0000    16.9000    16.9000
 
 feed_temp_c:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  15                  4    22.7250     8.9905    13.7000    34.3000
-  22.5               12    20.1167     6.5521     8.3000    26.1000
-  30                  4    26.1500     1.6258    24.6000    27.7000
-  36.1931             1    20.7000     0.0000    20.7000    20.7000
-  8.80694             1    27.0000     0.0000    27.0000    27.0000
+  15                  4    24.9250     8.5714    13.7000    34.3000
+  22.5               12    20.4917     5.7394     8.3000    27.0000
+  30                  4    25.7000     1.3466    24.9000    27.7000
+  36.1931             1    26.1000     0.0000    26.1000    26.1000
+  8.80694             1    10.1000     0.0000    10.1000    10.1000
 
 recovery_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  26.7426             1    25.9000     0.0000    25.9000    25.9000
-  35                  4    26.2250     6.7525    18.0000    34.3000
-  45                 12    19.8250     6.4570     8.3000    27.0000
-  55                  4    22.6500     6.0973    13.7000    27.4000
-  63.2574             1    25.3000     0.0000    25.3000    25.3000
+  26.7426             1    24.4000     0.0000    24.4000    24.4000
+  35                  4    25.3750     1.3793    24.3000    27.4000
+  45                 12    20.7833     5.5338    10.1000    27.0000
+  55                  4    25.2500     8.5889    13.7000    34.3000
+  63.2574             1     8.3000     0.0000     8.3000     8.3000
 
 === Main Effects: sec_kwh_m3 ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-feed_temp_c              2.4500       0.1932            61.6%
-recovery_pct             0.8375       0.1932            21.1%
-pressure_bar             0.6875       0.1932            17.3%
+feed_temp_c              1.8575       0.1932            48.3%
+recovery_pct             1.0608       0.1932            27.6%
+pressure_bar             0.9267       0.1932            24.1%
+
+=== ANOVA Table: sec_kwh_m3 ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+pressure_bar                 4       3.4840       0.8710      0.563     0.6956
+feed_temp_c                  4       4.3924       1.0981      0.710     0.6052
+recovery_pct                 4       4.3090       1.0773      0.697     0.6131
+Lack of Fit                  2       0.0000       0.0000      0.000     1.0000
+Pure Error                   7      10.8257       1.5465
+Error                        9       5.0562       1.5465
+Total                       21      17.2417       0.8210
 
 === Summary Statistics: sec_kwh_m3 ===
 
 pressure_bar:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  41.7426             1     3.9900     0.0000     3.9900     3.9900
-  50                  4     3.3025     0.2360     3.0300     3.5500
-  60                 12     3.9817     0.9500     2.6700     5.8500
-  70                  4     3.9000     1.3662     2.8700     5.9000
-  78.2574             1     3.4900     0.0000     3.4900     3.4900
+  41.7426             1     3.4900     0.0000     3.4900     3.4900
+  50                  4     3.4375     0.3002     3.0300     3.7400
+  60                 12     4.1592     1.0984     2.6700     5.9000
+  70                  4     3.2325     0.2679     2.8700     3.4400
+  78.2574             1     3.9900     0.0000     3.9900     3.9900
 
 feed_temp_c:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  15                  4     3.9675     1.2984     3.1900     5.9000
-  22.5               12     3.9558     0.8059     3.1600     5.8500
-  30                  4     3.2350     0.3418     2.8700     3.6000
-  36.1931             1     2.6700     0.0000     2.6700     2.6700
-  8.80694             1     5.1200     0.0000     5.1200     5.1200
+  15                  4     3.3475     0.3090     3.0300     3.7400
+  22.5               12     3.9842     1.0566     2.6700     5.9000
+  30                  4     3.3225     0.3065     2.8700     3.5500
+  36.1931             1     5.1800     0.0000     5.1800     5.1800
+  8.80694             1     4.4000     0.0000     4.4000     4.4000
 
 recovery_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  26.7426             1     3.7300     0.0000     3.7300     3.7300
-  35                  4     3.1825     0.2354     2.8700     3.4400
-  45                 12     4.0083     0.9435     2.6700     5.8500
-  55                  4     4.0200     1.2796     3.0300     5.9000
-  63.2574             1     3.4300     0.0000     3.4300     3.4300
-
-Pareto chart (permeate_lmh): use_cases/252_seawater_desalination/results/analysis/pareto_permeate_lmh.png
-
-Pareto chart (sec_kwh_m3): use_cases/252_seawater_desalination/results/analysis/pareto_sec_kwh_m3.png
-Main effects (permeate_lmh): use_cases/252_seawater_desalination/results/analysis/main_effects_permeate_lmh.png
-Main effects (sec_kwh_m3): use_cases/252_seawater_desalination/results/analysis/main_effects_sec_kwh_m3.png</div></div>
+  26.7426             1     3.5800     0.0000     3.5800     3.5800
+  35                  4     3.3625     0.2282     3.0300     3.5500
+  45                 12     4.2208     1.0604     2.6700     5.9000
+  55                  4     3.3075     0.3685     2.8700     3.7400
+  63.2574             1     3.1600     0.0000     3.1600     3.1600</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: permeate_lmh ===
@@ -505,98 +602,110 @@ Best observed run: #9
   recovery_pct = 45
   Value: 34.3
 
-RSM Model (linear, R² = 0.1888, Adj R² = 0.0536):
+RSM Model (linear, R² = 0.0203, Adj R² = -0.1430):
   Coefficients:
     intercept                      +22.0273
-    pressure_bar                   -3.1110
-    feed_temp_c                    -1.1932
-    recovery_pct                   -0.0590
+    pressure_bar                   -0.5327
+    feed_temp_c                    -0.4683
+    recovery_pct                   +0.8303
 
-RSM Model (quadratic, R² = 0.4305, Adj R² = 0.0034):
+RSM Model (quadratic, R² = 0.4038, Adj R² = -0.0433):
   Coefficients:
-    intercept                      +22.7233
-    pressure_bar                   -3.1110
-    feed_temp_c                    -1.1932
-    recovery_pct                   -0.0590
-    pressure_bar*feed_temp_c       -4.4875
-    pressure_bar*recovery_pct      +1.4375
-    feed_temp_c*recovery_pct       +1.2375
-    pressure_bar^2                 -0.9580
-    feed_temp_c^2                  +0.0170
-    recovery_pct^2                 -0.1030
+    intercept                      +24.5128
+    pressure_bar                   -0.5327
+    feed_temp_c                    -0.4683
+    recovery_pct                   +0.8303
+    pressure_bar*feed_temp_c       -0.6125
+    pressure_bar*recovery_pct      +3.9125
+    feed_temp_c*recovery_pct       -3.7375
+    pressure_bar^2                 -0.9478
+    feed_temp_c^2                  -1.9228
+    recovery_pct^2                 -0.8578
 
   Curvature analysis:
-    pressure_bar                   coef=-0.9580  concave (has a maximum)
-    recovery_pct                   coef=-0.1030  concave (has a maximum)
-    feed_temp_c                    coef=+0.0170  negligible curvature
+    feed_temp_c                    coef=-1.9228  concave (has a maximum)
+    pressure_bar                   coef=-0.9478  concave (has a maximum)
+    recovery_pct                   coef=-0.8578  concave (has a maximum)
 
   Notable interactions:
-    pressure_bar*feed_temp_c       coef=-4.4875  (antagonistic)
-    pressure_bar*recovery_pct      coef=+1.4375  (synergistic)
-    feed_temp_c*recovery_pct       coef=+1.2375  (synergistic)
+    pressure_bar*recovery_pct      coef=+3.9125  (synergistic)
+    feed_temp_c*recovery_pct       coef=-3.7375  (antagonistic)
+    pressure_bar*feed_temp_c       coef=-0.6125  (antagonistic)
 
-  Predicted optimum (from linear model):
-    pressure_bar = 41.7426
-    feed_temp_c = 22.5
-    recovery_pct = 45
-    Predicted value: 27.7071
+  Predicted optimum (from quadratic model, at observed points):
+    pressure_bar = 70
+    feed_temp_c = 15
+    recovery_pct = 55
+    Predicted value: 29.8129
+
+  Surface optimum (via L-BFGS-B, quadratic model):
+    pressure_bar = 70
+    feed_temp_c = 15
+    recovery_pct = 55
+    Predicted value: 29.8129
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. pressure_bar  (effect: 9.4, contribution: 44.1%)
-  2. feed_temp_c  (effect: 7.2, contribution: 33.6%)
-  3. recovery_pct  (effect: 4.8, contribution: 22.2%)
+  1. feed_temp_c  (effect: 10.8, contribution: 39.7%)
+  2. recovery_pct  (effect: 8.6, contribution: 31.8%)
+  3. pressure_bar  (effect: 7.7, contribution: 28.5%)
 
 === Optimization: sec_kwh_m3 ===
 Direction: minimize
 
 Best observed run: #3
-  pressure_bar = 70
-  feed_temp_c = 15
-  recovery_pct = 35
+  pressure_bar = 60
+  feed_temp_c = 22.5
+  recovery_pct = 45
   Value: 2.67
 
-RSM Model (linear, R² = 0.1275, Adj R² = -0.0179):
+RSM Model (linear, R² = 0.0932, Adj R² = -0.0580):
   Coefficients:
     intercept                      +3.8214
-    pressure_bar                   -0.2690
-    feed_temp_c                    -0.2428
-    recovery_pct                   +0.1363
+    pressure_bar                   +0.2513
+    feed_temp_c                    +0.2151
+    recovery_pct                   +0.0095
 
-RSM Model (quadratic, R² = 0.4618, Adj R² = 0.0582):
+RSM Model (quadratic, R² = 0.2483, Adj R² = -0.3155):
   Coefficients:
-    intercept                      +4.0348
-    pressure_bar                   -0.2690
-    feed_temp_c                    -0.2428
-    recovery_pct                   +0.1363
-    pressure_bar*feed_temp_c       +0.7475
-    pressure_bar*recovery_pct      +0.2625
-    feed_temp_c*recovery_pct       -0.1200
-    pressure_bar^2                 -0.1447
-    feed_temp_c^2                  -0.0952
-    recovery_pct^2                 -0.0802
+    intercept                      +4.0070
+    pressure_bar                   +0.2513
+    feed_temp_c                    +0.2151
+    recovery_pct                   +0.0095
+    pressure_bar*feed_temp_c       +0.4562
+    pressure_bar*recovery_pct      +0.0887
+    feed_temp_c*recovery_pct       +0.2087
+    pressure_bar^2                 -0.1283
+    feed_temp_c^2                  -0.0233
+    recovery_pct^2                 -0.1268
 
   Curvature analysis:
-    pressure_bar                   coef=-0.1447  concave (has a maximum)
-    feed_temp_c                    coef=-0.0952  negligible curvature
-    recovery_pct                   coef=-0.0802  negligible curvature
+    pressure_bar                   coef=-0.1283  concave (has a maximum)
+    recovery_pct                   coef=-0.1268  concave (has a maximum)
+    feed_temp_c                    coef=-0.0233  negligible curvature
 
   Notable interactions:
-    pressure_bar*feed_temp_c       coef=+0.7475  (synergistic)
+    pressure_bar*feed_temp_c       coef=+0.4562  (synergistic)
 
-  Predicted optimum (from quadratic model):
+  Predicted optimum (from linear model, at observed points):
+    pressure_bar = 70
+    feed_temp_c = 30
+    recovery_pct = 55
+    Predicted value: 4.2973
+
+  Surface optimum (via L-BFGS-B, linear model):
     pressure_bar = 50
     feed_temp_c = 15
     recovery_pct = 35
-    Predicted value: 4.9801
+    Predicted value: 3.3454
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. pressure_bar  (effect: 1.1, contribution: 41.7%)
-  2. feed_temp_c  (effect: 0.9, contribution: 32.8%)
-  3. recovery_pct  (effect: 0.7, contribution: 25.5%)</div></div>
+  1. feed_temp_c  (effect: 0.9, contribution: 40.7%)
+  2. pressure_bar  (effect: 0.9, contribution: 38.4%)
+  3. recovery_pct  (effect: 0.5, contribution: 20.9%)</div></div>
   </section>
 
   <!-- Nav -->

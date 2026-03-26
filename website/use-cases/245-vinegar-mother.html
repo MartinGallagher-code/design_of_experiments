@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>acidity pct</strong>, the most influential factors were start abv pct (45.6%), temp c (33.0%), surface area cm2 (21.4%). The best observed value was <strong>6.7</strong> (at start abv pct = 8.5, surface area cm2 = 300, temp c = 26).</p>
-<p>For <strong>off flavor score</strong>, the most influential factors were surface area cm2 (45.7%), temp c (36.4%), start abv pct (18.0%). The best observed value was <strong>2.1</strong> (at start abv pct = 12, surface area cm2 = 300, temp c = 20).</p>
+    <p>For <strong>acidity pct</strong>, the most influential factors were temp c (43.1%), surface area cm2 (29.1%), start abv pct (27.8%). The best observed value was <strong>6.7</strong> (at start abv pct = 8.5, surface area cm2 = 100, temp c = 32).</p>
+<p>For <strong>off flavor score</strong>, the most influential factors were surface area cm2 (72.8%), start abv pct (18.7%), temp c (8.6%). The best observed value was <strong>2.1</strong> (at start abv pct = 8.5, surface area cm2 = 300, temp c = 26).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (acidity_pct (↑), off_flavor_score (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/245_vinegar_mother/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -264,48 +264,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/245_vinegar_mother/config.json \
     <span class="flag">--output</span> use_cases/245_vinegar_mother/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Fermentation Experiment? Use the Manual Workflow</h4>
-        <p>Fermentation experiments involve living cultures, temperature-sensitive biological processes, and flavors that must be tasted and measured. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/245_vinegar_mother/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/245_vinegar_mother/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/245_vinegar_mother/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/245_vinegar_mother/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/245_vinegar_mother/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/245_vinegar_mother/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/245_vinegar_mother/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -337,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: acidity_pct</h3>
-    <p>Top factors: start_abv_pct (45.6%), temp_c (33.0%), surface_area_cm2 (21.4%).</p>
+    <p>Top factors: temp_c (43.1%), surface_area_cm2 (29.1%), start_abv_pct (27.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -350,7 +308,7 @@
     </div>
 
     <h3>Response: off_flavor_score</h3>
-    <p>Top factors: surface_area_cm2 (45.7%), temp_c (36.4%), start_abv_pct (18.0%).</p>
+    <p>Top factors: surface_area_cm2 (72.8%), start_abv_pct (18.7%), temp_c (8.6%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -401,80 +359,219 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.7012</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>acidity_pct</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:61.36000000000001%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.6136</span>
+                </div>
+              </td>
+              <td>4.90 0.6136        4.90 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>off_flavor_score</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:76.64999999999999%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7665</span>
+                </div>
+              </td>
+              <td>2.70 0.7665        2.70 pts</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>start_abv_pct</code></td><td>8.5 %</td></tr>
+            <tr><td><code>surface_area_cm2</code></td><td>100 cm2</td></tr>
+            <tr><td><code>temp_c</code></td><td>32 C</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #6</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>off_flavor_score</code></td><td>2.70</td><td>2.10</td><td><span style="color:#dc2626;">+0.60</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#5</td><td><strong>0.6922</strong></td><td style="font-size:.78rem;">start_abv_pct=12,  surface_area_cm2=500,  temp_c=26</td></tr>
+            <tr><td>#15</td><td><strong>0.6461</strong></td><td style="font-size:.78rem;">start_abv_pct=8.5,  surface_area_cm2=500,  temp_c=20</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>off_flavor_score</code></td><td style="color:#dc2626;font-weight:600;">0.1802</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.7012
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+acidity_pct                  1.0       0.6136        4.90 %   ↑
+off_flavor_score             1.5       0.7665        2.70 pts   ↓
+
+Recommended settings:
+  start_abv_pct = 8.5 %
+  surface_area_cm2 = 100 cm2
+  temp_c = 32 C
+  (from observed run #6)
+
+Trade-off summary:
+  acidity_pct: 4.90 (best observed: 6.70, sacrifice: +1.80)
+  off_flavor_score: 2.70 (best observed: 2.10, sacrifice: +0.60)
+
+Model quality:
+  acidity_pct: R² = 0.0945 (linear)
+  off_flavor_score: R² = 0.1802 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #6 (D=0.7012): start_abv_pct=8.5, surface_area_cm2=100, temp_c=32
+  2. Run #5 (D=0.6922): start_abv_pct=12, surface_area_cm2=500, temp_c=26
+  3. Run #15 (D=0.6461): start_abv_pct=8.5, surface_area_cm2=500, temp_c=20</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_acidity_pct_start_abv_pct_vs_surface_area_cm2.png
-  RSM surface: rsm_acidity_pct_start_abv_pct_vs_temp_c.png
-  RSM surface: rsm_acidity_pct_surface_area_cm2_vs_temp_c.png
-  RSM surface: rsm_off_flavor_score_start_abv_pct_vs_surface_area_cm2.png
-  RSM surface: rsm_off_flavor_score_start_abv_pct_vs_temp_c.png
-  RSM surface: rsm_off_flavor_score_surface_area_cm2_vs_temp_c.png
-
-=== Main Effects: acidity_pct ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: acidity_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-start_abv_pct            2.0250       0.3676            45.6%
-temp_c                   1.4679       0.3676            33.0%
-surface_area_cm2         0.9500       0.3676            21.4%
+temp_c                   1.7036       0.3676            43.1%
+surface_area_cm2         1.1500       0.3676            29.1%
+start_abv_pct            1.0964       0.3676            27.8%
+
+=== ANOVA Table: acidity_pct ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+start_abv_pct                2       3.2855       1.6428     70.405     0.0000
+surface_area_cm2             2       4.0473       2.0237     86.729     0.0000
+temp_c                       2       7.4455       3.7228    159.547     0.0000
+Lack of Fit                  6      13.5522       2.2587     96.802     0.0103
+Pure Error                   2       0.0467       0.0233
+Error                        8      13.5989       0.0233
+Total                       14      28.3773       2.0270
 
 === Summary Statistics: acidity_pct ===
 
 start_abv_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  12                  4     5.3250     1.0210     4.3000     6.7000
-  5                   4     3.3000     1.8037     1.9000     5.9000
-  8.5                 7     4.6000     1.0786     3.2000     6.4000
+  12                  4     4.6500     1.1269     3.2000     5.9000
+  5                   4     3.6750     1.5108     1.9000     5.4000
+  8.5                 7     4.7714     1.5510     2.3000     6.7000
 
 surface_area_cm2:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4     3.8500     1.3229     2.3000     5.0000
-  300                 7     4.5857     1.7053     1.9000     6.7000
-  500                 4     4.8000     1.0985     3.4000     5.9000
+  100                 4     5.0500     1.2477     3.4000     6.4000
+  300                 7     3.9000     1.1790     1.9000     5.0000
+  500                 4     4.8000     1.9425     2.3000     6.7000
 
 temp_c:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  20                  4     3.4750     1.1955     1.9000     4.5000
-  26                  7     4.9429     1.3100     2.3000     6.4000
-  32                  4     4.5500     1.6583     3.1000     6.7000
+  20                  4     4.5500     2.3728     1.9000     6.7000
+  26                  7     5.0286     0.5090     4.3000     5.9000
+  32                  4     3.3250     0.9106     2.3000     4.5000
 
 === Main Effects: off_flavor_score ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-surface_area_cm2         1.1000       0.2051            45.7%
-temp_c                   0.8750       0.2051            36.4%
-start_abv_pct            0.4321       0.2051            18.0%
+surface_area_cm2         0.6679       0.2051            72.8%
+start_abv_pct            0.1714       0.2051            18.7%
+temp_c                   0.0786       0.2051             8.6%
+
+=== ANOVA Table: off_flavor_score ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+start_abv_pct                2       0.0755       0.0378      0.453     0.6509
+surface_area_cm2             2       1.1427       0.5713      6.856     0.0184
+temp_c                       2       0.0230       0.0115      0.138     0.8729
+Lack of Fit                  6       7.4294       1.2382     14.859     0.0644
+Pure Error                   2       0.1667       0.0833
+Error                        8       7.5960       0.0833
+Total                       14       8.8373       0.6312
 
 === Summary Statistics: off_flavor_score ===
 
 start_abv_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  12                  4     3.5750     1.1057     2.7000     5.0000
-  5                   4     3.3500     0.8660     2.5000     4.4000
-  8.5                 7     3.1429     0.6373     2.1000     4.0000
+  12                  4     3.3250     1.0626     2.1000     4.4000
+  5                   4     3.2000     0.7024     2.5000     3.9000
+  8.5                 7     3.3714     0.8056     2.7000     5.0000
 
 surface_area_cm2:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4     2.7000     0.4546     2.1000     3.2000
-  300                 7     3.3857     0.8668     2.5000     5.0000
-  500                 4     3.8000     0.6377     2.9000     4.4000
+  100                 4     3.3500     0.5802     2.8000     3.9000
+  300                 7     3.0571     0.6705     2.1000     4.0000
+  500                 4     3.7250     1.1529     2.7000     5.0000
 
 temp_c:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  20                  4     2.8250     0.8221     2.1000     4.0000
-  26                  7     3.3714     0.6651     2.7000     4.4000
-  32                  4     3.7000     0.9274     2.9000     5.0000
-
-Pareto chart (acidity_pct): use_cases/245_vinegar_mother/results/analysis/pareto_acidity_pct.png
-
-Pareto chart (off_flavor_score): use_cases/245_vinegar_mother/results/analysis/pareto_off_flavor_score.png
-Main effects (acidity_pct): use_cases/245_vinegar_mother/results/analysis/main_effects_acidity_pct.png
-Main effects (off_flavor_score): use_cases/245_vinegar_mother/results/analysis/main_effects_off_flavor_score.png</div></div>
+  20                  4     3.3500     1.3178     2.1000     5.0000
+  26                  7     3.2714     0.6525     2.7000     4.4000
+  32                  4     3.3500     0.5916     2.8000     4.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: acidity_pct ===
@@ -482,97 +579,111 @@ Direction: maximize
 
 Best observed run: #3
   start_abv_pct = 8.5
-  surface_area_cm2 = 300
-  temp_c = 26
+  surface_area_cm2 = 100
+  temp_c = 32
   Value: 6.7
 
-RSM Model (linear, R² = 0.3271, Adj R² = 0.1436):
+RSM Model (linear, R² = 0.2914, Adj R² = 0.0982):
   Coefficients:
     intercept                      +4.4467
-    start_abv_pct                  -0.3000
-    surface_area_cm2               -0.9375
-    temp_c                         +0.4375
+    start_abv_pct                  -0.2250
+    surface_area_cm2               +0.5500
+    temp_c                         +0.8250
 
-RSM Model (quadratic, R² = 0.6680, Adj R² = 0.0703):
+RSM Model (quadratic, R² = 0.5873, Adj R² = -0.1556):
   Coefficients:
-    intercept                      +4.4000
-    start_abv_pct                  -0.3000
-    surface_area_cm2               -0.9375
-    temp_c                         +0.4375
-    start_abv_pct*surface_area_cm2 +0.1500
-    start_abv_pct*temp_c           +0.1500
-    surface_area_cm2*temp_c        -0.0750
-    start_abv_pct^2                +1.1125
-    surface_area_cm2^2             +0.0375
-    temp_c^2                       -1.0625
+    intercept                      +3.6667
+    start_abv_pct                  -0.2250
+    surface_area_cm2               +0.5500
+    temp_c                         +0.8250
+    start_abv_pct*surface_area_cm2 +0.5250
+    start_abv_pct*temp_c           -0.6750
+    surface_area_cm2*temp_c        -0.4750
+    start_abv_pct^2                -0.0958
+    surface_area_cm2^2             +0.6042
+    temp_c^2                       +0.9542
 
   Curvature analysis:
-    start_abv_pct                  coef=+1.1125  convex (has a minimum)
-    temp_c                         coef=-1.0625  concave (has a maximum)
-    surface_area_cm2               coef=+0.0375  negligible curvature
+    temp_c                         coef=+0.9542  convex (has a minimum)
+    surface_area_cm2               coef=+0.6042  convex (has a minimum)
+    start_abv_pct                  coef=-0.0958  negligible curvature
 
-  Predicted optimum (from linear model):
+  Notable interactions:
+    start_abv_pct*temp_c           coef=-0.6750  (antagonistic)
+    start_abv_pct*surface_area_cm2 coef=+0.5250  (synergistic)
+    surface_area_cm2*temp_c        coef=-0.4750  (antagonistic)
+
+  Predicted optimum (from linear model, at observed points):
     start_abv_pct = 8.5
-    surface_area_cm2 = 100
+    surface_area_cm2 = 500
     temp_c = 32
     Predicted value: 5.8217
+
+  Surface optimum (via L-BFGS-B, linear model):
+    start_abv_pct = 5
+    surface_area_cm2 = 500
+    temp_c = 32
+    Predicted value: 6.0467
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. surface_area_cm2  (effect: 1.9, contribution: 37.9%)
-  2. temp_c  (effect: 1.6, contribution: 32.0%)
-  3. start_abv_pct  (effect: 1.5, contribution: 30.1%)
+  1. temp_c  (effect: 1.7, contribution: 52.9%)
+  2. surface_area_cm2  (effect: 1.1, contribution: 33.4%)
+  3. start_abv_pct  (effect: 0.5, contribution: 13.7%)
 
 === Optimization: off_flavor_score ===
 Direction: minimize
 
 Best observed run: #1
-  start_abv_pct = 12
+  start_abv_pct = 8.5
   surface_area_cm2 = 300
-  temp_c = 20
+  temp_c = 26
   Value: 2.1
 
-RSM Model (linear, R² = 0.1480, Adj R² = -0.0844):
+RSM Model (linear, R² = 0.3338, Adj R² = 0.1521):
   Coefficients:
     intercept                      +3.3133
-    start_abv_pct                  -0.1875
-    surface_area_cm2               -0.3125
-    temp_c                         +0.1750
+    start_abv_pct                  -0.3750
+    surface_area_cm2               -0.3250
+    temp_c                         +0.3500
 
-RSM Model (quadratic, R² = 0.4847, Adj R² = -0.4429):
+RSM Model (quadratic, R² = 0.6328, Adj R² = -0.0281):
   Coefficients:
-    intercept                      +3.8667
-    start_abv_pct                  -0.1875
-    surface_area_cm2               -0.3125
-    temp_c                         +0.1750
-    start_abv_pct*surface_area_cm2 -0.0250
-    start_abv_pct*temp_c           +0.3000
-    surface_area_cm2*temp_c        +0.0500
-    start_abv_pct^2                +0.1292
-    surface_area_cm2^2             -0.4708
-    temp_c^2                       -0.6958
+    intercept                      +3.0000
+    start_abv_pct                  -0.3750
+    surface_area_cm2               -0.3250
+    temp_c                         +0.3500
+    start_abv_pct*surface_area_cm2 +0.1750
+    start_abv_pct*temp_c           -0.2750
+    surface_area_cm2*temp_c        -0.1750
+    start_abv_pct^2                -0.3375
+    surface_area_cm2^2             +0.5125
+    temp_c^2                       +0.4125
 
   Curvature analysis:
-    temp_c                         coef=-0.6958  concave (has a maximum)
-    surface_area_cm2               coef=-0.4708  concave (has a maximum)
-    start_abv_pct                  coef=+0.1292  convex (has a minimum)
+    surface_area_cm2               coef=+0.5125  convex (has a minimum)
+    temp_c                         coef=+0.4125  convex (has a minimum)
+    start_abv_pct                  coef=-0.3375  concave (has a maximum)
 
-  Notable interactions:
-    start_abv_pct*temp_c           coef=+0.3000  (synergistic)
-
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     start_abv_pct = 5
-    surface_area_cm2 = 100
-    temp_c = 26
-    Predicted value: 3.8133
+    surface_area_cm2 = 300
+    temp_c = 32
+    Predicted value: 4.0383
+
+  Surface optimum (via L-BFGS-B, linear model):
+    start_abv_pct = 12
+    surface_area_cm2 = 500
+    temp_c = 20
+    Predicted value: 2.2633
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. temp_c  (effect: 0.8, contribution: 42.5%)
-  2. surface_area_cm2  (effect: 0.7, contribution: 37.3%)
-  3. start_abv_pct  (effect: 0.4, contribution: 20.1%)</div></div>
+  1. surface_area_cm2  (effect: 0.8, contribution: 35.2%)
+  2. start_abv_pct  (effect: 0.8, contribution: 33.0%)
+  3. temp_c  (effect: 0.8, contribution: 31.8%)</div></div>
   </section>
 
   <!-- Nav -->

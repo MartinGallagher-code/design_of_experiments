@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -51,8 +50,8 @@
 
     
     <h3>Key Findings</h3>
-    <p>For <strong>job time min</strong>, the most influential factors were shuffle buffer kb (47.1%), compress codec (27.1%), shuffle partitions (25.8%). The best observed value was <strong>22.9</strong> (at shuffle partitions = 50, shuffle buffer kb = 256, compress codec = lz4).</p>
-<p>For <strong>shuffle spill gb</strong>, the most influential factors were compress codec (53.1%), shuffle buffer kb (45.5%), shuffle partitions (1.5%). The best observed value was <strong>7.3</strong> (at shuffle partitions = 50, shuffle buffer kb = 32, compress codec = lz4).</p>
+    <p>For <strong>job time min</strong>, the most influential factors were shuffle buffer kb (49.9%), compress codec (47.1%), shuffle partitions (3.1%). The best observed value was <strong>22.9</strong> (at shuffle partitions = 500, shuffle buffer kb = 256, compress codec = lz4).</p>
+<p>For <strong>shuffle spill gb</strong>, the most influential factors were shuffle buffer kb (92.3%), compress codec (7.5%), shuffle partitions (0.2%). The best observed value was <strong>7.3</strong> (at shuffle partitions = 500, shuffle buffer kb = 32, compress codec = lz4).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -238,6 +237,18 @@
     <div class="uc-step">
       <div class="uc-step-num">6</div>
       <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/37_spark_shuffle_optimization/config.json <span class="flag">--multi</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">7</div>
+      <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
@@ -275,7 +286,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: job_time_min</h3>
-    <p>Top factors: shuffle_buffer_kb (47.1%), compress_codec (27.1%), shuffle_partitions (25.8%).</p>
+    <p>Top factors: shuffle_buffer_kb (49.9%), compress_codec (47.1%), shuffle_partitions (3.1%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -288,7 +299,7 @@
     </div>
 
     <h3>Response: shuffle_spill_gb</h3>
-    <p>Top factors: compress_codec (53.1%), shuffle_buffer_kb (45.5%), shuffle_partitions (1.5%).</p>
+    <p>Top factors: shuffle_buffer_kb (92.3%), compress_codec (7.5%), shuffle_partitions (0.2%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -319,134 +330,300 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9002</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>job_time_min</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:90.57%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9057</span>
+                </div>
+              </td>
+              <td>24.05 0.9057       24.05 min</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>shuffle_spill_gb</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:89.21%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.8921</span>
+                </div>
+              </td>
+              <td>9.17 0.8921        9.17 GB</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>shuffle_partitions</code></td><td>500 count</td></tr>
+            <tr><td><code>shuffle_buffer_kb</code></td><td>256 KB</td></tr>
+            <tr><td><code>compress_codec</code></td><td>lz4</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from RSM model prediction</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>shuffle_spill_gb</code></td><td>9.17</td><td>7.30</td><td><span style="color:#dc2626;">+1.87</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#6</td><td><strong>0.7811</strong></td><td style="font-size:.78rem;">shuffle_partitions=500,  shuffle_buffer_kb=32,  compress_codec=lz4</td></tr>
+            <tr><td>#3</td><td><strong>0.7251</strong></td><td style="font-size:.78rem;">shuffle_partitions=50,  shuffle_buffer_kb=256,  compress_codec=lz4</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>shuffle_spill_gb</code></td><td style="color:#ca8a04;font-weight:600;">0.6608</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9002
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+job_time_min                 1.5       0.9057       24.05 min   ↓
+shuffle_spill_gb             1.0       0.8921        9.17 GB   ↓
+
+Recommended settings:
+  shuffle_partitions = 500 count
+  shuffle_buffer_kb = 256 KB
+  compress_codec = lz4
+  (from RSM model prediction)
+
+Trade-off summary:
+  job_time_min: 24.05 (best observed: 22.90, sacrifice: +1.15)
+  shuffle_spill_gb: 9.17 (best observed: 7.30, sacrifice: +1.87)
+
+Model quality:
+  job_time_min: R² = 0.5410 (linear)
+  shuffle_spill_gb: R² = 0.6608 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #4 (D=0.8947): shuffle_partitions=500, shuffle_buffer_kb=256, compress_codec=lz4
+  2. Run #6 (D=0.7811): shuffle_partitions=500, shuffle_buffer_kb=32, compress_codec=lz4
+  3. Run #3 (D=0.7251): shuffle_partitions=50, shuffle_buffer_kb=256, compress_codec=lz4</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: job_time_min ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-shuffle_buffer_kb       -9.2750       2.5346            47.1%
-compress_codec           5.3250       2.5346            27.1%
-shuffle_partitions      -5.0750       2.5346            25.8%
+shuffle_buffer_kb        4.4750       2.5346            49.9%
+compress_codec          -4.2250       2.5346            47.1%
+shuffle_partitions      -0.2750       2.5346             3.1%
+
+=== ANOVA Table: job_time_min ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+shuffle_partitions           1       0.1512       0.1512      0.001     0.9827
+shuffle_buffer_kb            1      40.0512      40.0512      0.195     0.7351
+compress_codec               1      35.7012      35.7012      0.174     0.7483
+shuffle_partitions*shuffle_buffer_kb    1      77.5012      77.5012      0.378     0.6491
+shuffle_partitions*compress_codec    1       0.6612       0.6612      0.003     0.9639
+shuffle_buffer_kb*compress_codec    1       0.6613       0.6613      0.003     0.9639
+Error                        1     205.0312     205.0312
+Total                        7     359.7587      51.3941
 
 === Interaction Effects: job_time_min ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-shuffle_partitions   shuffle_buffer_kb          6.2250            84.4%
-shuffle_partitions   compress_codec            -0.5750             7.8%
+shuffle_partitions   shuffle_buffer_kb         -6.2250            84.4%
 shuffle_buffer_kb    compress_codec            -0.5750             7.8%
+shuffle_partitions   compress_codec             0.5750             7.8%
 
 === Summary Statistics: job_time_min ===
 
 shuffle_partitions:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  50                  4    33.6000     9.5753    22.9000    44.3000
-  500                 4    28.5250     3.3260    25.2000    33.0000
+  50                  4    31.2000     9.1655    22.9000    44.3000
+  500                 4    30.9250     5.9885    25.2000    38.4000
 
 shuffle_buffer_kb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  256                 4    35.7000     7.3598    27.1000    44.3000
-  32                  4    26.4250     2.8987    22.9000    28.8000
+  256                 4    28.8250     6.8295    22.9000    38.4000
+  32                  4    33.3000     7.7412    27.1000    44.3000
 
 compress_codec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  lz4                 4    28.4000     6.8843    22.9000    38.4000
-  zstd                4    33.7250     7.3227    28.8000    44.3000
+  lz4                 4    33.1750     9.8919    22.9000    44.3000
+  zstd                4    28.9500     3.1890    25.2000    33.0000
 
 === Main Effects: shuffle_spill_gb ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-compress_codec           8.0250       3.1239            53.1%
-shuffle_buffer_kb       -6.8750       3.1239            45.5%
-shuffle_partitions      -0.2250       3.1239             1.5%
+shuffle_buffer_kb       13.8750       3.1239            92.3%
+compress_codec           1.1250       3.1239             7.5%
+shuffle_partitions      -0.0250       3.1239             0.2%
+
+=== ANOVA Table: shuffle_spill_gb ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+shuffle_partitions           1       0.0012       0.0012      0.001     0.9845
+shuffle_buffer_kb            1     385.0312     385.0312    183.239     0.0469
+compress_codec               1       2.5312       2.5312      1.205     0.4704
+shuffle_partitions*shuffle_buffer_kb    1      58.8613      58.8613     28.012     0.1189
+shuffle_partitions*compress_codec    1       0.6612       0.6612      0.315     0.6745
+shuffle_buffer_kb*compress_codec    1      97.3013      97.3013     46.306     0.0929
+Error                        1       2.1012       2.1012
+Total                        7     546.4887      78.0698
 
 === Interaction Effects: shuffle_spill_gb ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-shuffle_partitions   shuffle_buffer_kb        -12.6250            94.0%
-shuffle_buffer_kb    compress_codec            -0.5750             4.3%
-shuffle_partitions   compress_codec            -0.2250             1.7%
+shuffle_buffer_kb    compress_codec             6.9750            53.8%
+shuffle_partitions   shuffle_buffer_kb          5.4250            41.8%
+shuffle_partitions   compress_codec             0.5750             4.4%
 
 === Summary Statistics: shuffle_spill_gb ===
 
 shuffle_partitions:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  50                  4    20.2250     5.8220    13.6000    27.6000
-  500                 4    20.0000    12.1751     7.3000    34.6000
+  50                  4    20.1250     5.9752    13.2000    27.6000
+  500                 4    20.1000    12.1021     7.3000    34.6000
 
 shuffle_buffer_kb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  256                 4    23.5500     8.7356    13.6000    34.6000
-  32                  4    16.6750     8.6222     7.3000    27.6000
+  256                 4    13.1750     4.6234     7.3000    18.6000
+  32                  4    27.0500     5.6959    21.1000    34.6000
 
 compress_codec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  lz4                 4    16.1000     7.4695     7.3000    24.9000
-  zstd                4    24.1250     9.1343    13.2000    34.6000</div></div>
+  lz4                 4    19.5500     4.7374    13.6000    24.9000
+  zstd                4    20.6750    12.6046     7.3000    34.6000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: job_time_min ===
 Direction: minimize
 
 Best observed run: #6
-  shuffle_partitions = 50
+  shuffle_partitions = 500
   shuffle_buffer_kb = 256
   compress_codec = lz4
   Value: 22.9
 
-RSM Model (linear, R² = 0.3571, Adj R² = -0.1251):
+RSM Model (linear, R² = 0.8565, Adj R² = 0.7489):
   Coefficients:
     intercept                      +31.0625
-    shuffle_partitions             +3.5875
-    shuffle_buffer_kb              -0.7125
-    compress_codec                 -1.6375
+    shuffle_partitions             -3.5875
+    shuffle_buffer_kb              +0.1375
+    compress_codec                 +5.0625
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
+    shuffle_partitions = 50
+    shuffle_buffer_kb = 256
+    compress_codec = zstd
+    Predicted value: 39.8500
+
+  Surface optimum (via L-BFGS-B, linear model):
     shuffle_partitions = 500
     shuffle_buffer_kb = 32
     compress_codec = lz4
-    Predicted value: 37.0000
+    Predicted value: 22.2750
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. shuffle_partitions  (effect: 7.2, contribution: 60.4%)
-  2. compress_codec  (effect: -3.3, contribution: 27.6%)
-  3. shuffle_buffer_kb  (effect: 1.4, contribution: 12.0%)
+  1. compress_codec  (effect: 10.1, contribution: 57.6%)
+  2. shuffle_partitions  (effect: -7.2, contribution: 40.8%)
+  3. shuffle_buffer_kb  (effect: -0.3, contribution: 1.6%)
 
 === Optimization: shuffle_spill_gb ===
 Direction: minimize
 
 Best observed run: #4
-  shuffle_partitions = 50
+  shuffle_partitions = 500
   shuffle_buffer_kb = 32
   compress_codec = lz4
   Value: 7.3
 
-RSM Model (linear, R² = 0.5298, Adj R² = 0.1772):
+RSM Model (linear, R² = 0.3011, Adj R² = -0.2230):
   Coefficients:
     intercept                      +20.1125
-    shuffle_partitions             -1.9125
-    shuffle_buffer_kb              +2.8125
-    compress_codec                 +4.9625
+    shuffle_partitions             +1.9125
+    shuffle_buffer_kb              +0.0125
+    compress_codec                 +4.1125
 
-  Predicted optimum (from linear model):
-    shuffle_partitions = 50
+  Predicted optimum (from linear model, at observed points):
+    shuffle_partitions = 500
     shuffle_buffer_kb = 256
     compress_codec = zstd
-    Predicted value: 29.8000
+    Predicted value: 26.1500
 
-  Model quality: Moderate fit — use predictions directionally, not precisely.
+  Surface optimum (via L-BFGS-B, linear model):
+    shuffle_partitions = 50
+    shuffle_buffer_kb = 32
+    compress_codec = lz4
+    Predicted value: 14.0750
+
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. compress_codec  (effect: 9.9, contribution: 51.2%)
-  2. shuffle_buffer_kb  (effect: -5.6, contribution: 29.0%)
-  3. shuffle_partitions  (effect: -3.8, contribution: 19.7%)</div></div>
+  1. compress_codec  (effect: 8.2, contribution: 68.1%)
+  2. shuffle_partitions  (effect: 3.8, contribution: 31.7%)
+  3. shuffle_buffer_kb  (effect: -0.0, contribution: 0.2%)</div></div>
   </section>
 
   <!-- Nav -->

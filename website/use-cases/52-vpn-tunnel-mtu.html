@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>throughput mbps</strong>, the most influential factors were keepalive interval (64.4%), tunnel mtu (26.3%), fragment size (9.3%). The best observed value was <strong>927.0</strong> (at tunnel mtu = 1350, fragment size = 700, keepalive interval = 65).</p>
-<p>For <strong>reconnect time s</strong>, the most influential factors were keepalive interval (48.6%), fragment size (29.2%), tunnel mtu (22.2%). The best observed value was <strong>2.7</strong> (at tunnel mtu = 1500, fragment size = 700, keepalive interval = 120).</p>
+    <p>For <strong>throughput mbps</strong>, the most influential factors were keepalive interval (47.2%), tunnel mtu (35.3%), fragment size (17.6%). The best observed value was <strong>927.0</strong> (at tunnel mtu = 1500, fragment size = 700, keepalive interval = 120).</p>
+<p>For <strong>reconnect time s</strong>, the most influential factors were tunnel mtu (42.2%), fragment size (37.0%), keepalive interval (20.8%). The best observed value was <strong>2.7</strong> (at tunnel mtu = 1350, fragment size = 700, keepalive interval = 65).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (throughput_mbps (↑), reconnect_time_s (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/52_vpn_tunnel_mtu/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -295,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: throughput_mbps</h3>
-    <p>Top factors: keepalive_interval (64.4%), tunnel_mtu (26.3%), fragment_size (9.3%).</p>
+    <p>Top factors: keepalive_interval (47.2%), tunnel_mtu (35.3%), fragment_size (17.6%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -308,7 +308,7 @@
     </div>
 
     <h3>Response: reconnect_time_s</h3>
-    <p>Top factors: keepalive_interval (48.6%), fragment_size (29.2%), tunnel_mtu (22.2%).</p>
+    <p>Top factors: tunnel_mtu (42.2%), fragment_size (37.0%), keepalive_interval (20.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -359,172 +359,336 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9284</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>throughput_mbps</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:91.14%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9114</span>
+                </div>
+              </td>
+              <td>916.00 0.9114      916.00 Mbps</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>reconnect_time_s</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>2.70 0.9545        2.70 s</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>tunnel_mtu</code></td><td>1350 bytes</td></tr>
+            <tr><td><code>fragment_size</code></td><td>700 bytes</td></tr>
+            <tr><td><code>keepalive_interval</code></td><td>65 s</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #1</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>reconnect_time_s</code></td><td>2.70</td><td>2.70</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#4</td><td><strong>0.8697</strong></td><td style="font-size:.78rem;">tunnel_mtu=1500,  fragment_size=1400,  keepalive_interval=65</td></tr>
+            <tr><td>#8</td><td><strong>0.7675</strong></td><td style="font-size:.78rem;">tunnel_mtu=1350,  fragment_size=0,  keepalive_interval=10</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>reconnect_time_s</code></td><td style="color:#ca8a04;font-weight:600;">0.6588</td><td>quadratic</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9284
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+throughput_mbps              1.5       0.9114      916.00 Mbps   ↑
+reconnect_time_s             1.0       0.9545        2.70 s   ↓
+
+Recommended settings:
+  tunnel_mtu = 1350 bytes
+  fragment_size = 700 bytes
+  keepalive_interval = 65 s
+  (from observed run #1)
+
+Trade-off summary:
+  throughput_mbps: 916.00 (best observed: 927.00, sacrifice: +11.00)
+  reconnect_time_s: 2.70 (best observed: 2.70, sacrifice: +0.00)
+
+Model quality:
+  throughput_mbps: R² = 0.8145 (quadratic)
+  reconnect_time_s: R² = 0.6588 (quadratic)
+
+Top 3 observed runs by overall desirability:
+  1. Run #1 (D=0.9284): tunnel_mtu=1350, fragment_size=700, keepalive_interval=65
+  2. Run #4 (D=0.8697): tunnel_mtu=1500, fragment_size=1400, keepalive_interval=65
+  3. Run #8 (D=0.7675): tunnel_mtu=1350, fragment_size=0, keepalive_interval=10</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: throughput_mbps ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-keepalive_interval      83.2143      18.5135            64.4%
-tunnel_mtu              33.9643      18.5135            26.3%
-fragment_size           12.0000      18.5135             9.3%
+keepalive_interval      91.6429      18.5135            47.2%
+tunnel_mtu              68.5000      18.5135            35.3%
+fragment_size           34.1786      18.5135            17.6%
+
+=== ANOVA Table: throughput_mbps ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+tunnel_mtu                   2   10454.3857    5227.1929      0.500     0.6245
+fragment_size                2    3079.1357    1539.5679      0.147     0.8654
+keepalive_interval           2   21480.9929   10740.4964      1.027     0.4009
+Lack of Fit                  6   16042.4190    2673.7365      0.256     0.9182
+Pure Error                   2   20920.6667   10460.3333
+Error                        8   36963.0857   10460.3333
+Total                       14   71977.6000    5141.2571
 
 === Summary Statistics: throughput_mbps ===
 
 tunnel_mtu:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1200                4   831.0000    70.1285   752.0000   911.0000
-  1350                7   853.7143    78.2256   695.0000   927.0000
-  1500                4   819.7500    75.8436   739.0000   916.0000
+  1200                4   812.2500    69.9351   752.0000   913.0000
+  1350                7   829.5714    81.6800   695.0000   916.0000
+  1500                4   880.7500    47.6821   822.0000   927.0000
 
 fragment_size:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   4   842.7500    49.6345   798.0000   913.0000
-  1400                4   830.7500    77.9118   752.0000   927.0000
-  700                 7   840.7143    87.5875   695.0000   916.0000
+  0                   4   843.0000    67.6116   752.0000   911.0000
+  1400                4   858.7500    48.2589   798.0000   916.0000
+  700                 7   824.5714    89.6267   695.0000   927.0000
 
 keepalive_interval:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4   887.5000    31.2677   858.0000   916.0000
-  120                 4   849.7500    87.0914   739.0000   927.0000
-  65                  7   804.2857    68.2952   695.0000   890.0000
+  10                  4   834.2500    38.2655   786.0000   871.0000
+  120                 4   898.5000    40.7799   838.0000   927.0000
+  65                  7   806.8571    82.7797   695.0000   911.0000
 
 === Main Effects: reconnect_time_s ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-keepalive_interval       5.2857       1.0999            48.6%
-fragment_size            3.1750       1.0999            29.2%
-tunnel_mtu               2.4107       1.0999            22.2%
+tunnel_mtu               5.8250       1.0999            42.2%
+fragment_size            5.1000       1.0999            37.0%
+keepalive_interval       2.8750       1.0999            20.8%
+
+=== ANOVA Table: reconnect_time_s ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+tunnel_mtu                   2      84.4655      42.2328      2.314     0.1611
+fragment_size                2      57.7538      28.8769      1.582     0.2637
+keepalive_interval           2      21.8913      10.9456      0.600     0.5719
+Lack of Fit                  6      53.4401       8.9067      0.488     0.7903
+Pure Error                   2      36.5067      18.2533
+Error                        8      89.9468      18.2533
+Total                       14     254.0573      18.1470
 
 === Summary Statistics: reconnect_time_s ===
 
 tunnel_mtu:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1200                4     8.9000     3.9455     5.5000    14.6000
-  1350                7     9.9857     3.5254     5.6000    15.7000
-  1500                4     7.5750     6.2681     2.7000    16.0000
+  1200                4    12.9500     5.0030     5.5000    16.0000
+  1350                7     7.9286     3.9012     2.7000    13.1000
+  1500                4     7.1250     1.0308     5.6000     7.8000
 
 fragment_size:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   4     9.3250     4.4485     5.5000    15.7000
-  1400                4    10.9750     5.0993     5.6000    16.0000
-  700                 7     7.8000     3.8863     2.7000    13.1000
+  0                   4    11.0250     3.3440     7.7000    14.6000
+  1400                4     5.9250     2.3977     2.7000     7.8000
+  700                 7     9.7143     4.9246     2.9000    16.0000
 
 keepalive_interval:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4     8.4750     5.3730     2.7000    15.7000
-  120                 4     5.9000     2.2045     2.9000     7.7000
-  65                  7    11.1857     3.6499     5.5000    16.0000</div></div>
+  10                  4    11.0500     4.2131     7.4000    16.0000
+  120                 4     8.1750     5.5829     2.7000    15.7000
+  65                  7     8.4143     3.7729     2.9000    14.6000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: throughput_mbps ===
 Direction: maximize
 
 Best observed run: #4
-  tunnel_mtu = 1350
+  tunnel_mtu = 1500
   fragment_size = 700
-  keepalive_interval = 65
+  keepalive_interval = 120
   Value: 927.0
 
-RSM Model (linear, R² = 0.2132, Adj R² = -0.0013):
+RSM Model (linear, R² = 0.6380, Adj R² = 0.5392):
   Coefficients:
     intercept                      +838.6000
-    tunnel_mtu                     +10.7500
-    fragment_size                  -32.8750
-    keepalive_interval             -26.8750
+    tunnel_mtu                     -36.7500
+    fragment_size                  -0.5000
+    keepalive_interval             +66.2500
 
-RSM Model (quadratic, R² = 0.4806, Adj R² = -0.4543):
+RSM Model (quadratic, R² = 0.8483, Adj R² = 0.5752):
   Coefficients:
-    intercept                      +852.0000
-    tunnel_mtu                     +10.7500
-    fragment_size                  -32.8750
-    keepalive_interval             -26.8750
-    tunnel_mtu*fragment_size       -41.5000
+    intercept                      +875.0000
+    tunnel_mtu                     -36.7500
+    fragment_size                  -0.5000
+    keepalive_interval             +66.2500
+    tunnel_mtu*fragment_size       -24.0000
     tunnel_mtu*keepalive_interval  +21.5000
-    fragment_size*keepalive_interval -24.7500
-    tunnel_mtu^2                   -2.8750
-    fragment_size^2                -41.1250
-    keepalive_interval^2           +18.8750
+    fragment_size*keepalive_interval -9.0000
+    tunnel_mtu^2                   -28.2500
+    fragment_size^2                -46.2500
+    keepalive_interval^2           +6.2500
 
   Curvature analysis:
-    fragment_size                  coef=-41.1250  concave (has a maximum)
-    keepalive_interval             coef=+18.8750  convex (has a minimum)
-    tunnel_mtu                     coef=-2.8750  concave (has a maximum)
+    fragment_size                  coef=-46.2500  concave (has a maximum)
+    tunnel_mtu                     coef=-28.2500  concave (has a maximum)
+    keepalive_interval             coef=+6.2500  convex (has a minimum)
 
   Notable interactions:
-    tunnel_mtu*fragment_size       coef=-41.5000  (antagonistic)
-    fragment_size*keepalive_interval coef=-24.7500  (antagonistic)
+    tunnel_mtu*fragment_size       coef=-24.0000  (antagonistic)
     tunnel_mtu*keepalive_interval  coef=+21.5000  (synergistic)
+    fragment_size*keepalive_interval coef=-9.0000  (antagonistic)
 
-  Predicted optimum (from linear model):
-    tunnel_mtu = 1350
-    fragment_size = 0
-    keepalive_interval = 10
-    Predicted value: 898.3500
+  Predicted optimum (from quadratic model, at observed points):
+    tunnel_mtu = 1200
+    fragment_size = 700
+    keepalive_interval = 120
+    Predicted value: 934.5000
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Surface optimum (via L-BFGS-B, quadratic model):
+    tunnel_mtu = 1311.85
+    fragment_size = 674.297
+    keepalive_interval = 120
+    Predicted value: 949.6136
+
+  Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. fragment_size  (effect: 75.1, contribution: 50.0%)
-  2. keepalive_interval  (effect: 53.8, contribution: 35.7%)
-  3. tunnel_mtu  (effect: 21.5, contribution: 14.3%)
+  1. keepalive_interval  (effect: 132.5, contribution: 52.8%)
+  2. tunnel_mtu  (effect: 73.5, contribution: 29.3%)
+  3. fragment_size  (effect: 45.2, contribution: 18.0%)
 
 === Optimization: reconnect_time_s ===
 Direction: minimize
 
 Best observed run: #1
-  tunnel_mtu = 1500
+  tunnel_mtu = 1350
   fragment_size = 700
-  keepalive_interval = 120
+  keepalive_interval = 65
   Value: 2.7
 
-RSM Model (linear, R² = 0.0701, Adj R² = -0.1835):
+RSM Model (linear, R² = 0.1571, Adj R² = -0.0728):
   Coefficients:
     intercept                      +9.0533
-    tunnel_mtu                     +0.1375
-    fragment_size                  +1.2750
-    keepalive_interval             -0.7625
+    tunnel_mtu                     +1.8875
+    fragment_size                  +0.1250
+    keepalive_interval             +1.1875
 
-RSM Model (quadratic, R² = 0.7199, Adj R² = 0.2157):
+RSM Model (quadratic, R² = 0.3239, Adj R² = -0.8930):
   Coefficients:
-    intercept                      +6.4667
-    tunnel_mtu                     +0.1375
-    fragment_size                  +1.2750
-    keepalive_interval             -0.7625
-    tunnel_mtu*fragment_size       -3.3750
-    tunnel_mtu*keepalive_interval  -2.5000
-    fragment_size*keepalive_interval +2.2750
-    tunnel_mtu^2                   +2.4417
-    fragment_size^2                +3.5667
-    keepalive_interval^2           -1.1583
+    intercept                      +8.1667
+    tunnel_mtu                     +1.8875
+    fragment_size                  +0.1250
+    keepalive_interval             +1.1875
+    tunnel_mtu*fragment_size       -1.6500
+    tunnel_mtu*keepalive_interval  -2.3250
+    fragment_size*keepalive_interval +0.5500
+    tunnel_mtu^2                   +1.0792
+    fragment_size^2                +1.0042
+    keepalive_interval^2           -0.4208
 
   Curvature analysis:
-    fragment_size                  coef=+3.5667  convex (has a minimum)
-    tunnel_mtu                     coef=+2.4417  convex (has a minimum)
-    keepalive_interval             coef=-1.1583  concave (has a maximum)
+    tunnel_mtu                     coef=+1.0792  convex (has a minimum)
+    fragment_size                  coef=+1.0042  convex (has a minimum)
+    keepalive_interval             coef=-0.4208  concave (has a maximum)
 
   Notable interactions:
-    tunnel_mtu*fragment_size       coef=-3.3750  (antagonistic)
-    tunnel_mtu*keepalive_interval  coef=-2.5000  (antagonistic)
-    fragment_size*keepalive_interval coef=+2.2750  (synergistic)
+    tunnel_mtu*keepalive_interval  coef=-2.3250  (antagonistic)
+    tunnel_mtu*fragment_size       coef=-1.6500  (antagonistic)
+    fragment_size*keepalive_interval coef=+0.5500  (synergistic)
 
-  Predicted optimum (from quadratic model):
+  Predicted optimum (from linear model, at observed points):
+    tunnel_mtu = 1500
+    fragment_size = 700
+    keepalive_interval = 120
+    Predicted value: 12.1283
+
+  Surface optimum (via L-BFGS-B, linear model):
     tunnel_mtu = 1200
-    fragment_size = 1400
-    keepalive_interval = 65
-    Predicted value: 16.9875
+    fragment_size = 0
+    keepalive_interval = 10
+    Predicted value: 5.8533
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. fragment_size  (effect: 4.7, contribution: 50.0%)
-  2. tunnel_mtu  (effect: 2.4, contribution: 25.3%)
-  3. keepalive_interval  (effect: 2.4, contribution: 24.7%)</div></div>
+  1. tunnel_mtu  (effect: 3.8, contribution: 52.2%)
+  2. keepalive_interval  (effect: 2.4, contribution: 32.8%)
+  3. fragment_size  (effect: 1.1, contribution: 15.0%)</div></div>
   </section>
 
   <!-- Nav -->

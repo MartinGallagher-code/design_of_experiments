@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>vitality score</strong>, the most influential factors were feed g day (48.2%), water change pct (34.8%), light hrs (17.0%). The best observed value was <strong>7.8</strong> (at water change pct = 25, feed g day = 3, light hrs = 12).</p>
-<p>For <strong>algae level</strong>, the most influential factors were water change pct (37.2%), feed g day (33.1%), light hrs (29.6%). The best observed value was <strong>2.1</strong> (at water change pct = 10, feed g day = 1.75, light hrs = 6).</p>
+    <p>For <strong>vitality score</strong>, the most influential factors were light hrs (50.1%), water change pct (25.0%), feed g day (25.0%). The best observed value was <strong>7.8</strong> (at water change pct = 25, feed g day = 0.5, light hrs = 6).</p>
+<p>For <strong>algae level</strong>, the most influential factors were light hrs (52.0%), feed g day (40.3%), water change pct (7.7%). The best observed value was <strong>2.1</strong> (at water change pct = 25, feed g day = 0.5, light hrs = 12).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (vitality_score (↑), algae_level (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/170_fish_tank_health/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -264,48 +264,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/170_fish_tank_health/config.json \
     <span class="flag">--output</span> use_cases/170_fish_tank_health/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Animal Care Experiment? Use the Manual Workflow</h4>
-        <p>Animal experiments involve living creatures with variable behavior, biological needs, and environmental responses that can't be simulated. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/170_fish_tank_health/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/170_fish_tank_health/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/170_fish_tank_health/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/170_fish_tank_health/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/170_fish_tank_health/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/170_fish_tank_health/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/170_fish_tank_health/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -337,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: vitality_score</h3>
-    <p>Top factors: feed_g_day (48.2%), water_change_pct (34.8%), light_hrs (17.0%).</p>
+    <p>Top factors: light_hrs (50.1%), water_change_pct (25.0%), feed_g_day (25.0%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -350,7 +308,7 @@
     </div>
 
     <h3>Response: algae_level</h3>
-    <p>Top factors: water_change_pct (37.2%), feed_g_day (33.1%), light_hrs (29.6%).</p>
+    <p>Top factors: light_hrs (52.0%), feed_g_day (40.3%), water_change_pct (7.7%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -401,80 +359,219 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.8196</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>vitality_score</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:70.38%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7038</span>
+                </div>
+              </td>
+              <td>7.00 0.7038        7.00 pts</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>algae_level</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>2.10 0.9545        2.10 pts</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>water_change_pct</code></td><td>25 %/week</td></tr>
+            <tr><td><code>feed_g_day</code></td><td>1.75 g/day</td></tr>
+            <tr><td><code>light_hrs</code></td><td>9 hrs</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #4</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>algae_level</code></td><td>2.10</td><td>2.10</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#5</td><td><strong>0.7067</strong></td><td style="font-size:.78rem;">water_change_pct=25,  feed_g_day=0.5,  light_hrs=6</td></tr>
+            <tr><td>#10</td><td><strong>0.6908</strong></td><td style="font-size:.78rem;">water_change_pct=10,  feed_g_day=1.75,  light_hrs=12</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>algae_level</code></td><td style="color:#16a34a;font-weight:600;">0.8053</td><td>quadratic</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.8196
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+vitality_score               1.5       0.7038        7.00 pts   ↑
+algae_level                  1.5       0.9545        2.10 pts   ↓
+
+Recommended settings:
+  water_change_pct = 25 %/week
+  feed_g_day = 1.75 g/day
+  light_hrs = 9 hrs
+  (from observed run #4)
+
+Trade-off summary:
+  vitality_score: 7.00 (best observed: 7.80, sacrifice: +0.80)
+  algae_level: 2.10 (best observed: 2.10, sacrifice: +0.00)
+
+Model quality:
+  vitality_score: R² = 0.7602 (quadratic)
+  algae_level: R² = 0.8053 (quadratic)
+
+Top 3 observed runs by overall desirability:
+  1. Run #4 (D=0.8196): water_change_pct=25, feed_g_day=1.75, light_hrs=9
+  2. Run #5 (D=0.7067): water_change_pct=25, feed_g_day=0.5, light_hrs=6
+  3. Run #10 (D=0.6908): water_change_pct=10, feed_g_day=1.75, light_hrs=12</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_vitality_score_water_change_pct_vs_feed_g_day.png
-  RSM surface: rsm_vitality_score_water_change_pct_vs_light_hrs.png
-  RSM surface: rsm_vitality_score_feed_g_day_vs_light_hrs.png
-  RSM surface: rsm_algae_level_water_change_pct_vs_feed_g_day.png
-  RSM surface: rsm_algae_level_water_change_pct_vs_light_hrs.png
-  RSM surface: rsm_algae_level_feed_g_day_vs_light_hrs.png
-
-=== Main Effects: vitality_score ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: vitality_score ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-feed_g_day               0.9000       0.2238            48.2%
-water_change_pct         0.6500       0.2238            34.8%
-light_hrs                0.3179       0.2238            17.0%
+light_hrs                0.9036       0.2238            50.1%
+water_change_pct         0.4500       0.2238            25.0%
+feed_g_day               0.4500       0.2238            25.0%
+
+=== ANOVA Table: vitality_score ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+water_change_pct             2       0.5102       0.2551      0.336     0.7245
+feed_g_day                   2       0.4538       0.2269      0.299     0.7498
+light_hrs                    2       2.1680       1.0840      1.426     0.2953
+Lack of Fit                  6       5.8653       0.9776      1.286     0.4991
+Pure Error                   2       1.5200       0.7600
+Error                        8       7.3853       0.7600
+Total                       14      10.5173       0.7512
 
 === Summary Statistics: vitality_score ===
 
 water_change_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4     6.2750     1.1983     4.9000     7.8000
-  25                  7     6.7000     0.8737     5.5000     7.7000
-  40                  4     6.9250     0.4992     6.2000     7.3000
+  10                  4     6.9500     0.6658     6.0000     7.5000
+  25                  7     6.5571     1.0722     4.9000     7.8000
+  40                  4     6.5000     0.7703     5.5000     7.2000
 
 feed_g_day:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.5                 4     6.9750     0.6652     6.0000     7.5000
-  1.75                7     6.2000     0.9452     4.9000     7.7000
-  3                   4     7.1000     0.6272     6.3000     7.8000
+  0.5                 4     6.4750     1.1673     4.9000     7.5000
+  1.75                7     6.5857     0.7883     5.5000     7.8000
+  3                   4     6.9250     0.8655     5.7000     7.7000
 
 light_hrs:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  12                  4     6.7000     0.4761     6.2000     7.2000
-  6                   4     6.4250     1.1295     4.9000     7.5000
-  9                   7     6.7429     0.9778     5.5000     7.8000
+  12                  4     6.7750     0.7228     5.7000     7.2000
+  6                   4     6.0250     1.2038     4.9000     7.7000
+  9                   7     6.9286     0.6370     6.2000     7.8000
 
 === Main Effects: algae_level ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-water_change_pct         1.3250       0.3557            37.2%
-feed_g_day               1.1786       0.3557            33.1%
-light_hrs                1.0536       0.3557            29.6%
+light_hrs                2.0286       0.3557            52.0%
+feed_g_day               1.5750       0.3557            40.3%
+water_change_pct         0.3000       0.3557             7.7%
+
+=== ANOVA Table: algae_level ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+water_change_pct             2       0.1812       0.0906      0.075     0.9281
+feed_g_day                   2       6.4615       3.2308      2.685     0.1282
+light_hrs                    2      11.1115       5.5558      4.617     0.0464
+Lack of Fit                  6       6.4124       1.0687      0.888     0.6156
+Pure Error                   2       2.4067       1.2033
+Error                        8       8.8190       1.2033
+Total                       14      26.5733       1.8981
 
 === Summary Statistics: algae_level ===
 
 water_change_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4     4.8000     0.9055     4.0000     6.1000
-  25                  7     4.4143     1.7180     2.4000     6.9000
-  40                  4     3.4750     0.9323     2.1000     4.1000
+  10                  4     4.4250     1.9721     2.1000     6.9000
+  25                  7     4.2571     1.0922     2.4000     6.1000
+  40                  4     4.1250     1.5882     2.5000     6.3000
 
 feed_g_day:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.5                 4     4.8500     1.4154     3.7000     6.9000
-  1.75                7     3.6714     1.4396     2.1000     6.1000
-  3                   4     4.7250     1.0720     4.0000     6.3000
+  0.5                 4     5.3500     1.4663     4.0000     6.9000
+  1.75                7     3.9286     1.3500     2.1000     6.1000
+  3                   4     3.7750     0.9535     2.4000     4.6000
 
 light_hrs:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  12                  4     4.5750     1.0210     4.0000     6.1000
-  6                   4     4.8250     2.2051     2.1000     6.9000
-  9                   7     3.7714     0.9587     2.4000     4.6000
-
-Pareto chart (vitality_score): use_cases/170_fish_tank_health/results/analysis/pareto_vitality_score.png
-
-Pareto chart (algae_level): use_cases/170_fish_tank_health/results/analysis/pareto_algae_level.png
-Main effects (vitality_score): use_cases/170_fish_tank_health/results/analysis/main_effects_vitality_score.png
-Main effects (algae_level): use_cases/170_fish_tank_health/results/analysis/main_effects_algae_level.png</div></div>
+  12                  4     3.1000     1.0100     2.1000     4.2000
+  6                   4     3.9250     0.9912     2.5000     4.6000
+  9                   7     5.1286     1.2553     4.0000     6.9000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: vitality_score ===
@@ -482,102 +579,113 @@ Direction: maximize
 
 Best observed run: #10
   water_change_pct = 25
-  feed_g_day = 3
-  light_hrs = 12
+  feed_g_day = 0.5
+  light_hrs = 6
   Value: 7.8
 
-RSM Model (linear, R² = 0.0723, Adj R² = -0.1808):
+RSM Model (linear, R² = 0.3744, Adj R² = 0.2038):
   Coefficients:
     intercept                      +6.6467
-    water_change_pct               +0.3000
-    feed_g_day                     +0.0500
-    light_hrs                      +0.0500
+    water_change_pct               -0.5625
+    feed_g_day                     -0.4125
+    light_hrs                      +0.0750
 
-RSM Model (quadratic, R² = 0.8377, Adj R² = 0.5456):
+RSM Model (quadratic, R² = 0.7705, Adj R² = 0.3573):
   Coefficients:
-    intercept                      +5.7667
-    water_change_pct               +0.3000
-    feed_g_day                     +0.0500
-    light_hrs                      +0.0500
-    water_change_pct*feed_g_day    +0.5500
-    water_change_pct*light_hrs     +0.2000
-    feed_g_day*light_hrs           +0.1500
-    water_change_pct^2             -0.0833
-    feed_g_day^2                   +0.4667
-    light_hrs^2                    +1.2667
+    intercept                      +6.9333
+    water_change_pct               -0.5625
+    feed_g_day                     -0.4125
+    light_hrs                      +0.0750
+    water_change_pct*feed_g_day    +0.1750
+    water_change_pct*light_hrs     +0.5500
+    feed_g_day*light_hrs           +0.4500
+    water_change_pct^2             -0.6542
+    feed_g_day^2                   -0.1542
+    light_hrs^2                    +0.2708
 
   Curvature analysis:
-    light_hrs                      coef=+1.2667  convex (has a minimum)
-    feed_g_day                     coef=+0.4667  convex (has a minimum)
-    water_change_pct               coef=-0.0833  negligible curvature
+    water_change_pct               coef=-0.6542  concave (has a maximum)
+    light_hrs                      coef=+0.2708  convex (has a minimum)
+    feed_g_day                     coef=-0.1542  concave (has a maximum)
 
   Notable interactions:
-    water_change_pct*feed_g_day    coef=+0.5500  (synergistic)
+    water_change_pct*light_hrs     coef=+0.5500  (synergistic)
+    feed_g_day*light_hrs           coef=+0.4500  (synergistic)
 
-  Predicted optimum (from quadratic model):
+  Predicted optimum (from quadratic model, at observed points):
     water_change_pct = 25
-    feed_g_day = 3
-    light_hrs = 12
-    Predicted value: 7.7500
+    feed_g_day = 0.5
+    light_hrs = 6
+    Predicted value: 7.8375
+
+  Surface optimum (via L-BFGS-B, quadratic model):
+    water_change_pct = 10.2389
+    feed_g_day = 0.5
+    light_hrs = 6
+    Predicted value: 8.4710
 
   Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. light_hrs  (effect: 1.3, contribution: 55.5%)
-  2. water_change_pct  (effect: 0.6, contribution: 25.8%)
-  3. feed_g_day  (effect: 0.4, contribution: 18.6%)
+  1. water_change_pct  (effect: 1.2, contribution: 49.9%)
+  2. feed_g_day  (effect: 0.8, contribution: 33.6%)
+  3. light_hrs  (effect: 0.4, contribution: 16.4%)
 
 === Optimization: algae_level ===
 Direction: minimize
 
 Best observed run: #4
-  water_change_pct = 10
-  feed_g_day = 1.75
-  light_hrs = 6
+  water_change_pct = 25
+  feed_g_day = 0.5
+  light_hrs = 12
   Value: 2.1
 
-RSM Model (linear, R² = 0.0742, Adj R² = -0.1783):
+RSM Model (linear, R² = 0.4045, Adj R² = 0.2421):
   Coefficients:
     intercept                      +4.2667
-    water_change_pct               -0.0625
-    feed_g_day                     -0.4000
-    light_hrs                      +0.2875
+    water_change_pct               -0.9750
+    feed_g_day                     +0.5750
+    light_hrs                      +0.2500
 
-RSM Model (quadratic, R² = 0.7109, Adj R² = 0.1905):
+RSM Model (quadratic, R² = 0.6286, Adj R² = -0.0400):
   Coefficients:
-    intercept                      +4.9000
-    water_change_pct               -0.0625
-    feed_g_day                     -0.4000
-    light_hrs                      +0.2875
-    water_change_pct*feed_g_day    +0.7000
-    water_change_pct*light_hrs     -1.0750
-    feed_g_day*light_hrs           +0.7000
-    water_change_pct^2             -1.2875
-    feed_g_day^2                   -0.4625
-    light_hrs^2                    +0.5625
+    intercept                      +5.2000
+    water_change_pct               -0.9750
+    feed_g_day                     +0.5750
+    light_hrs                      +0.2500
+    water_change_pct*feed_g_day    -0.0000
+    water_change_pct*light_hrs     -0.2500
+    feed_g_day*light_hrs           +0.6500
+    water_change_pct^2             -0.2500
+    feed_g_day^2                   -0.6500
+    light_hrs^2                    -0.8500
 
   Curvature analysis:
-    water_change_pct               coef=-1.2875  concave (has a maximum)
-    light_hrs                      coef=+0.5625  convex (has a minimum)
-    feed_g_day                     coef=-0.4625  concave (has a maximum)
+    light_hrs                      coef=-0.8500  concave (has a maximum)
+    feed_g_day                     coef=-0.6500  concave (has a maximum)
+    water_change_pct               coef=-0.2500  concave (has a maximum)
 
   Notable interactions:
-    water_change_pct*light_hrs     coef=-1.0750  (antagonistic)
-    water_change_pct*feed_g_day    coef=+0.7000  (synergistic)
-    feed_g_day*light_hrs           coef=+0.7000  (synergistic)
+    feed_g_day*light_hrs           coef=+0.6500  (synergistic)
 
-  Predicted optimum (from quadratic model):
-    water_change_pct = 25
+  Predicted optimum (from linear model, at observed points):
+    water_change_pct = 10
+    feed_g_day = 3
+    light_hrs = 9
+    Predicted value: 5.8167
+
+  Surface optimum (via L-BFGS-B, linear model):
+    water_change_pct = 40
     feed_g_day = 0.5
     light_hrs = 6
-    Predicted value: 5.8125
+    Predicted value: 2.4667
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. water_change_pct  (effect: 1.4, contribution: 43.2%)
-  2. light_hrs  (effect: 1.0, contribution: 31.0%)
-  3. feed_g_day  (effect: 0.8, contribution: 25.8%)</div></div>
+  1. water_change_pct  (effect: 1.9, contribution: 47.2%)
+  2. feed_g_day  (effect: 1.2, contribution: 27.8%)
+  3. light_hrs  (effect: 1.0, contribution: 25.0%)</div></div>
   </section>
 
   <!-- Nav -->

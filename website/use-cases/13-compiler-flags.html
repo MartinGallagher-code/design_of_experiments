@@ -56,8 +56,8 @@
 
     
     <h3>Key Findings</h3>
-    <p>For <strong>exec time</strong>, the most influential factors were opt level (31.7%), fast math (18.2%), vectorize (17.4%). The best observed value was <strong>103.48</strong> (at opt level = O3, vectorize = off, lto = off).</p>
-<p>For <strong>binary size</strong>, the most influential factors were unroll (35.8%), opt level (21.8%), lto (18.1%). The best observed value was <strong>28.13</strong> (at opt level = O3, vectorize = avx512, lto = on).</p>
+    <p>For <strong>exec time</strong>, the most influential factors were pgo (22.7%), opt level (21.5%), unroll (20.7%). The best observed value was <strong>103.48</strong> (at opt level = O3, vectorize = off, lto = off).</p>
+<p>For <strong>binary size</strong>, the most influential factors were opt level (31.5%), unroll (26.0%), fast math (21.6%). The best observed value was <strong>28.13</strong> (at opt level = O2, vectorize = off, lto = on).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -67,6 +67,7 @@
     <li>The screening results can guide factor reduction &mdash; drop factors contributing less than 5% and re-run with a smaller, more focused design.</li>
   </ul>
   </section>
+
 
 
   <section class="uc-section">
@@ -100,6 +101,7 @@
       </div>
     </div>
   </section>
+
 
 
 
@@ -415,6 +417,143 @@ Factor importance:
   5. lto  (effect: -1.1, contribution: 7.6%)
   6. pgo  (effect: 0.4, contribution: 2.6%)
   7. opt_level  (effect: -0.4, contribution: 2.4%)</div></div>
+  </section>
+
+  
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.7522</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>exec_time</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:88.64%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.8864</span>
+                </div>
+              </td>
+              <td>100.12 0.8864      100.12 sec</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>binary_size</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:58.809999999999995%;height:100%;background:#f97316;border-radius:4px;"></div>
+                  </div>
+                  <span>0.5881</span>
+                </div>
+              </td>
+              <td>23.07 0.5881       23.07 MB</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>opt_level</code></td><td>O3</td></tr>
+            <tr><td><code>vectorize</code></td><td>off</td></tr>
+            <tr><td><code>lto</code></td><td>on</td></tr>
+            <tr><td><code>march</code></td><td>znver3</td></tr>
+            <tr><td><code>unroll</code></td><td>off</td></tr>
+            <tr><td><code>fast_math</code></td><td>on</td></tr>
+            <tr><td><code>pgo</code></td><td>on</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from RSM model prediction</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>binary_size</code></td><td>23.07</td><td>28.13</td><td><span style="color:#dc2626;">+5.05</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#2</td><td><strong>0.6124</strong></td><td style="font-size:.78rem;">opt_level=O3,  vectorize=off,  lto=off,  march=native,  unroll=off,  fast_math=on,  pgo=on</td></tr>
+            <tr><td>#6</td><td><strong>0.5486</strong></td><td style="font-size:.78rem;">opt_level=O2,  vectorize=off,  lto=on,  march=znver3,  unroll=off,  fast_math=off,  pgo=on</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>binary_size</code></td><td style="color:#16a34a;font-weight:600;">1.0000</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.7522
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+exec_time                    1.5       0.8864      100.12 sec   ↑
+binary_size                  1.0       0.5881       23.07 MB   ↑
+
+Recommended settings:
+  opt_level = O3
+  vectorize = off
+  lto = on
+  march = znver3
+  unroll = off
+  fast_math = on
+  pgo = on
+  (from RSM model prediction)
+
+Trade-off summary:
+  exec_time: 100.12 (best observed: 103.48, sacrifice: +3.36)
+  binary_size: 23.07 (best observed: 28.13, sacrifice: +5.05)
+
+Model quality:
+  exec_time: R² = 1.0000 (linear)
+  binary_size: R² = 1.0000 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #7 (D=0.6231): opt_level=O3, vectorize=avx512, lto=on, march=znver3, unroll=on, fast_math=on, pgo=on
+  2. Run #2 (D=0.6124): opt_level=O3, vectorize=off, lto=off, march=native, unroll=off, fast_math=on, pgo=on
+  3. Run #6 (D=0.5486): opt_level=O2, vectorize=off, lto=on, march=znver3, unroll=off, fast_math=off, pgo=on</div></div>
   </section>
 
   <div class="chapter-nav">

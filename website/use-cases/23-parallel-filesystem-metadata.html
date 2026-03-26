@@ -56,8 +56,8 @@
 
     
     <h3>Key Findings</h3>
-    <p>For <strong>creates per sec</strong>, the most influential factors were mdt count (49.3%), mds threads (21.2%), commit on share (16.7%). The best observed value was <strong>249574.6</strong> (at mdt count = 1, dir stripe = on, client cache = on).</p>
-<p>For <strong>stat per sec</strong>, the most influential factors were mdt count (50.9%), mds threads (22.5%), commit on share (20.4%). The best observed value was <strong>583347.3</strong> (at mdt count = 4, dir stripe = off, client cache = on).</p>
+    <p>For <strong>creates per sec</strong>, the most influential factors were mdt count (54.3%), commit on share (20.9%), client cache (12.6%). The best observed value was <strong>249574.6</strong> (at mdt count = 4, dir stripe = off, client cache = on).</p>
+<p>For <strong>stat per sec</strong>, the most influential factors were mdt count (55.7%), mds threads (17.6%), client cache (11.3%). The best observed value was <strong>583347.3</strong> (at mdt count = 4, dir stripe = on, client cache = off).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -67,6 +67,7 @@
     <li>The screening results can guide factor reduction &mdash; drop factors contributing less than 5% and re-run with a smaller, more focused design.</li>
   </ul>
   </section>
+
 
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -97,6 +98,7 @@
       </div>
     </div>
   </section>
+
 
 
 
@@ -299,6 +301,139 @@ Factor importance:
   3. commit_on_share  (effect: 51126.3, contribution: 11.3%)
   4. mds_threads  (effect: 41360.0, contribution: 9.2%)
   5. client_cache  (effect: 27756.6, contribution: 6.2%)</div></div>
+  </section>
+
+  
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9401</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>creates_per_sec</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>249574.60 0.9545   249574.60 ops/s</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>stat_per_sec</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:91.88%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9188</span>
+                </div>
+              </td>
+              <td>568703.10 0.9188   568703.10 ops/s</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>mdt_count</code></td><td>1</td></tr>
+            <tr><td><code>dir_stripe</code></td><td>on</td></tr>
+            <tr><td><code>client_cache</code></td><td>off</td></tr>
+            <tr><td><code>commit_on_share</code></td><td>0</td></tr>
+            <tr><td><code>mds_threads</code></td><td>512</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #4</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>stat_per_sec</code></td><td>568703.10</td><td>583347.30</td><td><span style="color:#dc2626;">+14644.20</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#6</td><td><strong>0.8620</strong></td><td style="font-size:.78rem;">mdt_count=4,  dir_stripe=off,  client_cache=off,  commit_on_share=0,  mds_threads=64</td></tr>
+            <tr><td>#3</td><td><strong>0.6952</strong></td><td style="font-size:.78rem;">mdt_count=4,  dir_stripe=on,  client_cache=off,  commit_on_share=1,  mds_threads=64</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>stat_per_sec</code></td><td style="color:#16a34a;font-weight:600;">0.9191</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9401
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+creates_per_sec              1.5       0.9545   249574.60 ops/s   ↑
+stat_per_sec                 1.0       0.9188   568703.10 ops/s   ↑
+
+Recommended settings:
+  mdt_count = 1
+  dir_stripe = on
+  client_cache = off
+  commit_on_share = 0
+  mds_threads = 512
+  (from observed run #4)
+
+Trade-off summary:
+  creates_per_sec: 249574.60 (best observed: 249574.60, sacrifice: +0.00)
+  stat_per_sec: 568703.10 (best observed: 583347.30, sacrifice: +14644.20)
+
+Model quality:
+  creates_per_sec: R² = 0.9670 (linear)
+  stat_per_sec: R² = 0.9191 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #4 (D=0.9401): mdt_count=1, dir_stripe=on, client_cache=off, commit_on_share=0, mds_threads=512
+  2. Run #6 (D=0.8620): mdt_count=4, dir_stripe=off, client_cache=off, commit_on_share=0, mds_threads=64
+  3. Run #3 (D=0.6952): mdt_count=4, dir_stripe=on, client_cache=off, commit_on_share=1, mds_threads=64</div></div>
   </section>
 
   <div class="chapter-nav">

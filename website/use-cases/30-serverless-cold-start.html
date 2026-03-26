@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -51,8 +50,8 @@
 
     
     <h3>Key Findings</h3>
-    <p>For <strong>cold start ms</strong>, the most influential factors were package mb (36.1%), memory mb (27.2%), provisioned (15.3%). The best observed value was <strong>-31.0</strong> (at memory mb = 128, runtime = go, package mb = 5).</p>
-<p>For <strong>cost per million</strong>, the most influential factors were vpc enabled (36.4%), provisioned (26.3%), memory mb (18.4%). The best observed value was <strong>0.12</strong> (at memory mb = 128, runtime = go, package mb = 5).</p>
+    <p>For <strong>cold start ms</strong>, the most influential factors were runtime (31.0%), package mb (25.3%), layers count (17.4%). The best observed value was <strong>-31.0</strong> (at memory mb = 128, runtime = python, package mb = 50).</p>
+<p>For <strong>cost per million</strong>, the most influential factors were provisioned (28.3%), package mb (19.1%), memory mb (18.8%). The best observed value was <strong>0.12</strong> (at memory mb = 128, runtime = go, package mb = 5).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -270,6 +269,18 @@
     <div class="uc-step">
       <div class="uc-step-num">6</div>
       <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/30_serverless_cold_start/config.json <span class="flag">--multi</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">7</div>
+      <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
@@ -307,7 +318,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: cold_start_ms</h3>
-    <p>Top factors: package_mb (36.1%), memory_mb (27.2%), provisioned (15.3%).</p>
+    <p>Top factors: runtime (31.0%), package_mb (25.3%), layers_count (17.4%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -320,7 +331,7 @@
     </div>
 
     <h3>Response: cost_per_million</h3>
-    <p>Top factors: vpc_enabled (36.4%), provisioned (26.3%), memory_mb (18.4%).</p>
+    <p>Top factors: provisioned (28.3%), package_mb (19.1%), memory_mb (18.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -401,141 +412,333 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.8353</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>cold_start_ms</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:91.42%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9142</span>
+                </div>
+              </td>
+              <td>50.87 0.9142       50.87 ms</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>cost_per_million</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:72.95%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7295</span>
+                </div>
+              </td>
+              <td>1.74 0.7295        1.74 USD</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>memory_mb</code></td><td>957.5 MB</td></tr>
+            <tr><td><code>runtime</code></td><td>python</td></tr>
+            <tr><td><code>package_mb</code></td><td>9.485 MB</td></tr>
+            <tr><td><code>vpc_enabled</code></td><td>no</td></tr>
+            <tr><td><code>layers_count</code></td><td>4.843 count</td></tr>
+            <tr><td><code>provisioned</code></td><td>4.497 count</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from RSM model prediction</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>cost_per_million</code></td><td>1.74</td><td>0.12</td><td><span style="color:#dc2626;">+1.62</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#5</td><td><strong>0.6133</strong></td><td style="font-size:.78rem;">memory_mb=128,  runtime=python,  package_mb=50,  vpc_enabled=no,  layers_count=5,  provisioned=10</td></tr>
+            <tr><td>#8</td><td><strong>0.5792</strong></td><td style="font-size:.78rem;">memory_mb=1024,  runtime=python,  package_mb=5,  vpc_enabled=yes,  layers_count=5,  provisioned=0</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>cost_per_million</code></td><td style="color:#16a34a;font-weight:600;">0.9999</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.8353
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+cold_start_ms                1.5       0.9142       50.87 ms   ↓
+cost_per_million             1.0       0.7295        1.74 USD   ↓
+
+Recommended settings:
+  memory_mb = 957.5 MB
+  runtime = python
+  package_mb = 9.485 MB
+  vpc_enabled = no
+  layers_count = 4.843 count
+  provisioned = 4.497 count
+  (from RSM model prediction)
+
+Trade-off summary:
+  cold_start_ms: 50.87 (best observed: -31.00, sacrifice: +81.87)
+  cost_per_million: 1.74 (best observed: 0.12, sacrifice: +1.62)
+
+Model quality:
+  cold_start_ms: R² = 0.9972 (linear)
+  cost_per_million: R² = 0.9999 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #1 (D=0.7540): memory_mb=1024, runtime=python, package_mb=5, vpc_enabled=no, layers_count=0, provisioned=10
+  2. Run #5 (D=0.6133): memory_mb=128, runtime=python, package_mb=50, vpc_enabled=no, layers_count=5, provisioned=10
+  3. Run #8 (D=0.5792): memory_mb=1024, runtime=python, package_mb=5, vpc_enabled=yes, layers_count=5, provisioned=0</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: cold_start_ms ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-package_mb            -763.7500     199.4170            36.1%
-memory_mb             -575.7500     199.4170            27.2%
-provisioned            323.7500     199.4170            15.3%
-runtime                213.2500     199.4170            10.1%
-vpc_enabled           -182.7500     199.4170             8.6%
-layers_count           -56.2500     199.4170             2.7%
+runtime                704.7500     199.4170            31.0%
+package_mb            -575.7500     199.4170            25.3%
+layers_count          -394.7500     199.4170            17.4%
+memory_mb             -272.2500     199.4170            12.0%
+vpc_enabled           -170.7500     199.4170             7.5%
+provisioned           -155.7500     199.4170             6.8%
+
+=== ANOVA Table: cold_start_ms ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+memory_mb                    1  148240.1250  148240.1250      1.695     0.2342
+runtime                      1  993345.1250  993345.1250     11.357     0.0119
+package_mb                   1  662976.1250  662976.1250      7.580     0.0284
+vpc_enabled                  1   58311.1250   58311.1250      0.667     0.4411
+layers_count                 1  311655.1250  311655.1250      3.563     0.1010
+provisioned                  1   48516.1250   48516.1250      0.555     0.4807
+memory_mb*runtime            1  662976.1250  662976.1250      7.580     0.0284
+memory_mb*package_mb         1  993345.1250  993345.1250     11.357     0.0119
+memory_mb*vpc_enabled        1  311655.1250  311655.1250      3.563     0.1010
+memory_mb*layers_count       1   58311.1250   58311.1250      0.667     0.4411
+memory_mb*provisioned        1    3916.1250    3916.1250      0.045     0.8385
+runtime*package_mb           1  148240.1250  148240.1250      1.695     0.2342
+runtime*vpc_enabled          1   48516.1250   48516.1250      0.555     0.4807
+runtime*layers_count         1    3916.1250    3916.1250      0.045     0.8385
+runtime*provisioned          1   58311.1250   58311.1250      0.667     0.4411
+package_mb*vpc_enabled       1    3916.1250    3916.1250      0.045     0.8385
+package_mb*layers_count      1   48516.1250   48516.1250      0.555     0.4807
+package_mb*provisioned       1  311655.1250  311655.1250      3.563     0.1010
+vpc_enabled*layers_count     1  148240.1250  148240.1250      1.695     0.2342
+vpc_enabled*provisioned      1  993345.1250  993345.1250     11.357     0.0119
+layers_count*provisioned     1  662976.1250  662976.1250      7.580     0.0284
+Error (Lenth PSE)            7  612266.8125   87466.6875
+Total                        7 2226959.8750  318137.1250
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
 
 === Interaction Effects: cold_start_ms ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-memory_mb            runtime                 -763.7500            16.8%
-layers_count         provisioned             -763.7500            16.8%
-runtime              package_mb              -575.7500            12.6%
-vpc_enabled          layers_count             575.7500            12.6%
-runtime              vpc_enabled             -323.7500             7.1%
-package_mb           layers_count             323.7500             7.1%
-memory_mb            package_mb               213.2500             4.7%
-vpc_enabled          provisioned             -213.2500             4.7%
-memory_mb            layers_count             182.7500             4.0%
-runtime              provisioned              182.7500             4.0%
-memory_mb            provisioned              108.7500             2.4%
-runtime              layers_count             108.7500             2.4%
-package_mb           vpc_enabled             -108.7500             2.4%
-memory_mb            vpc_enabled               56.2500             1.2%
-package_mb           provisioned              -56.2500             1.2%
+memory_mb            package_mb               704.7500            15.1%
+vpc_enabled          provisioned             -704.7500            15.1%
+memory_mb            runtime                 -575.7500            12.3%
+layers_count         provisioned             -575.7500            12.3%
+memory_mb            vpc_enabled              394.7500             8.4%
+package_mb           provisioned             -394.7500             8.4%
+runtime              package_mb              -272.2500             5.8%
+vpc_enabled          layers_count             272.2500             5.8%
+memory_mb            layers_count             170.7500             3.6%
+runtime              provisioned              170.7500             3.6%
+runtime              vpc_enabled              155.7500             3.3%
+package_mb           layers_count            -155.7500             3.3%
+memory_mb            provisioned              -44.2500             0.9%
+runtime              layers_count             -44.2500             0.9%
+package_mb           vpc_enabled               44.2500             0.9%
 
 === Summary Statistics: cold_start_ms ===
 
 memory_mb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1024                4  1099.5000   593.8224   599.0000  1815.0000
-  128                 4   523.7500   410.7346   -31.0000   952.0000
+  1024                4   947.7500   810.7410   -31.0000  1815.0000
+  128                 4   675.5000   188.6946   528.0000   952.0000
 
 runtime:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  go                  4   705.0000   165.7810   599.0000   952.0000
-  python              4   918.2500   827.3570   -31.0000  1815.0000
+  go                  4   459.2500   327.3962   -31.0000   646.0000
+  python              4  1164.0000   551.3771   528.0000  1815.0000
 
 package_mb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  5                   4  1193.5000   507.4107   646.0000  1815.0000
-  50                  4   429.7500   309.8036   -31.0000   623.0000
+  5                   4  1099.5000   593.8224   599.0000  1815.0000
+  50                  4   523.7500   410.7346   -31.0000   952.0000
 
 vpc_enabled:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  no                  4   903.0000   610.1415   528.0000  1815.0000
-  yes                 4   720.2500   589.7307   -31.0000  1361.0000
+  no                  4   897.0000   613.9191   528.0000  1815.0000
+  yes                 4   726.2500   588.2060   -31.0000  1361.0000
 
 layers_count:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   4   839.7500   767.8756   -31.0000  1815.0000
-  5                   4   783.5000   388.0434   528.0000  1361.0000
+  0                   4  1009.0000   557.8680   623.0000  1815.0000
+  5                   4   614.2500   572.0299   -31.0000  1361.0000
 
 provisioned:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   4   649.7500   568.6319   -31.0000  1361.0000
-  10                  4   973.5000   590.8483   528.0000  1815.0000
+  0                   4   889.5000   351.1415   599.0000  1361.0000
+  10                  4   733.7500   776.4326   -31.0000  1815.0000
 
 === Main Effects: cost_per_million ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-vpc_enabled             -3.2400       0.8536            36.4%
-provisioned             -2.3400       0.8536            26.3%
-memory_mb                1.6350       0.8536            18.4%
-runtime                  0.9550       0.8536            10.7%
-package_mb               0.6850       0.8536             7.7%
-layers_count             0.0400       0.8536             0.4%
+provisioned              2.4200       0.8536            28.3%
+package_mb               1.6350       0.8536            19.1%
+memory_mb               -1.6100       0.8536            18.8%
+runtime                 -1.3400       0.8536            15.7%
+layers_count            -0.7800       0.8536             9.1%
+vpc_enabled             -0.7750       0.8536             9.1%
+
+=== ANOVA Table: cost_per_million ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+memory_mb                    1       5.1842       5.1842      0.667     0.4411
+runtime                      1       3.5912       3.5912      0.462     0.5186
+package_mb                   1       5.3465       5.3465      0.688     0.4344
+vpc_enabled                  1       1.2012       1.2012      0.154     0.7060
+layers_count                 1       1.2168       1.2168      0.156     0.7042
+provisioned                  1      11.7128      11.7128      1.506     0.2594
+memory_mb*runtime            1       5.3465       5.3465      0.688     0.4344
+memory_mb*package_mb         1       3.5912       3.5912      0.462     0.5186
+memory_mb*vpc_enabled        1       1.2168       1.2168      0.156     0.7042
+memory_mb*layers_count       1       1.2012       1.2012      0.154     0.7060
+memory_mb*provisioned        1      12.5501      12.5501      1.614     0.2445
+runtime*package_mb           1       5.1842       5.1842      0.667     0.4411
+runtime*vpc_enabled          1      11.7128      11.7128      1.506     0.2594
+runtime*layers_count         1      12.5501      12.5501      1.614     0.2445
+runtime*provisioned          1       1.2013       1.2013      0.154     0.7060
+package_mb*vpc_enabled       1      12.5500      12.5500      1.614     0.2445
+package_mb*layers_count      1      11.7128      11.7128      1.506     0.2594
+package_mb*provisioned       1       1.2168       1.2168      0.156     0.7042
+vpc_enabled*layers_count     1       5.1842       5.1842      0.667     0.4411
+vpc_enabled*provisioned      1       3.5912       3.5912      0.462     0.5186
+layers_count*provisioned     1       5.3465       5.3465      0.688     0.4344
+Error (Lenth PSE)            7      54.4341       7.7763
+Total                        7      40.8028       5.8290
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
 
 === Interaction Effects: cost_per_million ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-memory_mb            layers_count               3.2400            16.5%
-runtime              provisioned                3.2400            16.5%
-runtime              vpc_enabled                2.3400            11.9%
-package_mb           layers_count              -2.3400            11.9%
-runtime              package_mb                 1.6350             8.3%
-vpc_enabled          layers_count              -1.6350             8.3%
-memory_mb            package_mb                 0.9550             4.9%
-vpc_enabled          provisioned               -0.9550             4.9%
-memory_mb            runtime                    0.6850             3.5%
-layers_count         provisioned                0.6850             3.5%
-memory_mb            provisioned               -0.6100             3.1%
-runtime              layers_count              -0.6100             3.1%
-package_mb           vpc_enabled                0.6100             3.1%
-memory_mb            vpc_enabled               -0.0400             0.2%
-package_mb           provisioned                0.0400             0.2%
+memory_mb            provisioned                2.5050            10.2%
+runtime              layers_count               2.5050            10.2%
+package_mb           vpc_enabled               -2.5050            10.2%
+runtime              vpc_enabled               -2.4200             9.8%
+package_mb           layers_count               2.4200             9.8%
+memory_mb            runtime                    1.6350             6.6%
+layers_count         provisioned                1.6350             6.6%
+runtime              package_mb                -1.6100             6.5%
+vpc_enabled          layers_count               1.6100             6.5%
+memory_mb            package_mb                -1.3400             5.4%
+vpc_enabled          provisioned                1.3400             5.4%
+memory_mb            vpc_enabled                0.7800             3.2%
+package_mb           provisioned               -0.7800             3.2%
+memory_mb            layers_count               0.7750             3.1%
+runtime              provisioned                0.7750             3.1%
 
 === Summary Statistics: cost_per_million ===
 
 memory_mb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1024                4     2.7200     2.1060     0.1200     5.0500
-  128                 4     4.3550     2.7173     0.4200     6.6500
+  1024                4     4.3425     1.9387     2.1200     6.6500
+  128                 4     2.7325     2.8485     0.1200     5.3400
 
 runtime:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  go                  4     3.0600     3.2894     0.1200     6.6500
-  python              4     4.0150     1.4739     2.1200     5.3400
+  go                  4     4.2075     2.8300     0.1200     6.6500
+  python              4     2.8675     2.0964     0.4200     5.3400
 
 package_mb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  5                   4     3.1950     2.6426     0.4200     6.6500
-  50                  4     3.8800     2.5110     0.1200     5.3400
+  5                   4     2.7200     2.1060     0.1200     5.0500
+  50                  4     4.3550     2.7173     0.4200     6.6500
 
 vpc_enabled:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  no                  4     5.1575     1.2556     3.5900     6.6500
-  yes                 4     1.9175     2.2419     0.1200     5.0100
+  no                  4     3.9250     2.8295     0.1200     6.6500
+  yes                 4     3.1500     2.2791     0.4200     5.0500
 
 layers_count:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   4     3.5175     2.1738     0.4200     5.0500
-  5                   4     3.5575     2.9790     0.1200     6.6500
+  0                   4     3.9275     2.6513     0.4200     6.6500
+  5                   4     3.1475     2.4831     0.1200     5.3400
 
 provisioned:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   4     4.7075     1.8866     2.1200     6.6500
-  10                  4     2.3675     2.5281     0.1200     5.3400</div></div>
+  0                   4     2.3275     3.0132     0.1200     6.6500
+  10                  4     4.7475     0.7856     3.5900     5.3400</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: cold_start_ms ===
@@ -543,41 +746,50 @@ Direction: minimize
 
 Best observed run: #8
   memory_mb = 128
-  runtime = go
-  package_mb = 5
+  runtime = python
+  package_mb = 50
   vpc_enabled = no
   layers_count = 5
-  provisioned = 0
+  provisioned = 10
   Value: -31.0
 
-RSM Model (linear, R² = 0.9738, Adj R² = 0.8167):
+RSM Model (linear, R² = 0.9747, Adj R² = 0.8231):
   Coefficients:
     intercept                      +811.6250
-    memory_mb                      +381.8750
-    runtime                        -22.1250
-    package_mb                     +167.8750
-    vpc_enabled                    -106.6250
-    layers_count                   -287.8750
-    provisioned                    +48.3750
+    memory_mb                      +173.6250
+    runtime                        -48.3750
+    package_mb                     -293.6250
+    vpc_enabled                    +185.6250
+    layers_count                   +212.6250
+    provisioned                    -270.1250
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     memory_mb = 1024
+    runtime = python
+    package_mb = 5
+    vpc_enabled = yes
+    layers_count = 5
+    provisioned = 0
+    Predicted value: 1898.8750
+
+  Surface optimum (via L-BFGS-B, linear model):
+    memory_mb = 128
     runtime = go
     package_mb = 50
     vpc_enabled = no
     layers_count = 0
-    provisioned = 0
-    Predicted value: 1729.6250
+    provisioned = 10
+    Predicted value: -372.3750
 
   Model quality: Excellent fit — surface predictions are reliable.
 
 Factor importance:
-  1. memory_mb  (effect: -763.8, contribution: 37.6%)
-  2. layers_count  (effect: -575.8, contribution: 28.4%)
-  3. package_mb  (effect: 335.8, contribution: 16.5%)
-  4. vpc_enabled  (effect: -213.2, contribution: 10.5%)
-  5. provisioned  (effect: 96.8, contribution: 4.8%)
-  6. runtime  (effect: -44.2, contribution: 2.2%)
+  1. package_mb  (effect: -587.2, contribution: 24.8%)
+  2. provisioned  (effect: -540.2, contribution: 22.8%)
+  3. layers_count  (effect: 425.2, contribution: 18.0%)
+  4. vpc_enabled  (effect: 371.2, contribution: 15.7%)
+  5. memory_mb  (effect: -347.2, contribution: 14.7%)
+  6. runtime  (effect: -96.8, contribution: 4.1%)
 
 === Optimization: cost_per_million ===
 Direction: minimize
@@ -591,34 +803,43 @@ Best observed run: #1
   provisioned = 10
   Value: 0.12
 
-RSM Model (linear, R² = 0.9706, Adj R² = 0.7939):
+RSM Model (linear, R² = 0.9999, Adj R² = 0.9993):
   Coefficients:
     intercept                      +3.5375
-    memory_mb                      -0.3425
-    runtime                        +1.2525
-    package_mb                     +0.0625
-    vpc_enabled                    -0.4775
-    layers_count                   +0.8175
-    provisioned                    -1.5375
+    memory_mb                      +0.4625
+    runtime                        +1.5375
+    package_mb                     +0.4175
+    vpc_enabled                    -1.2425
+    layers_count                   -0.7525
+    provisioned                    -0.4875
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     memory_mb = 1024
+    runtime = python
+    package_mb = 5
+    vpc_enabled = no
+    layers_count = 0
+    provisioned = 10
+    Predicted value: 6.6275
+
+  Surface optimum (via L-BFGS-B, linear model):
+    memory_mb = 128
     runtime = python
     package_mb = 5
     vpc_enabled = yes
     layers_count = 5
-    provisioned = 0
-    Predicted value: 6.2625
+    provisioned = 10
+    Predicted value: -1.3625
 
   Model quality: Excellent fit — surface predictions are reliable.
 
 Factor importance:
-  1. provisioned  (effect: -3.1, contribution: 34.2%)
-  2. runtime  (effect: 2.5, contribution: 27.9%)
-  3. layers_count  (effect: 1.6, contribution: 18.2%)
-  4. vpc_enabled  (effect: -1.0, contribution: 10.6%)
-  5. memory_mb  (effect: 0.7, contribution: 7.6%)
-  6. package_mb  (effect: 0.1, contribution: 1.4%)</div></div>
+  1. runtime  (effect: 3.1, contribution: 31.4%)
+  2. vpc_enabled  (effect: -2.5, contribution: 25.4%)
+  3. layers_count  (effect: -1.5, contribution: 15.4%)
+  4. provisioned  (effect: -1.0, contribution: 9.9%)
+  5. memory_mb  (effect: -0.9, contribution: 9.4%)
+  6. package_mb  (effect: 0.8, contribution: 8.5%)</div></div>
   </section>
 
   <!-- Nav -->

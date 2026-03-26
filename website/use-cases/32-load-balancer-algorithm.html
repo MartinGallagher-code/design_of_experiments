@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>availability</strong>, the most influential factors were drain timeout (43.7%), algorithm (42.6%), health interval (13.7%). The best observed value was <strong>99.963</strong> (at algorithm = ip_hash, health interval = 5, drain timeout = 10).</p>
-<p>For <strong>imbalance pct</strong>, the most influential factors were drain timeout (57.2%), algorithm (36.5%), health interval (6.3%). The best observed value was <strong>0.1</strong> (at algorithm = round_robin, health interval = 30, drain timeout = 60).</p>
+    <p>For <strong>availability</strong>, the most influential factors were algorithm (43.1%), health interval (28.5%), drain timeout (28.4%). The best observed value was <strong>99.963</strong> (at algorithm = least_conn, health interval = 30, drain timeout = 60).</p>
+<p>For <strong>imbalance pct</strong>, the most influential factors were algorithm (40.5%), health interval (34.1%), drain timeout (25.4%). The best observed value was <strong>0.1</strong> (at algorithm = ip_hash, health interval = 5, drain timeout = 10).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -240,12 +239,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (availability (↑), imbalance_pct (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/32_load_balancer_algorithm/config.json <span class="flag">--multi</span></div>
         </div>
@@ -253,7 +253,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -292,7 +292,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: availability</h3>
-    <p>Top factors: drain_timeout (43.7%), algorithm (42.6%), health_interval (13.7%).</p>
+    <p>Top factors: algorithm (43.1%), health_interval (28.5%), drain_timeout (28.4%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -305,7 +305,7 @@
     </div>
 
     <h3>Response: imbalance_pct</h3>
-    <p>Top factors: drain_timeout (57.2%), algorithm (36.5%), health_interval (6.3%).</p>
+    <p>Top factors: algorithm (40.5%), health_interval (34.1%), drain_timeout (25.4%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -336,173 +336,335 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9471</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>availability</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:91.33%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9133</span>
+                </div>
+              </td>
+              <td>99.92 0.9133       99.92 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>imbalance_pct</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:100.0%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>1.0000</span>
+                </div>
+              </td>
+              <td>-0.62 1.0000       -0.62 %</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>algorithm</code></td><td>ip_hash</td></tr>
+            <tr><td><code>health_interval</code></td><td>5 s</td></tr>
+            <tr><td><code>drain_timeout</code></td><td>60 s</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from RSM model prediction</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>imbalance_pct</code></td><td>-0.62</td><td>0.10</td><td><span style="color:#16a34a;">-0.72</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#9</td><td><strong>0.8806</strong></td><td style="font-size:.78rem;">algorithm=ip_hash,  health_interval=5,  drain_timeout=60</td></tr>
+            <tr><td>#11</td><td><strong>0.7356</strong></td><td style="font-size:.78rem;">algorithm=least_conn,  health_interval=30,  drain_timeout=60</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>imbalance_pct</code></td><td style="color:#16a34a;font-weight:600;">0.9502</td><td>quadratic</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9471
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+availability                 1.5       0.9133       99.92 %   ↑
+imbalance_pct                1.0       1.0000       -0.62 %   ↓
+
+Recommended settings:
+  algorithm = ip_hash
+  health_interval = 5 s
+  drain_timeout = 60 s
+  (from RSM model prediction)
+
+Trade-off summary:
+  availability: 99.92 (best observed: 99.96, sacrifice: +0.04)
+  imbalance_pct: -0.62 (best observed: 0.10, sacrifice: -0.72)
+
+Model quality:
+  availability: R² = 0.7141 (linear)
+  imbalance_pct: R² = 0.9502 (quadratic)
+
+Top 3 observed runs by overall desirability:
+  1. Run #2 (D=0.9063): algorithm=least_conn, health_interval=5, drain_timeout=60
+  2. Run #9 (D=0.8806): algorithm=ip_hash, health_interval=5, drain_timeout=60
+  3. Run #11 (D=0.7356): algorithm=least_conn, health_interval=30, drain_timeout=60</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: availability ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-drain_timeout            0.1313       0.0770            43.7%
-algorithm                0.1280       0.0770            42.6%
-health_interval         -0.0413       0.0770            13.7%
+algorithm                0.3268       0.0770            43.1%
+health_interval         -0.2163       0.0770            28.5%
+drain_timeout            0.2157       0.0770            28.4%
+
+=== ANOVA Table: availability ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+algorithm                    2       0.2339       0.1169      2.605     0.1534
+health_interval              1       0.1404       0.1404      3.127     0.1274
+drain_timeout                1       0.1395       0.1395      3.108     0.1284
+health_interval*drain_timeout    1       0.0000       0.0000      0.000     0.9854
+Error                        6       0.2694       0.0449
+Total                       11       0.7832       0.0712
 
 === Interaction Effects: availability ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-health_interval      drain_timeout             -0.0657           100.0%
+health_interval      drain_timeout             -0.0023           100.0%
 
 === Summary Statistics: availability ===
 
 algorithm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  ip_hash             4    99.5645     0.2996    99.2410    99.8470
-  least_conn          4    99.4705     0.3763    99.0850    99.9630
-  round_robin         4    99.5985     0.1341    99.4850    99.7870
+  ip_hash             4    99.4862     0.3812    99.0850    99.9630
+  least_conn          4    99.4102     0.1300    99.2410    99.5350
+  round_robin         4    99.7370     0.1447    99.5240    99.8470
 
 health_interval:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  30                  6    99.5652     0.2662    99.2410    99.9630
-  5                   6    99.5238     0.2912    99.0850    99.8470
+  30                  6    99.6527     0.2526    99.2990    99.9630
+  5                   6    99.4363     0.2544    99.0850    99.7900
 
 drain_timeout:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  6    99.4788     0.2363    99.0850    99.7900
-  60                  6    99.6102     0.3008    99.2410    99.9630
+  10                  6    99.4367     0.2546    99.0850    99.8470
+  60                  6    99.6523     0.2528    99.2410    99.9630
 
 === Main Effects: imbalance_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-drain_timeout           -2.5833       1.1645            57.2%
-algorithm                1.6500       1.1645            36.5%
-health_interval          0.2833       1.1645             6.3%
+algorithm                4.6500       1.1645            40.5%
+health_interval          3.9167       1.1645            34.1%
+drain_timeout           -2.9167       1.1645            25.4%
+
+=== ANOVA Table: imbalance_pct ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+algorithm                    2      47.9267      23.9633      2.493     0.1629
+health_interval              1      46.0208      46.0208      4.787     0.0713
+drain_timeout                1      25.5208      25.5208      2.655     0.1544
+health_interval*drain_timeout    1       1.8408       1.8408      0.191     0.6770
+Error                        6      57.6800       9.6133
+Total                       11     178.9892      16.2717
 
 === Interaction Effects: imbalance_pct ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-health_interval      drain_timeout              0.3833           100.0%
+health_interval      drain_timeout             -0.7833           100.0%
 
 === Summary Statistics: imbalance_pct ===
 
 algorithm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  ip_hash             4     6.5750     5.0625     0.1000    10.8000
-  least_conn          4     8.2250     5.2360     1.9000    14.2000
-  round_robin         4     7.0750     2.1701     4.3000     8.9000
+  ip_hash             4     8.1750     5.2576     1.9000    14.2000
+  least_conn          4     9.1750     1.9015     6.6000    10.8000
+  round_robin         4     4.5250     3.5255     0.1000     8.7000
 
 health_interval:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  30                  6     7.1500     3.5478     1.9000    10.8000
-  5                   6     7.4333     4.8128     0.1000    14.2000
+  30                  6     5.3333     3.9561     0.1000    10.2000
+  5                   6     9.2500     3.3080     5.0000    14.2000
 
 drain_timeout:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  6     8.5833     3.3612     5.0000    14.2000
-  60                  6     6.0000     4.5273     0.1000    10.8000</div></div>
+  10                  6     8.7500     4.6771     0.1000    14.2000
+  60                  6     5.8333     2.9696     1.9000    10.8000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: availability ===
 Direction: maximize
 
 Best observed run: #2
-  algorithm = ip_hash
-  health_interval = 5
-  drain_timeout = 10
+  algorithm = least_conn
+  health_interval = 30
+  drain_timeout = 60
   Value: 99.963
 
-RSM Model (linear, R² = 0.1645, Adj R² = -0.1488):
+RSM Model (linear, R² = 0.0687, Adj R² = -0.2805):
   Coefficients:
     intercept                      +99.5445
-    algorithm                      -0.0313
-    health_interval                -0.0137
-    drain_timeout                  -0.0995
+    algorithm                      -0.0109
+    health_interval                +0.0117
+    drain_timeout                  +0.0653
 
-RSM Model (quadratic, R² = 0.5537, Adj R² = -1.4546):
+RSM Model (quadratic, R² = 0.2756, Adj R² = -2.9842):
   Coefficients:
-    intercept                      +33.1207
-    algorithm                      -0.0312
-    health_interval                -0.0137
-    drain_timeout                  -0.0995
-    algorithm*health_interval      +0.0717
-    algorithm*drain_timeout        +0.0890
-    health_interval*drain_timeout  +0.0060
-    algorithm^2                    +0.2738
-    health_interval^2              +33.1207
-    drain_timeout^2                +33.1207
+    intercept                      +33.1977
+    algorithm                      -0.0109
+    health_interval                +0.0117
+    drain_timeout                  +0.0653
+    algorithm*health_interval      +0.0941
+    algorithm*drain_timeout        +0.0389
+    health_interval*drain_timeout  +0.0735
+    algorithm^2                    -0.0731
+    health_interval^2              +33.1977
+    drain_timeout^2                +33.1977
 
   Curvature analysis:
-    health_interval                coef=+33.1207  convex (has a minimum)
-    drain_timeout                  coef=+33.1207  convex (has a minimum)
-    algorithm                      coef=+0.2738  convex (has a minimum)
+    health_interval                coef=+33.1977  convex (has a minimum)
+    drain_timeout                  coef=+33.1977  convex (has a minimum)
+    algorithm                      coef=-0.0731  negligible curvature
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     algorithm = ip_hash
-    health_interval = 5
-    drain_timeout = 10
-    Predicted value: 99.6889
+    health_interval = 30
+    drain_timeout = 60
+    Predicted value: 99.6324
+
+  Surface optimum (via L-BFGS-B, linear model):
+    algorithm = round_robin
+    health_interval = 30
+    drain_timeout = 60
+    Predicted value: 99.6324
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. algorithm  (effect: 0.3, contribution: 57.4%)
-  2. drain_timeout  (effect: -0.2, contribution: 37.5%)
-  3. health_interval  (effect: 0.0, contribution: 5.1%)
+  1. drain_timeout  (effect: 0.1, contribution: 54.9%)
+  2. algorithm  (effect: 0.1, contribution: 35.3%)
+  3. health_interval  (effect: -0.0, contribution: 9.8%)
 
 === Optimization: imbalance_pct ===
 Direction: minimize
 
 Best observed run: #9
-  algorithm = round_robin
-  health_interval = 30
-  drain_timeout = 60
+  algorithm = ip_hash
+  health_interval = 5
+  drain_timeout = 10
   Value: 0.1
 
-RSM Model (linear, R² = 0.0805, Adj R² = -0.2643):
+RSM Model (linear, R² = 0.0436, Adj R² = -0.3151):
   Coefficients:
     intercept                      +7.2917
-    algorithm                      -0.0500
-    health_interval                +0.2083
-    drain_timeout                  +1.0750
+    algorithm                      +0.7000
+    health_interval                +0.3583
+    drain_timeout                  -0.4417
 
-RSM Model (quadratic, R² = 0.5642, Adj R² = -1.3970):
+RSM Model (quadratic, R² = 0.3382, Adj R² = -2.6401):
   Coefficients:
-    intercept                      +3.3417
-    algorithm                      -0.0500
-    health_interval                +0.2083
-    drain_timeout                  +1.0750
-    algorithm*health_interval      -1.5500
-    algorithm*drain_timeout        -1.6250
-    health_interval*drain_timeout  -0.3417
-    algorithm^2                    -4.1000
-    health_interval^2              +3.3417
-    drain_timeout^2                +3.3417
+    intercept                      +2.3083
+    algorithm                      +0.7000
+    health_interval                +0.3583
+    drain_timeout                  -0.4417
+    algorithm*health_interval      -1.6500
+    algorithm*drain_timeout        -0.4500
+    health_interval*drain_timeout  -1.5417
+    algorithm^2                    +0.5500
+    health_interval^2              +2.3083
+    drain_timeout^2                +2.3083
 
   Curvature analysis:
-    algorithm                      coef=-4.1000  concave (has a maximum)
-    health_interval                coef=+3.3417  convex (has a minimum)
-    drain_timeout                  coef=+3.3417  convex (has a minimum)
+    health_interval                coef=+2.3083  convex (has a minimum)
+    drain_timeout                  coef=+2.3083  convex (has a minimum)
+    algorithm                      coef=+0.5500  convex (has a minimum)
 
   Notable interactions:
-    algorithm*drain_timeout        coef=-1.6250  (antagonistic)
-    algorithm*health_interval      coef=-1.5500  (antagonistic)
-    health_interval*drain_timeout  coef=-0.3417  (antagonistic)
+    algorithm*health_interval      coef=-1.6500  (antagonistic)
+    health_interval*drain_timeout  coef=-1.5417  (antagonistic)
+    algorithm*drain_timeout        coef=-0.4500  (antagonistic)
 
-  Predicted optimum (from linear model):
-    algorithm = ip_hash
+  Predicted optimum (from linear model, at observed points):
+    algorithm = round_robin
     health_interval = 30
+    drain_timeout = 10
+    Predicted value: 8.7917
+
+  Surface optimum (via L-BFGS-B, linear model):
+    algorithm = round_robin
+    health_interval = 5
     drain_timeout = 60
-    Predicted value: 8.6250
+    Predicted value: 5.7917
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. algorithm  (effect: 4.2, contribution: 61.8%)
-  2. drain_timeout  (effect: 2.1, contribution: 32.0%)
-  3. health_interval  (effect: -0.4, contribution: 6.2%)</div></div>
+  1. algorithm  (effect: 1.4, contribution: 46.7%)
+  2. drain_timeout  (effect: -0.9, contribution: 29.4%)
+  3. health_interval  (effect: -0.7, contribution: 23.9%)</div></div>
   </section>
 
   <!-- Nav -->

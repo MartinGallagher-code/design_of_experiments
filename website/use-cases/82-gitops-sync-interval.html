@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -51,8 +50,8 @@
 
     
     <h3>Key Findings</h3>
-    <p>For <strong>drift detection delay sec</strong>, the most influential factors were sync interval sec (51.9%), health check timeout (47.2%), prune enabled (0.9%). The best observed value was <strong>8.0</strong> (at sync interval sec = 30, health check timeout = 10, prune enabled = on).</p>
-<p>For <strong>reconciliation success pct</strong>, the most influential factors were health check timeout (53.1%), sync interval sec (28.2%), prune enabled (18.7%). The best observed value was <strong>98.7</strong> (at sync interval sec = 300, health check timeout = 10, prune enabled = off).</p>
+    <p>For <strong>drift detection delay sec</strong>, the most influential factors were prune enabled (70.1%), health check timeout (25.3%), sync interval sec (4.6%). The best observed value was <strong>8.0</strong> (at sync interval sec = 30, health check timeout = 60, prune enabled = on).</p>
+<p>For <strong>reconciliation success pct</strong>, the most influential factors were prune enabled (62.2%), health check timeout (36.8%), sync interval sec (1.0%). The best observed value was <strong>98.7</strong> (at sync interval sec = 300, health check timeout = 10, prune enabled = off).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -234,12 +233,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (drift_detection_delay_sec (↓), reconciliation_success_pct (↑)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/82_gitops_sync_interval/config.json <span class="flag">--multi</span></div>
         </div>
@@ -247,7 +247,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -286,7 +286,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: drift_detection_delay_sec</h3>
-    <p>Top factors: sync_interval_sec (51.9%), health_check_timeout (47.2%), prune_enabled (0.9%).</p>
+    <p>Top factors: prune_enabled (70.1%), health_check_timeout (25.3%), sync_interval_sec (4.6%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -299,7 +299,7 @@
     </div>
 
     <h3>Response: reconciliation_success_pct</h3>
-    <p>Top factors: health_check_timeout (53.1%), sync_interval_sec (28.2%), prune_enabled (18.7%).</p>
+    <p>Top factors: prune_enabled (62.2%), health_check_timeout (36.8%), sync_interval_sec (1.0%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -330,75 +330,229 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9725</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>drift_detection_delay_sec</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:100.0%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>1.0000</span>
+                </div>
+              </td>
+              <td>4.00 1.0000        4.00 sec</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>reconciliation_success_pct</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>98.70 0.9545       98.70 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>sync_interval_sec</code></td><td>30 sec</td></tr>
+            <tr><td><code>health_check_timeout</code></td><td>60 sec</td></tr>
+            <tr><td><code>prune_enabled</code></td><td>off</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from RSM model prediction</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>reconciliation_success_pct</code></td><td>98.70</td><td>98.70</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#1</td><td><strong>0.9419</strong></td><td style="font-size:.78rem;">sync_interval_sec=30,  health_check_timeout=60,  prune_enabled=on</td></tr>
+            <tr><td>#7</td><td><strong>0.8621</strong></td><td style="font-size:.78rem;">sync_interval_sec=300,  health_check_timeout=60,  prune_enabled=off</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>reconciliation_success_pct</code></td><td style="color:#dc2626;font-weight:600;">0.4961</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9725
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+drift_detection_delay_sec    1.0       1.0000        4.00 sec   ↓
+reconciliation_success_pct    1.5       0.9545       98.70 %   ↑
+
+Recommended settings:
+  sync_interval_sec = 30 sec
+  health_check_timeout = 60 sec
+  prune_enabled = off
+  (from RSM model prediction)
+
+Trade-off summary:
+  drift_detection_delay_sec: 4.00 (best observed: 8.00, sacrifice: -4.00)
+  reconciliation_success_pct: 98.70 (best observed: 98.70, sacrifice: +0.00)
+
+Model quality:
+  drift_detection_delay_sec: R² = 0.5594 (linear)
+  reconciliation_success_pct: R² = 0.4961 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #8 (D=0.9545): sync_interval_sec=30, health_check_timeout=60, prune_enabled=off
+  2. Run #1 (D=0.9419): sync_interval_sec=30, health_check_timeout=60, prune_enabled=on
+  3. Run #7 (D=0.8621): sync_interval_sec=300, health_check_timeout=60, prune_enabled=off</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: drift_detection_delay_sec ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-sync_interval_sec      -28.0000       9.9261            51.9%
-health_check_timeout    25.5000       9.9261            47.2%
-prune_enabled            0.5000       9.9261             0.9%
+prune_enabled          -30.5000       9.9261            70.1%
+health_check_timeout    11.0000       9.9261            25.3%
+sync_interval_sec       -2.0000       9.9261             4.6%
+
+=== ANOVA Table: drift_detection_delay_sec ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+sync_interval_sec            1       8.0000       8.0000      0.006     0.9502
+health_check_timeout         1     242.0000     242.0000      0.186     0.7407
+prune_enabled                1    1860.5000    1860.5000      1.431     0.4433
+sync_interval_sec*health_check_timeout    1       0.5000       0.5000      0.000     0.9875
+sync_interval_sec*prune_enabled    1     648.0000     648.0000      0.498     0.6087
+health_check_timeout*prune_enabled    1    1458.0000    1458.0000      1.121     0.4818
+Error                        1    1300.5000    1300.5000
+Total                        7    5517.5000     788.2143
 
 === Interaction Effects: drift_detection_delay_sec ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-health_check_timeout prune_enabled             29.5000            58.4%
-sync_interval_sec    prune_enabled             18.0000            35.6%
-sync_interval_sec    health_check_timeout       3.0000             5.9%
+health_check_timeout prune_enabled            -27.0000            59.3%
+sync_interval_sec    prune_enabled             18.0000            39.6%
+sync_interval_sec    health_check_timeout      -0.5000             1.1%
 
 === Summary Statistics: drift_detection_delay_sec ===
 
 sync_interval_sec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  30                  4    50.2500    28.5934    10.0000    73.0000
-  300                 4    22.2500    22.3364     8.0000    55.0000
+  30                  4    37.2500    28.7909     8.0000    68.0000
+  300                 4    35.2500    31.7425     8.0000    73.0000
 
 health_check_timeout:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4    23.5000    29.6816     8.0000    68.0000
-  60                  4    49.0000    22.9056    18.0000    73.0000
+  10                  4    30.7500    25.2108     8.0000    55.0000
+  60                  4    41.7500    33.5099     8.0000    73.0000
 
 prune_enabled:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4    36.0000    27.8568     8.0000    68.0000
-  on                  4    36.5000    32.6037     8.0000    73.0000
+  off                 4    51.5000    28.6880    10.0000    73.0000
+  on                  4    21.0000    19.8997     8.0000    50.0000
 
 === Main Effects: reconciliation_success_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-health_check_timeout    -5.3250       1.5159            53.1%
-sync_interval_sec        2.8250       1.5159            28.2%
-prune_enabled           -1.8750       1.5159            18.7%
+prune_enabled            4.7750       1.5159            62.2%
+health_check_timeout    -2.8250       1.5159            36.8%
+sync_interval_sec       -0.0750       1.5159             1.0%
+
+=== ANOVA Table: reconciliation_success_pct ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+sync_interval_sec            1       0.0113       0.0113      0.000     0.9910
+health_check_timeout         1      15.9613      15.9613      0.281     0.6895
+prune_enabled                1      45.6012      45.6012      0.804     0.5346
+sync_interval_sec*health_check_timeout    1       2.3112       2.3112      0.041     0.8732
+sync_interval_sec*prune_enabled    1       1.0513       1.0513      0.019     0.9139
+health_check_timeout*prune_enabled    1       7.0312       7.0312      0.124     0.7845
+Error                        1      56.7113      56.7113
+Total                        7     128.6787      18.3827
 
 === Interaction Effects: reconciliation_success_pct ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-health_check_timeout prune_enabled             -3.9750            69.4%
-sync_interval_sec    health_check_timeout      -0.8750            15.3%
-sync_interval_sec    prune_enabled              0.8750            15.3%
+health_check_timeout prune_enabled              1.8750            51.0%
+sync_interval_sec    health_check_timeout      -1.0750            29.3%
+sync_interval_sec    prune_enabled              0.7250            19.7%
 
 === Summary Statistics: reconciliation_success_pct ===
 
 sync_interval_sec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  30                  4    92.6250     4.8849    85.7000    96.8000
-  300                 4    95.4500     3.7027    91.2000    98.7000
+  30                  4    94.0750     3.2335    91.2000    98.7000
+  300                 4    94.0000     5.6950    85.7000    98.4000
 
 health_check_timeout:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4    96.7000     2.6671    92.9000    98.7000
-  60                  4    91.3750     4.1080    85.7000    95.1000
+  10                  4    95.4500     3.1922    91.2000    98.7000
+  60                  4    92.6250     5.2328    85.7000    98.4000
 
 prune_enabled:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4    94.9750     2.4649    92.9000    98.4000
-  on                  4    93.1000     5.8714    85.7000    98.7000</div></div>
+  off                 4    91.6500     4.6076    85.7000    96.8000
+  on                  4    96.4250     2.5421    93.5000    98.7000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: drift_detection_delay_sec ===
@@ -406,29 +560,35 @@ Direction: minimize
 
 Best observed run: #1
   sync_interval_sec = 30
-  health_check_timeout = 10
+  health_check_timeout = 60
   prune_enabled = on
   Value: 8.0
 
-RSM Model (linear, R² = 0.6070, Adj R² = 0.3122):
+RSM Model (linear, R² = 0.1190, Adj R² = -0.5418):
   Coefficients:
     intercept                      +36.2500
-    sync_interval_sec              -9.0000
-    health_check_timeout           +15.2500
-    prune_enabled                  -10.2500
+    sync_interval_sec              +9.0000
+    health_check_timeout           -0.2500
+    prune_enabled                  -1.0000
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
+    sync_interval_sec = 300
+    health_check_timeout = 10
+    prune_enabled = off
+    Predicted value: 46.5000
+
+  Surface optimum (via L-BFGS-B, linear model):
     sync_interval_sec = 30
     health_check_timeout = 60
-    prune_enabled = off
-    Predicted value: 70.7500
+    prune_enabled = on
+    Predicted value: 26.0000
 
-  Model quality: Moderate fit — use predictions directionally, not precisely.
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. health_check_timeout  (effect: 30.5, contribution: 44.2%)
-  2. prune_enabled  (effect: -20.5, contribution: 29.7%)
-  3. sync_interval_sec  (effect: -18.0, contribution: 26.1%)
+  1. sync_interval_sec  (effect: 18.0, contribution: 87.8%)
+  2. prune_enabled  (effect: -2.0, contribution: 9.8%)
+  3. health_check_timeout  (effect: -0.5, contribution: 2.4%)
 
 === Optimization: reconciliation_success_pct ===
 Direction: maximize
@@ -439,25 +599,31 @@ Best observed run: #8
   prune_enabled = off
   Value: 98.7
 
-RSM Model (linear, R² = 0.4780, Adj R² = 0.0864):
+RSM Model (linear, R² = 0.1051, Adj R² = -0.5661):
   Coefficients:
     intercept                      +94.0375
-    sync_interval_sec              -0.3625
-    health_check_timeout           -2.3875
-    prune_enabled                  +1.3625
+    sync_interval_sec              +0.4375
+    health_check_timeout           +0.9375
+    prune_enabled                  +0.7875
 
-  Predicted optimum (from linear model):
-    sync_interval_sec = 30
-    health_check_timeout = 10
+  Predicted optimum (from linear model, at observed points):
+    sync_interval_sec = 300
+    health_check_timeout = 60
     prune_enabled = on
-    Predicted value: 98.1500
+    Predicted value: 96.2000
+
+  Surface optimum (via L-BFGS-B, linear model):
+    sync_interval_sec = 300
+    health_check_timeout = 60
+    prune_enabled = on
+    Predicted value: 96.2000
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. health_check_timeout  (effect: -4.8, contribution: 58.1%)
-  2. prune_enabled  (effect: 2.7, contribution: 33.1%)
-  3. sync_interval_sec  (effect: -0.7, contribution: 8.8%)</div></div>
+  1. health_check_timeout  (effect: 1.9, contribution: 43.4%)
+  2. prune_enabled  (effect: 1.6, contribution: 36.4%)
+  3. sync_interval_sec  (effect: 0.9, contribution: 20.2%)</div></div>
   </section>
 
   <!-- Nav -->

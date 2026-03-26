@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -47,11 +46,14 @@
 
     <p>The design varies 3 factors: <strong>stroke rate</strong> (spm), ranging from 22 to 34, <strong>drive ratio</strong> (ratio), ranging from 1.5 to 3.0, and <strong>drag factor</strong> (units), ranging from 100 to 140. The goal is to optimize 2 responses: avg watts (W) (maximize) and split 500m sec (sec) (minimize). Fixed conditions held constant across all runs include athlete = intermediate_male, piece = 2000m.</p>
 
-    <p>A Central Composite Design (CCD) was selected to fit a full quadratic response surface model, including curvature and interaction effects. With 3 factors this produces 0 runs including center points and axial (star) points that extend beyond the factorial range.</p>
+    <p>A Central Composite Design (CCD) was selected to fit a full quadratic response surface model, including curvature and interaction effects. With 3 factors this produces 22 runs including center points and axial (star) points that extend beyond the factorial range.</p>
 
-    
+    <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
+
     <h3>Key Findings</h3>
-    <p>Run the analysis to see detailed results.</p>
+    <p>For <strong>avg watts</strong>, the most influential factors were drive ratio (39.2%), drag factor (31.3%), stroke rate (29.5%). The best observed value was <strong>242.0</strong> (at stroke rate = 28, drive ratio = 2.25, drag factor = 83.4852).</p>
+<p>For <strong>split 500m sec</strong>, the most influential factors were drive ratio (40.4%), stroke rate (29.8%), drag factor (29.8%). The best observed value was <strong>108.0</strong> (at stroke rate = 28, drive ratio = 2.25, drag factor = 83.4852).</p>
+
 
     <h3>Recommended Next Steps</h3>
     <ul>
@@ -247,12 +249,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (avg_watts (↑), split_500m_sec (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/216_rowing_technique/config.json <span class="flag">--multi</span></div>
         </div>
@@ -260,7 +263,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -268,48 +271,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/216_rowing_technique/config.json \
     <span class="flag">--output</span> use_cases/216_rowing_technique/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Sports Experiment? Use the Manual Workflow</h4>
-        <p>Athletic experiments involve real human performance, equipment, and environmental conditions. Results require actual physical testing. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/216_rowing_technique/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/216_rowing_technique/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/216_rowing_technique/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/216_rowing_technique/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/216_rowing_technique/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/216_rowing_technique/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/216_rowing_technique/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -324,7 +285,7 @@
         <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
         <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
         <tr><td>Responses</td><td>2 (avg_watts &#x2191;, split_500m_sec &#x2193;)</td></tr>
-        <tr><td>Total runs</td><td>0</td></tr>
+        <tr><td>Total runs</td><td>22</td></tr>
       </tbody>
     </table>
   </section>
@@ -341,40 +302,357 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: avg_watts</h3>
+    <p>Top factors: drive_ratio (39.2%), drag_factor (31.3%), stroke_rate (29.5%).</p>
 
     <h3>Response: split_500m_sec</h3>
+    <p>Top factors: drive_ratio (40.4%), stroke_rate (29.8%), drag_factor (29.8%).</p>
 
   </section>
 
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9545</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>avg_watts</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>242.00 0.9545      242.00 W</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>split_500m_sec</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>108.00 0.9545      108.00 sec</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>stroke_rate</code></td><td>28 spm</td></tr>
+            <tr><td><code>drive_ratio</code></td><td>2.25 ratio</td></tr>
+            <tr><td><code>drag_factor</code></td><td>120 units</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #18</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>split_500m_sec</code></td><td>108.00</td><td>108.00</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#9</td><td><strong>0.8398</strong></td><td style="font-size:.78rem;">stroke_rate=34,  drive_ratio=3,  drag_factor=100</td></tr>
+            <tr><td>#10</td><td><strong>0.8237</strong></td><td style="font-size:.78rem;">stroke_rate=34,  drive_ratio=1.5,  drag_factor=100</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>split_500m_sec</code></td><td style="color:#ca8a04;font-weight:600;">0.5388</td><td>quadratic</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9545
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+avg_watts                    1.5       0.9545      242.00 W   ↑
+split_500m_sec               1.0       0.9545      108.00 sec   ↓
+
+Recommended settings:
+  stroke_rate = 28 spm
+  drive_ratio = 2.25 ratio
+  drag_factor = 120 units
+  (from observed run #18)
+
+Trade-off summary:
+  avg_watts: 242.00 (best observed: 242.00, sacrifice: +0.00)
+  split_500m_sec: 108.00 (best observed: 108.00, sacrifice: +0.00)
+
+Model quality:
+  avg_watts: R² = 0.5590 (quadratic)
+  split_500m_sec: R² = 0.5388 (quadratic)
+
+Top 3 observed runs by overall desirability:
+  1. Run #18 (D=0.9545): stroke_rate=28, drive_ratio=2.25, drag_factor=120
+  2. Run #9 (D=0.8398): stroke_rate=34, drive_ratio=3, drag_factor=100
+  3. Run #10 (D=0.8237): stroke_rate=34, drive_ratio=1.5, drag_factor=100</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">Traceback (most recent call last):
-  File &quot;/workspaces/design_of_experiments/doe.py&quot;, line 7, in &lt;module&gt;
-    main()
-  File &quot;/workspaces/design_of_experiments/doe/cli.py&quot;, line 65, in main
-    report = analyze(matrix, cfg, results_dir=args.results_dir, no_plots=args.no_plots)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File &quot;/workspaces/design_of_experiments/doe/analysis.py&quot;, line 18, in analyze
-    all_data = _load_all_results(matrix.runs, results_dir)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File &quot;/workspaces/design_of_experiments/doe/analysis.py&quot;, line 108, in _load_all_results
-    raise FileNotFoundError(
-FileNotFoundError: Missing result files for run IDs: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]. Expected in: use_cases/216_rowing_technique/results</div></div>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: avg_watts ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+drive_ratio             38.5000       4.6820            39.2%
+drag_factor             30.7500       4.6820            31.3%
+stroke_rate             29.0000       4.6820            29.5%
+
+=== ANOVA Table: avg_watts ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+stroke_rate                  4    1131.7879     282.9470      1.130     0.4014
+drive_ratio                  4    3293.0379     823.2595      3.286     0.0638
+drag_factor                  4    1057.7045     264.4261      1.056     0.4316
+Lack of Fit                  2    2891.4242    1445.7121      5.771     0.0331
+Pure Error                   7    1753.5000     250.5000
+Error                        9    4644.9242     250.5000
+Total                       21   10127.4545     482.2597
+
+=== Summary Statistics: avg_watts ===
+
+stroke_rate:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  17.0455             1   228.0000     0.0000   228.0000   228.0000
+  22                  4   203.0000    23.3381   172.0000   221.0000
+  28                 12   207.1667    17.9688   180.0000   232.0000
+  34                  4   213.0000    35.6371   161.0000   242.0000
+  38.9545             1   232.0000     0.0000   232.0000   232.0000
+
+drive_ratio:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.880694            1   224.0000     0.0000   224.0000   224.0000
+  1.5                 4   227.2500    10.0125   221.0000   242.0000
+  2.25               12   208.5833    19.4350   180.0000   232.0000
+  3                   4   188.7500    28.1588   161.0000   224.0000
+  3.61931             1   219.0000     0.0000   219.0000   219.0000
+
+drag_factor:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4   214.7500    29.9708   172.0000   242.0000
+  120                12   207.7500    18.5625   180.0000   232.0000
+  140                 4   201.2500    29.3527   161.0000   225.0000
+  156.515             1   232.0000     0.0000   232.0000   232.0000
+  83.4852             1   221.0000     0.0000   221.0000   221.0000
+
+=== Main Effects: split_500m_sec ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+drive_ratio             10.5000       1.2504            40.4%
+stroke_rate              7.7500       1.2504            29.8%
+drag_factor              7.7500       1.2504            29.8%
+
+=== ANOVA Table: split_500m_sec ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+stroke_rate                  4      68.1970      17.0492      0.704     0.6087
+drive_ratio                  4     231.9470      57.9867      2.395     0.1272
+drag_factor                  4      61.9470      15.4867      0.640     0.6475
+Lack of Fit                  2     190.7727      95.3864      3.939     0.0714
+Pure Error                   7     169.5000      24.2143
+Error                        9     360.2727      24.2143
+Total                       21     722.3636      34.3983
+
+=== Summary Statistics: split_500m_sec ===
+
+stroke_rate:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  17.0455             1   113.0000     0.0000   113.0000   113.0000
+  22                  4   118.7500     6.6018   114.0000   128.0000
+  28                 12   117.6667     4.6580   112.0000   125.0000
+  34                  4   117.2500     9.7425   108.0000   131.0000
+  38.9545             1   111.0000     0.0000   111.0000   111.0000
+
+drive_ratio:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.880694            1   115.0000     0.0000   115.0000   115.0000
+  1.5                 4   112.7500     3.2016   108.0000   115.0000
+  2.25               12   117.0833     5.1427   111.0000   125.0000
+  3                   4   123.2500     7.5000   115.0000   131.0000
+  3.61931             1   116.0000     0.0000   116.0000   116.0000
+
+drag_factor:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4   116.2500     8.4212   108.0000   128.0000
+  120                12   117.4167     4.9075   111.0000   125.0000
+  140                 4   119.7500     7.8049   114.0000   131.0000
+  156.515             1   112.0000     0.0000   112.0000   112.0000
+  83.4852             1   115.0000     0.0000   115.0000   115.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
-    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">Traceback (most recent call last):
-  File &quot;/workspaces/design_of_experiments/doe.py&quot;, line 7, in &lt;module&gt;
-    main()
-  File &quot;/workspaces/design_of_experiments/doe/cli.py&quot;, line 82, in main
-    recommend(matrix, cfg, results_dir=args.results_dir, response_name=args.response)
-  File &quot;/workspaces/design_of_experiments/doe/optimize.py&quot;, line 22, in recommend
-    all_data = _load_all_results(matrix.runs, results_dir)
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File &quot;/workspaces/design_of_experiments/doe/analysis.py&quot;, line 108, in _load_all_results
-    raise FileNotFoundError(
-FileNotFoundError: Missing result files for run IDs: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22]. Expected in: use_cases/216_rowing_technique/results</div></div>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: avg_watts ===
+Direction: maximize
+
+Best observed run: #18
+  stroke_rate = 28
+  drive_ratio = 2.25
+  drag_factor = 83.4852
+  Value: 242.0
+
+RSM Model (linear, R² = 0.0502, Adj R² = -0.1081):
+  Coefficients:
+    intercept                      +209.5455
+    stroke_rate                    -1.5098
+    drive_ratio                    -5.6116
+    drag_factor                    -0.9452
+
+RSM Model (quadratic, R² = 0.3507, Adj R² = -0.1362):
+  Coefficients:
+    intercept                      +202.2954
+    stroke_rate                    -1.5098
+    drive_ratio                    -5.6116
+    drag_factor                    -0.9453
+    stroke_rate*drive_ratio        -6.6250
+    stroke_rate*drag_factor        -2.3750
+    drive_ratio*drag_factor        -11.6250
+    stroke_rate^2                  -1.2750
+    drive_ratio^2                  +4.5750
+    drag_factor^2                  +7.5750
+
+  Curvature analysis:
+    drag_factor                    coef=+7.5750  convex (has a minimum)
+    drive_ratio                    coef=+4.5750  convex (has a minimum)
+    stroke_rate                    coef=-1.2750  concave (has a maximum)
+
+  Notable interactions:
+    drive_ratio*drag_factor        coef=-11.6250  (antagonistic)
+    stroke_rate*drive_ratio        coef=-6.6250  (antagonistic)
+    stroke_rate*drag_factor        coef=-2.3750  (antagonistic)
+
+  Predicted optimum (from linear model, at observed points):
+    stroke_rate = 28
+    drive_ratio = 0.880694
+    drag_factor = 120
+    Predicted value: 219.7907
+
+  Surface optimum (via L-BFGS-B, linear model):
+    stroke_rate = 22
+    drive_ratio = 1.5
+    drag_factor = 100
+    Predicted value: 217.6121
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. stroke_rate  (effect: 41.0, contribution: 40.0%)
+  2. drag_factor  (effect: 35.8, contribution: 34.9%)
+  3. drive_ratio  (effect: 25.8, contribution: 25.1%)
+
+=== Optimization: split_500m_sec ===
+Direction: minimize
+
+Best observed run: #18
+  stroke_rate = 28
+  drive_ratio = 2.25
+  drag_factor = 83.4852
+  Value: 108.0
+
+RSM Model (linear, R² = 0.0755, Adj R² = -0.0785):
+  Coefficients:
+    intercept                      +117.2727
+    stroke_rate                    +0.5842
+    drive_ratio                    +1.5801
+    drag_factor                    +0.9396
+
+RSM Model (quadratic, R² = 0.3299, Adj R² = -0.1726):
+  Coefficients:
+    intercept                      +118.8385
+    stroke_rate                    +0.5842
+    drive_ratio                    +1.5801
+    drag_factor                    +0.9396
+    stroke_rate*drive_ratio        +1.3750
+    stroke_rate*drag_factor        +0.8750
+    drive_ratio*drag_factor        +2.8750
+    stroke_rate^2                  +0.5171
+    drive_ratio^2                  -0.9829
+    drag_factor^2                  -1.8829
+
+  Curvature analysis:
+    drag_factor                    coef=-1.8829  concave (has a maximum)
+    drive_ratio                    coef=-0.9829  concave (has a maximum)
+    stroke_rate                    coef=+0.5171  convex (has a minimum)
+
+  Notable interactions:
+    drive_ratio*drag_factor        coef=+2.8750  (synergistic)
+    stroke_rate*drive_ratio        coef=+1.3750  (synergistic)
+    stroke_rate*drag_factor        coef=+0.8750  (synergistic)
+
+  Predicted optimum (from linear model, at observed points):
+    stroke_rate = 34
+    drive_ratio = 3
+    drag_factor = 140
+    Predicted value: 120.3765
+
+  Surface optimum (via L-BFGS-B, linear model):
+    stroke_rate = 22
+    drive_ratio = 1.5
+    drag_factor = 100
+    Predicted value: 114.1689
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. drag_factor  (effect: 10.2, contribution: 38.5%)
+  2. stroke_rate  (effect: 9.8, contribution: 36.9%)
+  3. drive_ratio  (effect: 6.5, contribution: 24.6%)</div></div>
   </section>
 
   <!-- Nav -->

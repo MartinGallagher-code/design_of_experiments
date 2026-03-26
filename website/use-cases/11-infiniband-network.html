@@ -57,8 +57,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>msg rate</strong>, the most influential factors were queue depth (46.0%), mtu (40.2%), rdma cm (13.8%). The best observed value was <strong>161.8</strong> (at mtu = 3072, queue depth = 288, rdma cm = 0.5).</p>
-<p>For <strong>p99 lat</strong>, the most influential factors were rdma cm (41.0%), mtu (32.1%), queue depth (26.8%). The best observed value was <strong>1.854</strong> (at mtu = 3072, queue depth = 288, rdma cm = 0.5).</p>
+    <p>For <strong>msg rate</strong>, the most influential factors were queue depth (49.0%), rdma cm (35.0%), mtu (15.9%). The best observed value was <strong>161.8</strong> (at mtu = 3072, queue depth = 512, rdma cm = 0).</p>
+<p>For <strong>p99 lat</strong>, the most influential factors were rdma cm (54.2%), mtu (27.9%), queue depth (18.0%). The best observed value was <strong>1.854</strong> (at mtu = 2048, queue depth = 512, rdma cm = 0.5).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -67,6 +67,7 @@
     <li>Consider whether any fixed factors should be varied in a future study.</li>
   </ul>
   </section>
+
 
 
   <section class="uc-section">
@@ -96,6 +97,7 @@
       </div>
     </div>
   </section>
+
 
 
 
@@ -340,6 +342,135 @@ Factor importance:
   1. rdma_cm  (effect: 0.2, contribution: 36.2%)
   2. mtu  (effect: 0.1, contribution: 33.2%)
   3. queue_depth  (effect: 0.1, contribution: 30.6%)</div></div>
+  </section>
+
+  
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.7934</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>msg_rate</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:83.97%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.8397</span>
+                </div>
+              </td>
+              <td>153.82 0.8397      153.82 Mmsg/s</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>p99_lat</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:72.87%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7287</span>
+                </div>
+              </td>
+              <td>2.05 0.7287        2.05 us</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>mtu</code></td><td>4096 bytes</td></tr>
+            <tr><td><code>queue_depth</code></td><td>64</td></tr>
+            <tr><td><code>rdma_cm</code></td><td>1</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from RSM model prediction</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>p99_lat</code></td><td>2.05</td><td>1.85</td><td><span style="color:#dc2626;">+0.19</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#4</td><td><strong>0.7311</strong></td><td style="font-size:.78rem;">mtu=4096,  queue_depth=64,  rdma_cm=0.5</td></tr>
+            <tr><td>#3</td><td><strong>0.7200</strong></td><td style="font-size:.78rem;">mtu=3072,  queue_depth=512,  rdma_cm=0</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>p99_lat</code></td><td style="color:#dc2626;font-weight:600;">0.1104</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.7934
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+msg_rate                     1.5       0.8397      153.82 Mmsg/s   ↑
+p99_lat                      1.0       0.7287        2.05 us   ↓
+
+Recommended settings:
+  mtu = 4096 bytes
+  queue_depth = 64
+  rdma_cm = 1
+  (from RSM model prediction)
+
+Trade-off summary:
+  msg_rate: 153.82 (best observed: 161.80, sacrifice: +7.98)
+  p99_lat: 2.05 (best observed: 1.85, sacrifice: +0.19)
+
+Model quality:
+  msg_rate: R² = 0.9526 (quadratic)
+  p99_lat: R² = 0.1104 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #10 (D=0.7799): mtu=2048, queue_depth=512, rdma_cm=0.5
+  2. Run #4 (D=0.7311): mtu=4096, queue_depth=64, rdma_cm=0.5
+  3. Run #3 (D=0.7200): mtu=3072, queue_depth=512, rdma_cm=0</div></div>
   </section>
 
   <div class="chapter-nav">

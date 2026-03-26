@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>flavor balance</strong>, the most influential factors were ferm temp c (46.1%), boil min (31.7%), mash temp c (22.2%). The best observed value was <strong>7.2</strong> (at mash temp c = 66.5, boil min = 26.4208, ferm temp c = 19).</p>
-<p>For <strong>off flavor score</strong>, the most influential factors were mash temp c (38.3%), ferm temp c (36.6%), boil min (25.1%). The best observed value was <strong>1.4</strong> (at mash temp c = 63, boil min = 90, ferm temp c = 16).</p>
+    <p>For <strong>flavor balance</strong>, the most influential factors were boil min (36.4%), mash temp c (34.3%), ferm temp c (29.4%). The best observed value was <strong>7.2</strong> (at mash temp c = 66.5, boil min = 67.5, ferm temp c = 19).</p>
+<p>For <strong>off flavor score</strong>, the most influential factors were mash temp c (44.4%), ferm temp c (31.6%), boil min (24.0%). The best observed value was <strong>1.4</strong> (at mash temp c = 66.5, boil min = 67.5, ferm temp c = 19).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -250,12 +249,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (flavor_balance (↑), off_flavor_score (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/142_home_brewing_beer/config.json <span class="flag">--multi</span></div>
         </div>
@@ -263,7 +263,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -271,48 +271,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/142_home_brewing_beer/config.json \
     <span class="flag">--output</span> use_cases/142_home_brewing_beer/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Brewing Experiment? Use the Manual Workflow</h4>
-        <p>Brewing involves real fermentation, yeast biology, and flavor development that must be tasted and measured. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/142_home_brewing_beer/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/142_home_brewing_beer/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/142_home_brewing_beer/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/142_home_brewing_beer/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/142_home_brewing_beer/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/142_home_brewing_beer/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/142_home_brewing_beer/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -344,7 +302,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: flavor_balance</h3>
-    <p>Top factors: ferm_temp_c (46.1%), boil_min (31.7%), mash_temp_c (22.2%).</p>
+    <p>Top factors: boil_min (36.4%), mash_temp_c (34.3%), ferm_temp_c (29.4%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -357,7 +315,7 @@
     </div>
 
     <h3>Response: off_flavor_score</h3>
-    <p>Top factors: mash_temp_c (38.3%), ferm_temp_c (36.6%), boil_min (25.1%).</p>
+    <p>Top factors: mash_temp_c (44.4%), ferm_temp_c (31.6%), boil_min (24.0%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -408,92 +366,231 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.8748</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>flavor_balance</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:79.47%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7947</span>
+                </div>
+              </td>
+              <td>6.41 0.7947        6.41 pts</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>off_flavor_score</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:96.3%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9630</span>
+                </div>
+              </td>
+              <td>1.36 0.9630        1.36 pts</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>mash_temp_c</code></td><td>63 C</td></tr>
+            <tr><td><code>boil_min</code></td><td>90 min</td></tr>
+            <tr><td><code>ferm_temp_c</code></td><td>22 C</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from RSM model prediction</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>off_flavor_score</code></td><td>1.36</td><td>1.40</td><td><span style="color:#16a34a;">-0.04</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#4</td><td><strong>0.7985</strong></td><td style="font-size:.78rem;">mash_temp_c=66.5,  boil_min=67.5,  ferm_temp_c=13.5228</td></tr>
+            <tr><td>#11</td><td><strong>0.7915</strong></td><td style="font-size:.78rem;">mash_temp_c=66.5,  boil_min=67.5,  ferm_temp_c=19</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>off_flavor_score</code></td><td style="color:#dc2626;font-weight:600;">0.3752</td><td>quadratic</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.8748
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+flavor_balance               1.5       0.7947        6.41 pts   ↑
+off_flavor_score             1.5       0.9630        1.36 pts   ↓
+
+Recommended settings:
+  mash_temp_c = 63 C
+  boil_min = 90 min
+  ferm_temp_c = 22 C
+  (from RSM model prediction)
+
+Trade-off summary:
+  flavor_balance: 6.41 (best observed: 7.20, sacrifice: +0.79)
+  off_flavor_score: 1.36 (best observed: 1.40, sacrifice: -0.04)
+
+Model quality:
+  flavor_balance: R² = 0.0992 (linear)
+  off_flavor_score: R² = 0.3752 (quadratic)
+
+Top 3 observed runs by overall desirability:
+  1. Run #9 (D=0.8475): mash_temp_c=70, boil_min=90, ferm_temp_c=22
+  2. Run #4 (D=0.7985): mash_temp_c=66.5, boil_min=67.5, ferm_temp_c=13.5228
+  3. Run #11 (D=0.7915): mash_temp_c=66.5, boil_min=67.5, ferm_temp_c=19</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_flavor_balance_mash_temp_c_vs_boil_min.png
-  RSM surface: rsm_flavor_balance_mash_temp_c_vs_ferm_temp_c.png
-  RSM surface: rsm_flavor_balance_boil_min_vs_ferm_temp_c.png
-  RSM surface: rsm_off_flavor_score_mash_temp_c_vs_boil_min.png
-  RSM surface: rsm_off_flavor_score_mash_temp_c_vs_ferm_temp_c.png
-  RSM surface: rsm_off_flavor_score_boil_min_vs_ferm_temp_c.png
-
-=== Main Effects: flavor_balance ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: flavor_balance ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-ferm_temp_c              3.7750       0.3330            46.1%
-boil_min                 2.6000       0.3330            31.7%
-mash_temp_c              1.8167       0.3330            22.2%
+boil_min                 3.5000       0.3330            36.4%
+mash_temp_c              3.3000       0.3330            34.3%
+ferm_temp_c              2.8250       0.3330            29.4%
+
+=== ANOVA Table: flavor_balance ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+mash_temp_c                  4      23.3311       5.8328      7.439     0.0062
+boil_min                     4      24.7577       6.1894      7.894     0.0051
+ferm_temp_c                  4      21.5311       5.3828      6.865     0.0081
+Lack of Fit                  2       0.0000       0.0000      0.000     1.0000
+Pure Error                   7       5.4887       0.7841
+Error                        9       0.0000       0.7841
+Total                       21      51.2277       2.4394
 
 === Summary Statistics: flavor_balance ===
 
 mash_temp_c:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  60.1099             1     6.8000     0.0000     6.8000     6.8000
-  63                  4     6.4000     1.4024     4.3000     7.2000
-  66.5               12     4.9833     1.5514     2.7000     7.1000
-  70                  4     5.3250     1.7251     3.7000     7.1000
-  72.8901             1     6.8000     0.0000     6.8000     6.8000
+  60.1099             1     3.7000     0.0000     3.7000     3.7000
+  63                  4     4.5750     1.8464     2.7000     7.1000
+  66.5               12     6.2417     1.2049     3.7000     7.2000
+  70                  4     4.1000     0.7528     3.2000     5.0000
+  72.8901             1     7.0000     0.0000     7.0000     7.0000
 
 boil_min:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  108.579             1     4.5000     0.0000     4.5000     4.5000
-  26.4208             1     7.1000     0.0000     7.1000     7.1000
-  45                  4     5.4000     1.6533     3.7000     7.1000
-  67.5               12     5.1500     1.5963     2.7000     7.1000
-  90                  4     6.3250     1.5521     4.0000     7.2000
+  108.579             1     3.7000     0.0000     3.7000     3.7000
+  26.4208             1     7.2000     0.0000     7.2000     7.2000
+  45                  4     4.7750     1.8246     2.7000     7.1000
+  67.5               12     6.2250     1.1917     3.7000     7.1000
+  90                  4     3.9000     0.5354     3.2000     4.5000
 
 ferm_temp_c:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  13.5228             1     3.9000     0.0000     3.9000     3.9000
-  16                  4     6.9750     0.3202     6.5000     7.2000
-  19                 12     5.5250     1.5137     2.7000     7.1000
-  22                  4     4.7500     1.5199     3.7000     7.0000
-  24.4772             1     3.2000     0.0000     3.2000     3.2000
+  13.5228             1     6.5000     0.0000     6.5000     6.5000
+  16                  4     3.6750     0.8655     2.7000     4.5000
+  19                 12     6.1917     1.3761     3.7000     7.2000
+  22                  4     5.0000     1.4855     3.9000     7.1000
+  24.4772             1     4.8000     0.0000     4.8000     4.8000
 
 === Main Effects: off_flavor_score ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-mash_temp_c              1.6750       0.2720            38.3%
-ferm_temp_c              1.6000       0.2720            36.6%
-boil_min                 1.1000       0.2720            25.1%
+mash_temp_c              3.3750       0.2720            44.4%
+ferm_temp_c              2.4000       0.2720            31.6%
+boil_min                 1.8250       0.2720            24.0%
+
+=== ANOVA Table: off_flavor_score ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+mash_temp_c                  4      14.6554       3.6638      4.177     0.0349
+boil_min                     4       7.2195       1.8049      2.058     0.1694
+ferm_temp_c                  4       6.0395       1.5099      1.721     0.2288
+Lack of Fit                  2       0.1151       0.0575      0.066     0.9371
+Pure Error                   7       6.1400       0.8771
+Error                        9       6.2551       0.8771
+Total                       21      34.1695       1.6271
 
 === Summary Statistics: off_flavor_score ===
 
 mash_temp_c:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  60.1099             1     2.1000     0.0000     2.1000     2.1000
-  63                  4     3.0750     0.3202     2.6000     3.3000
-  66.5               12     3.5583     1.4286     1.4000     6.2000
-  70                  4     3.7750     1.6276     2.3000     6.1000
-  72.8901             1     2.7000     0.0000     2.7000     2.7000
+  60.1099             1     6.2000     0.0000     6.2000     6.2000
+  63                  4     4.4000     1.4024     3.2000     6.1000
+  66.5               12     3.0667     0.9585     1.4000     5.3000
+  70                  4     2.8250     1.0813     1.7000     4.3000
+  72.8901             1     3.0000     0.0000     3.0000     3.0000
 
 boil_min:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  108.579             1     3.7000     0.0000     3.7000     3.7000
-  26.4208             1     3.2000     0.0000     3.2000     3.2000
-  45                  4     2.8750     0.5123     2.3000     3.4000
-  67.5               12     3.3833     1.5014     1.4000     6.2000
-  90                  4     3.9750     1.4175     3.2000     6.1000
+  108.579             1     3.4000     0.0000     3.4000     3.4000
+  26.4208             1     3.3000     0.0000     3.3000     3.3000
+  45                  4     2.7000     0.7348     1.7000     3.3000
+  67.5               12     3.2750     1.3226     1.4000     6.2000
+  90                  4     4.5250     1.4245     2.7000     6.1000
 
 ferm_temp_c:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  13.5228             1     2.7000     0.0000     2.7000     2.7000
-  16                  4     3.0250     0.4856     2.3000     3.3000
-  19                 12     3.3750     1.4654     1.4000     6.2000
-  22                  4     3.8250     1.5543     2.6000     6.1000
-  24.4772             1     4.3000     0.0000     4.3000     4.3000
-
-Pareto chart (flavor_balance): use_cases/142_home_brewing_beer/results/analysis/pareto_flavor_balance.png
-
-Pareto chart (off_flavor_score): use_cases/142_home_brewing_beer/results/analysis/pareto_off_flavor_score.png
-Main effects (flavor_balance): use_cases/142_home_brewing_beer/results/analysis/main_effects_flavor_balance.png
-Main effects (off_flavor_score): use_cases/142_home_brewing_beer/results/analysis/main_effects_off_flavor_score.png</div></div>
+  13.5228             1     2.3000     0.0000     2.3000     2.3000
+  16                  4     3.8000     1.0614     2.6000     5.0000
+  19                 12     3.5250     1.1299     2.1000     6.2000
+  22                  4     3.4250     1.8892     1.7000     6.1000
+  24.4772             1     1.4000     0.0000     1.4000     1.4000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: flavor_balance ===
@@ -501,101 +598,114 @@ Direction: maximize
 
 Best observed run: #13
   mash_temp_c = 66.5
-  boil_min = 26.4208
+  boil_min = 67.5
   ferm_temp_c = 19
   Value: 7.2
 
-RSM Model (linear, R² = 0.1668, Adj R² = 0.0279):
+RSM Model (linear, R² = 0.0572, Adj R² = -0.0999):
   Coefficients:
     intercept                      +5.4682
-    mash_temp_c                    +0.5718
-    boil_min                       -0.3198
-    ferm_temp_c                    -0.3915
+    mash_temp_c                    +0.3910
+    boil_min                       -0.1603
+    ferm_temp_c                    +0.1454
 
-RSM Model (quadratic, R² = 0.3842, Adj R² = -0.0777):
+RSM Model (quadratic, R² = 0.3421, Adj R² = -0.1514):
   Coefficients:
-    intercept                      +5.7590
-    mash_temp_c                    +0.5718
-    boil_min                       -0.3198
-    ferm_temp_c                    -0.3915
-    mash_temp_c*boil_min           +0.5625
-    mash_temp_c*ferm_temp_c        +0.7625
-    boil_min*ferm_temp_c           -0.2125
-    mash_temp_c^2                  -0.4204
-    boil_min^2                     -0.0154
-    ferm_temp_c^2                  -0.0004
+    intercept                      +5.2142
+    mash_temp_c                    +0.3910
+    boil_min                       -0.1603
+    ferm_temp_c                    +0.1454
+    mash_temp_c*boil_min           -0.8625
+    mash_temp_c*ferm_temp_c        -0.1125
+    boil_min*ferm_temp_c           -0.6625
+    mash_temp_c^2                  +0.4670
+    boil_min^2                     +0.0470
+    ferm_temp_c^2                  -0.1330
 
   Curvature analysis:
-    mash_temp_c                    coef=-0.4204  concave (has a maximum)
-    boil_min                       coef=-0.0154  negligible curvature
-    ferm_temp_c                    coef=-0.0004  negligible curvature
+    mash_temp_c                    coef=+0.4670  convex (has a minimum)
+    ferm_temp_c                    coef=-0.1330  concave (has a maximum)
+    boil_min                       coef=+0.0470  negligible curvature
 
   Notable interactions:
-    mash_temp_c*ferm_temp_c        coef=+0.7625  (synergistic)
-    mash_temp_c*boil_min           coef=+0.5625  (synergistic)
+    mash_temp_c*boil_min           coef=-0.8625  (antagonistic)
+    boil_min*ferm_temp_c           coef=-0.6625  (antagonistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
+    mash_temp_c = 72.8901
+    boil_min = 67.5
+    ferm_temp_c = 19
+    Predicted value: 6.1821
+
+  Surface optimum (via L-BFGS-B, linear model):
     mash_temp_c = 70
     boil_min = 45
-    ferm_temp_c = 16
-    Predicted value: 6.7513
+    ferm_temp_c = 22
+    Predicted value: 6.1650
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. boil_min  (effect: 3.5, contribution: 36.2%)
-  2. ferm_temp_c  (effect: 3.2, contribution: 33.1%)
-  3. mash_temp_c  (effect: 3.0, contribution: 30.7%)
+  1. ferm_temp_c  (effect: 4.4, contribution: 50.7%)
+  2. mash_temp_c  (effect: 2.3, contribution: 26.2%)
+  3. boil_min  (effect: 2.0, contribution: 23.1%)
 
 === Optimization: off_flavor_score ===
 Direction: minimize
 
 Best observed run: #7
-  mash_temp_c = 63
-  boil_min = 90
-  ferm_temp_c = 16
+  mash_temp_c = 66.5
+  boil_min = 67.5
+  ferm_temp_c = 19
   Value: 1.4
 
-RSM Model (linear, R² = 0.1659, Adj R² = 0.0269):
+RSM Model (linear, R² = 0.1775, Adj R² = 0.0405):
   Coefficients:
     intercept                      +3.4045
-    mash_temp_c                    -0.1805
-    boil_min                       -0.5944
-    ferm_temp_c                    +0.0264
+    mash_temp_c                    -0.3142
+    boil_min                       +0.2697
+    ferm_temp_c                    +0.4921
 
-RSM Model (quadratic, R² = 0.4784, Adj R² = 0.0873):
+RSM Model (quadratic, R² = 0.3473, Adj R² = -0.1423):
   Coefficients:
-    intercept                      +3.6848
-    mash_temp_c                    -0.1805
-    boil_min                       -0.5944
-    ferm_temp_c                    +0.0264
-    mash_temp_c*boil_min           -0.0125
-    mash_temp_c*ferm_temp_c        -1.0875
-    boil_min*ferm_temp_c           -0.0625
-    mash_temp_c^2                  -0.1701
-    boil_min^2                     -0.0651
-    ferm_temp_c^2                  -0.1851
+    intercept                      +3.1151
+    mash_temp_c                    -0.3142
+    boil_min                       +0.2697
+    ferm_temp_c                    +0.4921
+    mash_temp_c*boil_min           +0.5750
+    mash_temp_c*ferm_temp_c        -0.2750
+    boil_min*ferm_temp_c           +0.3750
+    mash_temp_c^2                  +0.0497
+    boil_min^2                     +0.1547
+    ferm_temp_c^2                  +0.2297
 
   Curvature analysis:
-    ferm_temp_c                    coef=-0.1851  concave (has a maximum)
-    mash_temp_c                    coef=-0.1701  concave (has a maximum)
-    boil_min                       coef=-0.0651  negligible curvature
+    ferm_temp_c                    coef=+0.2297  convex (has a minimum)
+    boil_min                       coef=+0.1547  convex (has a minimum)
+    mash_temp_c                    coef=+0.0497  negligible curvature
 
   Notable interactions:
-    mash_temp_c*ferm_temp_c        coef=-1.0875  (antagonistic)
+    mash_temp_c*boil_min           coef=+0.5750  (synergistic)
+    boil_min*ferm_temp_c           coef=+0.3750  (synergistic)
 
-  Predicted optimum (from quadratic model):
+  Predicted optimum (from linear model, at observed points):
     mash_temp_c = 63
-    boil_min = 45
+    boil_min = 90
     ferm_temp_c = 22
-    Predicted value: 5.2032
+    Predicted value: 4.4806
+
+  Surface optimum (via L-BFGS-B, linear model):
+    mash_temp_c = 70
+    boil_min = 45
+    ferm_temp_c = 16
+    Predicted value: 2.3285
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. mash_temp_c  (effect: 2.6, contribution: 46.0%)
-  2. boil_min  (effect: 2.2, contribution: 39.4%)
-  3. ferm_temp_c  (effect: 0.8, contribution: 14.6%)</div></div>
+  1. mash_temp_c  (effect: 2.3, contribution: 36.7%)
+  2. ferm_temp_c  (effect: 2.0, contribution: 32.2%)
+  3. boil_min  (effect: 2.0, contribution: 31.1%)</div></div>
   </section>
 
   <!-- Nav -->

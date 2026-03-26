@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>satisfaction</strong>, the most influential factors were sqft per guest (38.8%), entertainment hrs (38.8%), food budget pct (22.4%). The best observed value was <strong>7.8</strong> (at sqft per guest = 27.5, food budget pct = 45, entertainment hrs = 2.5).</p>
-<p>For <strong>cost per person</strong>, the most influential factors were entertainment hrs (43.1%), sqft per guest (34.1%), food budget pct (22.8%). The best observed value was <strong>25.0</strong> (at sqft per guest = 27.5, food budget pct = 45, entertainment hrs = 2.5).</p>
+    <p>For <strong>satisfaction</strong>, the most influential factors were food budget pct (41.1%), entertainment hrs (40.0%), sqft per guest (18.9%). The best observed value was <strong>7.8</strong> (at sqft per guest = 27.5, food budget pct = 72.3861, entertainment hrs = 2.5).</p>
+<p>For <strong>cost per person</strong>, the most influential factors were food budget pct (48.9%), entertainment hrs (36.8%), sqft per guest (14.3%). The best observed value was <strong>25.0</strong> (at sqft per guest = 27.5, food budget pct = 45, entertainment hrs = -0.238613).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -250,12 +249,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (satisfaction (↑), cost_per_person (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/198_party_planning/config.json <span class="flag">--multi</span></div>
         </div>
@@ -263,7 +263,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -271,48 +271,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/198_party_planning/config.json \
     <span class="flag">--output</span> use_cases/198_party_planning/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Logistics Experiment? Use the Manual Workflow</h4>
-        <p>These experiments involve real-world coordination, timing, and physical constraints that must be tested in practice. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/198_party_planning/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/198_party_planning/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/198_party_planning/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/198_party_planning/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/198_party_planning/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/198_party_planning/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/198_party_planning/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -344,7 +302,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: satisfaction</h3>
-    <p>Top factors: sqft_per_guest (38.8%), entertainment_hrs (38.8%), food_budget_pct (22.4%).</p>
+    <p>Top factors: food_budget_pct (41.1%), entertainment_hrs (40.0%), sqft_per_guest (18.9%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -357,7 +315,7 @@
     </div>
 
     <h3>Response: cost_per_person</h3>
-    <p>Top factors: entertainment_hrs (43.1%), sqft_per_guest (34.1%), food_budget_pct (22.8%).</p>
+    <p>Top factors: food_budget_pct (48.9%), entertainment_hrs (36.8%), sqft_per_guest (14.3%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -408,92 +366,231 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.7008</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>satisfaction</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:74.18%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7418</span>
+                </div>
+              </td>
+              <td>6.70 0.7418        6.70 pts</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>cost_per_person</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:64.35%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.6435</span>
+                </div>
+              </td>
+              <td>38.00 0.6435       38.00 USD</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>sqft_per_guest</code></td><td>27.5 sqft</td></tr>
+            <tr><td><code>food_budget_pct</code></td><td>45 %</td></tr>
+            <tr><td><code>entertainment_hrs</code></td><td>2.5 hrs</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #5</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>cost_per_person</code></td><td>38.00</td><td>25.00</td><td><span style="color:#dc2626;">+13.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#8</td><td><strong>0.7008</strong></td><td style="font-size:.78rem;">sqft_per_guest=27.5,  food_budget_pct=17.6139,  entertainment_hrs=2.5</td></tr>
+            <tr><td>#13</td><td><strong>0.6684</strong></td><td style="font-size:.78rem;">sqft_per_guest=50.3218,  food_budget_pct=45,  entertainment_hrs=2.5</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>cost_per_person</code></td><td style="color:#dc2626;font-weight:600;">0.1178</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.7008
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+satisfaction                 1.5       0.7418        6.70 pts   ↑
+cost_per_person              1.0       0.6435       38.00 USD   ↓
+
+Recommended settings:
+  sqft_per_guest = 27.5 sqft
+  food_budget_pct = 45 %
+  entertainment_hrs = 2.5 hrs
+  (from observed run #5)
+
+Trade-off summary:
+  satisfaction: 6.70 (best observed: 7.80, sacrifice: +1.10)
+  cost_per_person: 38.00 (best observed: 25.00, sacrifice: +13.00)
+
+Model quality:
+  satisfaction: R² = 0.0956 (linear)
+  cost_per_person: R² = 0.1178 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #5 (D=0.7008): sqft_per_guest=27.5, food_budget_pct=45, entertainment_hrs=2.5
+  2. Run #8 (D=0.7008): sqft_per_guest=27.5, food_budget_pct=17.6139, entertainment_hrs=2.5
+  3. Run #13 (D=0.6684): sqft_per_guest=50.3218, food_budget_pct=45, entertainment_hrs=2.5</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_satisfaction_sqft_per_guest_vs_food_budget_pct.png
-  RSM surface: rsm_satisfaction_sqft_per_guest_vs_entertainment_hrs.png
-  RSM surface: rsm_satisfaction_food_budget_pct_vs_entertainment_hrs.png
-  RSM surface: rsm_cost_per_person_sqft_per_guest_vs_food_budget_pct.png
-  RSM surface: rsm_cost_per_person_sqft_per_guest_vs_entertainment_hrs.png
-  RSM surface: rsm_cost_per_person_food_budget_pct_vs_entertainment_hrs.png
-
-=== Main Effects: satisfaction ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: satisfaction ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-sqft_per_guest           2.6000       0.2735            38.8%
-entertainment_hrs        2.6000       0.2735            38.8%
-food_budget_pct          1.5000       0.2735            22.4%
+food_budget_pct          3.7000       0.2735            41.1%
+entertainment_hrs        3.6000       0.2735            40.0%
+sqft_per_guest           1.7000       0.2735            18.9%
+
+=== ANOVA Table: satisfaction ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+sqft_per_guest               4       3.8908       0.9727      0.774     0.5690
+food_budget_pct              4       7.3025       1.8256      1.452     0.2941
+entertainment_hrs            4       9.0300       2.2575      1.796     0.2138
+Lack of Fit                  2       5.5367       2.7683      2.202     0.1812
+Pure Error                   7       8.8000       1.2571
+Error                        9      14.3367       1.2571
+Total                       21      34.5600       1.6457
 
 === Summary Statistics: satisfaction ===
 
 sqft_per_guest:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  15                  4     6.7000     0.3742     6.2000     7.1000
-  27.5               12     6.0333     1.1073     3.8000     7.8000
-  4.67823             1     4.1000     0.0000     4.1000     4.1000
-  40                  4     4.4500     1.4248     3.1000     6.3000
-  50.3218             1     6.5000     0.0000     6.5000     6.5000
+  15                  4     5.4000     1.4900     3.6000     6.9000
+  27.5               12     5.7417     1.4718     3.1000     7.8000
+  4.67823             1     6.3000     0.0000     6.3000     6.3000
+  40                  4     6.5000     0.2449     6.2000     6.8000
+  50.3218             1     4.8000     0.0000     4.8000     4.8000
 
 food_budget_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  17.6139             1     6.3000     0.0000     6.3000     6.3000
-  30                  4     6.2250     1.0046     4.8000     7.1000
-  45                 12     5.9917     1.1996     3.8000     7.8000
-  60                  4     4.9250     1.8464     3.1000     6.8000
-  72.3861             1     4.8000     0.0000     4.8000     4.8000
+  17.6139             1     4.1000     0.0000     4.1000     4.1000
+  30                  4     6.0250     0.8221     4.8000     6.5000
+  45                 12     5.6750     1.2807     3.1000     7.1000
+  60                  4     5.8750     1.5478     3.6000     6.9000
+  72.3861             1     7.8000     0.0000     7.8000     7.8000
 
 entertainment_hrs:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
   -0.238613           1     6.7000     0.0000     6.7000     6.7000
-  1                   4     5.9500     1.6010     3.6000     7.1000
-  2.5                12     5.7083     1.0706     3.8000     6.9000
-  4                   4     5.2000     1.6145     3.1000     6.7000
-  5.23861             1     7.8000     0.0000     7.8000     7.8000
+  1                   4     6.2500     0.9815     4.8000     6.9000
+  2.5                12     5.8500     1.2428     3.8000     7.8000
+  4                   4     5.6500     1.3723     3.6000     6.5000
+  5.23861             1     3.1000     0.0000     3.1000     3.1000
 
 === Main Effects: cost_per_person ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-entertainment_hrs       25.0000       2.1099            43.1%
-sqft_per_guest          19.7500       2.1099            34.1%
-food_budget_pct         13.2500       2.1099            22.8%
+food_budget_pct         26.0000       2.1099            48.9%
+entertainment_hrs       19.5833       2.1099            36.8%
+sqft_per_guest           7.5833       2.1099            14.3%
+
+=== ANOVA Table: cost_per_person ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+sqft_per_guest               4     101.9242      25.4811      0.218     0.9220
+food_budget_pct              4     484.8409     121.2102      1.035     0.4405
+entertainment_hrs            4     481.9242     120.4811      1.028     0.4432
+Lack of Fit                  2     167.9015      83.9508      0.717     0.5210
+Pure Error                   7     820.0000     117.1429
+Error                        9     987.9015     117.1429
+Total                       21    2056.5909      97.9329
 
 === Summary Statistics: cost_per_person ===
 
 sqft_per_guest:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  15                  4    52.2500     9.0692    41.0000    61.0000
-  27.5               12    42.6667     8.7421    31.0000    63.0000
-  4.67823             1    37.0000     0.0000    37.0000    37.0000
-  40                  4    32.5000     7.0475    25.0000    39.0000
-  50.3218             1    39.0000     0.0000    39.0000    39.0000
+  15                  4    39.5000     9.4692    28.0000    51.0000
+  27.5               12    43.5833    12.1839    25.0000    63.0000
+  4.67823             1    39.0000     0.0000    39.0000    39.0000
+  40                  4    42.7500     4.1932    40.0000    49.0000
+  50.3218             1    36.0000     0.0000    36.0000    36.0000
 
 food_budget_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  17.6139             1    41.0000     0.0000    41.0000    41.0000
-  30                  4    49.0000    12.1929    38.0000    61.0000
-  45                 12    42.5833     8.7330    31.0000    63.0000
-  60                  4    35.7500    11.2361    25.0000    49.0000
-  72.3861             1    36.0000     0.0000    36.0000    36.0000
+  17.6139             1    37.0000     0.0000    37.0000    37.0000
+  30                  4    40.0000     1.4142    38.0000    41.0000
+  45                 12    41.5000    10.6130    25.0000    61.0000
+  60                  4    42.2500    10.4363    28.0000    51.0000
+  72.3861             1    63.0000     0.0000    63.0000    63.0000
 
 entertainment_hrs:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
   -0.238613           1    38.0000     0.0000    38.0000    38.0000
-  1                   4    44.2500    14.0801    28.0000    61.0000
-  2.5                12    40.5833     6.0221    31.0000    52.0000
-  4                   4    40.5000    13.5769    25.0000    58.0000
-  5.23861             1    63.0000     0.0000    63.0000    63.0000
-
-Pareto chart (satisfaction): use_cases/198_party_planning/results/analysis/pareto_satisfaction.png
-
-Pareto chart (cost_per_person): use_cases/198_party_planning/results/analysis/pareto_cost_per_person.png
-Main effects (satisfaction): use_cases/198_party_planning/results/analysis/main_effects_satisfaction.png
-Main effects (cost_per_person): use_cases/198_party_planning/results/analysis/main_effects_cost_per_person.png</div></div>
+  1                   4    44.5000     6.4550    38.0000    51.0000
+  2.5                12    44.5833    10.9665    31.0000    63.0000
+  4                   4    37.7500     6.5000    28.0000    41.0000
+  5.23861             1    25.0000     0.0000    25.0000    25.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: satisfaction ===
@@ -501,50 +598,56 @@ Direction: maximize
 
 Best observed run: #18
   sqft_per_guest = 27.5
-  food_budget_pct = 45
+  food_budget_pct = 72.3861
   entertainment_hrs = 2.5
   Value: 7.8
 
-RSM Model (linear, R² = 0.1694, Adj R² = 0.0309):
+RSM Model (linear, R² = 0.0260, Adj R² = -0.1363):
   Coefficients:
     intercept                      +5.8000
-    sqft_per_guest                 +0.5134
-    food_budget_pct                +0.2721
-    entertainment_hrs              +0.2478
+    sqft_per_guest                 +0.1506
+    food_budget_pct                -0.0131
+    entertainment_hrs              +0.1962
 
-RSM Model (quadratic, R² = 0.3130, Adj R² = -0.2023):
+RSM Model (quadratic, R² = 0.6435, Adj R² = 0.3761):
   Coefficients:
-    intercept                      +5.4553
-    sqft_per_guest                 +0.5134
-    food_budget_pct                +0.2721
-    entertainment_hrs              +0.2478
-    sqft_per_guest*food_budget_pct -0.2500
-    sqft_per_guest*entertainment_hrs -0.4750
-    food_budget_pct*entertainment_hrs +0.2500
-    sqft_per_guest^2               +0.1524
-    food_budget_pct^2              +0.0624
-    entertainment_hrs^2            +0.3024
+    intercept                      +6.1105
+    sqft_per_guest                 +0.1506
+    food_budget_pct                -0.0131
+    entertainment_hrs              +0.1962
+    sqft_per_guest*food_budget_pct -0.2250
+    sqft_per_guest*entertainment_hrs +0.2500
+    food_budget_pct*entertainment_hrs +0.7000
+    sqft_per_guest^2               +0.0047
+    food_budget_pct^2              +0.3347
+    entertainment_hrs^2            -0.8053
 
   Curvature analysis:
-    entertainment_hrs              coef=+0.3024  convex (has a minimum)
-    sqft_per_guest                 coef=+0.1524  convex (has a minimum)
-    food_budget_pct                coef=+0.0624  negligible curvature
+    entertainment_hrs              coef=-0.8053  concave (has a maximum)
+    food_budget_pct                coef=+0.3347  convex (has a minimum)
+    sqft_per_guest                 coef=+0.0047  negligible curvature
 
   Notable interactions:
-    sqft_per_guest*entertainment_hrs coef=-0.4750  (antagonistic)
+    food_budget_pct*entertainment_hrs coef=+0.7000  (synergistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from quadratic model, at observed points):
+    sqft_per_guest = 27.5
+    food_budget_pct = 17.6139
+    entertainment_hrs = 2.5
+    Predicted value: 7.2502
+
+  Surface optimum (via L-BFGS-B, quadratic model):
     sqft_per_guest = 40
-    food_budget_pct = 60
-    entertainment_hrs = 4
-    Predicted value: 6.8334
+    food_budget_pct = 30
+    entertainment_hrs = 2.26364
+    Predicted value: 6.8586
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. entertainment_hrs  (effect: 2.1, contribution: 37.1%)
-  2. sqft_per_guest  (effect: 2.0, contribution: 36.2%)
-  3. food_budget_pct  (effect: 1.5, contribution: 26.8%)
+  1. entertainment_hrs  (effect: 3.2, contribution: 47.5%)
+  2. food_budget_pct  (effect: 2.5, contribution: 36.3%)
+  3. sqft_per_guest  (effect: 1.1, contribution: 16.3%)
 
 === Optimization: cost_per_person ===
 Direction: minimize
@@ -552,50 +655,56 @@ Direction: minimize
 Best observed run: #20
   sqft_per_guest = 27.5
   food_budget_pct = 45
-  entertainment_hrs = 2.5
+  entertainment_hrs = -0.238613
   Value: 25.0
 
-RSM Model (linear, R² = 0.0303, Adj R² = -0.1313):
+RSM Model (linear, R² = 0.1084, Adj R² = -0.0402):
   Coefficients:
     intercept                      +42.1364
-    sqft_per_guest                 +1.7846
-    food_budget_pct                +1.0315
-    entertainment_hrs              -0.0176
+    sqft_per_guest                 +2.5609
+    food_budget_pct                +2.2939
+    entertainment_hrs              +1.8378
 
-RSM Model (quadratic, R² = 0.2002, Adj R² = -0.3997):
+RSM Model (quadratic, R² = 0.4774, Adj R² = 0.0855):
   Coefficients:
-    intercept                      +42.9258
-    sqft_per_guest                 +1.7846
-    food_budget_pct                +1.0315
-    entertainment_hrs              -0.0175
-    sqft_per_guest*food_budget_pct -0.5000
-    sqft_per_guest*entertainment_hrs -2.0000
+    intercept                      +42.6364
+    sqft_per_guest                 +2.5609
+    food_budget_pct                +2.2939
+    entertainment_hrs              +1.8378
+    sqft_per_guest*food_budget_pct -1.7500
+    sqft_per_guest*entertainment_hrs +2.2500
     food_budget_pct*entertainment_hrs -0.2500
-    sqft_per_guest^2               -2.9447
-    food_budget_pct^2              -0.5447
-    entertainment_hrs^2            +2.3053
+    sqft_per_guest^2               +2.1000
+    food_budget_pct^2              +1.9500
+    entertainment_hrs^2            -4.8000
 
   Curvature analysis:
-    sqft_per_guest                 coef=-2.9447  concave (has a maximum)
-    entertainment_hrs              coef=+2.3053  convex (has a minimum)
-    food_budget_pct                coef=-0.5447  concave (has a maximum)
+    entertainment_hrs              coef=-4.8000  concave (has a maximum)
+    sqft_per_guest                 coef=+2.1000  convex (has a minimum)
+    food_budget_pct                coef=+1.9500  convex (has a minimum)
 
   Notable interactions:
-    sqft_per_guest*entertainment_hrs coef=-2.0000  (antagonistic)
-    sqft_per_guest*food_budget_pct coef=-0.5000  (antagonistic)
+    sqft_per_guest*entertainment_hrs coef=+2.2500  (synergistic)
+    sqft_per_guest*food_budget_pct coef=-1.7500  (antagonistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from quadratic model, at observed points):
     sqft_per_guest = 50.3218
     food_budget_pct = 45
     entertainment_hrs = 2.5
-    Predicted value: 45.3946
+    Predicted value: 54.3120
+
+  Surface optimum (via L-BFGS-B, quadratic model):
+    sqft_per_guest = 22.1833
+    food_budget_pct = 32.353
+    entertainment_hrs = 1
+    Predicted value: 34.8600
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. entertainment_hrs  (effect: 26.0, contribution: 51.2%)
-  2. food_budget_pct  (effect: 12.5, contribution: 24.6%)
-  3. sqft_per_guest  (effect: 12.2, contribution: 24.1%)</div></div>
+  1. food_budget_pct  (effect: 25.0, contribution: 39.0%)
+  2. entertainment_hrs  (effect: 20.4, contribution: 31.8%)
+  3. sqft_per_guest  (effect: 18.8, contribution: 29.2%)</div></div>
   </section>
 
   <!-- Nav -->

@@ -80,7 +80,23 @@ def generate_report(
 
     header_html = _build_header(plan_name, plan_desc, timestamp, partial=partial)
     design_summary_html = _build_design_summary(matrix, cfg)
-    results_html = _build_results(report, pareto_images, effects_images, rsm_images)
+    normal_images: dict[str, str] = {}
+    for resp_name, path in report.normal_plot_paths.items():
+        if os.path.exists(path):
+            normal_images[resp_name] = _encode_image(path)
+
+    half_normal_images: dict[str, str] = {}
+    for resp_name, path in report.half_normal_plot_paths.items():
+        if os.path.exists(path):
+            half_normal_images[resp_name] = _encode_image(path)
+
+    diagnostics_images: dict[str, str] = {}
+    for resp_name, path in report.diagnostics_plot_paths.items():
+        if os.path.exists(path):
+            diagnostics_images[resp_name] = _encode_image(path)
+
+    results_html = _build_results(report, pareto_images, effects_images, rsm_images,
+                                  normal_images, half_normal_images, diagnostics_images)
     optimization_html = _build_optimization(optimization_data, cfg)
     design_matrix_html = _build_design_matrix(matrix)
     footer_html = _build_footer()
@@ -341,7 +357,9 @@ def _build_optimization(opt_data, cfg) -> str:
     return "\n".join(sections)
 
 
-def _build_results(report, pareto_images, effects_images, rsm_images=None) -> str:
+def _build_results(report, pareto_images, effects_images, rsm_images=None,
+                    normal_images=None, half_normal_images=None,
+                    diagnostics_images=None) -> str:
     if not report.results_by_response:
         return '<p class="muted">No analysis results available.</p>\n'
 
@@ -373,6 +391,78 @@ def _build_results(report, pareto_images, effects_images, rsm_images=None) -> st
             '    </tbody>\n'
             '  </table>\n'
         )
+
+        # --- ANOVA table ---
+        anova_html = ""
+        if analysis.anova_table:
+            anova = analysis.anova_table
+            anova_rows_html = ""
+            for row in anova.rows:
+                f_str = f"{row.f_value:.3f}" if row.f_value is not None else "&mdash;"
+                p_str = f"{row.p_value:.4f}" if row.p_value is not None else "&mdash;"
+                # Highlight significant terms
+                sig_class = ""
+                if row.p_value is not None and row.p_value < 0.05:
+                    sig_class = ' style="font-weight:bold;"'
+                anova_rows_html += (
+                    f'      <tr{sig_class}>'
+                    f'<td>{html.escape(row.source)}</td>'
+                    f'<td class="mono">{row.df}</td>'
+                    f'<td class="mono">{row.ss:.4f}</td>'
+                    f'<td class="mono">{row.ms:.4f}</td>'
+                    f'<td class="mono">{f_str}</td>'
+                    f'<td class="mono">{p_str}</td>'
+                    f'</tr>\n'
+                )
+            # Error rows
+            if anova.lack_of_fit_row:
+                lof = anova.lack_of_fit_row
+                f_str = f"{lof.f_value:.3f}" if lof.f_value is not None else "&mdash;"
+                p_str = f"{lof.p_value:.4f}" if lof.p_value is not None else "&mdash;"
+                anova_rows_html += (
+                    f'      <tr><td>{html.escape(lof.source)}</td>'
+                    f'<td class="mono">{lof.df}</td><td class="mono">{lof.ss:.4f}</td>'
+                    f'<td class="mono">{lof.ms:.4f}</td><td class="mono">{f_str}</td>'
+                    f'<td class="mono">{p_str}</td></tr>\n'
+                )
+            if anova.pure_error_row:
+                pe = anova.pure_error_row
+                anova_rows_html += (
+                    f'      <tr><td>{html.escape(pe.source)}</td>'
+                    f'<td class="mono">{pe.df}</td><td class="mono">{pe.ss:.4f}</td>'
+                    f'<td class="mono">{pe.ms:.4f}</td><td class="mono">&mdash;</td>'
+                    f'<td class="mono">&mdash;</td></tr>\n'
+                )
+            if anova.error_row:
+                err = anova.error_row
+                anova_rows_html += (
+                    f'      <tr><td>{html.escape(err.source)}</td>'
+                    f'<td class="mono">{err.df}</td><td class="mono">{err.ss:.4f}</td>'
+                    f'<td class="mono">{err.ms:.4f}</td><td class="mono">&mdash;</td>'
+                    f'<td class="mono">&mdash;</td></tr>\n'
+                )
+            if anova.total_row:
+                tot = anova.total_row
+                anova_rows_html += (
+                    f'      <tr style="border-top:2px solid var(--border);"><td><strong>{html.escape(tot.source)}</strong></td>'
+                    f'<td class="mono"><strong>{tot.df}</strong></td><td class="mono"><strong>{tot.ss:.4f}</strong></td>'
+                    f'<td class="mono"><strong>{tot.ms:.4f}</strong></td><td class="mono">&mdash;</td>'
+                    f'<td class="mono">&mdash;</td></tr>\n'
+                )
+            note = ""
+            if anova.error_method == "lenth":
+                note = '  <p class="muted">Error estimated using Lenth\'s pseudo-standard-error (unreplicated design)</p>\n'
+            anova_html = (
+                '  <h3>ANOVA</h3>\n'
+                '  <table class="data-table">\n'
+                '    <thead><tr><th>Source</th><th>DF</th><th>SS</th>'
+                '<th>MS</th><th>F</th><th>p-value</th></tr></thead>\n'
+                '    <tbody>\n'
+                f'{anova_rows_html}'
+                '    </tbody>\n'
+                '  </table>\n'
+                f'{note}'
+            )
 
         # --- Interaction effects table ---
         interaction_html = ""
@@ -438,6 +528,25 @@ def _build_results(report, pareto_images, effects_images, rsm_images=None) -> st
                 f'alt="Main effects plot for {safe_name}"></div>\n'
             )
 
+        # --- Normal/half-normal plots ---
+        if normal_images and resp_name in normal_images:
+            plots_html += (
+                f'  <div class="plot"><img src="{normal_images[resp_name]}" '
+                f'alt="Normal probability plot for {safe_name}"></div>\n'
+            )
+        if half_normal_images and resp_name in half_normal_images:
+            plots_html += (
+                f'  <div class="plot"><img src="{half_normal_images[resp_name]}" '
+                f'alt="Half-normal plot for {safe_name}"></div>\n'
+            )
+
+        # --- Diagnostics plots ---
+        if diagnostics_images and resp_name in diagnostics_images:
+            plots_html += (
+                f'  <div class="plot"><img src="{diagnostics_images[resp_name]}" '
+                f'alt="Model diagnostics for {safe_name}"></div>\n'
+            )
+
         # --- RSM surface plots ---
         rsm_html = ""
         if rsm_images and resp_name in rsm_images:
@@ -456,6 +565,7 @@ def _build_results(report, pareto_images, effects_images, rsm_images=None) -> st
             f'  <summary><h2>Results: {safe_name}</h2></summary>\n'
             f'  <div class="section-body">\n'
             f'{main_effects_html}'
+            f'{anova_html}'
             f'{interaction_html}'
             f'{summary_html}'
             f'{plots_html}'

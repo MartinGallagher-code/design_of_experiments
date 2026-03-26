@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>apogee m</strong>, the most influential factors were impulse ns (37.1%), fin area cm2 (32.2%), nose fineness (30.7%). The best observed value was <strong>242.0</strong> (at impulse ns = 40, fin area cm2 = 80, nose fineness = 5).</p>
-<p>For <strong>drift m</strong>, the most influential factors were impulse ns (48.8%), fin area cm2 (32.3%), nose fineness (18.9%). The best observed value was <strong>30.0</strong> (at impulse ns = 5, fin area cm2 = 50, nose fineness = 7).</p>
+    <p>For <strong>apogee m</strong>, the most influential factors were impulse ns (49.0%), fin area cm2 (33.7%), nose fineness (17.3%). The best observed value was <strong>242.0</strong> (at impulse ns = 5, fin area cm2 = 50, nose fineness = 7).</p>
+<p>For <strong>drift m</strong>, the most influential factors were impulse ns (37.7%), fin area cm2 (33.1%), nose fineness (29.2%). The best observed value was <strong>30.0</strong> (at impulse ns = 40, fin area cm2 = 80, nose fineness = 5).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (apogee_m (↑), drift_m (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/261_model_rocket_flight/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -264,48 +264,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/261_model_rocket_flight/config.json \
     <span class="flag">--output</span> use_cases/261_model_rocket_flight/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Aerospace Test? Use the Manual Workflow</h4>
-        <p>Flight and aerospace experiments involve real aerodynamics, propulsion, and atmospheric conditions requiring physical testing. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/261_model_rocket_flight/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/261_model_rocket_flight/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/261_model_rocket_flight/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/261_model_rocket_flight/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/261_model_rocket_flight/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/261_model_rocket_flight/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/261_model_rocket_flight/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -337,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: apogee_m</h3>
-    <p>Top factors: impulse_ns (37.1%), fin_area_cm2 (32.2%), nose_fineness (30.7%).</p>
+    <p>Top factors: impulse_ns (49.0%), fin_area_cm2 (33.7%), nose_fineness (17.3%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -350,7 +308,7 @@
     </div>
 
     <h3>Response: drift_m</h3>
-    <p>Top factors: impulse_ns (48.8%), fin_area_cm2 (32.3%), nose_fineness (18.9%).</p>
+    <p>Top factors: impulse_ns (37.7%), fin_area_cm2 (33.1%), nose_fineness (29.2%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -401,185 +359,336 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.7824</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>apogee_m</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:70.91%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7091</span>
+                </div>
+              </td>
+              <td>188.00 0.7091      188.00 m</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>drift_m</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:90.67%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9067</span>
+                </div>
+              </td>
+              <td>33.00 0.9067       33.00 m</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>impulse_ns</code></td><td>22.5 Ns</td></tr>
+            <tr><td><code>fin_area_cm2</code></td><td>20 cm2</td></tr>
+            <tr><td><code>nose_fineness</code></td><td>7 ratio</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #9</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>drift_m</code></td><td>33.00</td><td>30.00</td><td><span style="color:#dc2626;">+3.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#8</td><td><strong>0.6907</strong></td><td style="font-size:.78rem;">impulse_ns=22.5,  fin_area_cm2=50,  nose_fineness=5</td></tr>
+            <tr><td>#1</td><td><strong>0.6345</strong></td><td style="font-size:.78rem;">impulse_ns=5,  fin_area_cm2=20,  nose_fineness=5</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>drift_m</code></td><td style="color:#dc2626;font-weight:600;">0.1543</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.7824
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+apogee_m                     1.5       0.7091      188.00 m   ↑
+drift_m                      1.0       0.9067       33.00 m   ↓
+
+Recommended settings:
+  impulse_ns = 22.5 Ns
+  fin_area_cm2 = 20 cm2
+  nose_fineness = 7 ratio
+  (from observed run #9)
+
+Trade-off summary:
+  apogee_m: 188.00 (best observed: 242.00, sacrifice: +54.00)
+  drift_m: 33.00 (best observed: 30.00, sacrifice: +3.00)
+
+Model quality:
+  apogee_m: R² = 0.0374 (linear)
+  drift_m: R² = 0.1543 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #9 (D=0.7824): impulse_ns=22.5, fin_area_cm2=20, nose_fineness=7
+  2. Run #8 (D=0.6907): impulse_ns=22.5, fin_area_cm2=50, nose_fineness=5
+  3. Run #1 (D=0.6345): impulse_ns=5, fin_area_cm2=20, nose_fineness=5</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_apogee_m_impulse_ns_vs_fin_area_cm2.png
-  RSM surface: rsm_apogee_m_impulse_ns_vs_nose_fineness.png
-  RSM surface: rsm_apogee_m_fin_area_cm2_vs_nose_fineness.png
-  RSM surface: rsm_drift_m_impulse_ns_vs_fin_area_cm2.png
-  RSM surface: rsm_drift_m_impulse_ns_vs_nose_fineness.png
-  RSM surface: rsm_drift_m_fin_area_cm2_vs_nose_fineness.png
-
-=== Main Effects: apogee_m ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: apogee_m ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-impulse_ns              47.5000      16.5584            37.1%
-fin_area_cm2            41.1786      16.5584            32.2%
-nose_fineness           39.2500      16.5584            30.7%
+impulse_ns              86.3929      16.5584            49.0%
+fin_area_cm2            59.5000      16.5584            33.7%
+nose_fineness           30.5000      16.5584            17.3%
+
+=== ANOVA Table: apogee_m ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+impulse_ns                   2   20169.2429   10084.6214      3.072     0.1024
+fin_area_cm2                 2    7443.2429    3721.6214      1.134     0.3686
+nose_fineness                2    2114.6000    1057.3000      0.322     0.7336
+Lack of Fit                  6   21284.5143    3547.4190      1.081     0.5536
+Pure Error                   2    6566.0000    3283.0000
+Error                        8   27850.5143    3283.0000
+Total                       14   57577.6000    4112.6857
 
 === Summary Statistics: apogee_m ===
 
 impulse_ns:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  22.5                7   161.7143    75.3474    52.0000   242.0000
-  40                  4   162.7500    31.4788   137.0000   208.0000
-  5                   4   115.2500    68.5632    42.0000   188.0000
+  22.5                7   112.8571    71.5808    42.0000   241.0000
+  40                  4   164.2500    31.7004   137.0000   210.0000
+  5                   4   199.2500    34.8843   159.0000   242.0000
 
 fin_area_cm2:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  20                  4   127.2500    87.4162    42.0000   241.0000
-  50                  7   168.4286    52.8925    74.0000   242.0000
-  80                  4   139.0000    65.6709    52.0000   210.0000
+  20                  4   174.7500    80.6324    79.0000   242.0000
+  50                  7   154.8571    52.4831    52.0000   210.0000
+  80                  4   115.2500    68.5632    42.0000   188.0000
 
 nose_fineness:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  3                   4   171.0000    72.9703    74.0000   241.0000
-  5                   7   147.5714    58.2347    42.0000   242.0000
-  7                   4   131.7500    77.7190    52.0000   208.0000
+  3                   4   130.5000    65.7698    74.0000   210.0000
+  5                   7   154.0000    57.2305    52.0000   242.0000
+  7                   4   161.0000    87.2430    42.0000   241.0000
 
 === Main Effects: drift_m ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-impulse_ns              20.0000       4.4811            48.8%
-fin_area_cm2            13.2500       4.4811            32.3%
-nose_fineness            7.7500       4.4811            18.9%
+impulse_ns              18.7143       4.4811            37.7%
+fin_area_cm2            16.4643       4.4811            33.1%
+nose_fineness           14.5000       4.4811            29.2%
+
+=== ANOVA Table: drift_m ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+impulse_ns                   2    1052.5048     526.2524     15.788     0.0017
+fin_area_cm2                 2     764.0048     382.0024     11.460     0.0045
+nose_fineness                2     444.5048     222.2524      6.668     0.0198
+Lack of Fit                  6    1889.2524     314.8754      9.446     0.0988
+Pure Error                   2      66.6667      33.3333
+Error                        8    1955.9190      33.3333
+Total                       14    4216.9333     301.2095
 
 === Summary Statistics: drift_m ===
 
 impulse_ns:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  22.5                7    55.1429    17.8366    30.0000    82.0000
-  40                  4    61.2500    19.1028    44.0000    87.0000
-  5                   4    41.2500    10.9049    32.0000    55.0000
+  22.5                7    44.2857    11.4705    30.0000    63.0000
+  40                  4    63.0000    13.7840    51.0000    82.0000
+  5                   4    58.5000    24.5289    33.0000    87.0000
 
 fin_area_cm2:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  20                  4    47.0000    13.6382    30.0000    63.0000
-  50                  7    52.4286    19.9069    32.0000    87.0000
-  80                  4    60.2500    17.5570    40.0000    82.0000
+  20                  4    56.7500    18.0993    30.0000    70.0000
+  50                  7    57.7143    18.7680    40.0000    87.0000
+  80                  4    41.2500    10.9049    32.0000    55.0000
 
 nose_fineness:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  3                   4    55.2500    21.9298    32.0000    82.0000
-  5                   7    55.0000     8.8694    45.0000    70.0000
-  7                   4    47.5000    26.6646    30.0000    87.0000
-
-Pareto chart (apogee_m): use_cases/261_model_rocket_flight/results/analysis/pareto_apogee_m.png
-
-Pareto chart (drift_m): use_cases/261_model_rocket_flight/results/analysis/pareto_drift_m.png
-Main effects (apogee_m): use_cases/261_model_rocket_flight/results/analysis/main_effects_apogee_m.png
-Main effects (drift_m): use_cases/261_model_rocket_flight/results/analysis/main_effects_drift_m.png</div></div>
+  3                   4    47.0000    24.1385    30.0000    82.0000
+  5                   7    51.7143    12.8415    33.0000    70.0000
+  7                   4    61.5000    18.5742    45.0000    87.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: apogee_m ===
 Direction: maximize
 
 Best observed run: #3
-  impulse_ns = 40
-  fin_area_cm2 = 80
-  nose_fineness = 5
+  impulse_ns = 5
+  fin_area_cm2 = 50
+  nose_fineness = 7
   Value: 242.0
 
-RSM Model (linear, R² = 0.0951, Adj R² = -0.1517):
+RSM Model (linear, R² = 0.3879, Adj R² = 0.2210):
   Coefficients:
     intercept                      +149.6000
-    impulse_ns                     +24.6250
-    fin_area_cm2                   +5.3750
-    nose_fineness                  +7.0000
+    impulse_ns                     +23.1250
+    fin_area_cm2                   -10.8750
+    nose_fineness                  +46.2500
 
-RSM Model (quadratic, R² = 0.6130, Adj R² = -0.0837):
+RSM Model (quadratic, R² = 0.9144, Adj R² = 0.7603):
   Coefficients:
-    intercept                      +168.0000
-    impulse_ns                     +24.6250
-    fin_area_cm2                   +5.3750
-    nose_fineness                  +7.0000
-    impulse_ns*fin_area_cm2        -8.5000
-    impulse_ns*nose_fineness       +24.2500
-    fin_area_cm2*nose_fineness     -22.7500
-    impulse_ns^2                   +5.2500
-    fin_area_cm2^2                 +32.7500
-    nose_fineness^2                -72.5000
+    intercept                      +168.6667
+    impulse_ns                     +23.1250
+    fin_area_cm2                   -10.8750
+    nose_fineness                  +46.2500
+    impulse_ns*fin_area_cm2        -27.0000
+    impulse_ns*nose_fineness       -33.7500
+    fin_area_cm2*nose_fineness     -15.7500
+    impulse_ns^2                   -50.3333
+    fin_area_cm2^2                 -30.8333
+    nose_fineness^2                +45.4167
 
   Curvature analysis:
-    nose_fineness                  coef=-72.5000  concave (has a maximum)
-    fin_area_cm2                   coef=+32.7500  convex (has a minimum)
-    impulse_ns                     coef=+5.2500  convex (has a minimum)
+    impulse_ns                     coef=-50.3333  concave (has a maximum)
+    nose_fineness                  coef=+45.4167  convex (has a minimum)
+    fin_area_cm2                   coef=-30.8333  concave (has a maximum)
 
   Notable interactions:
-    impulse_ns*nose_fineness       coef=+24.2500  (synergistic)
-    fin_area_cm2*nose_fineness     coef=-22.7500  (antagonistic)
-    impulse_ns*fin_area_cm2        coef=-8.5000  (antagonistic)
+    impulse_ns*nose_fineness       coef=-33.7500  (antagonistic)
+    impulse_ns*fin_area_cm2        coef=-27.0000  (antagonistic)
+    fin_area_cm2*nose_fineness     coef=-15.7500  (antagonistic)
 
-  Predicted optimum (from quadratic model):
-    impulse_ns = 40
+  Predicted optimum (from quadratic model, at observed points):
+    impulse_ns = 22.5
     fin_area_cm2 = 20
-    nose_fineness = 5
-    Predicted value: 233.7500
+    nose_fineness = 7
+    Predicted value: 256.1250
 
-  Model quality: Moderate fit — use predictions directionally, not precisely.
+  Surface optimum (via L-BFGS-B, quadratic model):
+    impulse_ns = 22.7034
+    fin_area_cm2 = 36.8947
+    nose_fineness = 7
+    Predicted value: 266.0871
+
+  Model quality: Excellent fit — surface predictions are reliable.
 
 Factor importance:
-  1. nose_fineness  (effect: 82.2, contribution: 47.1%)
-  2. impulse_ns  (effect: 49.2, contribution: 28.2%)
-  3. fin_area_cm2  (effect: 42.9, contribution: 24.6%)
+  1. nose_fineness  (effect: 97.5, contribution: 45.7%)
+  2. impulse_ns  (effect: 74.5, contribution: 34.9%)
+  3. fin_area_cm2  (effect: 41.4, contribution: 19.4%)
 
 === Optimization: drift_m ===
 Direction: minimize
 
 Best observed run: #13
-  impulse_ns = 5
-  fin_area_cm2 = 50
-  nose_fineness = 7
+  impulse_ns = 40
+  fin_area_cm2 = 80
+  nose_fineness = 5
   Value: 30.0
 
-RSM Model (linear, R² = 0.1307, Adj R² = -0.1064):
+RSM Model (linear, R² = 0.2245, Adj R² = 0.0130):
   Coefficients:
     intercept                      +53.0667
-    impulse_ns                     +4.1250
-    fin_area_cm2                   +5.6250
-    nose_fineness                  +4.5000
+    impulse_ns                     +3.8750
+    fin_area_cm2                   -7.2500
+    nose_fineness                  +7.1250
 
-RSM Model (quadratic, R² = 0.6800, Adj R² = 0.1041):
+RSM Model (quadratic, R² = 0.6415, Adj R² = -0.0039):
   Coefficients:
-    intercept                      +67.0000
-    impulse_ns                     +4.1250
-    fin_area_cm2                   +5.6250
-    nose_fineness                  +4.5000
-    impulse_ns*fin_area_cm2        +6.2500
-    impulse_ns*nose_fineness       +17.5000
-    fin_area_cm2*nose_fineness     -4.0000
-    impulse_ns^2                   -5.1250
-    fin_area_cm2^2                 -7.6250
-    nose_fineness^2                -13.3750
+    intercept                      +63.3333
+    impulse_ns                     +3.8750
+    fin_area_cm2                   -7.2500
+    nose_fineness                  +7.1250
+    impulse_ns*fin_area_cm2        -1.7500
+    impulse_ns*nose_fineness       +1.5000
+    fin_area_cm2*nose_fineness     -8.7500
+    impulse_ns^2                   -6.1667
+    fin_area_cm2^2                 -17.9167
+    nose_fineness^2                +4.8333
 
   Curvature analysis:
-    nose_fineness                  coef=-13.3750  concave (has a maximum)
-    fin_area_cm2                   coef=-7.6250  concave (has a maximum)
-    impulse_ns                     coef=-5.1250  concave (has a maximum)
+    fin_area_cm2                   coef=-17.9167  concave (has a maximum)
+    impulse_ns                     coef=-6.1667  concave (has a maximum)
+    nose_fineness                  coef=+4.8333  convex (has a minimum)
 
   Notable interactions:
-    impulse_ns*nose_fineness       coef=+17.5000  (synergistic)
-    impulse_ns*fin_area_cm2        coef=+6.2500  (synergistic)
-    fin_area_cm2*nose_fineness     coef=-4.0000  (antagonistic)
+    fin_area_cm2*nose_fineness     coef=-8.7500  (antagonistic)
+    impulse_ns*fin_area_cm2        coef=-1.7500  (antagonistic)
+    impulse_ns*nose_fineness       coef=+1.5000  (synergistic)
 
-  Predicted optimum (from quadratic model):
-    impulse_ns = 40
-    fin_area_cm2 = 50
+  Predicted optimum (from linear model, at observed points):
+    impulse_ns = 22.5
+    fin_area_cm2 = 20
     nose_fineness = 7
-    Predicted value: 74.6250
+    Predicted value: 67.4417
 
-  Model quality: Moderate fit — use predictions directionally, not precisely.
+  Surface optimum (via L-BFGS-B, linear model):
+    impulse_ns = 5
+    fin_area_cm2 = 80
+    nose_fineness = 3
+    Predicted value: 34.8167
+
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. nose_fineness  (effect: 17.0, contribution: 45.7%)
-  2. fin_area_cm2  (effect: 11.9, contribution: 32.1%)
-  3. impulse_ns  (effect: 8.2, contribution: 22.2%)</div></div>
+  1. fin_area_cm2  (effect: 25.1, contribution: 51.8%)
+  2. nose_fineness  (effect: 14.2, contribution: 29.4%)
+  3. impulse_ns  (effect: 9.1, contribution: 18.8%)</div></div>
   </section>
 
   <!-- Nav -->

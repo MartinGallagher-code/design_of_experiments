@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>comfort index</strong>, the most influential factors were vent ach (35.6%), heater pct (34.5%), mist freq (29.9%). The best observed value was <strong>6.8</strong> (at vent ach = 12, heater pct = 0, mist freq = 6).</p>
-<p>For <strong>energy kwh day</strong>, the most influential factors were mist freq (39.7%), heater pct (36.5%), vent ach (23.8%). The best observed value was <strong>69.0</strong> (at vent ach = 12, heater pct = 25, mist freq = 3).</p>
+    <p>For <strong>comfort index</strong>, the most influential factors were heater pct (66.9%), mist freq (26.4%), vent ach (6.7%). The best observed value was <strong>6.8</strong> (at vent ach = 12, heater pct = 50, mist freq = 6).</p>
+<p>For <strong>energy kwh day</strong>, the most influential factors were heater pct (68.5%), mist freq (26.0%), vent ach (5.5%). The best observed value was <strong>69.0</strong> (at vent ach = 12, heater pct = 25, mist freq = 3).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (comfort_index (↑), energy_kwh_day (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/300_barn_climate_control/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -264,48 +264,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/300_barn_climate_control/config.json \
     <span class="flag">--output</span> use_cases/300_barn_climate_control/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Farm &amp; Livestock Experiment? Use the Manual Workflow</h4>
-        <p>Livestock experiments involve real animals, feed, facilities, and biological responses that can't be simulated. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/300_barn_climate_control/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/300_barn_climate_control/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/300_barn_climate_control/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/300_barn_climate_control/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/300_barn_climate_control/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/300_barn_climate_control/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/300_barn_climate_control/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -337,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: comfort_index</h3>
-    <p>Top factors: vent_ach (35.6%), heater_pct (34.5%), mist_freq (29.9%).</p>
+    <p>Top factors: heater_pct (66.9%), mist_freq (26.4%), vent_ach (6.7%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -350,7 +308,7 @@
     </div>
 
     <h3>Response: energy_kwh_day</h3>
-    <p>Top factors: mist_freq (39.7%), heater_pct (36.5%), vent_ach (23.8%).</p>
+    <p>Top factors: heater_pct (68.5%), mist_freq (26.0%), vent_ach (5.5%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -401,80 +359,219 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.6954</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>comfort_index</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:76.64999999999999%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7665</span>
+                </div>
+              </td>
+              <td>6.20 0.7665        6.20 pts</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>energy_kwh_day</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:60.099999999999994%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.6010</span>
+                </div>
+              </td>
+              <td>97.00 0.6010       97.00 kWh/day</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>vent_ach</code></td><td>20 ACH</td></tr>
+            <tr><td><code>heater_pct</code></td><td>25 %</td></tr>
+            <tr><td><code>mist_freq</code></td><td>6 per_hr</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #2</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>energy_kwh_day</code></td><td>97.00</td><td>69.00</td><td><span style="color:#dc2626;">+28.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#5</td><td><strong>0.6495</strong></td><td style="font-size:.78rem;">vent_ach=12,  heater_pct=0,  mist_freq=6</td></tr>
+            <tr><td>#6</td><td><strong>0.6087</strong></td><td style="font-size:.78rem;">vent_ach=12,  heater_pct=25,  mist_freq=3</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>energy_kwh_day</code></td><td style="color:#ca8a04;font-weight:600;">0.6149</td><td>quadratic</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.6954
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+comfort_index                1.5       0.7665        6.20 pts   ↑
+energy_kwh_day               1.0       0.6010       97.00 kWh/day   ↓
+
+Recommended settings:
+  vent_ach = 20 ACH
+  heater_pct = 25 %
+  mist_freq = 6 per_hr
+  (from observed run #2)
+
+Trade-off summary:
+  comfort_index: 6.20 (best observed: 6.80, sacrifice: +0.60)
+  energy_kwh_day: 97.00 (best observed: 69.00, sacrifice: +28.00)
+
+Model quality:
+  comfort_index: R² = 0.0064 (linear)
+  energy_kwh_day: R² = 0.6149 (quadratic)
+
+Top 3 observed runs by overall desirability:
+  1. Run #2 (D=0.6954): vent_ach=20, heater_pct=25, mist_freq=6
+  2. Run #5 (D=0.6495): vent_ach=12, heater_pct=0, mist_freq=6
+  3. Run #6 (D=0.6087): vent_ach=12, heater_pct=25, mist_freq=3</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_comfort_index_vent_ach_vs_heater_pct.png
-  RSM surface: rsm_comfort_index_vent_ach_vs_mist_freq.png
-  RSM surface: rsm_comfort_index_heater_pct_vs_mist_freq.png
-  RSM surface: rsm_energy_kwh_day_vent_ach_vs_heater_pct.png
-  RSM surface: rsm_energy_kwh_day_vent_ach_vs_mist_freq.png
-  RSM surface: rsm_energy_kwh_day_heater_pct_vs_mist_freq.png
-
-=== Main Effects: comfort_index ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: comfort_index ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-vent_ach                 0.6071       0.2281            35.6%
-heater_pct               0.5893       0.2281            34.5%
-mist_freq                0.5107       0.2281            29.9%
+heater_pct               0.9964       0.2281            66.9%
+mist_freq                0.3929       0.2281            26.4%
+vent_ach                 0.1000       0.2281             6.7%
+
+=== ANOVA Table: comfort_index ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+vent_ach                     2       0.0269       0.0134      0.015     0.9854
+heater_pct                   2       2.5322       1.2661      1.391     0.3030
+mist_freq                    2       0.4094       0.2047      0.225     0.8035
+Lack of Fit                  6       6.1356       1.0226      1.124     0.5413
+Pure Error                   2       1.8200       0.9100
+Error                        8       7.9556       0.9100
+Total                       14      10.9240       0.7803
 
 === Summary Statistics: comfort_index ===
 
 vent_ach:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  12                  7     5.2429     1.0147     3.9000     6.7000
-  20                  4     5.8500     0.5447     5.1000     6.3000
-  4                   4     5.5250     0.9845     4.7000     6.8000
+  12                  7     5.4571     0.9053     3.9000     6.8000
+  20                  4     5.4500     1.2069     4.1000     6.7000
+  4                   4     5.5500     0.7326     4.7000     6.3000
 
 heater_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   4     5.8750     0.6185     5.2000     6.7000
-  25                  7     5.2857     1.1127     3.9000     6.8000
-  50                  4     5.4250     0.6946     4.7000     6.2000
+  0                   4     6.1250     0.7632     5.2000     6.8000
+  25                  7     5.1286     0.9376     3.9000     6.3000
+  50                  4     5.4500     0.6758     4.7000     6.2000
 
 mist_freq:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   4     5.7000     0.9416     4.8000     6.7000
-  3                   7     5.2143     0.9582     3.9000     6.2000
-  6                   4     5.7250     0.7805     5.1000     6.8000
+  0                   4     5.7500     1.1733     4.1000     6.8000
+  3                   7     5.3571     0.9502     3.9000     6.7000
+  6                   4     5.4250     0.5679     4.8000     6.0000
 
 === Main Effects: energy_kwh_day ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-mist_freq               20.3571       5.0147            39.7%
-heater_pct              18.7500       5.0147            36.5%
-vent_ach                12.2143       5.0147            23.8%
+heater_pct              31.0000       5.0147            68.5%
+mist_freq               11.7500       5.0147            26.0%
+vent_ach                 2.5000       5.0147             5.5%
+
+=== ANOVA Table: energy_kwh_day ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+vent_ach                     2      17.0762       8.5381      0.022     0.9780
+heater_pct                   2    2595.2190    1297.6095      3.394     0.0857
+mist_freq                    2     363.4333     181.7167      0.475     0.6382
+Lack of Fit                  6    1540.5381     256.7563      0.672     0.7015
+Pure Error                   2     764.6667     382.3333
+Error                        8    2305.2048     382.3333
+Total                       14    5280.9333     377.2095
 
 === Summary Statistics: energy_kwh_day ===
 
 vent_ach:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  12                  7    98.2857    21.0215    69.0000   132.0000
-  20                  4   102.7500    14.0089    91.0000   123.0000
-  4                   4   110.5000    23.5301    86.0000   141.0000
+  12                  7   102.1429    22.5863    69.0000   141.0000
+  20                  4   102.0000    22.0454    79.0000   132.0000
+  4                   4   104.5000    15.7586    86.0000   123.0000
 
 heater_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   4   114.2500    13.3760   100.0000   132.0000
-  25                  7   100.2857    24.8107    69.0000   141.0000
-  50                  4    95.5000     9.4692    86.0000   108.0000
+  0                   4   124.5000    14.4799   110.0000   141.0000
+  25                  7    95.5714    17.9801    69.0000   123.0000
+  50                  4    93.5000     6.2450    86.0000   100.0000
 
 mist_freq:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   4   111.5000    19.1920    91.0000   132.0000
-  3                   7    92.1429    15.2799    69.0000   115.0000
-  6                   4   112.5000    20.8247    91.0000   141.0000
-
-Pareto chart (comfort_index): use_cases/300_barn_climate_control/results/analysis/pareto_comfort_index.png
-
-Pareto chart (energy_kwh_day): use_cases/300_barn_climate_control/results/analysis/pareto_energy_kwh_day.png
-Main effects (comfort_index): use_cases/300_barn_climate_control/results/analysis/main_effects_comfort_index.png
-Main effects (energy_kwh_day): use_cases/300_barn_climate_control/results/analysis/main_effects_energy_kwh_day.png</div></div>
+  0                   4   110.7500    27.0108    79.0000   141.0000
+  3                   7    99.0000    20.1163    69.0000   132.0000
+  6                   4   101.2500    10.0125    91.0000   115.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: comfort_index ===
@@ -482,50 +579,56 @@ Direction: maximize
 
 Best observed run: #10
   vent_ach = 12
-  heater_pct = 0
+  heater_pct = 50
   mist_freq = 6
   Value: 6.8
 
-RSM Model (linear, R² = 0.1616, Adj R² = -0.0671):
+RSM Model (linear, R² = 0.3005, Adj R² = 0.1097):
   Coefficients:
     intercept                      +5.4800
-    vent_ach                       -0.2250
-    heater_pct                     -0.4000
-    mist_freq                      +0.1000
+    vent_ach                       -0.1500
+    heater_pct                     +0.1125
+    mist_freq                      +0.6125
 
-RSM Model (quadratic, R² = 0.2973, Adj R² = -0.9677):
+RSM Model (quadratic, R² = 0.4476, Adj R² = -0.5467):
   Coefficients:
-    intercept                      +5.0333
-    vent_ach                       -0.2250
-    heater_pct                     -0.4000
-    mist_freq                      +0.1000
-    vent_ach*heater_pct            +0.1250
-    vent_ach*mist_freq             -0.3750
-    heater_pct*mist_freq           +0.1250
-    vent_ach^2                     +0.2958
-    heater_pct^2                   +0.3458
-    mist_freq^2                    +0.1958
+    intercept                      +5.5333
+    vent_ach                       -0.1500
+    heater_pct                     +0.1125
+    mist_freq                      +0.6125
+    vent_ach*heater_pct            +0.1750
+    vent_ach*mist_freq             +0.5250
+    heater_pct*mist_freq           +0.1500
+    vent_ach^2                     -0.2167
+    heater_pct^2                   -0.0417
+    mist_freq^2                    +0.1583
 
   Curvature analysis:
-    heater_pct                     coef=+0.3458  convex (has a minimum)
-    vent_ach                       coef=+0.2958  convex (has a minimum)
-    mist_freq                      coef=+0.1958  convex (has a minimum)
+    vent_ach                       coef=-0.2167  concave (has a maximum)
+    mist_freq                      coef=+0.1583  convex (has a minimum)
+    heater_pct                     coef=-0.0417  negligible curvature
 
   Notable interactions:
-    vent_ach*mist_freq             coef=-0.3750  (antagonistic)
+    vent_ach*mist_freq             coef=+0.5250  (synergistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     vent_ach = 4
-    heater_pct = 0
-    mist_freq = 3
-    Predicted value: 6.1050
+    heater_pct = 25
+    mist_freq = 6
+    Predicted value: 6.2425
+
+  Surface optimum (via L-BFGS-B, linear model):
+    vent_ach = 4
+    heater_pct = 50
+    mist_freq = 6
+    Predicted value: 6.3550
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. heater_pct  (effect: 0.8, contribution: 52.2%)
-  2. vent_ach  (effect: 0.5, contribution: 31.5%)
-  3. mist_freq  (effect: 0.3, contribution: 16.3%)
+  1. mist_freq  (effect: 1.2, contribution: 67.1%)
+  2. vent_ach  (effect: 0.4, contribution: 20.5%)
+  3. heater_pct  (effect: 0.2, contribution: 12.3%)
 
 === Optimization: energy_kwh_day ===
 Direction: minimize
@@ -536,48 +639,54 @@ Best observed run: #13
   mist_freq = 3
   Value: 69.0
 
-RSM Model (linear, R² = 0.2406, Adj R² = 0.0335):
+RSM Model (linear, R² = 0.3141, Adj R² = 0.1270):
   Coefficients:
     intercept                      +102.7333
-    vent_ach                       -4.2500
-    heater_pct                     -11.6250
-    mist_freq                      -2.3750
+    vent_ach                       +4.1250
+    heater_pct                     +1.1250
+    mist_freq                      +13.7500
 
-RSM Model (quadratic, R² = 0.4795, Adj R² = -0.4575):
+RSM Model (quadratic, R² = 0.5073, Adj R² = -0.3795):
   Coefficients:
-    intercept                      +85.6667
-    vent_ach                       -4.2500
-    heater_pct                     -11.6250
-    mist_freq                      -2.3750
-    vent_ach*heater_pct            -3.7500
-    vent_ach*mist_freq             -3.2500
-    heater_pct*mist_freq           -0.5000
-    vent_ach^2                     +8.1667
-    heater_pct^2                   +13.9167
-    mist_freq^2                    +9.9167
+    intercept                      +100.0000
+    vent_ach                       +4.1250
+    heater_pct                     +1.1250
+    mist_freq                      +13.7500
+    vent_ach*heater_pct            +1.2500
+    vent_ach*mist_freq             +6.5000
+    heater_pct*mist_freq           +8.0000
+    vent_ach^2                     -7.3750
+    heater_pct^2                   +9.1250
+    mist_freq^2                    +3.3750
 
   Curvature analysis:
-    heater_pct                     coef=+13.9167  convex (has a minimum)
-    mist_freq                      coef=+9.9167  convex (has a minimum)
-    vent_ach                       coef=+8.1667  convex (has a minimum)
+    heater_pct                     coef=+9.1250  convex (has a minimum)
+    vent_ach                       coef=-7.3750  concave (has a maximum)
+    mist_freq                      coef=+3.3750  convex (has a minimum)
 
   Notable interactions:
-    vent_ach*heater_pct            coef=-3.7500  (antagonistic)
-    vent_ach*mist_freq             coef=-3.2500  (antagonistic)
-    heater_pct*mist_freq           coef=-0.5000  (antagonistic)
+    heater_pct*mist_freq           coef=+8.0000  (synergistic)
+    vent_ach*mist_freq             coef=+6.5000  (synergistic)
+    vent_ach*heater_pct            coef=+1.2500  (synergistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
+    vent_ach = 20
+    heater_pct = 25
+    mist_freq = 6
+    Predicted value: 120.6083
+
+  Surface optimum (via L-BFGS-B, linear model):
     vent_ach = 4
     heater_pct = 0
-    mist_freq = 3
-    Predicted value: 118.6083
+    mist_freq = 0
+    Predicted value: 83.7333
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. heater_pct  (effect: 24.2, contribution: 53.1%)
-  2. vent_ach  (effect: 10.7, contribution: 23.5%)
-  3. mist_freq  (effect: 10.7, contribution: 23.5%)</div></div>
+  1. mist_freq  (effect: 27.5, contribution: 54.5%)
+  2. vent_ach  (effect: 12.4, contribution: 24.6%)
+  3. heater_pct  (effect: 10.5, contribution: 20.9%)</div></div>
   </section>
 
   <!-- Nav -->

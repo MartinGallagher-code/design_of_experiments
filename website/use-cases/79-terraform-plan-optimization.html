@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -51,8 +50,8 @@
 
     
     <h3>Key Findings</h3>
-    <p>For <strong>plan time sec</strong>, the most influential factors were state lock timeout (39.4%), refresh enabled (17.5%), parallelism (16.8%). The best observed value was <strong>17.4</strong> (at parallelism = 20, refresh enabled = off, state lock timeout = 5).</p>
-<p>For <strong>state drift detected</strong>, the most influential factors were refresh enabled (32.7%), detailed exitcode (32.7%), state lock timeout (21.2%). The best observed value was <strong>11.0</strong> (at parallelism = 1, refresh enabled = on, state lock timeout = 5).</p>
+    <p>For <strong>plan time sec</strong>, the most influential factors were refresh enabled (48.5%), parallelism (27.8%), state lock timeout (20.5%). The best observed value was <strong>17.4</strong> (at parallelism = 20, refresh enabled = on, state lock timeout = 120).</p>
+<p>For <strong>state drift detected</strong>, the most influential factors were state lock timeout (33.9%), plan out format (27.4%), parallelism (24.2%). The best observed value was <strong>11.0</strong> (at parallelism = 20, refresh enabled = off, state lock timeout = 5).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -266,12 +265,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (plan_time_sec (↓), state_drift_detected (↑)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/79_terraform_plan_optimization/config.json <span class="flag">--multi</span></div>
         </div>
@@ -279,7 +279,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -318,7 +318,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: plan_time_sec</h3>
-    <p>Top factors: state_lock_timeout (39.4%), refresh_enabled (17.5%), parallelism (16.8%).</p>
+    <p>Top factors: refresh_enabled (48.5%), parallelism (27.8%), state_lock_timeout (20.5%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -331,7 +331,7 @@
     </div>
 
     <h3>Response: state_drift_detected</h3>
-    <p>Top factors: refresh_enabled (32.7%), detailed_exitcode (32.7%), state_lock_timeout (21.2%).</p>
+    <p>Top factors: state_lock_timeout (33.9%), plan_out_format (27.4%), parallelism (24.2%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -362,101 +362,293 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.8030</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>plan_time_sec</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:60.69%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.6069</span>
+                </div>
+              </td>
+              <td>36.67 0.6069       36.67 sec</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>state_drift_detected</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:96.77%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9677</span>
+                </div>
+              </td>
+              <td>11.16 0.9677       11.16 count</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>parallelism</code></td><td>1.329 threads</td></tr>
+            <tr><td><code>refresh_enabled</code></td><td>on</td></tr>
+            <tr><td><code>state_lock_timeout</code></td><td>7.114 sec</td></tr>
+            <tr><td><code>provider_cache</code></td><td>on</td></tr>
+            <tr><td><code>plan_out_format</code></td><td>text</td></tr>
+            <tr><td><code>detailed_exitcode</code></td><td>on</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from RSM model prediction</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>state_drift_detected</code></td><td>11.16</td><td>11.00</td><td><span style="color:#16a34a;">-0.16</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#1</td><td><strong>0.5320</strong></td><td style="font-size:.78rem;">parallelism=20,  refresh_enabled=on,  state_lock_timeout=120,  provider_cache=on,  plan_out_format=json,  detailed_exitcode=on</td></tr>
+            <tr><td>#3</td><td><strong>0.3320</strong></td><td style="font-size:.78rem;">parallelism=20,  refresh_enabled=off,  state_lock_timeout=5,  provider_cache=off,  plan_out_format=text,  detailed_exitcode=on</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>state_drift_detected</code></td><td style="color:#16a34a;font-weight:600;">0.9991</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.8030
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+plan_time_sec                1.0       0.6069       36.67 sec   ↓
+state_drift_detected         1.5       0.9677       11.16 count   ↑
+
+Recommended settings:
+  parallelism = 1.329 threads
+  refresh_enabled = on
+  state_lock_timeout = 7.114 sec
+  provider_cache = on
+  plan_out_format = text
+  detailed_exitcode = on
+  (from RSM model prediction)
+
+Trade-off summary:
+  plan_time_sec: 36.67 (best observed: 17.40, sacrifice: +19.27)
+  state_drift_detected: 11.16 (best observed: 11.00, sacrifice: -0.16)
+
+Model quality:
+  plan_time_sec: R² = 0.8598 (linear)
+  state_drift_detected: R² = 0.9991 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #4 (D=0.7412): parallelism=1, refresh_enabled=on, state_lock_timeout=5, provider_cache=on, plan_out_format=text, detailed_exitcode=on
+  2. Run #1 (D=0.5320): parallelism=20, refresh_enabled=on, state_lock_timeout=120, provider_cache=on, plan_out_format=json, detailed_exitcode=on
+  3. Run #3 (D=0.3320): parallelism=20, refresh_enabled=off, state_lock_timeout=5, provider_cache=off, plan_out_format=text, detailed_exitcode=on</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: plan_time_sec ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-state_lock_timeout     -24.9750       5.9932            39.4%
-refresh_enabled         11.1250       5.9932            17.5%
-parallelism            -10.6250       5.9932            16.8%
-detailed_exitcode        7.4250       5.9932            11.7%
-provider_cache          -4.8750       5.9932             7.7%
-plan_out_format         -4.3750       5.9932             6.9%
+refresh_enabled        -23.4250       5.9932            48.5%
+parallelism            -13.4250       5.9932            27.8%
+state_lock_timeout       9.8750       5.9932            20.5%
+detailed_exitcode       -1.2750       5.9932             2.6%
+provider_cache          -0.2250       5.9932             0.5%
+plan_out_format         -0.0250       5.9932             0.1%
+
+=== ANOVA Table: plan_time_sec ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+parallelism                  1     360.4612     360.4612      2.424     0.1635
+refresh_enabled              1    1097.4612    1097.4612      7.380     0.0299
+state_lock_timeout           1     195.0312     195.0312      1.311     0.2898
+provider_cache               1       0.1013       0.1013      0.001     0.9799
+plan_out_format              1       0.0012       0.0012      0.000     0.9978
+detailed_exitcode            1       3.2512       3.2512      0.022     0.8866
+parallelism*refresh_enabled    1     195.0312     195.0312      1.311     0.2898
+parallelism*state_lock_timeout    1    1097.4612    1097.4612      7.380     0.0299
+parallelism*provider_cache    1       0.0013       0.0013      0.000     0.9978
+parallelism*plan_out_format    1       0.1013       0.1013      0.001     0.9799
+parallelism*detailed_exitcode    1     355.1113     355.1113      2.388     0.1662
+refresh_enabled*state_lock_timeout    1     360.4612     360.4612      2.424     0.1635
+refresh_enabled*provider_cache    1       3.2512       3.2512      0.022     0.8866
+refresh_enabled*plan_out_format    1     355.1112     355.1112      2.388     0.1662
+refresh_enabled*detailed_exitcode    1       0.1012       0.1012      0.001     0.9799
+state_lock_timeout*provider_cache    1     355.1112     355.1112      2.388     0.1662
+state_lock_timeout*plan_out_format    1       3.2513       3.2513      0.022     0.8866
+state_lock_timeout*detailed_exitcode    1       0.0013       0.0013      0.000     0.9978
+provider_cache*plan_out_format    1     360.4613     360.4613      2.424     0.1635
+provider_cache*detailed_exitcode    1    1097.4612    1097.4612      7.380     0.0299
+plan_out_format*detailed_exitcode    1     195.0313     195.0313      1.311     0.2898
+Error (Lenth PSE)            7    1040.9831     148.7119
+Total                        7    2011.4187     287.3455
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
 
 === Interaction Effects: plan_time_sec ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-parallelism          refresh_enabled           24.9750            16.9%
-plan_out_format      detailed_exitcode        -24.9750            16.9%
-parallelism          state_lock_timeout       -11.1250             7.5%
-provider_cache       detailed_exitcode         11.1250             7.5%
-refresh_enabled      state_lock_timeout        10.6250             7.2%
-provider_cache       plan_out_format           10.6250             7.2%
-refresh_enabled      provider_cache             7.4250             5.0%
-state_lock_timeout   plan_out_format            7.4250             5.0%
-parallelism          detailed_exitcode          6.8750             4.7%
-refresh_enabled      plan_out_format           -6.8750             4.7%
-state_lock_timeout   provider_cache            -6.8750             4.7%
-parallelism          plan_out_format            4.8750             3.3%
-refresh_enabled      detailed_exitcode         -4.8750             3.3%
-parallelism          provider_cache             4.3750             3.0%
-state_lock_timeout   detailed_exitcode         -4.3750             3.0%
+parallelism          state_lock_timeout        23.4250            17.2%
+provider_cache       detailed_exitcode        -23.4250            17.2%
+refresh_enabled      state_lock_timeout        13.4250             9.8%
+provider_cache       plan_out_format           13.4250             9.8%
+parallelism          detailed_exitcode        -13.3250             9.8%
+refresh_enabled      plan_out_format           13.3250             9.8%
+state_lock_timeout   provider_cache            13.3250             9.8%
+parallelism          refresh_enabled           -9.8750             7.2%
+plan_out_format      detailed_exitcode          9.8750             7.2%
+refresh_enabled      provider_cache            -1.2750             0.9%
+state_lock_timeout   plan_out_format           -1.2750             0.9%
+parallelism          plan_out_format            0.2250             0.2%
+refresh_enabled      detailed_exitcode         -0.2250             0.2%
+parallelism          provider_cache             0.0250             0.0%
+state_lock_timeout   detailed_exitcode         -0.0250             0.0%
 
 === Summary Statistics: plan_time_sec ===
 
 parallelism:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    53.4750     9.6209    42.2000    65.3000
-  20                  4    42.8500    22.4199    17.4000    67.8000
+  1                   4    54.8750    10.4701    42.2000    67.8000
+  20                  4    41.4500    20.9928    17.4000    65.3000
 
 refresh_enabled:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4    42.6000    21.7937    17.4000    65.3000
-  on                  4    53.7250    10.6299    42.2000    67.8000
+  off                 4    59.8750     7.9985    50.9000    67.8000
+  on                  4    36.4500    15.5138    17.4000    54.0000
 
 state_lock_timeout:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  120                 4    60.6500     6.9159    54.0000    67.8000
-  5                   4    35.6750    14.3809    17.4000    50.9000
+  120                 4    43.2250    22.6796    17.4000    67.8000
+  5                   4    53.1000     9.5446    42.2000    65.3000
 
 provider_cache:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4    50.6000    13.7392    32.2000    65.3000
-  on                  4    45.7250    21.5838    17.4000    67.8000
+  off                 4    48.2750    15.0933    32.2000    67.8000
+  on                  4    48.0500    21.0388    17.4000    65.3000
 
 plan_out_format:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  json                4    50.3500    23.1949    17.4000    67.8000
-  text                4    45.9750    10.9412    32.2000    55.5000
+  json                4    48.1750    23.5316    17.4000    67.8000
+  text                4    48.1500    10.8045    32.2000    55.5000
 
 detailed_exitcode:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4    44.4500    18.1348    17.4000    55.5000
-  on                  4    51.8750    17.4599    32.2000    67.8000
+  off                 4    48.8000    14.5632    32.2000    65.3000
+  on                  4    47.5250    21.3846    17.4000    67.8000
 
 === Main Effects: state_drift_detected ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-refresh_enabled          4.2500       1.6084            32.7%
-detailed_exitcode        4.2500       1.6084            32.7%
-state_lock_timeout      -2.7500       1.6084            21.2%
-parallelism             -0.7500       1.6084             5.8%
-plan_out_format          0.7500       1.6084             5.8%
-provider_cache          -0.2500       1.6084             1.9%
+state_lock_timeout       5.2500       1.6084            33.9%
+plan_out_format         -4.2500       1.6084            27.4%
+parallelism             -3.7500       1.6084            24.2%
+refresh_enabled          1.2500       1.6084             8.1%
+detailed_exitcode       -0.7500       1.6084             4.8%
+provider_cache          -0.2500       1.6084             1.6%
+
+=== ANOVA Table: state_drift_detected ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+parallelism                  1      28.1250      28.1250      0.888     0.3775
+refresh_enabled              1       3.1250       3.1250      0.099     0.7626
+state_lock_timeout           1      55.1250      55.1250      1.740     0.2287
+provider_cache               1       0.1250       0.1250      0.004     0.9517
+plan_out_format              1      36.1250      36.1250      1.140     0.3211
+detailed_exitcode            1       1.1250       1.1250      0.036     0.8559
+parallelism*refresh_enabled    1      55.1250      55.1250      1.740     0.2287
+parallelism*state_lock_timeout    1       3.1250       3.1250      0.099     0.7626
+parallelism*provider_cache    1      36.1250      36.1250      1.140     0.3211
+parallelism*plan_out_format    1       0.1250       0.1250      0.004     0.9517
+parallelism*detailed_exitcode    1      21.1250      21.1250      0.667     0.4411
+refresh_enabled*state_lock_timeout    1      28.1250      28.1250      0.888     0.3775
+refresh_enabled*provider_cache    1       1.1250       1.1250      0.036     0.8559
+refresh_enabled*plan_out_format    1      21.1250      21.1250      0.667     0.4411
+refresh_enabled*detailed_exitcode    1       0.1250       0.1250      0.004     0.9517
+state_lock_timeout*provider_cache    1      21.1250      21.1250      0.667     0.4411
+state_lock_timeout*plan_out_format    1       1.1250       1.1250      0.036     0.8559
+state_lock_timeout*detailed_exitcode    1      36.1250      36.1250      1.140     0.3211
+provider_cache*plan_out_format    1      28.1250      28.1250      0.888     0.3775
+provider_cache*detailed_exitcode    1       3.1250       3.1250      0.099     0.7626
+plan_out_format*detailed_exitcode    1      55.1250      55.1250      1.740     0.2287
+Error (Lenth PSE)            7     221.8125      31.6875
+Total                        7     144.8750      20.6964
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
 
 === Interaction Effects: state_drift_detected ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-parallelism          detailed_exitcode         -5.2500            12.6%
-refresh_enabled      plan_out_format            5.2500            12.6%
-state_lock_timeout   provider_cache             5.2500            12.6%
-parallelism          state_lock_timeout        -4.2500            10.2%
-refresh_enabled      provider_cache             4.2500            10.2%
-state_lock_timeout   plan_out_format            4.2500            10.2%
-provider_cache       detailed_exitcode          4.2500            10.2%
-parallelism          refresh_enabled            2.7500             6.6%
-plan_out_format      detailed_exitcode         -2.7500             6.6%
-parallelism          provider_cache            -0.7500             1.8%
-refresh_enabled      state_lock_timeout         0.7500             1.8%
-state_lock_timeout   detailed_exitcode          0.7500             1.8%
-provider_cache       plan_out_format            0.7500             1.8%
+parallelism          refresh_enabled           -5.2500            12.9%
+plan_out_format      detailed_exitcode          5.2500            12.9%
+parallelism          provider_cache             4.2500            10.4%
+state_lock_timeout   detailed_exitcode         -4.2500            10.4%
+refresh_enabled      state_lock_timeout         3.7500             9.2%
+provider_cache       plan_out_format            3.7500             9.2%
+parallelism          detailed_exitcode         -3.2500             8.0%
+refresh_enabled      plan_out_format            3.2500             8.0%
+state_lock_timeout   provider_cache             3.2500             8.0%
+parallelism          state_lock_timeout        -1.2500             3.1%
+provider_cache       detailed_exitcode          1.2500             3.1%
+refresh_enabled      provider_cache            -0.7500             1.8%
+state_lock_timeout   plan_out_format           -0.7500             1.8%
 parallelism          plan_out_format            0.2500             0.6%
 refresh_enabled      detailed_exitcode         -0.2500             0.6%
 
@@ -465,38 +657,38 @@ refresh_enabled      detailed_exitcode         -0.2500             0.6%
 parallelism:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4     5.2500     5.5603     0.0000    11.0000
-  20                  4     4.5000     4.1231     1.0000     9.0000
+  1                   4     6.7500     4.7871     0.0000    11.0000
+  20                  4     3.0000     4.0000     1.0000     9.0000
 
 refresh_enabled:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4     2.7500     4.1932     0.0000     9.0000
-  on                  4     7.0000     4.3205     1.0000    11.0000
+  off                 4     4.2500     4.4253     0.0000     9.0000
+  on                  4     5.5000     5.2599     1.0000    11.0000
 
 state_lock_timeout:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  120                 4     6.2500     4.2720     0.0000     9.0000
-  5                   4     3.5000     5.0000     1.0000    11.0000
+  120                 4     2.2500     3.2016     0.0000     7.0000
+  5                   4     7.5000     4.4347     1.0000    11.0000
 
 provider_cache:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4     5.0000     4.6188     1.0000     9.0000
-  on                  4     4.7500     5.1881     0.0000    11.0000
+  off                 4     5.0000     4.8990     1.0000    11.0000
+  on                  4     4.7500     4.9244     0.0000     9.0000
 
 plan_out_format:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  json                4     4.5000     4.1231     1.0000     9.0000
-  text                4     5.2500     5.5603     0.0000    11.0000
+  json                4     7.0000     4.3205     1.0000    11.0000
+  text                4     2.7500     4.1932     0.0000     9.0000
 
 detailed_exitcode:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4     2.7500     4.1932     0.0000     9.0000
-  on                  4     7.0000     4.3205     1.0000    11.0000</div></div>
+  off                 4     5.2500     5.5603     0.0000    11.0000
+  on                  4     4.5000     4.1231     1.0000     9.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: plan_time_sec ===
@@ -504,82 +696,100 @@ Direction: minimize
 
 Best observed run: #6
   parallelism = 20
-  refresh_enabled = off
-  state_lock_timeout = 5
-  provider_cache = on
-  plan_out_format = json
+  refresh_enabled = on
+  state_lock_timeout = 120
+  provider_cache = off
+  plan_out_format = text
   detailed_exitcode = off
   Value: 17.4
 
-RSM Model (linear, R² = 0.8030, Adj R² = -0.3789):
+RSM Model (linear, R² = 0.9294, Adj R² = 0.5060):
   Coefficients:
     intercept                      +48.1625
-    parallelism                    -6.7125
-    refresh_enabled                +0.1125
-    state_lock_timeout             -0.0125
-    provider_cache                 -11.3375
-    plan_out_format                +5.3125
-    detailed_exitcode              +0.2625
+    parallelism                    -2.8125
+    refresh_enabled                -3.7125
+    state_lock_timeout             -5.9375
+    provider_cache                 -3.3375
+    plan_out_format                -6.0875
+    detailed_exitcode              +11.3375
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     parallelism = 1
     refresh_enabled = off
     state_lock_timeout = 120
     provider_cache = off
     plan_out_format = json
     detailed_exitcode = on
-    Predicted value: 61.0375
+    Predicted value: 69.5125
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Surface optimum (via L-BFGS-B, linear model):
+    parallelism = 20
+    refresh_enabled = on
+    state_lock_timeout = 120
+    provider_cache = on
+    plan_out_format = json
+    detailed_exitcode = off
+    Predicted value: 14.9375
+
+  Model quality: Excellent fit — surface predictions are reliable.
 
 Factor importance:
-  1. provider_cache  (effect: -22.7, contribution: 47.7%)
-  2. parallelism  (effect: -13.4, contribution: 28.3%)
-  3. plan_out_format  (effect: 10.6, contribution: 22.4%)
-  4. detailed_exitcode  (effect: 0.5, contribution: 1.1%)
-  5. refresh_enabled  (effect: 0.2, contribution: 0.5%)
-  6. state_lock_timeout  (effect: 0.0, contribution: 0.1%)
+  1. detailed_exitcode  (effect: 22.7, contribution: 34.1%)
+  2. plan_out_format  (effect: -12.2, contribution: 18.3%)
+  3. state_lock_timeout  (effect: 11.9, contribution: 17.9%)
+  4. refresh_enabled  (effect: -7.4, contribution: 11.2%)
+  5. provider_cache  (effect: -6.7, contribution: 10.0%)
+  6. parallelism  (effect: -5.6, contribution: 8.5%)
 
 === Optimization: state_drift_detected ===
 Direction: maximize
 
 Best observed run: #4
-  parallelism = 1
-  refresh_enabled = on
+  parallelism = 20
+  refresh_enabled = off
   state_lock_timeout = 5
   provider_cache = on
-  plan_out_format = text
-  detailed_exitcode = on
+  plan_out_format = json
+  detailed_exitcode = off
   Value: 11.0
 
 RSM Model (linear, R² = 0.9784, Adj R² = 0.8490):
   Coefficients:
     intercept                      +4.8750
-    parallelism                    -1.8750
-    refresh_enabled                +0.1250
-    state_lock_timeout             -2.1250
-    provider_cache                 -1.6250
-    plan_out_format                +0.3750
-    detailed_exitcode              +2.6250
+    parallelism                    +2.1250
+    refresh_enabled                -2.1250
+    state_lock_timeout             +0.1250
+    provider_cache                 +0.6250
+    plan_out_format                -2.3750
+    detailed_exitcode              +1.6250
 
-  Predicted optimum (from linear model):
-    parallelism = 1
-    refresh_enabled = on
+  Predicted optimum (from linear model, at observed points):
+    parallelism = 20
+    refresh_enabled = off
     state_lock_timeout = 5
+    provider_cache = on
+    plan_out_format = json
+    detailed_exitcode = off
+    Predicted value: 10.3750
+
+  Surface optimum (via L-BFGS-B, linear model):
+    parallelism = 20
+    refresh_enabled = off
+    state_lock_timeout = 120
     provider_cache = on
     plan_out_format = text
     detailed_exitcode = on
-    Predicted value: 10.3750
+    Predicted value: 13.8750
 
   Model quality: Excellent fit — surface predictions are reliable.
 
 Factor importance:
-  1. detailed_exitcode  (effect: 5.2, contribution: 30.0%)
-  2. state_lock_timeout  (effect: 4.2, contribution: 24.3%)
-  3. parallelism  (effect: -3.8, contribution: 21.4%)
-  4. provider_cache  (effect: -3.2, contribution: 18.6%)
-  5. plan_out_format  (effect: 0.8, contribution: 4.3%)
-  6. refresh_enabled  (effect: 0.2, contribution: 1.4%)</div></div>
+  1. plan_out_format  (effect: -4.8, contribution: 26.4%)
+  2. parallelism  (effect: 4.2, contribution: 23.6%)
+  3. refresh_enabled  (effect: -4.2, contribution: 23.6%)
+  4. detailed_exitcode  (effect: 3.2, contribution: 18.1%)
+  5. provider_cache  (effect: 1.2, contribution: 6.9%)
+  6. state_lock_timeout  (effect: -0.2, contribution: 1.4%)</div></div>
   </section>
 
   <!-- Nav -->

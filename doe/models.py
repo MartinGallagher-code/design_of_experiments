@@ -75,11 +75,32 @@ class InteractionEffect:
 
 
 @dataclass
+class AnovaRow:
+    source: str
+    df: int
+    ss: float
+    ms: float
+    f_value: float | None = None
+    p_value: float | None = None
+
+
+@dataclass
+class AnovaTable:
+    rows: list[AnovaRow]
+    error_row: AnovaRow | None = None
+    total_row: AnovaRow | None = None
+    lack_of_fit_row: AnovaRow | None = None
+    pure_error_row: AnovaRow | None = None
+    error_method: str = "pooled"  # "pooled", "lenth", "replicates"
+
+
+@dataclass
 class ResponseAnalysis:
     response_name: str
     effects: list[EffectResult]
     summary_stats: dict
     interactions: list[InteractionEffect] = field(default_factory=list)
+    anova_table: AnovaTable | None = None
 
 
 @dataclass
@@ -87,3 +108,6 @@ class AnalysisReport:
     results_by_response: dict[str, ResponseAnalysis]
     pareto_chart_paths: dict[str, str] = field(default_factory=dict)
     effects_plot_paths: dict[str, str] = field(default_factory=dict)
+    normal_plot_paths: dict[str, str] = field(default_factory=dict)
+    half_normal_plot_paths: dict[str, str] = field(default_factory=dict)
+    diagnostics_plot_paths: dict[str, str] = field(default_factory=dict)

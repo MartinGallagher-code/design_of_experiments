@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>growth g day</strong>, the most influential factors were density kg m3 (45.2%), aeration (25.8%), feed pct bw (21.4%). The best observed value was <strong>11.1</strong> (at density kg m3 = 10, feed pct bw = 4, exchange pct = 50).</p>
-<p>For <strong>mortality pct</strong>, the most influential factors were exchange pct (39.9%), feed pct bw (28.1%), aeration (16.3%). The best observed value was <strong>0.4</strong> (at density kg m3 = 10, feed pct bw = 4, exchange pct = 10).</p>
+    <p>For <strong>growth g day</strong>, the most influential factors were exchange pct (43.2%), aeration (27.6%), feed pct bw (21.4%). The best observed value was <strong>11.1</strong> (at density kg m3 = 40, feed pct bw = 1, exchange pct = 50).</p>
+<p>For <strong>mortality pct</strong>, the most influential factors were density kg m3 (31.6%), aeration (24.1%), feed pct bw (22.2%). The best observed value was <strong>0.4</strong> (at density kg m3 = 10, feed pct bw = 1, exchange pct = 50).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -253,12 +252,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (growth_g_day (↑), mortality_pct (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/254_fish_farm_stocking/config.json <span class="flag">--multi</span></div>
         </div>
@@ -266,7 +266,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -274,48 +274,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/254_fish_farm_stocking/config.json \
     <span class="flag">--output</span> use_cases/254_fish_farm_stocking/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Marine &amp; Environmental Test? Use the Manual Workflow</h4>
-        <p>Marine experiments involve real water conditions, living organisms, and environmental factors that require field testing. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/254_fish_farm_stocking/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/254_fish_farm_stocking/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/254_fish_farm_stocking/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/254_fish_farm_stocking/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/254_fish_farm_stocking/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/254_fish_farm_stocking/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/254_fish_farm_stocking/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -347,7 +305,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: growth_g_day</h3>
-    <p>Top factors: density_kg_m3 (45.2%), aeration (25.8%), feed_pct_bw (21.4%).</p>
+    <p>Top factors: exchange_pct (43.2%), aeration (27.6%), feed_pct_bw (21.4%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -360,7 +318,7 @@
     </div>
 
     <h3>Response: mortality_pct</h3>
-    <p>Top factors: exchange_pct (39.9%), feed_pct_bw (28.1%), aeration (16.3%).</p>
+    <p>Top factors: density_kg_m3 (31.6%), aeration (24.1%), feed_pct_bw (22.2%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -411,234 +369,400 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.8228</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>growth_g_day</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:77.27000000000001%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7727</span>
+                </div>
+              </td>
+              <td>9.40 0.7727        9.40 g/day</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>mortality_pct</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:90.4%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9040</span>
+                </div>
+              </td>
+              <td>0.80 0.9040        0.80 %</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>density_kg_m3</code></td><td>10 kg/m3</td></tr>
+            <tr><td><code>feed_pct_bw</code></td><td>4 %BW</td></tr>
+            <tr><td><code>exchange_pct</code></td><td>10 %/day</td></tr>
+            <tr><td><code>aeration</code></td><td>low</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #1</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>mortality_pct</code></td><td>0.80</td><td>0.40</td><td><span style="color:#dc2626;">+0.40</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#12</td><td><strong>0.7141</strong></td><td style="font-size:.78rem;">density_kg_m3=40,  feed_pct_bw=4,  exchange_pct=10,  aeration=high</td></tr>
+            <tr><td>#4</td><td><strong>0.6623</strong></td><td style="font-size:.78rem;">density_kg_m3=40,  feed_pct_bw=1,  exchange_pct=10,  aeration=low</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>mortality_pct</code></td><td style="color:#dc2626;font-weight:600;">0.2788</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.8228
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+growth_g_day                 1.5       0.7727        9.40 g/day   ↑
+mortality_pct                1.0       0.9040        0.80 %   ↓
+
+Recommended settings:
+  density_kg_m3 = 10 kg/m3
+  feed_pct_bw = 4 %BW
+  exchange_pct = 10 %/day
+  aeration = low
+  (from observed run #1)
+
+Trade-off summary:
+  growth_g_day: 9.40 (best observed: 11.10, sacrifice: +1.70)
+  mortality_pct: 0.80 (best observed: 0.40, sacrifice: +0.40)
+
+Model quality:
+  growth_g_day: R² = 0.1991 (linear)
+  mortality_pct: R² = 0.2788 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #1 (D=0.8228): density_kg_m3=10, feed_pct_bw=4, exchange_pct=10, aeration=low
+  2. Run #12 (D=0.7141): density_kg_m3=40, feed_pct_bw=4, exchange_pct=10, aeration=high
+  3. Run #4 (D=0.6623): density_kg_m3=40, feed_pct_bw=1, exchange_pct=10, aeration=low</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_growth_g_day_density_kg_m3_vs_feed_pct_bw.png
-  RSM surface: rsm_growth_g_day_density_kg_m3_vs_exchange_pct.png
-  RSM surface: rsm_growth_g_day_feed_pct_bw_vs_exchange_pct.png
-  RSM surface: rsm_mortality_pct_density_kg_m3_vs_feed_pct_bw.png
-  RSM surface: rsm_mortality_pct_density_kg_m3_vs_exchange_pct.png
-  RSM surface: rsm_mortality_pct_feed_pct_bw_vs_exchange_pct.png
-
-=== Main Effects: growth_g_day ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: growth_g_day ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-density_kg_m3           -2.5625       0.6496            45.2%
-aeration                -1.4625       0.6496            25.8%
-feed_pct_bw             -1.2125       0.6496            21.4%
-exchange_pct            -0.4375       0.6496             7.7%
+exchange_pct            -1.5875       0.6496            43.2%
+aeration                 1.0125       0.6496            27.6%
+feed_pct_bw             -0.7875       0.6496            21.4%
+density_kg_m3           -0.2875       0.6496             7.8%
+
+=== ANOVA Table: growth_g_day ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+density_kg_m3                1       0.3306       0.3306      0.029     0.8713
+feed_pct_bw                  1       2.4806       2.4806      0.218     0.6601
+exchange_pct                 1      10.0806      10.0806      0.886     0.3897
+aeration                     1       4.1006       4.1006      0.361     0.5744
+density_kg_m3*feed_pct_bw    1       0.1056       0.1056      0.009     0.9270
+density_kg_m3*exchange_pct    1       1.0506       1.0506      0.092     0.7734
+density_kg_m3*aeration       1       0.7656       0.7656      0.067     0.8056
+feed_pct_bw*exchange_pct     1       2.4806       2.4806      0.218     0.6601
+feed_pct_bw*aeration         1       0.6806       0.6806      0.060     0.8165
+exchange_pct*aeration        1      22.3256      22.3256      1.963     0.2201
+Error                        5      56.8681      11.3736
+Total                       15     101.2694       6.7513
 
 === Interaction Effects: growth_g_day ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-density_kg_m3        feed_pct_bw                3.1875            52.3%
-feed_pct_bw          aeration                  -1.2625            20.7%
-density_kg_m3        aeration                   0.6875            11.3%
-density_kg_m3        exchange_pct              -0.5875             9.6%
-exchange_pct         aeration                  -0.3375             5.5%
-feed_pct_bw          exchange_pct              -0.0375             0.6%
+exchange_pct         aeration                  -2.3625            50.5%
+feed_pct_bw          exchange_pct               0.7875            16.8%
+density_kg_m3        exchange_pct              -0.5125            11.0%
+density_kg_m3        aeration                   0.4375             9.4%
+feed_pct_bw          aeration                  -0.4125             8.8%
+density_kg_m3        feed_pct_bw               -0.1625             3.5%
 
 === Summary Statistics: growth_g_day ===
 
 density_kg_m3:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  8     8.0750     2.9717     2.6000    11.1000
-  40                  8     5.5125     1.3726     3.5000     7.2000
+  10                  8     6.9375     2.9626     3.5000    11.1000
+  40                  8     6.6500     2.3755     2.6000    10.6000
 
 feed_pct_bw:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   8     7.4000     3.2045     3.5000    11.1000
-  4                   8     6.1875     1.8326     2.6000     8.3000
+  1                   8     7.1875     2.4026     4.8000    11.1000
+  4                   8     6.4000     2.8879     2.6000    10.0000
 
 exchange_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  8     7.0125     1.9387     4.8000    10.0000
-  50                  8     6.5750     3.2557     2.6000    11.1000
+  10                  8     7.5875     2.6761     3.5000    11.1000
+  50                  8     6.0000     2.4219     2.6000    10.0000
 
 aeration:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  high                8     7.5250     2.2525     3.6000    11.1000
-  low                 8     6.0625     2.8585     2.6000    10.6000
+  high                8     6.2875     2.4115     2.6000    10.0000
+  low                 8     7.3000     2.8400     3.6000    11.1000
 
 === Main Effects: mortality_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-exchange_pct             1.6875       0.5144            39.9%
-feed_pct_bw             -1.1875       0.5144            28.1%
-aeration                 0.6875       0.5144            16.3%
-density_kg_m3           -0.6625       0.5144            15.7%
+density_kg_m3            1.2625       0.5144            31.6%
+aeration                -0.9625       0.5144            24.1%
+feed_pct_bw              0.8875       0.5144            22.2%
+exchange_pct            -0.8875       0.5144            22.2%
+
+=== ANOVA Table: mortality_pct ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+density_kg_m3                1       6.3756       6.3756      2.780     0.1563
+feed_pct_bw                  1       3.1506       3.1506      1.374     0.2940
+exchange_pct                 1       3.1506       3.1506      1.374     0.2940
+aeration                     1       3.7056       3.7056      1.616     0.2596
+density_kg_m3*feed_pct_bw    1       2.1756       2.1756      0.949     0.3748
+density_kg_m3*exchange_pct    1       5.4056       5.4056      2.357     0.1853
+density_kg_m3*aeration       1       1.5006       1.5006      0.654     0.4553
+feed_pct_bw*exchange_pct     1       0.0756       0.0756      0.033     0.8630
+feed_pct_bw*aeration         1      26.2656      26.2656     11.452     0.0196
+exchange_pct*aeration        1       0.2256       0.2256      0.098     0.7665
+Error                        5      11.4681       2.2936
+Total                       15      63.4994       4.2333
 
 === Interaction Effects: mortality_pct ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-feed_pct_bw          aeration                  -2.0375            39.2%
-feed_pct_bw          exchange_pct               1.2125            23.3%
-density_kg_m3        exchange_pct              -0.9625            18.5%
-density_kg_m3        feed_pct_bw               -0.5375            10.3%
-density_kg_m3        aeration                   0.2375             4.6%
-exchange_pct         aeration                  -0.2125             4.1%
+feed_pct_bw          aeration                  -2.5625            47.0%
+density_kg_m3        exchange_pct              -1.1625            21.3%
+density_kg_m3        feed_pct_bw               -0.7375            13.5%
+density_kg_m3        aeration                   0.6125            11.2%
+exchange_pct         aeration                  -0.2375             4.4%
+feed_pct_bw          exchange_pct              -0.1375             2.5%
 
 === Summary Statistics: mortality_pct ===
 
 density_kg_m3:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  8     3.8750     2.4760     0.8000     7.6000
-  40                  8     3.2125     1.6401     0.4000     5.6000
+  10                  8     2.9125     2.2363     0.4000     6.3000
+  40                  8     4.1750     1.7774     1.9000     7.6000
 
 feed_pct_bw:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   8     4.1375     1.8423     0.8000     6.3000
-  4                   8     2.9500     2.2071     0.4000     7.6000
+  1                   8     3.1000     1.7485     0.4000     5.4000
+  4                   8     3.9875     2.3588     0.8000     7.6000
 
 exchange_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  8     2.7000     2.0702     0.4000     6.3000
-  50                  8     4.3875     1.7772     2.2000     7.6000
+  10                  8     3.9875     2.4145     0.4000     7.6000
+  50                  8     3.1000     1.6708     1.2000     6.3000
 
 aeration:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  high                8     3.2000     2.0826     0.8000     7.6000
-  low                 8     3.8875     2.1128     0.4000     6.3000
-
-Pareto chart (growth_g_day): use_cases/254_fish_farm_stocking/results/analysis/pareto_growth_g_day.png
-
-Pareto chart (mortality_pct): use_cases/254_fish_farm_stocking/results/analysis/pareto_mortality_pct.png
-Main effects (growth_g_day): use_cases/254_fish_farm_stocking/results/analysis/main_effects_growth_g_day.png
-Main effects (mortality_pct): use_cases/254_fish_farm_stocking/results/analysis/main_effects_mortality_pct.png</div></div>
+  high                8     4.0250     2.3469     0.4000     7.6000
+  low                 8     3.0625     1.7419     0.8000     5.4000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: growth_g_day ===
 Direction: maximize
 
 Best observed run: #12
-  density_kg_m3 = 10
-  feed_pct_bw = 4
+  density_kg_m3 = 40
+  feed_pct_bw = 1
   exchange_pct = 50
-  aeration = low
+  aeration = high
   Value: 11.1
 
-RSM Model (linear, R² = 0.1520, Adj R² = -0.1563):
+RSM Model (linear, R² = 0.3972, Adj R² = 0.1780):
   Coefficients:
     intercept                      +6.7938
-    density_kg_m3                  -0.5063
-    feed_pct_bw                    -0.1563
-    exchange_pct                   +0.4062
-    aeration                       -0.7188
+    density_kg_m3                  +0.3688
+    feed_pct_bw                    -1.1312
+    exchange_pct                   +1.0438
+    aeration                       +0.0938
 
-RSM Model (quadratic, R² = 0.6165, Adj R² = -4.7527):
+RSM Model (quadratic, R² = 0.6962, Adj R² = -3.5566):
   Coefficients:
     intercept                      +1.3588
-    density_kg_m3                  -0.5062
-    feed_pct_bw                    -0.1563
-    exchange_pct                   +0.4063
-    aeration                       -0.7188
-    density_kg_m3*feed_pct_bw      -0.2562
-    density_kg_m3*exchange_pct     -0.3437
-    density_kg_m3*aeration         -0.1938
-    feed_pct_bw*exchange_pct       +1.4313
-    feed_pct_bw*aeration           +0.7813
-    exchange_pct*aeration          +0.2438
+    density_kg_m3                  +0.3687
+    feed_pct_bw                    -1.1312
+    exchange_pct                   +1.0437
+    aeration                       +0.0938
+    density_kg_m3*feed_pct_bw      -0.1312
+    density_kg_m3*exchange_pct     +1.0437
+    density_kg_m3*aeration         -0.2063
+    feed_pct_bw*exchange_pct       -0.4312
+    feed_pct_bw*aeration           -0.3562
+    exchange_pct*aeration          -0.6563
     density_kg_m3^2                +1.3588
     feed_pct_bw^2                  +1.3588
     exchange_pct^2                 +1.3588
     aeration^2                     +1.3588
 
   Curvature analysis:
-    aeration                       coef=+1.3588  convex (has a minimum)
+    density_kg_m3                  coef=+1.3588  convex (has a minimum)
     feed_pct_bw                    coef=+1.3588  convex (has a minimum)
     exchange_pct                   coef=+1.3588  convex (has a minimum)
-    density_kg_m3                  coef=+1.3588  convex (has a minimum)
+    aeration                       coef=+1.3588  convex (has a minimum)
 
   Notable interactions:
-    feed_pct_bw*exchange_pct       coef=+1.4313  (synergistic)
-    feed_pct_bw*aeration           coef=+0.7813  (synergistic)
-    density_kg_m3*exchange_pct     coef=-0.3437  (antagonistic)
+    density_kg_m3*exchange_pct     coef=+1.0437  (synergistic)
+    exchange_pct*aeration          coef=-0.6563  (antagonistic)
+    feed_pct_bw*exchange_pct       coef=-0.4312  (antagonistic)
+    feed_pct_bw*aeration           coef=-0.3562  (antagonistic)
 
-  Predicted optimum (from linear model):
-    density_kg_m3 = 10
+  Predicted optimum (from linear model, at observed points):
+    density_kg_m3 = 40
+    feed_pct_bw = 1
+    exchange_pct = 50
+    aeration = low
+    Predicted value: 9.4313
+
+  Surface optimum (via L-BFGS-B, linear model):
+    density_kg_m3 = 40
     feed_pct_bw = 1
     exchange_pct = 50
     aeration = high
-    Predicted value: 8.5813
+    Predicted value: 9.4313
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. aeration  (effect: -1.4, contribution: 40.2%)
-  2. density_kg_m3  (effect: -1.0, contribution: 28.3%)
-  3. exchange_pct  (effect: 0.8, contribution: 22.7%)
-  4. feed_pct_bw  (effect: -0.3, contribution: 8.7%)
+  1. feed_pct_bw  (effect: -2.3, contribution: 42.9%)
+  2. exchange_pct  (effect: 2.1, contribution: 39.6%)
+  3. density_kg_m3  (effect: 0.7, contribution: 14.0%)
+  4. aeration  (effect: 0.2, contribution: 3.6%)
 
 === Optimization: mortality_pct ===
 Direction: minimize
 
 Best observed run: #16
   density_kg_m3 = 10
-  feed_pct_bw = 4
-  exchange_pct = 10
+  feed_pct_bw = 1
+  exchange_pct = 50
   aeration = high
   Value: 0.4
 
-RSM Model (linear, R² = 0.0515, Adj R² = -0.2934):
+RSM Model (linear, R² = 0.1518, Adj R² = -0.1567):
   Coefficients:
     intercept                      +3.5438
-    density_kg_m3                  -0.4063
-    feed_pct_bw                    +0.0687
-    exchange_pct                   +0.0437
-    aeration                       +0.1812
+    density_kg_m3                  -0.0062
+    feed_pct_bw                    -0.1437
+    exchange_pct                   -0.1687
+    aeration                       +0.7437
 
-RSM Model (quadratic, R² = 0.5839, Adj R² = -5.2417):
+RSM Model (quadratic, R² = 0.7072, Adj R² = -3.3921):
   Coefficients:
-    intercept                      +0.7087
-    density_kg_m3                  -0.4062
-    feed_pct_bw                    +0.0687
-    exchange_pct                   +0.0438
-    aeration                       +0.1813
-    density_kg_m3*feed_pct_bw      +0.3937
-    density_kg_m3*exchange_pct     -0.8313
-    density_kg_m3*aeration         -0.8937
-    feed_pct_bw*exchange_pct       +0.5688
-    feed_pct_bw*aeration           -0.2687
-    exchange_pct*aeration          -0.2687
+    intercept                      +0.7088
+    density_kg_m3                  -0.0063
+    feed_pct_bw                    -0.1437
+    exchange_pct                   -0.1688
+    aeration                       +0.7437
+    density_kg_m3*feed_pct_bw      -0.5438
+    density_kg_m3*exchange_pct     +0.2062
+    density_kg_m3*aeration         -1.0562
+    feed_pct_bw*exchange_pct       -0.5812
+    feed_pct_bw*aeration           -0.1187
+    exchange_pct*aeration          +0.6313
     density_kg_m3^2                +0.7088
     feed_pct_bw^2                  +0.7088
     exchange_pct^2                 +0.7088
     aeration^2                     +0.7088
 
   Curvature analysis:
-    exchange_pct                   coef=+0.7088  convex (has a minimum)
     density_kg_m3                  coef=+0.7088  convex (has a minimum)
+    exchange_pct                   coef=+0.7088  convex (has a minimum)
     feed_pct_bw                    coef=+0.7088  convex (has a minimum)
     aeration                       coef=+0.7088  convex (has a minimum)
 
   Notable interactions:
-    density_kg_m3*aeration         coef=-0.8937  (antagonistic)
-    density_kg_m3*exchange_pct     coef=-0.8313  (antagonistic)
-    feed_pct_bw*exchange_pct       coef=+0.5688  (synergistic)
-    density_kg_m3*feed_pct_bw      coef=+0.3937  (synergistic)
+    density_kg_m3*aeration         coef=-1.0562  (antagonistic)
+    exchange_pct*aeration          coef=+0.6313  (synergistic)
+    feed_pct_bw*exchange_pct       coef=-0.5812  (antagonistic)
+    density_kg_m3*feed_pct_bw      coef=-0.5438  (antagonistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     density_kg_m3 = 10
+    feed_pct_bw = 1
+    exchange_pct = 10
+    aeration = low
+    Predicted value: 4.6063
+
+  Surface optimum (via L-BFGS-B, linear model):
+    density_kg_m3 = 40
     feed_pct_bw = 4
     exchange_pct = 50
     aeration = low
-    Predicted value: 4.2438
+    Predicted value: 2.4813
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. density_kg_m3  (effect: -0.8, contribution: 58.0%)
-  2. aeration  (effect: 0.4, contribution: 25.9%)
-  3. feed_pct_bw  (effect: 0.1, contribution: 9.8%)
-  4. exchange_pct  (effect: 0.1, contribution: 6.2%)</div></div>
+  1. aeration  (effect: 1.5, contribution: 70.0%)
+  2. exchange_pct  (effect: -0.3, contribution: 15.9%)
+  3. feed_pct_bw  (effect: -0.3, contribution: 13.5%)
+  4. density_kg_m3  (effect: -0.0, contribution: 0.6%)</div></div>
   </section>
 
   <!-- Nav -->

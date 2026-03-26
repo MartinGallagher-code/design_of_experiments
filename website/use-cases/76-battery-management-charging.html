@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>charge time min</strong>, the most influential factors were charge current ma (57.1%), trickle cutoff mv (23.1%), cv threshold mv (19.7%). The best observed value was <strong>52.0</strong> (at charge current ma = 1750, cv threshold mv = 3525, trickle cutoff mv = 2900).</p>
-<p>For <strong>cycle life count</strong>, the most influential factors were charge current ma (72.1%), cv threshold mv (14.6%), trickle cutoff mv (13.3%). The best observed value was <strong>3325.0</strong> (at charge current ma = 3000, cv threshold mv = 3650, trickle cutoff mv = 2800).</p>
+    <p>For <strong>charge time min</strong>, the most influential factors were charge current ma (40.0%), cv threshold mv (32.2%), trickle cutoff mv (27.8%). The best observed value was <strong>52.0</strong> (at charge current ma = 1750, cv threshold mv = 3753.22, trickle cutoff mv = 2900).</p>
+<p>For <strong>cycle life count</strong>, the most influential factors were trickle cutoff mv (46.2%), charge current ma (28.4%), cv threshold mv (25.3%). The best observed value was <strong>3325.0</strong> (at charge current ma = 1750, cv threshold mv = 3525, trickle cutoff mv = 2900).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -250,12 +249,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (charge_time_min (↓), cycle_life_count (↑)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/76_battery_management_charging/config.json <span class="flag">--multi</span></div>
         </div>
@@ -263,7 +263,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -302,7 +302,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: charge_time_min</h3>
-    <p>Top factors: charge_current_ma (57.1%), trickle_cutoff_mv (23.1%), cv_threshold_mv (19.7%).</p>
+    <p>Top factors: charge_current_ma (40.0%), cv_threshold_mv (32.2%), trickle_cutoff_mv (27.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -315,7 +315,7 @@
     </div>
 
     <h3>Response: cycle_life_count</h3>
-    <p>Top factors: charge_current_ma (72.1%), cv_threshold_mv (14.6%), trickle_cutoff_mv (13.3%).</p>
+    <p>Top factors: trickle_cutoff_mv (46.2%), charge_current_ma (28.4%), cv_threshold_mv (25.3%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -366,79 +366,231 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.7498</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>charge_time_min</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:74.24%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7424</span>
+                </div>
+              </td>
+              <td>80.00 0.7424       80.00 min</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>cycle_life_count</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:75.48%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7548</span>
+                </div>
+              </td>
+              <td>2903.00 0.7548     2903.00 cycles</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>charge_current_ma</code></td><td>1750 mA</td></tr>
+            <tr><td><code>cv_threshold_mv</code></td><td>3525 mV</td></tr>
+            <tr><td><code>trickle_cutoff_mv</code></td><td>3082.57 mV</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #12</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>cycle_life_count</code></td><td>2903.00</td><td>3325.00</td><td><span style="color:#dc2626;">+422.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#2</td><td><strong>0.6142</strong></td><td style="font-size:.78rem;">charge_current_ma=1750,  cv_threshold_mv=3753.22,  trickle_cutoff_mv=2900</td></tr>
+            <tr><td>#20</td><td><strong>0.6028</strong></td><td style="font-size:.78rem;">charge_current_ma=1750,  cv_threshold_mv=3525,  trickle_cutoff_mv=2717.43</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>cycle_life_count</code></td><td style="color:#ca8a04;font-weight:600;">0.6671</td><td>quadratic</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.7498
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+charge_time_min              1.0       0.7424       80.00 min   ↓
+cycle_life_count             1.5       0.7548     2903.00 cycles   ↑
+
+Recommended settings:
+  charge_current_ma = 1750 mA
+  cv_threshold_mv = 3525 mV
+  trickle_cutoff_mv = 3082.57 mV
+  (from observed run #12)
+
+Trade-off summary:
+  charge_time_min: 80.00 (best observed: 52.00, sacrifice: +28.00)
+  cycle_life_count: 2903.00 (best observed: 3325.00, sacrifice: +422.00)
+
+Model quality:
+  charge_time_min: R² = 0.8859 (quadratic)
+  cycle_life_count: R² = 0.6671 (quadratic)
+
+Top 3 observed runs by overall desirability:
+  1. Run #12 (D=0.7498): charge_current_ma=1750, cv_threshold_mv=3525, trickle_cutoff_mv=3082.57
+  2. Run #2 (D=0.6142): charge_current_ma=1750, cv_threshold_mv=3753.22, trickle_cutoff_mv=2900
+  3. Run #20 (D=0.6028): charge_current_ma=1750, cv_threshold_mv=3525, trickle_cutoff_mv=2717.43</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: charge_time_min ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-charge_current_ma       50.0000       6.0013            57.1%
-trickle_cutoff_mv       20.2500       6.0013            23.1%
-cv_threshold_mv         17.2500       6.0013            19.7%
+charge_current_ma       60.0000       6.0013            40.0%
+cv_threshold_mv         48.2500       6.0013            32.2%
+trickle_cutoff_mv       41.7500       6.0013            27.8%
+
+=== ANOVA Table: charge_time_min ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+charge_current_ma            4    4367.6061    1091.9015      3.579     0.0519
+cv_threshold_mv              4    3264.1061     816.0265      2.675     0.1014
+trickle_cutoff_mv            4    5114.1061    1278.5265      4.191     0.0346
+Lack of Fit                  2    1757.9545     878.9773      2.881     0.1222
+Pure Error                   7    2135.5000     305.0714
+Error                        9    3893.4545     305.0714
+Total                       21   16639.2727     792.3463
 
 === Summary Statistics: charge_time_min ===
 
 charge_current_ma:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -532.177            1   126.0000     0.0000   126.0000   126.0000
-  1750               12    94.0833    30.3509    63.0000   172.0000
-  3000                4    88.7500    28.4766    52.0000   121.0000
-  4032.18             1    76.0000     0.0000    76.0000    76.0000
-  500                 4   113.0000    21.5561    93.0000   142.0000
+  -532.177            1    89.0000     0.0000    89.0000    89.0000
+  1750               12    91.1667    16.7160    64.0000   135.0000
+  3000                4   100.0000    41.4085    52.0000   142.0000
+  4032.18             1    63.0000     0.0000    63.0000    63.0000
+  500                 4   123.0000    36.7605    83.0000   172.0000
 
 cv_threshold_mv:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  3296.78             1    89.0000     0.0000    89.0000    89.0000
-  3400                4   106.2500    24.5136    87.0000   142.0000
-  3525               12    96.0833    32.1628    63.0000   172.0000
-  3650                4    95.5000    31.4590    52.0000   121.0000
-  3753.22             1    89.0000     0.0000    89.0000    89.0000
+  3296.78             1    64.0000     0.0000    64.0000    64.0000
+  3400                4   110.7500    20.9026    80.0000   126.0000
+  3525               12    91.1667    16.8514    63.0000   135.0000
+  3650                4   112.2500    54.5917    52.0000   172.0000
+  3753.22             1    88.0000     0.0000    88.0000    88.0000
 
 trickle_cutoff_mv:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  2717.43             1    86.0000     0.0000    86.0000    86.0000
-  2800                4   106.2500    15.3921    87.0000   121.0000
-  2900               12    96.0833    32.1374    63.0000   172.0000
-  3000                4    95.5000    36.7922    52.0000   142.0000
-  3082.57             1    92.0000     0.0000    92.0000    92.0000
+  2717.43             1    87.0000     0.0000    87.0000    87.0000
+  2800                4   128.7500    38.6555    80.0000   172.0000
+  2900               12    88.1667    18.2150    63.0000   135.0000
+  3000                4    94.2500    33.6291    52.0000   126.0000
+  3082.57             1   101.0000     0.0000   101.0000   101.0000
 
 === Main Effects: cycle_life_count ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-charge_current_ma     1533.0000     101.8941            72.1%
-cv_threshold_mv        310.5833     101.8941            14.6%
-trickle_cutoff_mv      282.4167     101.8941            13.3%
+trickle_cutoff_mv     1235.0000     101.8941            46.2%
+charge_current_ma      759.0000     101.8941            28.4%
+cv_threshold_mv        676.5000     101.8941            25.3%
+
+=== ANOVA Table: cycle_life_count ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+charge_current_ma            4 1715846.7045  428961.6761      7.027     0.0075
+cv_threshold_mv              4 1833077.7045  458269.4261      7.508     0.0061
+trickle_cutoff_mv            4 2940501.7879  735125.4470     12.043     0.0012
+Lack of Fit                  2       0.0000       0.0000      0.000     1.0000
+Pure Error                   7  427286.8750   61040.9821
+Error                        9       0.0000   61040.9821
+Total                       21 4796669.4545  228412.8312
 
 === Summary Statistics: cycle_life_count ===
 
 charge_current_ma:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -532.177            1  2937.0000     0.0000  2937.0000  2937.0000
-  1750               12  2187.5000   468.9864  1822.0000  3325.0000
-  3000                4  2164.7500   525.3598  1677.0000  2899.0000
-  4032.18             1  1404.0000     0.0000  1404.0000  1404.0000
-  500                 4  2120.0000   346.6045  1685.0000  2521.0000
+  -532.177            1  1916.0000     0.0000  1916.0000  1916.0000
+  1750               12  1976.0000   255.3810  1404.0000  2342.0000
+  3000                4  2626.0000   373.1684  2143.0000  2937.0000
+  4032.18             1  1867.0000     0.0000  1867.0000  1867.0000
+  500                 4  2432.7500   805.3249  1685.0000  3325.0000
 
 cv_threshold_mv:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  3296.78             1  1956.0000     0.0000  1956.0000  1956.0000
-  3400                4  2086.2500   361.6917  1677.0000  2521.0000
-  3525               12  2226.5833   559.9853  1404.0000  3325.0000
-  3650                4  2198.5000   508.1847  1685.0000  2899.0000
-  3753.22             1  1916.0000     0.0000  1916.0000  1916.0000
+  3296.78             1  2342.0000     0.0000  2342.0000  2342.0000
+  3400                4  2606.0000   614.2367  1685.0000  2937.0000
+  3525               12  1929.5000   228.1274  1404.0000  2290.0000
+  3650                4  2452.7500   647.8860  1822.0000  3325.0000
+  3753.22             1  1999.0000     0.0000  1999.0000  1999.0000
 
 trickle_cutoff_mv:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  2717.43             1  1941.0000     0.0000  1941.0000  1941.0000
-  2800                4  2117.0000   577.3064  1677.0000  2899.0000
-  2900               12  2223.4167   561.7399  1404.0000  3325.0000
-  3000                4  2167.7500   249.9458  1940.0000  2521.0000
-  3082.57             1  1969.0000     0.0000  1969.0000  1969.0000</div></div>
+  2717.43             1  1677.0000     0.0000  1677.0000  1677.0000
+  2800                4  2912.0000   328.4814  2521.0000  3325.0000
+  2900               12  1967.5833   231.4545  1404.0000  2342.0000
+  3000                4  2146.7500   560.7093  1685.0000  2937.0000
+  3082.57             1  2207.0000     0.0000  2207.0000  2207.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: charge_time_min ===
@@ -446,104 +598,116 @@ Direction: minimize
 
 Best observed run: #16
   charge_current_ma = 1750
-  cv_threshold_mv = 3525
+  cv_threshold_mv = 3753.22
   trickle_cutoff_mv = 2900
   Value: 52.0
 
-RSM Model (linear, R² = 0.0553, Adj R² = -0.1022):
+RSM Model (linear, R² = 0.0248, Adj R² = -0.1377):
   Coefficients:
     intercept                      +97.1818
-    charge_current_ma              +2.1767
-    cv_threshold_mv                +4.5599
-    trickle_cutoff_mv              -6.0952
+    charge_current_ma              -2.6554
+    cv_threshold_mv                -1.6302
+    trickle_cutoff_mv              +4.2924
 
-RSM Model (quadratic, R² = 0.6093, Adj R² = 0.3162):
+RSM Model (quadratic, R² = 0.4564, Adj R² = 0.0487):
   Coefficients:
-    intercept                      +80.1028
-    charge_current_ma              +2.1767
-    cv_threshold_mv                +4.5599
-    trickle_cutoff_mv              -6.0952
-    charge_current_ma*cv_threshold_mv -8.7500
-    charge_current_ma*trickle_cutoff_mv -20.5000
-    cv_threshold_mv*trickle_cutoff_mv -7.0000
-    charge_current_ma^2            +13.5395
-    cv_threshold_mv^2              +8.7393
-    trickle_cutoff_mv^2            +3.3397
+    intercept                      +113.5765
+    charge_current_ma              -2.6554
+    cv_threshold_mv                -1.6302
+    trickle_cutoff_mv              +4.2924
+    charge_current_ma*cv_threshold_mv -3.5000
+    charge_current_ma*trickle_cutoff_mv +9.7500
+    cv_threshold_mv*trickle_cutoff_mv -11.2500
+    charge_current_ma^2            -1.9974
+    cv_threshold_mv^2              -15.0471
+    trickle_cutoff_mv^2            -7.5476
 
   Curvature analysis:
-    charge_current_ma              coef=+13.5395  convex (has a minimum)
-    cv_threshold_mv                coef=+8.7393  convex (has a minimum)
-    trickle_cutoff_mv              coef=+3.3397  convex (has a minimum)
+    cv_threshold_mv                coef=-15.0471  concave (has a maximum)
+    trickle_cutoff_mv              coef=-7.5476  concave (has a maximum)
+    charge_current_ma              coef=-1.9974  concave (has a maximum)
 
   Notable interactions:
-    charge_current_ma*trickle_cutoff_mv coef=-20.5000  (antagonistic)
-    charge_current_ma*cv_threshold_mv coef=-8.7500  (antagonistic)
-    cv_threshold_mv*trickle_cutoff_mv coef=-7.0000  (antagonistic)
+    cv_threshold_mv*trickle_cutoff_mv coef=-11.2500  (antagonistic)
+    charge_current_ma*trickle_cutoff_mv coef=+9.7500  (synergistic)
+    charge_current_ma*cv_threshold_mv coef=-3.5000  (antagonistic)
 
-  Predicted optimum (from quadratic model):
+  Predicted optimum (from quadratic model, at observed points):
     charge_current_ma = 3000
-    cv_threshold_mv = 3650
-    trickle_cutoff_mv = 2800
-    Predicted value: 137.3030
+    cv_threshold_mv = 3400
+    trickle_cutoff_mv = 3000
+    Predicted value: 116.7516
 
-  Model quality: Moderate fit — use predictions directionally, not precisely.
+  Surface optimum (via L-BFGS-B, quadratic model):
+    charge_current_ma = 3000
+    cv_threshold_mv = 3400
+    trickle_cutoff_mv = 2800
+    Predicted value: 66.1667
+
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. charge_current_ma  (effect: 51.0, contribution: 37.6%)
-  2. trickle_cutoff_mv  (effect: 44.8, contribution: 33.0%)
-  3. cv_threshold_mv  (effect: 39.8, contribution: 29.4%)
+  1. cv_threshold_mv  (effect: 54.2, contribution: 51.5%)
+  2. charge_current_ma  (effect: 29.0, contribution: 27.6%)
+  3. trickle_cutoff_mv  (effect: 22.0, contribution: 20.9%)
 
 === Optimization: cycle_life_count ===
 Direction: maximize
 
 Best observed run: #6
-  charge_current_ma = 3000
-  cv_threshold_mv = 3650
-  trickle_cutoff_mv = 2800
+  charge_current_ma = 1750
+  cv_threshold_mv = 3525
+  trickle_cutoff_mv = 2900
   Value: 3325.0
 
-RSM Model (linear, R² = 0.3265, Adj R² = 0.2142):
+RSM Model (linear, R² = 0.0354, Adj R² = -0.1254):
   Coefficients:
     intercept                      +2169.5455
-    charge_current_ma              -47.4229
-    cv_threshold_mv                +162.3431
-    trickle_cutoff_mv              -279.5808
+    charge_current_ma              -5.1550
+    cv_threshold_mv                -28.1129
+    trickle_cutoff_mv              -103.7288
 
-RSM Model (quadratic, R² = 0.7518, Adj R² = 0.5657):
+RSM Model (quadratic, R² = 0.2896, Adj R² = -0.2431):
   Coefficients:
-    intercept                      +1890.9122
-    charge_current_ma              -47.4231
-    cv_threshold_mv                +162.3431
-    trickle_cutoff_mv              -279.5808
-    charge_current_ma*cv_threshold_mv -140.5000
-    charge_current_ma*trickle_cutoff_mv -219.2500
-    cv_threshold_mv*trickle_cutoff_mv -96.2500
-    charge_current_ma^2            +163.6642
-    cv_threshold_mv^2              +29.8627
-    trickle_cutoff_mv^2            +224.4273
+    intercept                      +2361.8485
+    charge_current_ma              -5.1547
+    cv_threshold_mv                -28.1129
+    trickle_cutoff_mv              -103.7288
+    charge_current_ma*cv_threshold_mv -68.1250
+    charge_current_ma*trickle_cutoff_mv +71.3750
+    cv_threshold_mv*trickle_cutoff_mv -97.1250
+    charge_current_ma^2            -226.4013
+    cv_threshold_mv^2              -57.9500
+    trickle_cutoff_mv^2            -4.1028
 
   Curvature analysis:
-    trickle_cutoff_mv              coef=+224.4273  convex (has a minimum)
-    charge_current_ma              coef=+163.6642  convex (has a minimum)
-    cv_threshold_mv                coef=+29.8627  convex (has a minimum)
+    charge_current_ma              coef=-226.4013  concave (has a maximum)
+    cv_threshold_mv                coef=-57.9500  concave (has a maximum)
+    trickle_cutoff_mv              coef=-4.1028  concave (has a maximum)
 
   Notable interactions:
-    charge_current_ma*trickle_cutoff_mv coef=-219.2500  (antagonistic)
-    charge_current_ma*cv_threshold_mv coef=-140.5000  (antagonistic)
-    cv_threshold_mv*trickle_cutoff_mv coef=-96.2500  (antagonistic)
+    cv_threshold_mv*trickle_cutoff_mv coef=-97.1250  (antagonistic)
+    charge_current_ma*trickle_cutoff_mv coef=+71.3750  (synergistic)
+    charge_current_ma*cv_threshold_mv coef=-68.1250  (antagonistic)
 
-  Predicted optimum (from quadratic model):
+  Predicted optimum (from linear model, at observed points):
     charge_current_ma = 1750
     cv_threshold_mv = 3525
     trickle_cutoff_mv = 2717.43
-    Predicted value: 3149.3995
+    Predicted value: 2358.9230
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Surface optimum (via L-BFGS-B, linear model):
+    charge_current_ma = 500
+    cv_threshold_mv = 3400
+    trickle_cutoff_mv = 2800
+    Predicted value: 2306.5421
+
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. cv_threshold_mv  (effect: 1024.5, contribution: 39.8%)
-  2. trickle_cutoff_mv  (effect: 977.7, contribution: 37.9%)
-  3. charge_current_ma  (effect: 574.4, contribution: 22.3%)</div></div>
+  1. trickle_cutoff_mv  (effect: 962.0, contribution: 48.7%)
+  2. charge_current_ma  (effect: 679.1, contribution: 34.3%)
+  3. cv_threshold_mv  (effect: 336.2, contribution: 17.0%)</div></div>
   </section>
 
   <!-- Nav -->

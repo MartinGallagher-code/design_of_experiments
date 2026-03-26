@@ -150,6 +150,281 @@ def get_optimize_output(num, config_path=None):
             print(f"    Warning: optimize failed for {config_path}: {e}")
     return ""
 
+def get_multi_optimize_output(num, config_path=None, n_responses=1):
+    """Run optimize --multi for use cases with 2+ responses."""
+    if n_responses < 2:
+        return ""
+    path = f"/tmp/multi_optimize_{num}.txt"
+    if os.path.exists(path):
+        with open(path) as f:
+            return f.read()
+    if config_path:
+        try:
+            result = subprocess.run(
+                ["python", "doe.py", "optimize", "--config", config_path, "--multi"],
+                capture_output=True, text=True, timeout=60,
+            )
+            # Cache for reuse
+            with open(path, "w") as f:
+                f.write(result.stdout)
+            return result.stdout
+        except Exception as e:
+            print(f"    Warning: multi optimize failed for {config_path}: {e}")
+    return ""
+
+
+def parse_multi_output(text):
+    """Parse multi-objective optimization output into structured data."""
+    if not text or "MULTI-OBJECTIVE OPTIMIZATION" not in text:
+        return None
+
+    result = {}
+
+    # Overall desirability
+    m = re.search(r"Overall desirability: D = ([0-9.]+)", text)
+    result["overall_d"] = float(m.group(1)) if m else 0.0
+
+    # Response table
+    responses = []
+    table_match = re.search(
+        r"Response\s+Weight\s+Desirability\s+Predicted\s+Direction\n-+\n(.*?)(?:\n\n|\nRecommended)",
+        text, re.DOTALL
+    )
+    if table_match:
+        for line in table_match.group(1).strip().split("\n"):
+            parts = line.split()
+            if len(parts) >= 5:
+                name = parts[0]
+                weight = parts[1]
+                desirability = parts[2]
+                predicted = parts[3]
+                # Unit may be embedded before direction arrow
+                direction = "↑" if "↑" in line else "↓"
+                # Extract unit: everything between predicted value and direction arrow
+                unit_match = re.search(r"[0-9.]+\s+(.+?)\s+[↑↓]", line[25:])
+                unit = unit_match.group(1).strip() if unit_match else ""
+                responses.append({
+                    "name": name,
+                    "weight": weight,
+                    "desirability": desirability,
+                    "predicted": predicted,
+                    "unit": unit,
+                    "direction": direction,
+                })
+    result["responses"] = responses
+
+    # Recommended settings
+    settings = []
+    settings_match = re.search(r"Recommended settings:\n(.*?)(?:\n\n|\nTrade-off)", text, re.DOTALL)
+    if settings_match:
+        for line in settings_match.group(1).strip().split("\n"):
+            line = line.strip()
+            if "=" in line and not line.startswith("("):
+                parts = line.split("=", 1)
+                settings.append((parts[0].strip(), parts[1].strip()))
+            elif line.startswith("("):
+                result["settings_source"] = line.strip("() ")
+    result["settings"] = settings
+
+    # Trade-off summary
+    tradeoffs = []
+    tradeoff_match = re.search(r"Trade-off summary:\n(.*?)(?:\n\n|\nModel quality)", text, re.DOTALL)
+    if tradeoff_match:
+        for line in tradeoff_match.group(1).strip().split("\n"):
+            m = re.match(r"\s+(\S+):\s+([0-9.\-]+)\s+\(best observed:\s+([0-9.\-]+),\s+sacrifice:\s+([+\-0-9.]+)\)", line)
+            if m:
+                tradeoffs.append({
+                    "name": m.group(1),
+                    "predicted": m.group(2),
+                    "best_observed": m.group(3),
+                    "sacrifice": m.group(4),
+                })
+    result["tradeoffs"] = tradeoffs
+
+    # Model quality
+    models = []
+    model_match = re.search(r"Model quality:\n(.*?)(?:\n\n|\nTop 3)", text, re.DOTALL)
+    if model_match:
+        for line in model_match.group(1).strip().split("\n"):
+            m = re.match(r"\s+(\S+):\s+R²\s*=\s*([0-9.]+)\s+\((\w+)\)", line)
+            if m:
+                models.append({
+                    "name": m.group(1),
+                    "r_squared": m.group(2),
+                    "model_type": m.group(3),
+                })
+    result["models"] = models
+
+    # Top 3 runs
+    top_runs = []
+    top_match = re.search(r"Top 3 observed runs.*?:\n(.*?)$", text, re.DOTALL)
+    if top_match:
+        for line in top_match.group(1).strip().split("\n"):
+            m = re.match(r"\s+(\d+)\.\s+Run #(\d+)\s+\(D=([0-9.]+)\):\s+(.*)", line)
+            if m:
+                top_runs.append({
+                    "rank": m.group(1),
+                    "run_id": m.group(2),
+                    "d_value": m.group(3),
+                    "factors": m.group(4),
+                })
+    result["top_runs"] = top_runs
+
+    return result
+
+
+def build_multi_objective_html(multi_data, multi_text):
+    """Build an HTML section for multi-objective optimization results."""
+    if not multi_data:
+        return ""
+
+    overall_d = multi_data["overall_d"]
+
+    # Desirability score color
+    if overall_d >= 0.8:
+        d_color = "#16a34a"  # green
+    elif overall_d >= 0.6:
+        d_color = "#ca8a04"  # amber
+    elif overall_d >= 0.4:
+        d_color = "#ea580c"  # orange
+    else:
+        d_color = "#dc2626"  # red
+
+    # Response desirability table
+    resp_rows = ""
+    for r in multi_data["responses"]:
+        d_val = float(r["desirability"])
+        if d_val >= 0.8:
+            bar_color = "#22c55e"
+        elif d_val >= 0.6:
+            bar_color = "#eab308"
+        elif d_val >= 0.4:
+            bar_color = "#f97316"
+        else:
+            bar_color = "#ef4444"
+        bar_width = max(2, d_val * 100)
+        dir_html = f'<span style="color:{"#16a34a" if r["direction"] == "↑" else "#dc2626"}">{r["direction"]}</span>'
+        unit_str = f' {escape(r["unit"])}' if r["unit"] else ""
+        resp_rows += f'''            <tr>
+              <td><code>{escape(r["name"])}</code></td>
+              <td>{r["weight"]}</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:{bar_width}%;height:100%;background:{bar_color};border-radius:4px;"></div>
+                  </div>
+                  <span>{r["desirability"]}</span>
+                </div>
+              </td>
+              <td>{r["predicted"]}{unit_str}</td>
+              <td>{dir_html}</td>
+            </tr>
+'''
+
+    # Recommended settings
+    settings_html = ""
+    for name, val in multi_data["settings"]:
+        settings_html += f"            <tr><td><code>{escape(name)}</code></td><td>{escape(val)}</td></tr>\n"
+    source = multi_data.get("settings_source", "")
+    source_html = f'<p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: {escape(source)}</p>' if source else ""
+
+    # Trade-off table
+    tradeoff_rows = ""
+    for t in multi_data["tradeoffs"]:
+        sacrifice = t["sacrifice"]
+        if sacrifice.startswith("+0.00") or sacrifice == "+0.00":
+            sac_html = f'<span style="color:#16a34a;">{sacrifice}</span>'
+        elif sacrifice.startswith("+"):
+            sac_html = f'<span style="color:#dc2626;">{sacrifice}</span>'
+        else:
+            sac_html = f'<span style="color:#16a34a;">{sacrifice}</span>'
+        tradeoff_rows += f'            <tr><td><code>{escape(t["name"])}</code></td><td>{t["predicted"]}</td><td>{t["best_observed"]}</td><td>{sac_html}</td></tr>\n'
+
+    # Top 3 runs
+    top_runs_html = ""
+    for run in multi_data["top_runs"]:
+        factors_formatted = run["factors"].replace(",", ", ")
+        top_runs_html += f'            <tr><td>#{run["run_id"]}</td><td><strong>{run["d_value"]}</strong></td><td style="font-size:.78rem;">{escape(factors_formatted)}</td></tr>\n'
+
+    # Model quality
+    model_rows = ""
+    for m in multi_data["models"]:
+        r2 = float(m["r_squared"])
+        if r2 >= 0.8:
+            r2_color = "#16a34a"
+        elif r2 >= 0.5:
+            r2_color = "#ca8a04"
+        else:
+            r2_color = "#dc2626"
+        model_rows += f'            <tr><td><code>{escape(m["name"])}</code></td><td style="color:{r2_color};font-weight:600;">{m["r_squared"]}</td><td>{m["model_type"]}</td></tr>\n'
+
+    return f'''
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid {d_color};">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:{d_color};line-height:1.2;">D = {overall_d:.4f}</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+{resp_rows}        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+{settings_html}        </tbody>
+      </table>
+    </div>
+    {source_html}
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+{tradeoff_rows}        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+{top_runs_html}        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+{model_rows}        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">{escape(multi_text.strip())}</div></div>
+  </section>
+'''
+
+
 def get_images(num):
     imgs = sorted(glob.glob(f"website/images/{num}_*.png"))
     return [os.path.basename(i) for i in imgs]
@@ -372,6 +647,8 @@ def build_page(num, uc_dir):
 
     analyze_text = get_analysis_output(num, config_path)
     optimize_text = get_optimize_output(num, config_path)
+    multi_text = get_multi_optimize_output(num, config_path, len(responses))
+    multi_data = parse_multi_output(multi_text)
     images = get_images(num)
 
     pareto_imgs = [i for i in images if "pareto_" in i]
@@ -446,6 +723,24 @@ def build_page(num, uc_dir):
                 label = img
             rsm_html += f'\n    <div style="margin:20px 0;">\n      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">{label}</p>\n      <img src="../images/{img}" alt="RSM surface: {label}" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">\n    </div>\n'
         rsm_html += '  </section>\n'
+
+    multi_objective_html = build_multi_objective_html(multi_data, multi_text)
+
+    multi_step_html = ""
+    if len(responses) >= 2:
+        multi_step_html = f'''
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With {len(responses)} competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/{num:02d}_{slug}/config.json <span class="flag">--multi</span></div>
+        </div>
+      </div>
+    </div>
+'''
 
     cont_count = sum(1 for f in factors if f["type"] == "continuous")
     cat_count = sum(1 for f in factors if f["type"] == "categorical")
@@ -621,9 +916,9 @@ def build_page(num, uc_dir):
         </div>
       </div>
     </div>
-
+{multi_step_html}
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">{"7" if len(responses) >= 2 else "6"}</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -664,6 +959,8 @@ def build_page(num, uc_dir):
   </section>
 
 {rsm_html}
+
+{multi_objective_html}
 
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
@@ -707,11 +1004,16 @@ def inject_matrix_into_existing(num, uc_dir):
 
     matrix_html = build_matrix_html(config_path, design_label)
 
+    responses = cfg["responses"]
+
     # Build summary
     analyze_text = get_analysis_output(num, config_path)
     optimize_text = get_optimize_output(num, config_path)
+    multi_text = get_multi_optimize_output(num, config_path, len(responses))
+    multi_data = parse_multi_output(multi_text)
     run_count = len(glob.glob(os.path.join(uc_dir, "results", "run_*.json")))
     summary_html = build_summary_html(cfg, analyze_text, optimize_text, design_label, run_count)
+    multi_html = build_multi_objective_html(multi_data, multi_text)
 
     slug = os.path.basename(uc_dir).split("_", 1)[1]
     web_slug = slug_to_web(slug)
@@ -738,6 +1040,12 @@ def inject_matrix_into_existing(num, uc_dir):
     )
     page = re.sub(
         r'\n  <!-- Prose Summary -->.*?</section>\n',
+        '',
+        page,
+        flags=re.DOTALL,
+    )
+    page = re.sub(
+        r'\n  <!-- Multi-Objective Optimization -->.*?</section>\n',
         '',
         page,
         flags=re.DOTALL,
@@ -778,6 +1086,19 @@ def inject_matrix_into_existing(num, uc_dir):
     else:
         print(f"  [{num:02d}] skipped (no Workflow/How to Run section found)")
         return
+
+    # Inject multi-objective HTML before the chapter-nav or footer
+    if multi_html:
+        if '<div class="chapter-nav">' in page:
+            page = page.replace(
+                '<div class="chapter-nav">',
+                f'{multi_html}\n  <div class="chapter-nav">',
+            )
+        elif '<footer' in page:
+            page = page.replace(
+                '<footer',
+                f'{multi_html}\n<footer',
+            )
 
     with open(html_path, "w") as f:
         f.write(page)

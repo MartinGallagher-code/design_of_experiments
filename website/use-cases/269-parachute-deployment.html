@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>reliability pct</strong>, the most influential factors were slider pct (67.5%), reefing pct (17.3%), deploy alt m (15.2%). The best observed value was <strong>98.7</strong> (at deploy alt m = 1500, reefing pct = 0, slider pct = 60).</p>
-<p>For <strong>opening shock g</strong>, the most influential factors were slider pct (40.6%), deploy alt m (37.1%), reefing pct (22.3%). The best observed value was <strong>2.1</strong> (at deploy alt m = 1500, reefing pct = 50, slider pct = 60).</p>
+    <p>For <strong>reliability pct</strong>, the most influential factors were deploy alt m (51.6%), reefing pct (33.0%), slider pct (15.4%). The best observed value was <strong>98.7</strong> (at deploy alt m = 900, reefing pct = 25, slider pct = 80).</p>
+<p>For <strong>opening shock g</strong>, the most influential factors were reefing pct (39.8%), deploy alt m (35.4%), slider pct (24.8%). The best observed value was <strong>2.1</strong> (at deploy alt m = 900, reefing pct = 25, slider pct = 80).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -250,12 +249,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (reliability_pct (↑), opening_shock_g (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/269_parachute_deployment/config.json <span class="flag">--multi</span></div>
         </div>
@@ -263,7 +263,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -271,48 +271,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/269_parachute_deployment/config.json \
     <span class="flag">--output</span> use_cases/269_parachute_deployment/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Aerospace Test? Use the Manual Workflow</h4>
-        <p>Flight and aerospace experiments involve real aerodynamics, propulsion, and atmospheric conditions requiring physical testing. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/269_parachute_deployment/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/269_parachute_deployment/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/269_parachute_deployment/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/269_parachute_deployment/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/269_parachute_deployment/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/269_parachute_deployment/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/269_parachute_deployment/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -344,7 +302,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: reliability_pct</h3>
-    <p>Top factors: slider_pct (67.5%), reefing_pct (17.3%), deploy_alt_m (15.2%).</p>
+    <p>Top factors: deploy_alt_m (51.6%), reefing_pct (33.0%), slider_pct (15.4%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -357,7 +315,7 @@
     </div>
 
     <h3>Response: opening_shock_g</h3>
-    <p>Top factors: slider_pct (40.6%), deploy_alt_m (37.1%), reefing_pct (22.3%).</p>
+    <p>Top factors: reefing_pct (39.8%), deploy_alt_m (35.4%), slider_pct (24.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -408,196 +366,345 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.8193</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>reliability_pct</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>98.70 0.9545       98.70 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>opening_shock_g</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:65.14999999999999%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.6515</span>
+                </div>
+              </td>
+              <td>3.60 0.6515        3.60 g</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>deploy_alt_m</code></td><td>900 m</td></tr>
+            <tr><td><code>reefing_pct</code></td><td>25 %</td></tr>
+            <tr><td><code>slider_pct</code></td><td>80 %</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #2</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>opening_shock_g</code></td><td>3.60</td><td>2.10</td><td><span style="color:#dc2626;">+1.50</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#17</td><td><strong>0.7911</strong></td><td style="font-size:.78rem;">deploy_alt_m=1500,  reefing_pct=0,  slider_pct=60</td></tr>
+            <tr><td>#18</td><td><strong>0.7843</strong></td><td style="font-size:.78rem;">deploy_alt_m=900,  reefing_pct=25,  slider_pct=116.515</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>opening_shock_g</code></td><td style="color:#ca8a04;font-weight:600;">0.5700</td><td>quadratic</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.8193
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+reliability_pct              1.5       0.9545       98.70 %   ↑
+opening_shock_g              1.0       0.6515        3.60 g   ↓
+
+Recommended settings:
+  deploy_alt_m = 900 m
+  reefing_pct = 25 %
+  slider_pct = 80 %
+  (from observed run #2)
+
+Trade-off summary:
+  reliability_pct: 98.70 (best observed: 98.70, sacrifice: +0.00)
+  opening_shock_g: 3.60 (best observed: 2.10, sacrifice: +1.50)
+
+Model quality:
+  reliability_pct: R² = 0.1083 (linear)
+  opening_shock_g: R² = 0.5700 (quadratic)
+
+Top 3 observed runs by overall desirability:
+  1. Run #2 (D=0.8193): deploy_alt_m=900, reefing_pct=25, slider_pct=80
+  2. Run #17 (D=0.7911): deploy_alt_m=1500, reefing_pct=0, slider_pct=60
+  3. Run #18 (D=0.7843): deploy_alt_m=900, reefing_pct=25, slider_pct=116.515</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_reliability_pct_deploy_alt_m_vs_reefing_pct.png
-  RSM surface: rsm_reliability_pct_deploy_alt_m_vs_slider_pct.png
-  RSM surface: rsm_reliability_pct_reefing_pct_vs_slider_pct.png
-  RSM surface: rsm_opening_shock_g_deploy_alt_m_vs_reefing_pct.png
-  RSM surface: rsm_opening_shock_g_deploy_alt_m_vs_slider_pct.png
-  RSM surface: rsm_opening_shock_g_reefing_pct_vs_slider_pct.png
-
-=== Main Effects: reliability_pct ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: reliability_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-slider_pct              12.4000       0.5926            67.5%
-reefing_pct              3.1750       0.5926            17.3%
-deploy_alt_m             2.8000       0.5926            15.2%
+deploy_alt_m             8.8500       0.5926            51.6%
+reefing_pct              5.6583       0.5926            33.0%
+slider_pct               2.6333       0.5926            15.4%
+
+=== ANOVA Table: reliability_pct ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+deploy_alt_m                 4      66.0361      16.5090      3.045     0.0763
+reefing_pct                  4      38.1170       9.5292      1.757     0.2214
+slider_pct                   4      24.3970       6.0992      1.125     0.4033
+Lack of Fit                  2       0.0000       0.0000      0.000     1.0000
+Pure Error                   7      37.9550       5.4221
+Error                        9      33.7136       5.4221
+Total                       21     162.2636       7.7268
 
 === Summary Statistics: reliability_pct ===
 
 deploy_alt_m:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -195.445            1    95.2000     0.0000    95.2000    95.2000
-  1500                4    94.1000     3.6615    90.6000    98.6000
-  1995.45             1    92.4000     0.0000    92.4000    92.4000
-  300                 4    94.5250     0.9777    93.2000    95.4000
-  900                12    93.7750     3.2114    86.3000    98.7000
+  -195.445            1    86.3000     0.0000    86.3000    86.3000
+  1500                4    95.1500     2.8172    91.7000    98.6000
+  1995.45             1    93.2000     0.0000    93.2000    93.2000
+  300                 4    94.3750     1.4175    92.4000    95.5000
+  900                12    94.1500     2.4567    89.3000    98.7000
 
 reefing_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -20.6435            1    95.9000     0.0000    95.9000    95.9000
-  0                   4    95.9000     1.8565    94.4000    98.6000
-  25                 12    93.5000     3.1686    86.3000    98.7000
-  50                  4    92.7250     2.0775    90.6000    95.4000
-  70.6435             1    95.0000     0.0000    95.0000    95.0000
+  -20.6435            1    94.1000     0.0000    94.1000    94.1000
+  0                   4    94.5500     3.1649    91.7000    98.6000
+  25                 12    93.0417     2.9150    86.3000    95.9000
+  50                  4    94.9750     0.4573    94.3000    95.3000
+  70.6435             1    98.7000     0.0000    98.7000    98.7000
 
 slider_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4    94.6500     2.9783    91.7000    98.6000
-  116.515             1    86.3000     0.0000    86.3000    86.3000
-  43.4852             1    98.7000     0.0000    98.7000    98.7000
-  60                  4    93.9750     2.3042    90.6000    95.5000
-  80                 12    93.9917     1.8258    89.3000    95.9000
+  100                 4    93.6500     1.8699    91.7000    95.3000
+  116.515             1    95.4000     0.0000    95.4000    95.4000
+  43.4852             1    95.0000     0.0000    95.0000    95.0000
+  60                  4    95.8750     1.8839    94.3000    98.6000
+  80                 12    93.2417     3.2576    86.3000    98.7000
 
 === Main Effects: opening_shock_g ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-slider_pct               2.6000       0.2428            40.6%
-deploy_alt_m             2.3750       0.2428            37.1%
-reefing_pct              1.4250       0.2428            22.3%
+reefing_pct              2.1250       0.2428            39.8%
+deploy_alt_m             1.8917       0.2428            35.4%
+slider_pct               1.3250       0.2428            24.8%
+
+=== ANOVA Table: opening_shock_g ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+deploy_alt_m                 4      13.3617       3.3404     14.097     0.0006
+reefing_pct                  4       9.3892       2.3473      9.906     0.0024
+slider_pct                   4       4.5192       1.1298      4.768     0.0243
+Lack of Fit                  2       0.0000       0.0000      0.000     1.0000
+Pure Error                   7       1.6588       0.2370
+Error                        9       0.0000       0.2370
+Total                       21      27.2309       1.2967
 
 === Summary Statistics: opening_shock_g ===
 
 deploy_alt_m:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -195.445            1     2.1000     0.0000     2.1000     2.1000
-  1500                4     4.4750     2.0516     2.3000     6.6000
-  1995.45             1     4.1000     0.0000     4.1000     4.1000
-  300                 4     3.9750     1.0112     3.1000     4.9000
-  900                12     3.2000     0.5657     2.2000     4.6000
+  -195.445            1     4.6000     0.0000     4.6000     4.6000
+  1500                4     4.8500     1.9140     2.2000     6.6000
+  1995.45             1     4.9000     0.0000     4.9000     4.9000
+  300                 4     3.3500     0.5066     3.0000     4.1000
+  900                12     3.0083     0.4379     2.1000     3.6000
 
 reefing_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -20.6435            1     3.0000     0.0000     3.0000     3.0000
-  0                   4     4.4250     1.6460     3.1000     6.6000
-  25                 12     3.2083     0.7064     2.1000     4.6000
-  50                  4     4.0250     1.6070     2.3000     5.8000
-  70.6435             1     3.1000     0.0000     3.1000     3.1000
+  -20.6435            1     2.8000     0.0000     2.8000     2.8000
+  0                   4     4.9250     1.5521     3.2000     6.6000
+  25                 12     3.2667     0.7992     2.1000     4.9000
+  50                  4     3.2750     1.0935     2.2000     4.8000
+  70.6435             1     3.6000     0.0000     3.6000     3.6000
 
 slider_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4     5.5250     0.8461     4.8000     6.6000
-  116.515             1     4.6000     0.0000     4.6000     4.6000
-  43.4852             1     3.6000     0.0000     3.6000     3.6000
-  60                  4     2.9250     0.4193     2.3000     3.2000
-  80                 12     3.0333     0.5297     2.1000     4.1000
-
-Pareto chart (reliability_pct): use_cases/269_parachute_deployment/results/analysis/pareto_reliability_pct.png
-
-Pareto chart (opening_shock_g): use_cases/269_parachute_deployment/results/analysis/pareto_opening_shock_g.png
-Main effects (reliability_pct): use_cases/269_parachute_deployment/results/analysis/main_effects_reliability_pct.png
-Main effects (opening_shock_g): use_cases/269_parachute_deployment/results/analysis/main_effects_opening_shock_g.png</div></div>
+  100                 4     3.7750     1.5586     2.2000     5.8000
+  116.515             1     3.1000     0.0000     3.1000     3.1000
+  43.4852             1     3.1000     0.0000     3.1000     3.1000
+  60                  4     4.4250     1.6460     3.1000     6.6000
+  80                 12     3.2833     0.8145     2.1000     4.9000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: reliability_pct ===
 Direction: maximize
 
 Best observed run: #2
-  deploy_alt_m = 1500
-  reefing_pct = 0
-  slider_pct = 60
+  deploy_alt_m = 900
+  reefing_pct = 25
+  slider_pct = 80
   Value: 98.7
 
-RSM Model (linear, R² = 0.0217, Adj R² = -0.1413):
+RSM Model (linear, R² = 0.0709, Adj R² = -0.0840):
   Coefficients:
     intercept                      +93.9727
-    deploy_alt_m                   +0.1533
-    reefing_pct                    -0.4658
-    slider_pct                     -0.0022
+    deploy_alt_m                   -0.8271
+    reefing_pct                    +0.2744
+    slider_pct                     +0.1577
 
-RSM Model (quadratic, R² = 0.4075, Adj R² = -0.0369):
+RSM Model (quadratic, R² = 0.3620, Adj R² = -0.1165):
   Coefficients:
-    intercept                      +93.4372
-    deploy_alt_m                   +0.1533
-    reefing_pct                    -0.4658
-    slider_pct                     -0.0022
-    deploy_alt_m*reefing_pct       +1.3375
-    deploy_alt_m*slider_pct        -1.2875
-    reefing_pct*slider_pct         +1.9125
-    deploy_alt_m^2                 +0.5128
-    reefing_pct^2                  +0.0928
-    slider_pct^2                   +0.1978
+    intercept                      +94.4069
+    deploy_alt_m                   -0.8271
+    reefing_pct                    +0.2744
+    slider_pct                     +0.1578
+    deploy_alt_m*reefing_pct       +0.1250
+    deploy_alt_m*slider_pct        +0.9250
+    reefing_pct*slider_pct         -1.7750
+    deploy_alt_m^2                 -0.2621
+    reefing_pct^2                  +0.3379
+    slider_pct^2                   -0.7271
 
   Curvature analysis:
-    deploy_alt_m                   coef=+0.5128  convex (has a minimum)
-    slider_pct                     coef=+0.1978  convex (has a minimum)
-    reefing_pct                    coef=+0.0928  negligible curvature
+    slider_pct                     coef=-0.7271  concave (has a maximum)
+    reefing_pct                    coef=+0.3379  convex (has a minimum)
+    deploy_alt_m                   coef=-0.2621  concave (has a maximum)
 
   Notable interactions:
-    reefing_pct*slider_pct         coef=+1.9125  (synergistic)
-    deploy_alt_m*reefing_pct       coef=+1.3375  (synergistic)
-    deploy_alt_m*slider_pct        coef=-1.2875  (antagonistic)
+    reefing_pct*slider_pct         coef=-1.7750  (antagonistic)
+    deploy_alt_m*slider_pct        coef=+0.9250  (synergistic)
 
-  Predicted optimum (from quadratic model):
-    deploy_alt_m = 1500
-    reefing_pct = 0
-    slider_pct = 60
-    Predicted value: 96.7242
+  Predicted optimum (from linear model, at observed points):
+    deploy_alt_m = -195.445
+    reefing_pct = 25
+    slider_pct = 80
+    Predicted value: 95.4828
+
+  Surface optimum (via L-BFGS-B, linear model):
+    deploy_alt_m = 300
+    reefing_pct = 50
+    slider_pct = 100
+    Predicted value: 95.2320
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. slider_pct  (effect: 4.2, contribution: 46.7%)
-  2. reefing_pct  (effect: 3.3, contribution: 36.4%)
-  3. deploy_alt_m  (effect: 1.5, contribution: 16.9%)
+  1. reefing_pct  (effect: 6.3, contribution: 42.8%)
+  2. deploy_alt_m  (effect: 5.3, contribution: 35.9%)
+  3. slider_pct  (effect: 3.1, contribution: 21.3%)
 
 === Optimization: opening_shock_g ===
 Direction: minimize
 
 Best observed run: #17
-  deploy_alt_m = 1500
-  reefing_pct = 50
-  slider_pct = 60
+  deploy_alt_m = 900
+  reefing_pct = 25
+  slider_pct = 80
   Value: 2.1
 
-RSM Model (linear, R² = 0.3185, Adj R² = 0.2049):
+RSM Model (linear, R² = 0.4449, Adj R² = 0.3524):
   Coefficients:
     intercept                      +3.5636
-    deploy_alt_m                   -0.2944
-    reefing_pct                    -0.1965
-    slider_pct                     -0.6826
+    deploy_alt_m                   -0.0237
+    reefing_pct                    +0.8572
+    slider_pct                     -0.3012
 
-RSM Model (quadratic, R² = 0.7145, Adj R² = 0.5004):
+RSM Model (quadratic, R² = 0.8151, Adj R² = 0.6764):
   Coefficients:
-    intercept                      +3.8018
-    deploy_alt_m                   -0.2944
-    reefing_pct                    -0.1965
-    slider_pct                     -0.6826
-    deploy_alt_m*reefing_pct       +0.1625
-    deploy_alt_m*slider_pct        +0.5375
-    reefing_pct*slider_pct         +0.8125
-    deploy_alt_m^2                 -0.2641
-    reefing_pct^2                  -0.2341
-    slider_pct^2                   +0.1409
+    intercept                      +3.0426
+    deploy_alt_m                   -0.0237
+    reefing_pct                    +0.8572
+    slider_pct                     -0.3012
+    deploy_alt_m*reefing_pct       -0.1250
+    deploy_alt_m*slider_pct        -0.6000
+    reefing_pct*slider_pct         +0.0250
+    deploy_alt_m^2                 +0.0955
+    reefing_pct^2                  +0.5905
+    slider_pct^2                   +0.0955
 
   Curvature analysis:
-    deploy_alt_m                   coef=-0.2641  concave (has a maximum)
-    reefing_pct                    coef=-0.2341  concave (has a maximum)
-    slider_pct                     coef=+0.1409  convex (has a minimum)
+    reefing_pct                    coef=+0.5905  convex (has a minimum)
+    slider_pct                     coef=+0.0955  negligible curvature
+    deploy_alt_m                   coef=+0.0955  negligible curvature
 
   Notable interactions:
-    reefing_pct*slider_pct         coef=+0.8125  (synergistic)
-    deploy_alt_m*slider_pct        coef=+0.5375  (synergistic)
+    deploy_alt_m*slider_pct        coef=-0.6000  (antagonistic)
 
-  Predicted optimum (from quadratic model):
-    deploy_alt_m = 300
-    reefing_pct = 0
-    slider_pct = 60
-    Predicted value: 6.1306
+  Predicted optimum (from quadratic model, at observed points):
+    deploy_alt_m = 900
+    reefing_pct = 70.6435
+    slider_pct = 80
+    Predicted value: 6.5761
+
+  Surface optimum (via L-BFGS-B, quadratic model):
+    deploy_alt_m = 1500
+    reefing_pct = 8.97137
+    slider_pct = 100
+    Predicted value: 2.0660
 
   Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. slider_pct  (effect: 3.1, contribution: 61.7%)
-  2. deploy_alt_m  (effect: 1.1, contribution: 22.6%)
-  3. reefing_pct  (effect: 0.8, contribution: 15.7%)</div></div>
+  1. reefing_pct  (effect: 3.6, contribution: 59.0%)
+  2. slider_pct  (effect: 1.5, contribution: 24.2%)
+  3. deploy_alt_m  (effect: 1.0, contribution: 16.8%)</div></div>
   </section>
 
   <!-- Nav -->

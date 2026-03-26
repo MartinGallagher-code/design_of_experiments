@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>alert reduction pct</strong>, the most influential factors were similarity threshold (48.4%), correlation window sec (43.3%), min event count (8.4%). The best observed value was <strong>77.0</strong> (at correlation window sec = 30, similarity threshold = 0.6, min event count = 10).</p>
-<p>For <strong>missed incident rate</strong>, the most influential factors were correlation window sec (43.3%), similarity threshold (39.6%), min event count (17.1%). The best observed value was <strong>0.11</strong> (at correlation window sec = 600, similarity threshold = 0.6, min event count = 10).</p>
+    <p>For <strong>alert reduction pct</strong>, the most influential factors were correlation window sec (42.5%), similarity threshold (33.2%), min event count (24.3%). The best observed value was <strong>77.0</strong> (at correlation window sec = 315, similarity threshold = 0.9, min event count = 10).</p>
+<p>For <strong>missed incident rate</strong>, the most influential factors were correlation window sec (37.0%), similarity threshold (33.1%), min event count (30.0%). The best observed value was <strong>0.11</strong> (at correlation window sec = 315, similarity threshold = 0.3, min event count = 2).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (alert_reduction_pct (↑), missed_incident_rate (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/59_siem_alert_correlation/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -295,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: alert_reduction_pct</h3>
-    <p>Top factors: similarity_threshold (48.4%), correlation_window_sec (43.3%), min_event_count (8.4%).</p>
+    <p>Top factors: correlation_window_sec (42.5%), similarity_threshold (33.2%), min_event_count (24.3%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -308,7 +308,7 @@
     </div>
 
     <h3>Response: missed_incident_rate</h3>
-    <p>Top factors: correlation_window_sec (43.3%), similarity_threshold (39.6%), min_event_count (17.1%).</p>
+    <p>Top factors: correlation_window_sec (37.0%), similarity_threshold (33.1%), min_event_count (30.0%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -359,172 +359,335 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.6594</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>alert_reduction_pct</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>77.00 0.9545       77.00 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>missed_incident_rate</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:37.87%;height:100%;background:#ef4444;border-radius:4px;"></div>
+                  </div>
+                  <span>0.3787</span>
+                </div>
+              </td>
+              <td>8.51 0.3787        8.51 %</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>correlation_window_sec</code></td><td>315 sec</td></tr>
+            <tr><td><code>similarity_threshold</code></td><td>0.9 ratio</td></tr>
+            <tr><td><code>min_event_count</code></td><td>10 events</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #10</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>missed_incident_rate</code></td><td>8.51</td><td>0.11</td><td><span style="color:#dc2626;">+8.40</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#4</td><td><strong>0.6528</strong></td><td style="font-size:.78rem;">correlation_window_sec=600,  similarity_threshold=0.6,  min_event_count=2</td></tr>
+            <tr><td>#6</td><td><strong>0.6413</strong></td><td style="font-size:.78rem;">correlation_window_sec=30,  similarity_threshold=0.3,  min_event_count=6</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>missed_incident_rate</code></td><td style="color:#dc2626;font-weight:600;">0.0214</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.6594
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+alert_reduction_pct          1.5       0.9545       77.00 %   ↑
+missed_incident_rate         1.0       0.3787        8.51 %   ↓
+
+Recommended settings:
+  correlation_window_sec = 315 sec
+  similarity_threshold = 0.9 ratio
+  min_event_count = 10 events
+  (from observed run #10)
+
+Trade-off summary:
+  alert_reduction_pct: 77.00 (best observed: 77.00, sacrifice: +0.00)
+  missed_incident_rate: 8.51 (best observed: 0.11, sacrifice: +8.40)
+
+Model quality:
+  alert_reduction_pct: R² = 0.0066 (linear)
+  missed_incident_rate: R² = 0.0214 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #10 (D=0.6594): correlation_window_sec=315, similarity_threshold=0.9, min_event_count=10
+  2. Run #4 (D=0.6528): correlation_window_sec=600, similarity_threshold=0.6, min_event_count=2
+  3. Run #6 (D=0.6413): correlation_window_sec=30, similarity_threshold=0.3, min_event_count=6</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: alert_reduction_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-similarity_threshold    16.5286       4.2596            48.4%
-correlation_window_sec    14.7750       4.2596            43.3%
-min_event_count          2.8571       4.2596             8.4%
+correlation_window_sec    11.5286       4.2596            42.5%
+similarity_threshold     8.9929       4.2596            33.2%
+min_event_count          6.5750       4.2596            24.3%
+
+=== ANOVA Table: alert_reduction_pct ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+correlation_window_sec       2     478.4275     239.2138      0.331     0.7277
+similarity_threshold         2     230.0622     115.0311      0.159     0.8555
+min_event_count              2      86.8775      43.4388      0.060     0.9421
+Lack of Fit                  6    1568.9554     261.4926      0.362     0.8591
+Pure Error                   2    1445.9467     722.9733
+Error                        8    3014.9020     722.9733
+Total                       14    3810.2693     272.1621
 
 === Summary Statistics: alert_reduction_pct ===
 
 correlation_window_sec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  30                  4    40.0500    12.4077    22.4000    51.5000
-  315                 7    52.5143    13.0769    32.7000    75.8000
-  600                 4    54.8250    24.4238    27.5000    77.0000
+  30                  4    55.3000    13.0366    43.2000    73.8000
+  315                 7    43.7714    17.5150    22.4000    75.8000
+  600                 4    54.8750    18.0862    32.7000    77.0000
 
 similarity_threshold:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.3                 4    41.8000    10.5650    27.5000    53.0000
-  0.6                 7    58.3286    19.4629    22.4000    77.0000
-  0.9                 4    42.9000     9.0734    32.7000    54.7000
+  0.3                 4    47.7000    20.8801    27.5000    77.0000
+  0.6                 7    53.8429    18.1741    22.4000    75.8000
+  0.9                 4    44.8500     9.8402    32.7000    53.0000
 
 min_event_count:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4    51.2000    18.8480    32.7000    77.0000
-  2                   4    50.9750    21.2563    22.4000    73.8000
-  6                   7    48.3429    15.0600    27.5000    75.8000
+  10                  4    53.2500    15.0423    41.0000    73.8000
+  2                   4    46.6750    12.8500    27.5000    54.7000
+  6                   7    49.6286    20.6124    22.4000    77.0000
 
 === Main Effects: missed_incident_rate ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-correlation_window_sec     2.9050       0.9476            43.3%
-similarity_threshold     2.6539       0.9476            39.6%
-min_event_count          1.1493       0.9476            17.1%
+correlation_window_sec     3.3836       0.9476            37.0%
+similarity_threshold     3.0289       0.9476            33.1%
+min_event_count          2.7425       0.9476            30.0%
+
+=== ANOVA Table: missed_incident_rate ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+correlation_window_sec       2      33.3434      16.6717      0.794     0.4845
+similarity_threshold         2      23.3654      11.6827      0.557     0.5938
+min_event_count              2      16.4245       8.2122      0.391     0.6884
+Lack of Fit                  6      73.4711      12.2452      0.584     0.7422
+Pure Error                   2      41.9699      20.9849
+Error                        8     115.4410      20.9849
+Total                       14     188.5743      13.4696
 
 === Summary Statistics: missed_incident_rate ===
 
 correlation_window_sec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  30                  4     3.7125     3.0104     0.1100     7.0200
-  315                 7     4.1314     2.7971     0.5100     8.7700
-  600                 4     6.6175     5.5850     0.4200    13.3700
+  30                  4     7.1550     4.4418     3.1000    13.3700
+  315                 7     3.7714     3.2148     0.1100     8.7700
+  600                 4     3.8050     3.3681     0.5100     8.5100
 
 similarity_threshold:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.3                 4     3.3375     2.7511     0.4200     7.0300
-  0.6                 7     5.9914     4.4991     0.1100    13.3700
-  0.9                 4     3.7375     2.6843     0.5100     7.0200
+  0.3                 4     4.6350     3.7706     0.4200     8.5100
+  0.6                 7     5.8014     4.3797     0.1100    13.3700
+  0.9                 4     2.7725     1.5778     0.5100     4.1700
 
 min_event_count:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4     5.2950     3.4771     0.5100     8.5100
-  2                   4     5.0100     5.7702     0.1100    13.3700
-  6                   7     4.1457     2.8423     0.4200     8.7700</div></div>
+  10                  4     5.7700     5.1116     2.5900    13.3700
+  2                   4     3.0275     1.9450     0.4200     5.1300
+  6                   7     5.0071     3.7062     0.1100     8.7700</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: alert_reduction_pct ===
 Direction: maximize
 
 Best observed run: #10
-  correlation_window_sec = 30
-  similarity_threshold = 0.6
+  correlation_window_sec = 315
+  similarity_threshold = 0.9
   min_event_count = 10
   Value: 77.0
 
-RSM Model (linear, R² = 0.4371, Adj R² = 0.2836):
+RSM Model (linear, R² = 0.3517, Adj R² = 0.1749):
   Coefficients:
     intercept                      +49.8067
-    correlation_window_sec         -13.3625
-    similarity_threshold           -0.5750
-    min_event_count                -5.4125
+    correlation_window_sec         +5.7625
+    similarity_threshold           +8.0875
+    min_event_count                +8.3000
 
-RSM Model (quadratic, R² = 0.8911, Adj R² = 0.6952):
+RSM Model (quadratic, R² = 0.4678, Adj R² = -0.4901):
   Coefficients:
-    intercept                      +46.0667
-    correlation_window_sec         -13.3625
-    similarity_threshold           -0.5750
-    min_event_count                -5.4125
-    correlation_window_sec*similarity_threshold -12.6500
-    correlation_window_sec*min_event_count -8.4750
-    similarity_threshold*min_event_count -9.8000
-    correlation_window_sec^2       +9.0292
-    similarity_threshold^2         -4.4958
-    min_event_count^2              +2.4792
+    intercept                      +59.0333
+    correlation_window_sec         +5.7625
+    similarity_threshold           +8.0875
+    min_event_count                +8.3000
+    correlation_window_sec*similarity_threshold +2.8500
+    correlation_window_sec*min_event_count -1.5750
+    similarity_threshold*min_event_count -1.2750
+    correlation_window_sec^2       -9.2417
+    similarity_threshold^2         -3.5417
+    min_event_count^2              -4.5167
 
   Curvature analysis:
-    correlation_window_sec         coef=+9.0292  convex (has a minimum)
-    similarity_threshold           coef=-4.4958  concave (has a maximum)
-    min_event_count                coef=+2.4792  convex (has a minimum)
+    correlation_window_sec         coef=-9.2417  concave (has a maximum)
+    min_event_count                coef=-4.5167  concave (has a maximum)
+    similarity_threshold           coef=-3.5417  concave (has a maximum)
 
   Notable interactions:
-    correlation_window_sec*similarity_threshold coef=-12.6500  (antagonistic)
-    similarity_threshold*min_event_count coef=-9.8000  (antagonistic)
-    correlation_window_sec*min_event_count coef=-8.4750  (antagonistic)
+    correlation_window_sec*similarity_threshold coef=+2.8500  (synergistic)
+    correlation_window_sec*min_event_count coef=-1.5750  (antagonistic)
+    similarity_threshold*min_event_count coef=-1.2750  (antagonistic)
 
-  Predicted optimum (from quadratic model):
-    correlation_window_sec = 30
+  Predicted optimum (from linear model, at observed points):
+    correlation_window_sec = 315
     similarity_threshold = 0.9
-    min_event_count = 6
-    Predicted value: 76.0375
+    min_event_count = 10
+    Predicted value: 66.1942
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Surface optimum (via L-BFGS-B, linear model):
+    correlation_window_sec = 600
+    similarity_threshold = 0.9
+    min_event_count = 10
+    Predicted value: 71.9567
+
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. correlation_window_sec  (effect: 26.7, contribution: 61.5%)
-  2. min_event_count  (effect: 10.8, contribution: 24.9%)
-  3. similarity_threshold  (effect: 5.9, contribution: 13.6%)
+  1. min_event_count  (effect: 16.6, contribution: 35.2%)
+  2. similarity_threshold  (effect: 16.2, contribution: 34.3%)
+  3. correlation_window_sec  (effect: 14.4, contribution: 30.6%)
 
 === Optimization: missed_incident_rate ===
 Direction: minimize
 
 Best observed run: #13
-  correlation_window_sec = 600
-  similarity_threshold = 0.6
-  min_event_count = 10
+  correlation_window_sec = 315
+  similarity_threshold = 0.3
+  min_event_count = 2
   Value: 0.11
 
-RSM Model (linear, R² = 0.6687, Adj R² = 0.5783):
+RSM Model (linear, R² = 0.1484, Adj R² = -0.0839):
   Coefficients:
     intercept                      +4.6827
-    correlation_window_sec         -3.8750
-    similarity_threshold           +0.0088
-    min_event_count                -0.8637
+    correlation_window_sec         +0.2550
+    similarity_threshold           +1.3213
+    min_event_count                +1.2988
 
-RSM Model (quadratic, R² = 0.9059, Adj R² = 0.7365):
+RSM Model (quadratic, R² = 0.4721, Adj R² = -0.4780):
   Coefficients:
-    intercept                      +4.9167
-    correlation_window_sec         -3.8750
-    similarity_threshold           +0.0088
-    min_event_count                -0.8637
-    correlation_window_sec*similarity_threshold -2.2350
-    correlation_window_sec*min_event_count -0.6450
-    similarity_threshold*min_event_count -0.4925
-    correlation_window_sec^2       +1.6904
-    similarity_threshold^2         -0.6071
-    min_event_count^2              -1.5221
+    intercept                      +7.5200
+    correlation_window_sec         +0.2550
+    similarity_threshold           +1.3213
+    min_event_count                +1.2988
+    correlation_window_sec*similarity_threshold -2.1275
+    correlation_window_sec*min_event_count -0.8775
+    similarity_threshold*min_event_count +0.0450
+    correlation_window_sec^2       -2.0650
+    similarity_threshold^2         -0.5575
+    min_event_count^2              -2.6975
 
   Curvature analysis:
-    correlation_window_sec         coef=+1.6904  convex (has a minimum)
-    min_event_count                coef=-1.5221  concave (has a maximum)
-    similarity_threshold           coef=-0.6071  concave (has a maximum)
+    min_event_count                coef=-2.6975  concave (has a maximum)
+    correlation_window_sec         coef=-2.0650  concave (has a maximum)
+    similarity_threshold           coef=-0.5575  concave (has a maximum)
 
   Notable interactions:
-    correlation_window_sec*similarity_threshold coef=-2.2350  (antagonistic)
-    correlation_window_sec*min_event_count coef=-0.6450  (antagonistic)
-    similarity_threshold*min_event_count coef=-0.4925  (antagonistic)
+    correlation_window_sec*similarity_threshold coef=-2.1275  (antagonistic)
+    correlation_window_sec*min_event_count coef=-0.8775  (antagonistic)
 
-  Predicted optimum (from quadratic model):
-    correlation_window_sec = 30
+  Predicted optimum (from linear model, at observed points):
+    correlation_window_sec = 315
     similarity_threshold = 0.9
-    min_event_count = 6
-    Predicted value: 12.1187
+    min_event_count = 10
+    Predicted value: 7.3027
 
-  Model quality: Excellent fit — surface predictions are reliable.
+  Surface optimum (via L-BFGS-B, linear model):
+    correlation_window_sec = 30
+    similarity_threshold = 0.3
+    min_event_count = 2
+    Predicted value: 1.8077
+
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. correlation_window_sec  (effect: 7.8, contribution: 71.5%)
-  2. min_event_count  (effect: 2.5, contribution: 22.7%)
-  3. similarity_threshold  (effect: 0.6, contribution: 5.8%)</div></div>
+  1. min_event_count  (effect: 3.8, contribution: 44.6%)
+  2. similarity_threshold  (effect: 2.6, contribution: 30.9%)
+  3. correlation_window_sec  (effect: 2.1, contribution: 24.4%)</div></div>
   </section>
 
   <!-- Nav -->

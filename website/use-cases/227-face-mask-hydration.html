@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>hydration gain</strong>, the most influential factors were mask time min (46.1%), serum ph (38.3%), serum pct (15.6%). The best observed value was <strong>7.1</strong> (at mask time min = 30, serum pct = 10, serum ph = 4.75).</p>
-<p>For <strong>irritation</strong>, the most influential factors were serum ph (72.3%), mask time min (18.7%), serum pct (9.0%). The best observed value was <strong>1.5</strong> (at mask time min = 20, serum pct = 1, serum ph = 6).</p>
+    <p>For <strong>hydration gain</strong>, the most influential factors were serum ph (38.5%), serum pct (33.3%), mask time min (28.2%). The best observed value was <strong>7.1</strong> (at mask time min = 20, serum pct = 10, serum ph = 6).</p>
+<p>For <strong>irritation</strong>, the most influential factors were mask time min (37.8%), serum pct (31.6%), serum ph (30.6%). The best observed value was <strong>1.5</strong> (at mask time min = 20, serum pct = 5.5, serum ph = 4.75).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (hydration_gain (↑), irritation (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/227_face_mask_hydration/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -264,48 +264,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/227_face_mask_hydration/config.json \
     <span class="flag">--output</span> use_cases/227_face_mask_hydration/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Cosmetics Formulation? Use the Manual Workflow</h4>
-        <p>Cosmetics experiments involve real chemical formulations, skin application, and sensory evaluation that must be tested on actual products. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/227_face_mask_hydration/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/227_face_mask_hydration/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/227_face_mask_hydration/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/227_face_mask_hydration/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/227_face_mask_hydration/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/227_face_mask_hydration/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/227_face_mask_hydration/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -337,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: hydration_gain</h3>
-    <p>Top factors: mask_time_min (46.1%), serum_ph (38.3%), serum_pct (15.6%).</p>
+    <p>Top factors: serum_ph (38.5%), serum_pct (33.3%), mask_time_min (28.2%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -350,7 +308,7 @@
     </div>
 
     <h3>Response: irritation</h3>
-    <p>Top factors: serum_ph (72.3%), mask_time_min (18.7%), serum_pct (9.0%).</p>
+    <p>Top factors: mask_time_min (37.8%), serum_pct (31.6%), serum_ph (30.6%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -401,183 +359,333 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.7649</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>hydration_gain</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:59.589999999999996%;height:100%;background:#f97316;border-radius:4px;"></div>
+                  </div>
+                  <span>0.5959</span>
+                </div>
+              </td>
+              <td>5.84 0.5959        5.84 pts</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>irritation</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:98.18%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9818</span>
+                </div>
+              </td>
+              <td>1.42 0.9818        1.42 pts</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>mask_time_min</code></td><td>10 min</td></tr>
+            <tr><td><code>serum_pct</code></td><td>1 %</td></tr>
+            <tr><td><code>serum_ph</code></td><td>4.75 pH</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from RSM model prediction</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>irritation</code></td><td>1.42</td><td>1.50</td><td><span style="color:#16a34a;">-0.08</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#5</td><td><strong>0.6018</strong></td><td style="font-size:.78rem;">mask_time_min=20,  serum_pct=5.5,  serum_ph=4.75</td></tr>
+            <tr><td>#2</td><td><strong>0.5736</strong></td><td style="font-size:.78rem;">mask_time_min=20,  serum_pct=1,  serum_ph=3.5</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>irritation</code></td><td style="color:#ca8a04;font-weight:600;">0.6875</td><td>quadratic</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.7649
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+hydration_gain               1.5       0.5959        5.84 pts   ↑
+irritation                   1.5       0.9818        1.42 pts   ↓
+
+Recommended settings:
+  mask_time_min = 10 min
+  serum_pct = 1 %
+  serum_ph = 4.75 pH
+  (from RSM model prediction)
+
+Trade-off summary:
+  hydration_gain: 5.84 (best observed: 7.10, sacrifice: +1.26)
+  irritation: 1.42 (best observed: 1.50, sacrifice: -0.08)
+
+Model quality:
+  hydration_gain: R² = 0.1644 (linear)
+  irritation: R² = 0.6875 (quadratic)
+
+Top 3 observed runs by overall desirability:
+  1. Run #3 (D=0.7365): mask_time_min=10, serum_pct=1, serum_ph=4.75
+  2. Run #5 (D=0.6018): mask_time_min=20, serum_pct=5.5, serum_ph=4.75
+  3. Run #2 (D=0.5736): mask_time_min=20, serum_pct=1, serum_ph=3.5</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_hydration_gain_mask_time_min_vs_serum_pct.png
-  RSM surface: rsm_hydration_gain_mask_time_min_vs_serum_ph.png
-  RSM surface: rsm_hydration_gain_serum_pct_vs_serum_ph.png
-  RSM surface: rsm_irritation_mask_time_min_vs_serum_pct.png
-  RSM surface: rsm_irritation_mask_time_min_vs_serum_ph.png
-  RSM surface: rsm_irritation_serum_pct_vs_serum_ph.png
-
-=== Main Effects: hydration_gain ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: hydration_gain ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-mask_time_min            0.8214       0.2571            46.1%
-serum_ph                 0.6821       0.2571            38.3%
-serum_pct                0.2786       0.2571            15.6%
+serum_ph                 0.7500       0.2571            38.5%
+serum_pct                0.6500       0.2571            33.3%
+mask_time_min            0.5500       0.2571            28.2%
+
+=== ANOVA Table: hydration_gain ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+mask_time_min                2       0.6479       0.3239      0.531     0.6074
+serum_pct                    2       0.8557       0.4279      0.701     0.5240
+serum_ph                     2       1.1679       0.5839      0.957     0.4239
+Lack of Fit                  6       9.9886       1.6648      2.729     0.2923
+Pure Error                   2       1.2200       0.6100
+Error                        8      11.2086       0.6100
+Total                       14      13.8800       0.9914
 
 === Summary Statistics: hydration_gain ===
 
 mask_time_min:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4     5.5250     0.6752     4.8000     6.1000
-  20                  7     5.3286     1.0579     3.9000     7.0000
-  30                  4     6.1500     1.1619     4.5000     7.1000
+  10                  4     5.2750     0.7500     4.5000     6.1000
+  20                  7     5.6571     1.0533     3.9000     7.1000
+  30                  4     5.8250     1.2764     4.4000     7.0000
 
 serum_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4     5.4500     1.3304     3.9000     7.1000
-  10                  4     5.5250     1.1177     4.4000     6.8000
-  5.5                 7     5.7286     0.8751     4.5000     7.0000
+  1                   4     5.9500     1.2179     4.5000     7.1000
+  10                  4     5.3000     1.0456     3.9000     6.1000
+  5.5                 7     5.5714     0.9394     4.4000     7.0000
 
 serum_ph:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  3.5                 4     5.5750     1.1177     3.9000     6.2000
-  4.75                7     5.8571     1.0612     4.8000     7.1000
-  6                   4     5.1750     0.8539     4.4000     6.1000
+  3.5                 4     5.9250     1.4930     3.9000     7.1000
+  4.75                7     5.6571     0.8541     4.5000     6.8000
+  6                   4     5.1750     0.7411     4.4000     6.1000
 
 === Main Effects: irritation ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-serum_ph                 1.5464       0.2041            72.3%
-mask_time_min            0.4000       0.2041            18.7%
-serum_pct                0.1929       0.2041             9.0%
+mask_time_min            0.6500       0.2041            37.8%
+serum_pct                0.5429       0.2041            31.6%
+serum_ph                 0.5250       0.2041            30.6%
+
+=== ANOVA Table: irritation ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+mask_time_min                2       0.8604       0.4302      1.331     0.3171
+serum_pct                    2       0.7994       0.3997      1.236     0.3406
+serum_ph                     2       0.5822       0.2911      0.900     0.4440
+Lack of Fit                  6       5.8553       0.9759      3.018     0.2697
+Pure Error                   2       0.6467       0.3233
+Error                        8       6.5020       0.3233
+Total                       14       8.7440       0.6246
 
 === Summary Statistics: irritation ===
 
 mask_time_min:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4     2.7500     0.6028     1.9000     3.3000
-  20                  7     2.7000     0.8083     1.5000     4.0000
-  30                  4     3.1000     1.0488     1.8000     4.0000
+  10                  4     2.5250     0.5252     1.8000     3.0000
+  20                  7     2.7857     0.7105     1.9000     4.0000
+  30                  4     3.1750     1.1587     1.5000     4.0000
 
 serum_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4     2.9500     0.8813     2.0000     4.0000
-  10                  4     2.8000     0.9899     1.5000     3.9000
-  5.5                 7     2.7571     0.7502     1.8000     4.0000
+  1                   4     3.2000     1.0165     1.8000     4.0000
+  10                  4     2.7250     0.5377     2.0000     3.3000
+  5.5                 7     2.6571     0.8142     1.5000     4.0000
 
 serum_ph:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  3.5                 4     2.5750     0.3862     2.0000     2.8000
-  4.75                7     3.4714     0.4751     3.0000     4.0000
-  6                   4     1.9250     0.4193     1.5000     2.5000
-
-Pareto chart (hydration_gain): use_cases/227_face_mask_hydration/results/analysis/pareto_hydration_gain.png
-
-Pareto chart (irritation): use_cases/227_face_mask_hydration/results/analysis/pareto_irritation.png
-Main effects (hydration_gain): use_cases/227_face_mask_hydration/results/analysis/main_effects_hydration_gain.png
-Main effects (irritation): use_cases/227_face_mask_hydration/results/analysis/main_effects_irritation.png</div></div>
+  3.5                 4     3.1250     1.0308     2.0000     4.0000
+  4.75                7     2.7714     0.7432     1.8000     3.9000
+  6                   4     2.6000     0.7439     1.5000     3.1000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: hydration_gain ===
 Direction: maximize
 
 Best observed run: #10
-  mask_time_min = 30
+  mask_time_min = 20
   serum_pct = 10
-  serum_ph = 4.75
+  serum_ph = 6
   Value: 7.1
 
-RSM Model (linear, R² = 0.4238, Adj R² = 0.2667):
+RSM Model (linear, R² = 0.6079, Adj R² = 0.5009):
   Coefficients:
     intercept                      +5.6000
-    mask_time_min                  +0.5375
-    serum_pct                      +0.6375
-    serum_ph                       -0.2000
+    mask_time_min                  -0.1625
+    serum_pct                      -0.5125
+    serum_ph                       +0.8750
 
-RSM Model (quadratic, R² = 0.6117, Adj R² = -0.0872):
+RSM Model (quadratic, R² = 0.8408, Adj R² = 0.5543):
   Coefficients:
-    intercept                      +5.5667
-    mask_time_min                  +0.5375
-    serum_pct                      +0.6375
-    serum_ph                       -0.2000
-    mask_time_min*serum_pct        +0.3750
-    mask_time_min*serum_ph         +0.5000
-    serum_pct*serum_ph             -0.3500
-    mask_time_min^2                +0.2792
-    serum_pct^2                    +0.0292
-    serum_ph^2                     -0.2458
+    intercept                      +5.5333
+    mask_time_min                  -0.1625
+    serum_pct                      -0.5125
+    serum_ph                       +0.8750
+    mask_time_min*serum_pct        +0.2000
+    mask_time_min*serum_ph         -0.4250
+    serum_pct*serum_ph             +0.5750
+    mask_time_min^2                -0.3667
+    serum_pct^2                    +0.2833
+    serum_ph^2                     +0.2083
 
   Curvature analysis:
-    mask_time_min                  coef=+0.2792  convex (has a minimum)
-    serum_ph                       coef=-0.2458  concave (has a maximum)
-    serum_pct                      coef=+0.0292  negligible curvature
+    mask_time_min                  coef=-0.3667  concave (has a maximum)
+    serum_pct                      coef=+0.2833  convex (has a minimum)
+    serum_ph                       coef=+0.2083  convex (has a minimum)
 
   Notable interactions:
-    mask_time_min*serum_ph         coef=+0.5000  (synergistic)
-    mask_time_min*serum_pct        coef=+0.3750  (synergistic)
-    serum_pct*serum_ph             coef=-0.3500  (antagonistic)
+    serum_pct*serum_ph             coef=+0.5750  (synergistic)
+    mask_time_min*serum_ph         coef=-0.4250  (antagonistic)
 
-  Predicted optimum (from linear model):
-    mask_time_min = 30
+  Predicted optimum (from quadratic model, at observed points):
+    mask_time_min = 20
     serum_pct = 10
-    serum_ph = 4.75
-    Predicted value: 6.7750
+    serum_ph = 6
+    Predicted value: 6.9625
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Surface optimum (via L-BFGS-B, quadratic model):
+    mask_time_min = 10
+    serum_pct = 1
+    serum_ph = 6
+    Predicted value: 7.2583
+
+  Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. serum_pct  (effect: 1.3, contribution: 45.2%)
-  2. mask_time_min  (effect: 1.1, contribution: 38.1%)
-  3. serum_ph  (effect: 0.5, contribution: 16.6%)
+  1. serum_ph  (effect: 1.8, contribution: 52.4%)
+  2. serum_pct  (effect: 1.0, contribution: 30.7%)
+  3. mask_time_min  (effect: 0.6, contribution: 16.9%)
 
 === Optimization: irritation ===
 Direction: minimize
 
 Best observed run: #9
   mask_time_min = 20
-  serum_pct = 1
-  serum_ph = 6
+  serum_pct = 5.5
+  serum_ph = 4.75
   Value: 1.5
 
-RSM Model (linear, R² = 0.4474, Adj R² = 0.2968):
+RSM Model (linear, R² = 0.4217, Adj R² = 0.2640):
   Coefficients:
     intercept                      +2.8200
-    mask_time_min                  +0.0500
-    serum_pct                      +0.5625
-    serum_ph                       -0.4125
+    mask_time_min                  +0.0625
+    serum_pct                      +0.0375
+    serum_ph                       +0.6750
 
-RSM Model (quadratic, R² = 0.8796, Adj R² = 0.6630):
+RSM Model (quadratic, R² = 0.8314, Adj R² = 0.5279):
   Coefficients:
-    intercept                      +3.4000
-    mask_time_min                  +0.0500
-    serum_pct                      +0.5625
-    serum_ph                       -0.4125
-    mask_time_min*serum_pct        +0.3500
-    mask_time_min*serum_ph         +0.1000
-    serum_pct*serum_ph             -0.1750
-    mask_time_min^2                -0.2625
-    serum_pct^2                    +0.0625
-    serum_ph^2                     -0.8875
+    intercept                      +2.0667
+    mask_time_min                  +0.0625
+    serum_pct                      +0.0375
+    serum_ph                       +0.6750
+    mask_time_min*serum_pct        +0.1250
+    mask_time_min*serum_ph         -0.5000
+    serum_pct*serum_ph             +0.2000
+    mask_time_min^2                +0.2792
+    serum_pct^2                    +0.5292
+    serum_ph^2                     +0.6042
 
   Curvature analysis:
-    serum_ph                       coef=-0.8875  concave (has a maximum)
-    mask_time_min                  coef=-0.2625  concave (has a maximum)
-    serum_pct                      coef=+0.0625  negligible curvature
+    serum_ph                       coef=+0.6042  convex (has a minimum)
+    serum_pct                      coef=+0.5292  convex (has a minimum)
+    mask_time_min                  coef=+0.2792  convex (has a minimum)
 
   Notable interactions:
-    mask_time_min*serum_pct        coef=+0.3500  (synergistic)
+    mask_time_min*serum_ph         coef=-0.5000  (antagonistic)
 
-  Predicted optimum (from quadratic model):
-    mask_time_min = 30
+  Predicted optimum (from quadratic model, at observed points):
+    mask_time_min = 20
     serum_pct = 10
-    serum_ph = 4.75
-    Predicted value: 4.1625
+    serum_ph = 6
+    Predicted value: 4.1125
+
+  Surface optimum (via L-BFGS-B, quadratic model):
+    mask_time_min = 10
+    serum_pct = 6.72244
+    serum_ph = 3.5
+    Predicted value: 1.6734
 
   Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. serum_ph  (effect: 1.3, contribution: 48.3%)
-  2. serum_pct  (effect: 1.1, contribution: 42.2%)
-  3. mask_time_min  (effect: 0.3, contribution: 9.5%)</div></div>
+  1. serum_ph  (effect: 1.4, contribution: 63.9%)
+  2. serum_pct  (effect: 0.5, contribution: 23.8%)
+  3. mask_time_min  (effect: 0.3, contribution: 12.3%)</div></div>
   </section>
 
   <!-- Nav -->

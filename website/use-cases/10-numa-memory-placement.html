@@ -56,8 +56,8 @@
 
     
     <h3>Key Findings</h3>
-    <p>For <strong>stream triad</strong>, the most influential factors were mem policy (50.4%), hugepages (30.2%), thread bind (19.4%). The best observed value was <strong>293.9</strong> (at mem policy = interleave, thread bind = close, hugepages = off).</p>
-<p>For <strong>latency ns</strong>, the most influential factors were mem policy (60.0%), hugepages (21.7%), thread bind (18.3%). The best observed value was <strong>34.0</strong> (at mem policy = interleave, thread bind = spread, hugepages = off).</p>
+    <p>For <strong>stream triad</strong>, the most influential factors were mem policy (56.4%), thread bind (24.4%), hugepages (19.2%). The best observed value was <strong>293.9</strong> (at mem policy = local, thread bind = spread, hugepages = 2M).</p>
+<p>For <strong>latency ns</strong>, the most influential factors were mem policy (48.9%), hugepages (33.3%), thread bind (17.7%). The best observed value was <strong>34.0</strong> (at mem policy = local, thread bind = spread, hugepages = off).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -65,6 +65,7 @@
     <li>Consider whether any fixed factors should be varied in a future study.</li>
   </ul>
   </section>
+
 
 
   <section class="uc-section">
@@ -94,6 +95,7 @@
       </div>
     </div>
   </section>
+
 
 
 
@@ -286,6 +288,135 @@ Factor importance:
   1. thread_bind  (effect: 4.7, contribution: 75.7%)
   2. hugepages  (effect: 0.8, contribution: 13.4%)
   3. mem_policy  (effect: -0.7, contribution: 10.9%)</div></div>
+  </section>
+
+  
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ea580c;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ea580c;line-height:1.2;">D = 0.5441</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>stream_triad</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:52.32%;height:100%;background:#f97316;border-radius:4px;"></div>
+                  </div>
+                  <span>0.5232</span>
+                </div>
+              </td>
+              <td>247.50 0.5232      247.50 GB/s</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>latency_ns</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:57.699999999999996%;height:100%;background:#f97316;border-radius:4px;"></div>
+                  </div>
+                  <span>0.5770</span>
+                </div>
+              </td>
+              <td>52.40 0.5770       52.40 ns</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>mem_policy</code></td><td>interleave</td></tr>
+            <tr><td><code>thread_bind</code></td><td>close</td></tr>
+            <tr><td><code>hugepages</code></td><td>off</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #1</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>latency_ns</code></td><td>52.40</td><td>34.00</td><td><span style="color:#dc2626;">+18.40</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#4</td><td><strong>0.5144</strong></td><td style="font-size:.78rem;">mem_policy=local,  thread_bind=spread,  hugepages=2M</td></tr>
+            <tr><td>#6</td><td><strong>0.4977</strong></td><td style="font-size:.78rem;">mem_policy=interleave,  thread_bind=spread,  hugepages=2M</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>latency_ns</code></td><td style="color:#ca8a04;font-weight:600;">0.7684</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.5441
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+stream_triad                 1.5       0.5232      247.50 GB/s   ↑
+latency_ns                   1.0       0.5770       52.40 ns   ↓
+
+Recommended settings:
+  mem_policy = interleave
+  thread_bind = close
+  hugepages = off
+  (from observed run #1)
+
+Trade-off summary:
+  stream_triad: 247.50 (best observed: 293.90, sacrifice: +46.40)
+  latency_ns: 52.40 (best observed: 34.00, sacrifice: +18.40)
+
+Model quality:
+  stream_triad: R² = 0.4616 (linear)
+  latency_ns: R² = 0.7684 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #1 (D=0.5441): mem_policy=interleave, thread_bind=close, hugepages=off
+  2. Run #4 (D=0.5144): mem_policy=local, thread_bind=spread, hugepages=2M
+  3. Run #6 (D=0.4977): mem_policy=interleave, thread_bind=spread, hugepages=2M</div></div>
   </section>
 
   <div class="chapter-nav">

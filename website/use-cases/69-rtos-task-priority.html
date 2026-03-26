@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>worst case latency us</strong>, the most influential factors were task priority levels (31.9%), preemption threshold (28.2%), stack size bytes (24.8%). The best observed value was <strong>26.0</strong> (at task priority levels = 16, tick rate hz = 100, stack size bytes = 512).</p>
-<p>For <strong>cpu utilization pct</strong>, the most influential factors were stack size bytes (51.7%), preemption threshold (25.7%), task priority levels (21.3%). The best observed value was <strong>90.0</strong> (at task priority levels = 4, tick rate hz = 1000, stack size bytes = 512).</p>
+    <p>For <strong>worst case latency us</strong>, the most influential factors were task priority levels (61.2%), tick rate hz (22.2%), stack size bytes (15.5%). The best observed value was <strong>26.0</strong> (at task priority levels = 16, tick rate hz = 1000, stack size bytes = 512).</p>
+<p>For <strong>cpu utilization pct</strong>, the most influential factors were task priority levels (50.7%), tick rate hz (21.0%), preemption threshold (17.5%). The best observed value was <strong>90.0</strong> (at task priority levels = 16, tick rate hz = 100, stack size bytes = 512).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -253,12 +252,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (worst_case_latency_us (↓), cpu_utilization_pct (↑)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/69_rtos_task_priority/config.json <span class="flag">--multi</span></div>
         </div>
@@ -266,7 +266,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -305,7 +305,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: worst_case_latency_us</h3>
-    <p>Top factors: task_priority_levels (31.9%), preemption_threshold (28.2%), stack_size_bytes (24.8%).</p>
+    <p>Top factors: task_priority_levels (61.2%), tick_rate_hz (22.2%), stack_size_bytes (15.5%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -318,7 +318,7 @@
     </div>
 
     <h3>Response: cpu_utilization_pct</h3>
-    <p>Top factors: stack_size_bytes (51.7%), preemption_threshold (25.7%), task_priority_levels (21.3%).</p>
+    <p>Top factors: task_priority_levels (50.7%), tick_rate_hz (21.0%), preemption_threshold (17.5%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -399,95 +399,259 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9166</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>worst_case_latency_us</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:86.25%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.8625</span>
+                </div>
+              </td>
+              <td>34.00 0.8625       34.00 us</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>cpu_utilization_pct</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>90.00 0.9545       90.00 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>task_priority_levels</code></td><td>16 levels</td></tr>
+            <tr><td><code>tick_rate_hz</code></td><td>100 Hz</td></tr>
+            <tr><td><code>stack_size_bytes</code></td><td>512 bytes</td></tr>
+            <tr><td><code>preemption_threshold</code></td><td>8 level</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #11</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>cpu_utilization_pct</code></td><td>90.00</td><td>90.00</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#12</td><td><strong>0.8217</strong></td><td style="font-size:.78rem;">task_priority_levels=4,  tick_rate_hz=100,  stack_size_bytes=512,  preemption_threshold=1</td></tr>
+            <tr><td>#7</td><td><strong>0.7018</strong></td><td style="font-size:.78rem;">task_priority_levels=4,  tick_rate_hz=100,  stack_size_bytes=4096,  preemption_threshold=8</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>cpu_utilization_pct</code></td><td style="color:#dc2626;font-weight:600;">0.0519</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9166
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+worst_case_latency_us        1.0       0.8625       34.00 us   ↓
+cpu_utilization_pct          1.5       0.9545       90.00 %   ↑
+
+Recommended settings:
+  task_priority_levels = 16 levels
+  tick_rate_hz = 100 Hz
+  stack_size_bytes = 512 bytes
+  preemption_threshold = 8 level
+  (from observed run #11)
+
+Trade-off summary:
+  worst_case_latency_us: 34.00 (best observed: 26.00, sacrifice: +8.00)
+  cpu_utilization_pct: 90.00 (best observed: 90.00, sacrifice: +0.00)
+
+Model quality:
+  worst_case_latency_us: R² = 0.3542 (linear)
+  cpu_utilization_pct: R² = 0.0519 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #11 (D=0.9166): task_priority_levels=16, tick_rate_hz=100, stack_size_bytes=512, preemption_threshold=8
+  2. Run #12 (D=0.8217): task_priority_levels=4, tick_rate_hz=100, stack_size_bytes=512, preemption_threshold=1
+  3. Run #7 (D=0.7018): task_priority_levels=4, tick_rate_hz=100, stack_size_bytes=4096, preemption_threshold=8</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: worst_case_latency_us ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-task_priority_levels    23.6250       6.2058            31.9%
-preemption_threshold    20.8750       6.2058            28.2%
-stack_size_bytes       -18.3750       6.2058            24.8%
-tick_rate_hz            11.1250       6.2058            15.0%
+task_priority_levels    36.1250       6.2058            61.2%
+tick_rate_hz           -13.1250       6.2058            22.2%
+stack_size_bytes        -9.1250       6.2058            15.5%
+preemption_threshold     0.6250       6.2058             1.1%
+
+=== ANOVA Table: worst_case_latency_us ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+task_priority_levels         1    5220.0625    5220.0625     14.575     0.0124
+tick_rate_hz                 1     689.0625     689.0625      1.924     0.2241
+stack_size_bytes             1     333.0625     333.0625      0.930     0.3792
+preemption_threshold         1       1.5625       1.5625      0.004     0.9499
+task_priority_levels*tick_rate_hz    1     588.0625     588.0625      1.642     0.2563
+task_priority_levels*stack_size_bytes    1      95.0625      95.0625      0.265     0.6284
+task_priority_levels*preemption_threshold    1       0.5625       0.5625      0.002     0.9699
+tick_rate_hz*stack_size_bytes    1     126.5625     126.5625      0.353     0.5781
+tick_rate_hz*preemption_threshold    1     370.5625     370.5625      1.035     0.3557
+stack_size_bytes*preemption_threshold    1      27.5625      27.5625      0.077     0.7926
+Error                        5    1790.8125     358.1625
+Total                       15    9242.9375     616.1958
 
 === Interaction Effects: worst_case_latency_us ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-task_priority_levels stack_size_bytes          10.8750            30.2%
-tick_rate_hz         stack_size_bytes         -10.1250            28.1%
-task_priority_levels preemption_threshold       6.1250            17.0%
-task_priority_levels tick_rate_hz               3.8750            10.8%
-tick_rate_hz         preemption_threshold       3.1250             8.7%
-stack_size_bytes     preemption_threshold      -1.8750             5.2%
+task_priority_levels tick_rate_hz              12.1250            34.4%
+tick_rate_hz         preemption_threshold       9.6250            27.3%
+tick_rate_hz         stack_size_bytes          -5.6250            16.0%
+task_priority_levels stack_size_bytes          -4.8750            13.8%
+stack_size_bytes     preemption_threshold       2.6250             7.4%
+task_priority_levels preemption_threshold       0.3750             1.1%
 
 === Summary Statistics: worst_case_latency_us ===
 
 task_priority_levels:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  16                  8    52.1250    22.4654    26.0000    94.0000
-  4                   8    75.7500    22.2887    39.0000   105.0000
+  16                  8    45.8750    14.9994    26.0000    71.0000
+  4                   8    82.0000    18.7006    47.0000   105.0000
 
 tick_rate_hz:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 8    58.3750    23.6700    34.0000    96.0000
-  1000                8    69.5000    26.2570    26.0000   105.0000
+  100                 8    70.5000    16.9031    53.0000    96.0000
+  1000                8    57.3750    30.5985    26.0000   105.0000
 
 stack_size_bytes:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  4096                8    73.1250    24.0799    39.0000   105.0000
-  512                 8    54.7500    23.4018    26.0000    96.0000
+  4096                8    68.5000    27.3653    26.0000   105.0000
+  512                 8    59.3750    22.8907    34.0000    96.0000
 
 preemption_threshold:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   8    53.5000    21.3876    26.0000    89.0000
-  8                   8    74.3750    24.7787    34.0000   105.0000
+  1                   8    63.6250    25.4274    34.0000    96.0000
+  8                   8    64.2500    25.9546    26.0000   105.0000
 
 === Main Effects: cpu_utilization_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-stack_size_bytes        17.3750       3.8683            51.7%
-preemption_threshold    -8.6250       3.8683            25.7%
-task_priority_levels    -7.1750       3.8683            21.3%
-tick_rate_hz             0.4500       3.8683             1.3%
+task_priority_levels   -17.7750       3.8683            50.7%
+tick_rate_hz             7.3750       3.8683            21.0%
+preemption_threshold     6.1500       3.8683            17.5%
+stack_size_bytes         3.7750       3.8683            10.8%
+
+=== ANOVA Table: cpu_utilization_pct ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+task_priority_levels         1    1263.8025    1263.8025      8.176     0.0354
+tick_rate_hz                 1     217.5625     217.5625      1.407     0.2888
+stack_size_bytes             1      57.0025      57.0025      0.369     0.5702
+preemption_threshold         1     151.2900     151.2900      0.979     0.3679
+task_priority_levels*tick_rate_hz    1      39.0625      39.0625      0.253     0.6365
+task_priority_levels*stack_size_bytes    1       0.9025       0.9025      0.006     0.9421
+task_priority_levels*preemption_threshold    1     605.1600     605.1600      3.915     0.1048
+tick_rate_hz*stack_size_bytes    1     142.8025     142.8025      0.924     0.3806
+tick_rate_hz*preemption_threshold    1     176.8900     176.8900      1.144     0.3336
+stack_size_bytes*preemption_threshold    1     163.8400     163.8400      1.060     0.3504
+Error                        5     772.9025     154.5805
+Total                       15    3591.2175     239.4145
 
 === Interaction Effects: cpu_utilization_pct ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-tick_rate_hz         preemption_threshold      -8.2000            33.6%
-stack_size_bytes     preemption_threshold       6.3250            25.9%
-task_priority_levels tick_rate_hz               3.0500            12.5%
-task_priority_levels stack_size_bytes          -2.5750            10.6%
-task_priority_levels preemption_threshold      -2.5750            10.6%
-tick_rate_hz         stack_size_bytes          -1.6500             6.8%
+task_priority_levels preemption_threshold     -12.3000            35.2%
+tick_rate_hz         preemption_threshold      -6.6500            19.0%
+stack_size_bytes     preemption_threshold      -6.4000            18.3%
+tick_rate_hz         stack_size_bytes           5.9750            17.1%
+task_priority_levels tick_rate_hz              -3.1250             8.9%
+task_priority_levels stack_size_bytes          -0.4750             1.4%
 
 === Summary Statistics: cpu_utilization_pct ===
 
 task_priority_levels:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  16                  8    61.4250    18.4809    34.4000    90.0000
-  4                   8    54.2500    11.9194    37.9000    69.2000
+  16                  8    66.7250    12.2521    54.3000    90.0000
+  4                   8    48.9500    13.5046    34.4000    74.1000
 
 tick_rate_hz:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 8    57.6125    16.4756    37.9000    90.0000
-  1000                8    58.0625    15.5393    34.4000    77.1000
+  100                 8    54.1500    12.1595    34.4000    69.2000
+  1000                8    61.5250    18.2783    37.9000    90.0000
 
 stack_size_bytes:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  4096                8    49.1500    13.0218    34.4000    74.1000
-  512                 8    66.5250    13.0749    47.4000    90.0000
+  4096                8    55.9500    14.1327    34.4000    77.1000
+  512                 8    59.7250    17.4686    37.9000    90.0000
 
 preemption_threshold:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   8    62.1500    11.2592    43.0000    77.1000
-  8                   8    53.5250    18.5406    34.4000    90.0000</div></div>
+  1                   8    54.7625    11.5488    34.4000    74.1000
+  8                   8    60.9125    18.9221    37.9000    90.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: worst_case_latency_us ===
@@ -495,97 +659,103 @@ Direction: minimize
 
 Best observed run: #12
   task_priority_levels = 16
-  tick_rate_hz = 100
+  tick_rate_hz = 1000
   stack_size_bytes = 512
   preemption_threshold = 1
   Value: 26.0
 
-RSM Model (linear, R² = 0.1330, Adj R² = -0.1823):
+RSM Model (linear, R² = 0.5934, Adj R² = 0.4455):
   Coefficients:
     intercept                      +63.9375
-    task_priority_levels           -3.5625
-    tick_rate_hz                   -7.0625
-    stack_size_bytes               +1.8125
-    preemption_threshold           -3.3125
+    task_priority_levels           -11.5625
+    tick_rate_hz                   +10.9375
+    stack_size_bytes               +3.4375
+    preemption_threshold           +8.8125
 
-RSM Model (quadratic, R² = 0.7697, Adj R² = -2.4548):
+RSM Model (quadratic, R² = 0.8474, Adj R² = -1.2896):
   Coefficients:
     intercept                      +12.7875
-    task_priority_levels           -3.5625
-    tick_rate_hz                   -7.0625
-    stack_size_bytes               +1.8125
-    preemption_threshold           -3.3125
-    task_priority_levels*tick_rate_hz +10.1875
-    task_priority_levels*stack_size_bytes +0.8125
-    task_priority_levels*preemption_threshold +0.4375
-    tick_rate_hz*stack_size_bytes  -9.4375
-    tick_rate_hz*preemption_threshold -10.8125
-    stack_size_bytes*preemption_threshold +7.5625
+    task_priority_levels           -11.5625
+    tick_rate_hz                   +10.9375
+    stack_size_bytes               +3.4375
+    preemption_threshold           +8.8125
+    task_priority_levels*tick_rate_hz -8.5625
+    task_priority_levels*stack_size_bytes +6.1875
+    task_priority_levels*preemption_threshold +0.0625
+    tick_rate_hz*stack_size_bytes  -0.5625
+    tick_rate_hz*preemption_threshold +1.5625
+    stack_size_bytes*preemption_threshold -5.6875
     task_priority_levels^2         +12.7875
     tick_rate_hz^2                 +12.7875
     stack_size_bytes^2             +12.7875
     preemption_threshold^2         +12.7875
 
   Curvature analysis:
-    task_priority_levels           coef=+12.7875  convex (has a minimum)
     tick_rate_hz                   coef=+12.7875  convex (has a minimum)
     stack_size_bytes               coef=+12.7875  convex (has a minimum)
     preemption_threshold           coef=+12.7875  convex (has a minimum)
+    task_priority_levels           coef=+12.7875  convex (has a minimum)
 
   Notable interactions:
-    tick_rate_hz*preemption_threshold coef=-10.8125  (antagonistic)
-    task_priority_levels*tick_rate_hz coef=+10.1875  (synergistic)
-    tick_rate_hz*stack_size_bytes  coef=-9.4375  (antagonistic)
-    stack_size_bytes*preemption_threshold coef=+7.5625  (synergistic)
-    task_priority_levels*stack_size_bytes coef=+0.8125  (synergistic)
-    task_priority_levels*preemption_threshold coef=+0.4375  (synergistic)
+    task_priority_levels*tick_rate_hz coef=-8.5625  (antagonistic)
+    task_priority_levels*stack_size_bytes coef=+6.1875  (synergistic)
+    stack_size_bytes*preemption_threshold coef=-5.6875  (antagonistic)
+    tick_rate_hz*preemption_threshold coef=+1.5625  (synergistic)
+    tick_rate_hz*stack_size_bytes  coef=-0.5625  (antagonistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     task_priority_levels = 4
-    tick_rate_hz = 100
+    tick_rate_hz = 1000
     stack_size_bytes = 4096
-    preemption_threshold = 1
-    Predicted value: 79.6875
+    preemption_threshold = 8
+    Predicted value: 98.6875
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Surface optimum (via L-BFGS-B, linear model):
+    task_priority_levels = 16
+    tick_rate_hz = 100
+    stack_size_bytes = 512
+    preemption_threshold = 1
+    Predicted value: 29.1875
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. tick_rate_hz  (effect: -14.1, contribution: 44.8%)
-  2. task_priority_levels  (effect: 7.1, contribution: 22.6%)
-  3. preemption_threshold  (effect: -6.6, contribution: 21.0%)
-  4. stack_size_bytes  (effect: -3.6, contribution: 11.5%)
+  1. task_priority_levels  (effect: 23.1, contribution: 33.3%)
+  2. tick_rate_hz  (effect: 21.9, contribution: 31.5%)
+  3. preemption_threshold  (effect: 17.6, contribution: 25.4%)
+  4. stack_size_bytes  (effect: -6.9, contribution: 9.9%)
 
 === Optimization: cpu_utilization_pct ===
 Direction: maximize
 
 Best observed run: #11
-  task_priority_levels = 4
-  tick_rate_hz = 1000
+  task_priority_levels = 16
+  tick_rate_hz = 100
   stack_size_bytes = 512
   preemption_threshold = 8
   Value: 90.0
 
-RSM Model (linear, R² = 0.3558, Adj R² = 0.1216):
+RSM Model (linear, R² = 0.4515, Adj R² = 0.2520):
   Coefficients:
     intercept                      +57.8375
-    task_priority_levels           +2.9875
-    tick_rate_hz                   +2.8375
-    stack_size_bytes               -6.3125
-    preemption_threshold           +4.8000
+    task_priority_levels           +7.3375
+    tick_rate_hz                   -6.6000
+    stack_size_bytes               +0.2000
+    preemption_threshold           +1.9750
 
-RSM Model (quadratic, R² = 0.8802, Adj R² = -0.7975):
+RSM Model (quadratic, R² = 0.7086, Adj R² = -3.3716):
   Coefficients:
     intercept                      +11.5675
-    task_priority_levels           +2.9875
-    tick_rate_hz                   +2.8375
-    stack_size_bytes               -6.3125
-    preemption_threshold           +4.8000
-    task_priority_levels*tick_rate_hz -3.5875
-    task_priority_levels*stack_size_bytes +2.4375
-    task_priority_levels*preemption_threshold -2.4750
-    tick_rate_hz*stack_size_bytes  +5.1875
-    tick_rate_hz*preemption_threshold +5.1750
-    stack_size_bytes*preemption_threshold -6.2500
+    task_priority_levels           +7.3375
+    tick_rate_hz                   -6.6000
+    stack_size_bytes               +0.2000
+    preemption_threshold           +1.9750
+    task_priority_levels*tick_rate_hz +3.9500
+    task_priority_levels*stack_size_bytes -1.8500
+    task_priority_levels*preemption_threshold -0.9750
+    tick_rate_hz*stack_size_bytes  +1.5125
+    tick_rate_hz*preemption_threshold -4.9625
+    stack_size_bytes*preemption_threshold +3.2875
     task_priority_levels^2         +11.5675
     tick_rate_hz^2                 +11.5675
     stack_size_bytes^2             +11.5675
@@ -594,31 +764,38 @@ RSM Model (quadratic, R² = 0.8802, Adj R² = -0.7975):
   Curvature analysis:
     task_priority_levels           coef=+11.5675  convex (has a minimum)
     tick_rate_hz                   coef=+11.5675  convex (has a minimum)
-    preemption_threshold           coef=+11.5675  convex (has a minimum)
     stack_size_bytes               coef=+11.5675  convex (has a minimum)
+    preemption_threshold           coef=+11.5675  convex (has a minimum)
 
   Notable interactions:
-    stack_size_bytes*preemption_threshold coef=-6.2500  (antagonistic)
-    tick_rate_hz*stack_size_bytes  coef=+5.1875  (synergistic)
-    tick_rate_hz*preemption_threshold coef=+5.1750  (synergistic)
-    task_priority_levels*tick_rate_hz coef=-3.5875  (antagonistic)
-    task_priority_levels*preemption_threshold coef=-2.4750  (antagonistic)
-    task_priority_levels*stack_size_bytes coef=+2.4375  (synergistic)
+    tick_rate_hz*preemption_threshold coef=-4.9625  (antagonistic)
+    task_priority_levels*tick_rate_hz coef=+3.9500  (synergistic)
+    stack_size_bytes*preemption_threshold coef=+3.2875  (synergistic)
+    task_priority_levels*stack_size_bytes coef=-1.8500  (antagonistic)
+    tick_rate_hz*stack_size_bytes  coef=+1.5125  (synergistic)
+    task_priority_levels*preemption_threshold coef=-0.9750  (antagonistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     task_priority_levels = 16
-    tick_rate_hz = 1000
-    stack_size_bytes = 512
+    tick_rate_hz = 100
+    stack_size_bytes = 4096
     preemption_threshold = 8
-    Predicted value: 74.7750
+    Predicted value: 73.9500
+
+  Surface optimum (via L-BFGS-B, linear model):
+    task_priority_levels = 16
+    tick_rate_hz = 100
+    stack_size_bytes = 4096
+    preemption_threshold = 8
+    Predicted value: 73.9500
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. stack_size_bytes  (effect: 12.6, contribution: 37.3%)
-  2. preemption_threshold  (effect: 9.6, contribution: 28.3%)
-  3. task_priority_levels  (effect: -6.0, contribution: 17.6%)
-  4. tick_rate_hz  (effect: 5.7, contribution: 16.8%)</div></div>
+  1. task_priority_levels  (effect: -14.7, contribution: 45.5%)
+  2. tick_rate_hz  (effect: -13.2, contribution: 41.0%)
+  3. preemption_threshold  (effect: 4.0, contribution: 12.3%)
+  4. stack_size_bytes  (effect: -0.4, contribution: 1.2%)</div></div>
   </section>
 
   <!-- Nav -->

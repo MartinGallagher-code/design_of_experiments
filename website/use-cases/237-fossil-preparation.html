@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>detail score</strong>, the most influential factors were pressure psi (47.9%), nozzle mm (33.7%), media mesh (18.4%). The best observed value was <strong>6.8</strong> (at pressure psi = 20, nozzle mm = 17.5, media mesh = 100).</p>
-<p>For <strong>damage score</strong>, the most influential factors were nozzle mm (51.6%), media mesh (36.8%), pressure psi (11.6%). The best observed value was <strong>1.5</strong> (at pressure psi = 20, nozzle mm = 30, media mesh = 250).</p>
+    <p>For <strong>detail score</strong>, the most influential factors were media mesh (42.8%), pressure psi (35.8%), nozzle mm (21.4%). The best observed value was <strong>6.8</strong> (at pressure psi = 50, nozzle mm = 17.5, media mesh = 250).</p>
+<p>For <strong>damage score</strong>, the most influential factors were media mesh (58.5%), nozzle mm (28.9%), pressure psi (12.5%). The best observed value was <strong>1.5</strong> (at pressure psi = 20, nozzle mm = 30, media mesh = 250).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (detail_score (↑), damage_score (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/237_fossil_preparation/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -264,48 +264,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/237_fossil_preparation/config.json \
     <span class="flag">--output</span> use_cases/237_fossil_preparation/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Geoscience Experiment? Use the Manual Workflow</h4>
-        <p>Geoscience experiments involve real soil, rock, water, and field conditions. Results require physical sampling and laboratory analysis. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/237_fossil_preparation/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/237_fossil_preparation/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/237_fossil_preparation/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/237_fossil_preparation/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/237_fossil_preparation/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/237_fossil_preparation/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/237_fossil_preparation/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -337,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: detail_score</h3>
-    <p>Top factors: pressure_psi (47.9%), nozzle_mm (33.7%), media_mesh (18.4%).</p>
+    <p>Top factors: media_mesh (42.8%), pressure_psi (35.8%), nozzle_mm (21.4%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -350,7 +308,7 @@
     </div>
 
     <h3>Response: damage_score</h3>
-    <p>Top factors: nozzle_mm (51.6%), media_mesh (36.8%), pressure_psi (11.6%).</p>
+    <p>Top factors: media_mesh (58.5%), nozzle_mm (28.9%), pressure_psi (12.5%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -401,128 +359,276 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.7609</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>detail_score</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:100.0%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>1.0000</span>
+                </div>
+              </td>
+              <td>6.95 1.0000        6.95 pts</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>damage_score</code></td>
+              <td>2.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:61.99%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.6199</span>
+                </div>
+              </td>
+              <td>3.23 0.6199        3.23 pts</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>pressure_psi</code></td><td>80 psi</td></tr>
+            <tr><td><code>nozzle_mm</code></td><td>5 mm</td></tr>
+            <tr><td><code>media_mesh</code></td><td>100 mesh</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from RSM model prediction</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>damage_score</code></td><td>3.23</td><td>1.50</td><td><span style="color:#dc2626;">+1.73</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#7</td><td><strong>0.6639</strong></td><td style="font-size:.78rem;">pressure_psi=20,  nozzle_mm=5,  media_mesh=250</td></tr>
+            <tr><td>#2</td><td><strong>0.6492</strong></td><td style="font-size:.78rem;">pressure_psi=80,  nozzle_mm=17.5,  media_mesh=100</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>damage_score</code></td><td style="color:#dc2626;font-weight:600;">0.4819</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.7609
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+detail_score                 1.5       1.0000        6.95 pts   ↑
+damage_score                 2.0       0.6199        3.23 pts   ↓
+
+Recommended settings:
+  pressure_psi = 80 psi
+  nozzle_mm = 5 mm
+  media_mesh = 100 mesh
+  (from RSM model prediction)
+
+Trade-off summary:
+  detail_score: 6.95 (best observed: 6.80, sacrifice: -0.15)
+  damage_score: 3.23 (best observed: 1.50, sacrifice: +1.73)
+
+Model quality:
+  detail_score: R² = 0.7518 (quadratic)
+  damage_score: R² = 0.4819 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #9 (D=0.6927): pressure_psi=80, nozzle_mm=5, media_mesh=250
+  2. Run #7 (D=0.6639): pressure_psi=20, nozzle_mm=5, media_mesh=250
+  3. Run #2 (D=0.6492): pressure_psi=80, nozzle_mm=17.5, media_mesh=100</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_detail_score_pressure_psi_vs_nozzle_mm.png
-  RSM surface: rsm_detail_score_pressure_psi_vs_media_mesh.png
-  RSM surface: rsm_detail_score_nozzle_mm_vs_media_mesh.png
-  RSM surface: rsm_damage_score_pressure_psi_vs_nozzle_mm.png
-  RSM surface: rsm_damage_score_pressure_psi_vs_media_mesh.png
-  RSM surface: rsm_damage_score_nozzle_mm_vs_media_mesh.png
-
-=== Main Effects: detail_score ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: detail_score ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-pressure_psi             0.9750       0.2370            47.9%
-nozzle_mm                0.6857       0.2370            33.7%
-media_mesh               0.3750       0.2370            18.4%
+media_mesh               1.1750       0.2370            42.8%
+pressure_psi             0.9821       0.2370            35.8%
+nozzle_mm                0.5857       0.2370            21.4%
+
+=== ANOVA Table: detail_score ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+pressure_psi                 2       3.6012       1.8006      4.061     0.0606
+nozzle_mm                    2       0.8748       0.4374      0.987     0.4140
+media_mesh                   2       3.9783       1.9892      4.487     0.0493
+Lack of Fit                  6       2.4524       0.4087      0.922     0.6038
+Pure Error                   2       0.8867       0.4433
+Error                        8       3.3390       0.4433
+Total                       14      11.7933       0.8424
 
 === Summary Statistics: detail_score ===
 
 pressure_psi:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  20                  4     6.0750     0.8846     5.0000     6.8000
-  50                  7     5.3286     0.9160     3.8000     6.5000
-  80                  4     5.1000     0.8679     4.0000     6.1000
+  20                  4     5.9250     0.6752     5.3000     6.8000
+  50                  7     4.9429     0.9199     3.8000     6.5000
+  80                  4     5.9250     0.7632     5.0000     6.8000
 
 nozzle_mm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  17.5                7     5.6857     0.8071     4.6000     6.8000
-  30                  4     5.0000     1.3952     3.8000     6.8000
-  5                   4     5.5500     0.5196     5.0000     6.2000
+  17.5                7     5.6857     0.6817     5.0000     6.8000
+  30                  4     5.1000     0.9695     4.0000     6.1000
+  5                   4     5.4500     1.3304     3.8000     6.8000
 
 media_mesh:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4     5.6750     0.5737     5.0000     6.2000
-  250                 7     5.4429     1.0014     4.0000     6.8000
-  400                 4     5.3000     1.2247     3.8000     6.8000
+  100                 4     4.8250     0.5679     4.0000     5.3000
+  250                 7     6.0000     0.5598     5.3000     6.8000
+  400                 4     5.1750     1.2868     3.8000     6.8000
 
 === Main Effects: damage_score ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-nozzle_mm                0.8750       0.3406            51.6%
-media_mesh               0.6250       0.3406            36.8%
-pressure_psi             0.1964       0.3406            11.6%
+media_mesh               2.0000       0.3406            58.5%
+nozzle_mm                0.9893       0.3406            28.9%
+pressure_psi             0.4286       0.3406            12.5%
+
+=== ANOVA Table: damage_score ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+pressure_psi                 2       0.4697       0.2349      0.102     0.9038
+nozzle_mm                    2       2.7204       1.3602      0.593     0.5752
+media_mesh                   2      11.1697       5.5849      2.435     0.1493
+Lack of Fit                  6       5.4175       0.9029      0.394     0.8412
+Pure Error                   2       4.5867       2.2933
+Error                        8      10.0041       2.2933
+Total                       14      24.3640       1.7403
 
 === Summary Statistics: damage_score ===
 
 pressure_psi:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  20                  4     3.8250     1.7347     1.5000     5.6000
-  50                  7     3.9714     1.0404     2.8000     5.8000
-  80                  4     3.7750     1.7056     2.2000     6.2000
+  20                  4     3.9000     0.9695     2.8000     4.9000
+  50                  7     4.0286     1.4523     2.2000     6.2000
+  80                  4     3.6000     1.6753     1.5000     5.6000
 
 nozzle_mm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  17.5                7     3.9857     1.4645     1.5000     6.2000
-  30                  4     4.2250     1.7633     2.2000     5.8000
-  5                   4     3.3500     0.4041     2.8000     3.7000
+  17.5                7     4.3143     1.7705     1.5000     6.2000
+  30                  4     3.3250     0.7890     2.2000     4.0000
+  5                   4     3.6750     0.5679     3.3000     4.5000
 
 media_mesh:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4     3.5750     1.7595     1.5000     5.8000
-  250                 7     3.8714     1.1131     2.2000     5.6000
-  400                 4     4.2000     1.5122     2.8000     6.2000
-
-Pareto chart (detail_score): use_cases/237_fossil_preparation/results/analysis/pareto_detail_score.png
-
-Pareto chart (damage_score): use_cases/237_fossil_preparation/results/analysis/pareto_damage_score.png
-Main effects (detail_score): use_cases/237_fossil_preparation/results/analysis/main_effects_detail_score.png
-Main effects (damage_score): use_cases/237_fossil_preparation/results/analysis/main_effects_damage_score.png</div></div>
+  100                 4     2.4500     0.7767     1.5000     3.3000
+  250                 7     4.3714     1.1786     3.4000     6.2000
+  400                 4     4.4500     1.0083     3.3000     5.6000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: detail_score ===
 Direction: maximize
 
 Best observed run: #3
-  pressure_psi = 20
+  pressure_psi = 50
   nozzle_mm = 17.5
-  media_mesh = 100
+  media_mesh = 250
   Value: 6.8
 
-RSM Model (linear, R² = 0.2205, Adj R² = 0.0079):
+RSM Model (linear, R² = 0.0664, Adj R² = -0.1883):
   Coefficients:
     intercept                      +5.4667
-    pressure_psi                   -0.0000
-    nozzle_mm                      -0.3500
-    media_mesh                     -0.4500
+    pressure_psi                   +0.2125
+    nozzle_mm                      +0.1125
+    media_mesh                     +0.2000
 
-RSM Model (quadratic, R² = 0.4182, Adj R² = -0.6291):
+RSM Model (quadratic, R² = 0.6193, Adj R² = -0.0658):
   Coefficients:
-    intercept                      +4.7667
-    pressure_psi                   -0.0000
-    nozzle_mm                      -0.3500
-    media_mesh                     -0.4500
-    pressure_psi*nozzle_mm         -0.0250
-    pressure_psi*media_mesh        +0.0750
-    nozzle_mm*media_mesh           +0.1250
-    pressure_psi^2                 +0.6542
-    nozzle_mm^2                    +0.4542
-    media_mesh^2                   +0.2042
+    intercept                      +5.4333
+    pressure_psi                   +0.2125
+    nozzle_mm                      +0.1125
+    media_mesh                     +0.2000
+    pressure_psi*nozzle_mm         +0.1750
+    pressure_psi*media_mesh        -0.5000
+    nozzle_mm*media_mesh           +0.2500
+    pressure_psi^2                 -0.9042
+    nozzle_mm^2                    +0.4458
+    media_mesh^2                   +0.5208
 
   Curvature analysis:
-    pressure_psi                   coef=+0.6542  convex (has a minimum)
-    nozzle_mm                      coef=+0.4542  convex (has a minimum)
-    media_mesh                     coef=+0.2042  convex (has a minimum)
+    pressure_psi                   coef=-0.9042  concave (has a maximum)
+    media_mesh                     coef=+0.5208  convex (has a minimum)
+    nozzle_mm                      coef=+0.4458  convex (has a minimum)
 
-  Predicted optimum (from linear model):
+  Notable interactions:
+    pressure_psi*media_mesh        coef=-0.5000  (antagonistic)
+
+  Predicted optimum (from quadratic model, at observed points):
     pressure_psi = 50
-    nozzle_mm = 5
-    media_mesh = 100
-    Predicted value: 6.2667
+    nozzle_mm = 30
+    media_mesh = 400
+    Predicted value: 6.9625
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Surface optimum (via L-BFGS-B, quadratic model):
+    pressure_psi = 48.1336
+    nozzle_mm = 30
+    media_mesh = 400
+    Predicted value: 6.9660
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. media_mesh  (effect: 0.9, contribution: 40.0%)
-  2. nozzle_mm  (effect: 0.7, contribution: 33.0%)
-  3. pressure_psi  (effect: 0.6, contribution: 27.0%)
+  1. pressure_psi  (effect: 1.2, contribution: 47.0%)
+  2. media_mesh  (effect: 0.8, contribution: 29.8%)
+  3. nozzle_mm  (effect: 0.6, contribution: 23.2%)
 
 === Optimization: damage_score ===
 Direction: minimize
@@ -533,47 +639,52 @@ Best observed run: #7
   media_mesh = 250
   Value: 1.5
 
-RSM Model (linear, R² = 0.1842, Adj R² = -0.0383):
+RSM Model (linear, R² = 0.3263, Adj R² = 0.1426):
   Coefficients:
     intercept                      +3.8800
-    pressure_psi                   +0.6250
-    nozzle_mm                      +0.3375
-    media_mesh                     -0.2375
+    pressure_psi                   +0.3500
+    nozzle_mm                      -0.1250
+    media_mesh                     +0.9250
 
-RSM Model (quadratic, R² = 0.4351, Adj R² = -0.5818):
+RSM Model (quadratic, R² = 0.6554, Adj R² = 0.0350):
   Coefficients:
-    intercept                      +2.9667
-    pressure_psi                   +0.6250
-    nozzle_mm                      +0.3375
-    media_mesh                     -0.2375
-    pressure_psi*nozzle_mm         +0.3500
-    pressure_psi*media_mesh        +0.4500
-    nozzle_mm*media_mesh           +0.1250
-    pressure_psi^2                 +0.0542
-    nozzle_mm^2                    +0.8792
-    media_mesh^2                   +0.7792
+    intercept                      +3.8667
+    pressure_psi                   +0.3500
+    nozzle_mm                      -0.1250
+    media_mesh                     +0.9250
+    pressure_psi*nozzle_mm         +0.1500
+    pressure_psi*media_mesh        +0.0000
+    nozzle_mm*media_mesh           +0.5000
+    pressure_psi^2                 -0.1083
+    nozzle_mm^2                    -0.8583
+    media_mesh^2                   +0.9917
 
   Curvature analysis:
-    nozzle_mm                      coef=+0.8792  convex (has a minimum)
-    media_mesh                     coef=+0.7792  convex (has a minimum)
-    pressure_psi                   coef=+0.0542  negligible curvature
+    media_mesh                     coef=+0.9917  convex (has a minimum)
+    nozzle_mm                      coef=-0.8583  concave (has a maximum)
+    pressure_psi                   coef=-0.1083  concave (has a maximum)
 
   Notable interactions:
-    pressure_psi*media_mesh        coef=+0.4500  (synergistic)
-    pressure_psi*nozzle_mm         coef=+0.3500  (synergistic)
+    nozzle_mm*media_mesh           coef=+0.5000  (synergistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     pressure_psi = 80
+    nozzle_mm = 17.5
+    media_mesh = 400
+    Predicted value: 5.1550
+
+  Surface optimum (via L-BFGS-B, linear model):
+    pressure_psi = 20
     nozzle_mm = 30
-    media_mesh = 250
-    Predicted value: 4.8425
+    media_mesh = 100
+    Predicted value: 2.4800
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. pressure_psi  (effect: 1.2, contribution: 37.2%)
-  2. nozzle_mm  (effect: 1.2, contribution: 34.5%)
-  3. media_mesh  (effect: 1.0, contribution: 28.3%)</div></div>
+  1. media_mesh  (effect: 2.0, contribution: 53.2%)
+  2. nozzle_mm  (effect: 1.0, contribution: 28.0%)
+  3. pressure_psi  (effect: 0.7, contribution: 18.8%)</div></div>
   </section>
 
   <!-- Nav -->

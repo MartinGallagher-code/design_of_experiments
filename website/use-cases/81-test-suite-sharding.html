@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>total wall time min</strong>, the most influential factors were timeout multiplier (54.7%), shard count (31.5%), retry flaky count (13.8%). The best observed value was <strong>22.1</strong> (at shard count = 16, retry flaky count = 0, timeout multiplier = 3).</p>
-<p>For <strong>flaky failure rate</strong>, the most influential factors were timeout multiplier (59.1%), retry flaky count (24.1%), shard count (16.8%). The best observed value was <strong>2.01</strong> (at shard count = 2, retry flaky count = 3, timeout multiplier = 3).</p>
+    <p>For <strong>total wall time min</strong>, the most influential factors were retry flaky count (54.7%), timeout multiplier (36.2%), shard count (9.1%). The best observed value was <strong>22.1</strong> (at shard count = 9, retry flaky count = 1.5, timeout multiplier = 2).</p>
+<p>For <strong>flaky failure rate</strong>, the most influential factors were timeout multiplier (40.1%), retry flaky count (33.5%), shard count (26.4%). The best observed value was <strong>2.01</strong> (at shard count = 9, retry flaky count = 1.5, timeout multiplier = 2).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -254,6 +253,18 @@
     <div class="uc-step">
       <div class="uc-step-num">6</div>
       <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/81_test_suite_sharding/config.json <span class="flag">--multi</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">7</div>
+      <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
@@ -291,7 +302,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: total_wall_time_min</h3>
-    <p>Top factors: timeout_multiplier (54.7%), shard_count (31.5%), retry_flaky_count (13.8%).</p>
+    <p>Top factors: retry_flaky_count (54.7%), timeout_multiplier (36.2%), shard_count (9.1%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -304,7 +315,7 @@
     </div>
 
     <h3>Response: flaky_failure_rate</h3>
-    <p>Top factors: timeout_multiplier (59.1%), retry_flaky_count (24.1%), shard_count (16.8%).</p>
+    <p>Top factors: timeout_multiplier (40.1%), retry_flaky_count (33.5%), shard_count (26.4%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -355,184 +366,348 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9410</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>total_wall_time_min</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:92.09%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9209</span>
+                </div>
+              </td>
+              <td>23.80 0.9209       23.80 min</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>flaky_failure_rate</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>2.01 0.9545        2.01 %</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>shard_count</code></td><td>16 shards</td></tr>
+            <tr><td><code>retry_flaky_count</code></td><td>3 retries</td></tr>
+            <tr><td><code>timeout_multiplier</code></td><td>1 x</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #9</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>flaky_failure_rate</code></td><td>2.01</td><td>2.01</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#7</td><td><strong>0.8485</strong></td><td style="font-size:.78rem;">shard_count=9,  retry_flaky_count=1.5,  timeout_multiplier=2</td></tr>
+            <tr><td>#18</td><td><strong>0.8462</strong></td><td style="font-size:.78rem;">shard_count=2,  retry_flaky_count=3,  timeout_multiplier=1</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>flaky_failure_rate</code></td><td style="color:#ca8a04;font-weight:600;">0.7506</td><td>quadratic</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9410
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+total_wall_time_min          1.0       0.9209       23.80 min   ↓
+flaky_failure_rate           1.5       0.9545        2.01 %   ↓
+
+Recommended settings:
+  shard_count = 16 shards
+  retry_flaky_count = 3 retries
+  timeout_multiplier = 1 x
+  (from observed run #9)
+
+Trade-off summary:
+  total_wall_time_min: 23.80 (best observed: 22.10, sacrifice: +1.70)
+  flaky_failure_rate: 2.01 (best observed: 2.01, sacrifice: +0.00)
+
+Model quality:
+  total_wall_time_min: R² = 0.1755 (linear)
+  flaky_failure_rate: R² = 0.7506 (quadratic)
+
+Top 3 observed runs by overall desirability:
+  1. Run #9 (D=0.9410): shard_count=16, retry_flaky_count=3, timeout_multiplier=1
+  2. Run #7 (D=0.8485): shard_count=9, retry_flaky_count=1.5, timeout_multiplier=2
+  3. Run #18 (D=0.8462): shard_count=2, retry_flaky_count=3, timeout_multiplier=1</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: total_wall_time_min ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-timeout_multiplier      40.6000       2.3938            54.7%
-shard_count             23.4000       2.3938            31.5%
-retry_flaky_count       10.2500       2.3938            13.8%
+retry_flaky_count       40.9250       2.3938            54.7%
+timeout_multiplier      27.1000       2.3938            36.2%
+shard_count              6.7917       2.3938             9.1%
+
+=== ANOVA Table: total_wall_time_min ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+shard_count                  4     152.2290      38.0573      0.680     0.6231
+retry_flaky_count            4    1373.9082     343.4770      6.135     0.0115
+timeout_multiplier           4     563.0365     140.7591      2.514     0.1154
+Lack of Fit                  2     166.2707      83.1354      1.485     0.2900
+Pure Error                   7     391.8887      55.9841
+Error                        9     558.1595      55.9841
+Total                       21    2647.3332     126.0635
 
 === Summary Statistics: total_wall_time_min ===
 
 shard_count:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -3.78019            1    25.5000     0.0000    25.5000    25.5000
-  16                  4    28.7000     3.3566    23.8000    31.4000
-  2                   4    29.2250     3.9483    25.1000    34.4000
-  21.7802             1    48.9000     0.0000    48.9000    48.9000
-  9                  12    37.2667    13.2876    22.1000    68.1000
+  -3.78019            1    29.8000     0.0000    29.8000    29.8000
+  16                  4    32.2750    11.7293    22.1000    48.9000
+  2                   4    30.9750     5.7593    25.5000    39.1000
+  21.7802             1    31.4000     0.0000    31.4000    31.4000
+  9                  12    36.5917    13.4261    23.8000    68.1000
 
 retry_flaky_count:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -1.23861            1    39.1000     0.0000    39.1000    39.1000
-  0                   4    28.8500     4.4132    23.8000    34.4000
-  1.5                12    37.6833    14.0194    22.1000    68.1000
-  3                   4    29.0750     2.7439    25.1000    31.4000
-  4.23861             1    30.3000     0.0000    30.3000    30.3000
+  -1.23861            1    34.4000     0.0000    34.4000    34.4000
+  0                   4    27.1750     4.2090    22.1000    31.5000
+  1.5                12    33.1500     9.1265    23.8000    54.7000
+  3                   4    36.0750    10.0672    26.6000    48.9000
+  4.23861             1    68.1000     0.0000    68.1000    68.1000
 
 timeout_multiplier:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.174258            1    27.5000     0.0000    27.5000    27.5000
-  1                   4    30.1250     3.8913    25.1000    34.4000
-  2                  12    35.5000    10.1463    22.1000    54.7000
-  3                   4    27.8000     2.8798    23.8000    30.0000
-  3.82574             1    68.1000     0.0000    68.1000    68.1000
+  0.174258            1    27.6000     0.0000    27.6000    27.6000
+  1                   4    33.9000    12.4075    22.1000    48.9000
+  2                  12    34.8333    12.0984    23.8000    68.1000
+  3                   4    29.3500     2.0306    26.6000    31.5000
+  3.82574             1    54.7000     0.0000    54.7000    54.7000
 
 === Main Effects: flaky_failure_rate ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-timeout_multiplier      10.1200       0.6133            59.1%
-retry_flaky_count        4.1300       0.6133            24.1%
-shard_count              2.8767       0.6133            16.8%
+timeout_multiplier       3.5808       0.6133            40.1%
+retry_flaky_count        2.9875       0.6133            33.5%
+shard_count              2.3592       0.6133            26.4%
+
+=== ANOVA Table: flaky_failure_rate ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+shard_count                  4      23.6483       5.9121      0.360     0.8311
+retry_flaky_count            4      24.5013       6.1253      0.373     0.8224
+timeout_multiplier           4      35.7853       8.9463      0.545     0.7076
+Lack of Fit                  2       0.0000       0.0000      0.000     1.0000
+Pure Error                   7     114.9788      16.4255
+Error                        9      89.8200      16.4255
+Total                       21     173.7550       8.2740
 
 === Summary Statistics: flaky_failure_rate ===
 
 shard_count:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -3.78019            1     4.8700     0.0000     4.8700     4.8700
-  16                  4     4.2375     1.4969     2.0100     5.2400
-  2                   4     6.3100     2.7818     3.4300     9.9400
-  21.7802             1     3.6600     0.0000     3.6600     3.6600
-  9                  12     6.5367     3.3189     2.5000    13.9500
+  -3.78019            1     5.0800     0.0000     5.0800     5.0800
+  16                  4     4.8625     1.6430     3.5500     7.0600
+  2                   4     4.4425     1.3271     2.5000     5.5000
+  21.7802             1     5.2400     0.0000     5.2400     5.2400
+  9                  12     6.8017     3.5256     2.0100    13.9500
 
 retry_flaky_count:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -1.23861            1     2.5000     0.0000     2.5000     2.5000
-  0                   4     4.2825     2.0461     2.0100     6.7900
-  1.5                12     6.6300     3.2076     3.5500    13.9500
-  3                   4     6.2650     2.4567     4.8000     9.9400
-  4.23861             1     4.9100     0.0000     4.9100     4.9100
+  -1.23861            1     6.7900     0.0000     6.7900     6.7900
+  0                   4     5.5025     1.0477     4.8700     7.0600
+  1.5                12     6.5442     3.5840     2.0100    13.9500
+  3                   4     3.8025     1.2466     2.5000     5.5000
+  4.23861             1     6.6200     0.0000     6.6200     6.6200
 
 timeout_multiplier:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.174258            1    13.9500     0.0000    13.9500    13.9500
-  1                   4     6.7175     2.3004     4.9000     9.9400
-  2                  12     5.5333     2.4341     2.5000    11.3300
-  3                   4     3.8300     1.4114     2.0100     5.0800
-  3.82574             1     6.6200     0.0000     6.6200     6.6200</div></div>
+  0.174258            1     3.4300     0.0000     3.4300     3.4300
+  1                   4     4.5225     1.9489     2.5000     7.0600
+  2                  12     7.0108     3.3625     2.0100    13.9500
+  3                   4     4.7825     0.8575     3.5500     5.5000
+  3.82574             1     4.3800     0.0000     4.3800     4.3800</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: total_wall_time_min ===
 Direction: minimize
 
 Best observed run: #16
-  shard_count = 16
-  retry_flaky_count = 0
-  timeout_multiplier = 3
+  shard_count = 9
+  retry_flaky_count = 1.5
+  timeout_multiplier = 2
   Value: 22.1
 
-RSM Model (linear, R² = 0.0718, Adj R² = -0.0829):
+RSM Model (linear, R² = 0.2685, Adj R² = 0.1466):
   Coefficients:
     intercept                      +34.2409
-    shard_count                    +2.6153
-    retry_flaky_count              -1.2320
-    timeout_multiplier             +2.1469
+    shard_count                    +5.7302
+    retry_flaky_count              +1.5483
+    timeout_multiplier             +3.6378
 
-RSM Model (quadratic, R² = 0.2745, Adj R² = -0.2696):
+RSM Model (quadratic, R² = 0.6722, Adj R² = 0.4264):
   Coefficients:
-    intercept                      +36.4672
-    shard_count                    +2.6153
-    retry_flaky_count              -1.2320
-    timeout_multiplier             +2.1469
-    shard_count*retry_flaky_count  +2.0500
-    shard_count*timeout_multiplier -3.4750
-    retry_flaky_count*timeout_multiplier -0.7750
-    shard_count^2                  +1.1518
-    retry_flaky_count^2            -4.1882
-    timeout_multiplier^2           -0.3032
+    intercept                      +30.3462
+    shard_count                    +5.7302
+    retry_flaky_count              +1.5483
+    timeout_multiplier             +3.6378
+    shard_count*retry_flaky_count  +4.3000
+    shard_count*timeout_multiplier +4.5750
+    retry_flaky_count*timeout_multiplier +5.8500
+    shard_count^2                  +3.1374
+    retry_flaky_count^2            +3.6774
+    timeout_multiplier^2           -0.9726
 
   Curvature analysis:
-    retry_flaky_count              coef=-4.1882  concave (has a maximum)
-    shard_count                    coef=+1.1518  convex (has a minimum)
-    timeout_multiplier             coef=-0.3032  concave (has a maximum)
+    retry_flaky_count              coef=+3.6774  convex (has a minimum)
+    shard_count                    coef=+3.1374  convex (has a minimum)
+    timeout_multiplier             coef=-0.9726  concave (has a maximum)
 
   Notable interactions:
-    shard_count*timeout_multiplier coef=-3.4750  (antagonistic)
-    shard_count*retry_flaky_count  coef=+2.0500  (synergistic)
-    retry_flaky_count*timeout_multiplier coef=-0.7750  (antagonistic)
+    retry_flaky_count*timeout_multiplier coef=+5.8500  (synergistic)
+    shard_count*timeout_multiplier coef=+4.5750  (synergistic)
+    shard_count*retry_flaky_count  coef=+4.3000  (synergistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from quadratic model, at observed points):
     shard_count = 16
-    retry_flaky_count = 0
+    retry_flaky_count = 3
     timeout_multiplier = 3
-    Predicted value: 40.2351
+    Predicted value: 61.8296
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Surface optimum (via L-BFGS-B, quadratic model):
+    shard_count = 2.91421
+    retry_flaky_count = 3
+    timeout_multiplier = 1
+    Predicted value: 22.7400
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. shard_count  (effect: 24.4, contribution: 41.6%)
-  2. timeout_multiplier  (effect: 21.3, contribution: 36.3%)
-  3. retry_flaky_count  (effect: 12.9, contribution: 22.0%)
+  1. shard_count  (effect: 25.0, contribution: 42.5%)
+  2. retry_flaky_count  (effect: 18.9, contribution: 32.2%)
+  3. timeout_multiplier  (effect: 14.8, contribution: 25.2%)
 
 === Optimization: flaky_failure_rate ===
 Direction: minimize
 
 Best observed run: #9
-  shard_count = 2
-  retry_flaky_count = 3
-  timeout_multiplier = 3
+  shard_count = 9
+  retry_flaky_count = 1.5
+  timeout_multiplier = 2
   Value: 2.01
 
-RSM Model (linear, R² = 0.3558, Adj R² = 0.2485):
+RSM Model (linear, R² = 0.1543, Adj R² = 0.0133):
   Coefficients:
     intercept                      +5.8709
-    shard_count                    -0.9259
-    retry_flaky_count              -1.8325
-    timeout_multiplier             +0.0109
+    shard_count                    -0.6971
+    retry_flaky_count              -0.6312
+    timeout_multiplier             +0.9713
 
-RSM Model (quadratic, R² = 0.8072, Adj R² = 0.6626):
+RSM Model (quadratic, R² = 0.3966, Adj R² = -0.0559):
   Coefficients:
-    intercept                      +5.7633
-    shard_count                    -0.9259
-    retry_flaky_count              -1.8325
-    timeout_multiplier             +0.0109
-    shard_count*retry_flaky_count  +2.4150
-    shard_count*timeout_multiplier +1.3200
-    retry_flaky_count*timeout_multiplier -0.5175
-    shard_count^2                  -0.0852
-    retry_flaky_count^2            +0.7023
-    timeout_multiplier^2           -0.4557
+    intercept                      +6.6380
+    shard_count                    -0.6971
+    retry_flaky_count              -0.6312
+    timeout_multiplier             +0.9713
+    shard_count*retry_flaky_count  +1.3500
+    shard_count*timeout_multiplier -1.3075
+    retry_flaky_count*timeout_multiplier -0.4425
+    shard_count^2                  -0.2061
+    retry_flaky_count^2            -0.7641
+    timeout_multiplier^2           -0.1806
 
   Curvature analysis:
-    retry_flaky_count              coef=+0.7023  convex (has a minimum)
-    timeout_multiplier             coef=-0.4557  concave (has a maximum)
-    shard_count                    coef=-0.0852  negligible curvature
+    retry_flaky_count              coef=-0.7641  concave (has a maximum)
+    shard_count                    coef=-0.2061  concave (has a maximum)
+    timeout_multiplier             coef=-0.1806  concave (has a maximum)
 
   Notable interactions:
-    shard_count*retry_flaky_count  coef=+2.4150  (synergistic)
-    shard_count*timeout_multiplier coef=+1.3200  (synergistic)
-    retry_flaky_count*timeout_multiplier coef=-0.5175  (antagonistic)
+    shard_count*retry_flaky_count  coef=+1.3500  (synergistic)
+    shard_count*timeout_multiplier coef=-1.3075  (antagonistic)
+    retry_flaky_count*timeout_multiplier coef=-0.4425  (antagonistic)
 
-  Predicted optimum (from quadratic model):
+  Predicted optimum (from linear model, at observed points):
     shard_count = 2
     retry_flaky_count = 0
-    timeout_multiplier = 1
-    Predicted value: 11.8898
+    timeout_multiplier = 3
+    Predicted value: 8.1706
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Surface optimum (via L-BFGS-B, linear model):
+    shard_count = 16
+    retry_flaky_count = 3
+    timeout_multiplier = 1
+    Predicted value: 3.5712
+
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. retry_flaky_count  (effect: 5.6, contribution: 45.5%)
-  2. shard_count  (effect: 3.6, contribution: 29.4%)
-  3. timeout_multiplier  (effect: 3.1, contribution: 25.1%)</div></div>
+  1. retry_flaky_count  (effect: 4.7, contribution: 42.5%)
+  2. timeout_multiplier  (effect: 3.4, contribution: 30.8%)
+  3. shard_count  (effect: 3.0, contribution: 26.7%)</div></div>
   </section>
 
   <!-- Nav -->

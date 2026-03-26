@@ -127,11 +127,27 @@ def recommend(
         best_model = rsm_quad if (rsm_quad and rsm_quad.adj_r_squared > rsm_linear.adj_r_squared) else rsm_linear
         model_label = "quadratic" if best_model is rsm_quad else "linear"
 
-        print(f"  Predicted optimum (from {model_label} model):")
+        print(f"  Predicted optimum (from {model_label} model, at observed points):")
         for fname, val in best_model.predicted_optimum.items():
             print(f"    {fname} = {val}")
         print(f"    Predicted value: {best_model.predicted_value:.4f}")
         print()
+
+        # True surface optimization using scipy.optimize
+        try:
+            from .rsm import optimize_surface
+            opt_result = optimize_surface(
+                best_model, matrix.factor_names, cfg.factors,
+                direction=direction,
+            )
+            if opt_result["converged"] and opt_result["optimal_settings"]:
+                print(f"  Surface optimum (via L-BFGS-B, {model_label} model):")
+                for fname, val in opt_result["optimal_settings"].items():
+                    print(f"    {fname} = {val}")
+                print(f"    Predicted value: {opt_result['predicted_value']:.4f}")
+                print()
+        except ImportError:
+            pass  # scipy not available
 
         # Model quality assessment
         r2 = best_model.r_squared

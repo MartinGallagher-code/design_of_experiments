@@ -57,8 +57,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>stream triad GBs</strong>, the most influential factors were snc mode (37.6%), rank interleave (30.9%), channel interleave (22.6%). The best observed value was <strong>472.92</strong> (at snc mode = disabled, channel interleave = 1way, rank interleave = 1way).</p>
-<p>For <strong>random lat ns</strong>, the most influential factors were channel interleave (43.6%), dimms per channel (38.9%), snc mode (9.7%). The best observed value was <strong>72.83</strong> (at snc mode = snc4, channel interleave = 1way, rank interleave = 4way).</p>
+    <p>For <strong>stream triad GBs</strong>, the most influential factors were channel interleave (35.4%), snc mode (28.2%), rank interleave (24.4%). The best observed value was <strong>472.92</strong> (at snc mode = snc4, channel interleave = 8way, rank interleave = 1way).</p>
+<p>For <strong>random lat ns</strong>, the most influential factors were dimms per channel (50.5%), rank interleave (23.6%), channel interleave (15.1%). The best observed value was <strong>72.83</strong> (at snc mode = disabled, channel interleave = 8way, rank interleave = 4way).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -66,6 +66,7 @@
     <li>Consider whether any fixed factors should be varied in a future study.</li>
   </ul>
   </section>
+
 
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -95,6 +96,7 @@
       </div>
     </div>
   </section>
+
 
 
 
@@ -295,6 +297,137 @@ Factor importance:
   2. snc_mode  (effect: 5.7, contribution: 40.1%)
   3. rank_interleave  (effect: 1.7, contribution: 12.1%)
   4. channel_interleave  (effect: -0.8, contribution: 5.8%)</div></div>
+  </section>
+
+  
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.7906</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>stream_triad_GBs</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>472.92 0.9545      472.92 GB/s</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>random_lat_ns</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:59.599999999999994%;height:100%;background:#f97316;border-radius:4px;"></div>
+                  </div>
+                  <span>0.5960</span>
+                </div>
+              </td>
+              <td>83.96 0.5960       83.96 ns</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>snc_mode</code></td><td>disabled</td></tr>
+            <tr><td><code>channel_interleave</code></td><td>8way</td></tr>
+            <tr><td><code>rank_interleave</code></td><td>4way</td></tr>
+            <tr><td><code>dimms_per_channel</code></td><td>2</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #12</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>random_lat_ns</code></td><td>83.96</td><td>72.83</td><td><span style="color:#dc2626;">+11.13</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#11</td><td><strong>0.7768</strong></td><td style="font-size:.78rem;">snc_mode=disabled,  channel_interleave=8way,  rank_interleave=4way,  dimms_per_channel=1</td></tr>
+            <tr><td>#5</td><td><strong>0.7127</strong></td><td style="font-size:.78rem;">snc_mode=disabled,  channel_interleave=8way,  rank_interleave=1way,  dimms_per_channel=1</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>random_lat_ns</code></td><td style="color:#dc2626;font-weight:600;">0.3817</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.7906
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+stream_triad_GBs             1.5       0.9545      472.92 GB/s   ↑
+random_lat_ns                1.0       0.5960       83.96 ns   ↓
+
+Recommended settings:
+  snc_mode = disabled
+  channel_interleave = 8way
+  rank_interleave = 4way
+  dimms_per_channel = 2
+  (from observed run #12)
+
+Trade-off summary:
+  stream_triad_GBs: 472.92 (best observed: 472.92, sacrifice: +0.00)
+  random_lat_ns: 83.96 (best observed: 72.83, sacrifice: +11.13)
+
+Model quality:
+  stream_triad_GBs: R² = 0.4329 (linear)
+  random_lat_ns: R² = 0.3817 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #12 (D=0.7906): snc_mode=disabled, channel_interleave=8way, rank_interleave=4way, dimms_per_channel=2
+  2. Run #11 (D=0.7768): snc_mode=disabled, channel_interleave=8way, rank_interleave=4way, dimms_per_channel=1
+  3. Run #5 (D=0.7127): snc_mode=disabled, channel_interleave=8way, rank_interleave=1way, dimms_per_channel=1</div></div>
   </section>
 
   <div class="chapter-nav">

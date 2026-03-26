@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>power kw</strong>, the most influential factors were pto damping (39.6%), buoy diam m (33.6%), draft m (26.8%). The best observed value was <strong>47.9</strong> (at buoy diam m = 5.5, draft m = 4, pto damping = 3000).</p>
-<p>For <strong>stress mpa</strong>, the most influential factors were pto damping (49.4%), draft m (30.8%), buoy diam m (19.8%). The best observed value was <strong>10.0</strong> (at buoy diam m = 3, draft m = 2, pto damping = 3000).</p>
+    <p>For <strong>power kw</strong>, the most influential factors were buoy diam m (43.0%), pto damping (42.2%), draft m (14.9%). The best observed value was <strong>47.9</strong> (at buoy diam m = 3, draft m = 4, pto damping = 1000).</p>
+<p>For <strong>stress mpa</strong>, the most influential factors were buoy diam m (53.4%), pto damping (27.4%), draft m (19.2%). The best observed value was <strong>10.0</strong> (at buoy diam m = 5.5, draft m = 4, pto damping = 3000).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (power_kw (↑), stress_mpa (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/255_wave_energy_buoy/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -264,48 +264,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/255_wave_energy_buoy/config.json \
     <span class="flag">--output</span> use_cases/255_wave_energy_buoy/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Marine &amp; Environmental Test? Use the Manual Workflow</h4>
-        <p>Marine experiments involve real water conditions, living organisms, and environmental factors that require field testing. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/255_wave_energy_buoy/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/255_wave_energy_buoy/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/255_wave_energy_buoy/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/255_wave_energy_buoy/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/255_wave_energy_buoy/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/255_wave_energy_buoy/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/255_wave_energy_buoy/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -337,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: power_kw</h3>
-    <p>Top factors: pto_damping (39.6%), buoy_diam_m (33.6%), draft_m (26.8%).</p>
+    <p>Top factors: buoy_diam_m (43.0%), pto_damping (42.2%), draft_m (14.9%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -350,7 +308,7 @@
     </div>
 
     <h3>Response: stress_mpa</h3>
-    <p>Top factors: pto_damping (49.4%), draft_m (30.8%), buoy_diam_m (19.8%).</p>
+    <p>Top factors: buoy_diam_m (53.4%), pto_damping (27.4%), draft_m (19.2%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -401,185 +359,336 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.6087</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>power_kw</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:61.129999999999995%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.6113</span>
+                </div>
+              </td>
+              <td>31.40 0.6113       31.40 kW</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>stress_mpa</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:60.49%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.6049</span>
+                </div>
+              </td>
+              <td>15.00 0.6049       15.00 MPa</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>buoy_diam_m</code></td><td>3 m</td></tr>
+            <tr><td><code>draft_m</code></td><td>2 m</td></tr>
+            <tr><td><code>pto_damping</code></td><td>3000 Ns/m</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #6</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>stress_mpa</code></td><td>15.00</td><td>10.00</td><td><span style="color:#dc2626;">+5.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#5</td><td><strong>0.5962</strong></td><td style="font-size:.78rem;">buoy_diam_m=5.5,  draft_m=2,  pto_damping=5000</td></tr>
+            <tr><td>#2</td><td><strong>0.5654</strong></td><td style="font-size:.78rem;">buoy_diam_m=8,  draft_m=4,  pto_damping=1000</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>stress_mpa</code></td><td style="color:#dc2626;font-weight:600;">0.1500</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.6087
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+power_kw                     1.5       0.6113       31.40 kW   ↑
+stress_mpa                   1.0       0.6049       15.00 MPa   ↓
+
+Recommended settings:
+  buoy_diam_m = 3 m
+  draft_m = 2 m
+  pto_damping = 3000 Ns/m
+  (from observed run #6)
+
+Trade-off summary:
+  power_kw: 31.40 (best observed: 47.90, sacrifice: +16.50)
+  stress_mpa: 15.00 (best observed: 10.00, sacrifice: +5.00)
+
+Model quality:
+  power_kw: R² = 0.1299 (linear)
+  stress_mpa: R² = 0.1500 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #6 (D=0.6087): buoy_diam_m=3, draft_m=2, pto_damping=3000
+  2. Run #5 (D=0.5962): buoy_diam_m=5.5, draft_m=2, pto_damping=5000
+  3. Run #2 (D=0.5654): buoy_diam_m=8, draft_m=4, pto_damping=1000</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_power_kw_buoy_diam_m_vs_draft_m.png
-  RSM surface: rsm_power_kw_buoy_diam_m_vs_pto_damping.png
-  RSM surface: rsm_power_kw_draft_m_vs_pto_damping.png
-  RSM surface: rsm_stress_mpa_buoy_diam_m_vs_draft_m.png
-  RSM surface: rsm_stress_mpa_buoy_diam_m_vs_pto_damping.png
-  RSM surface: rsm_stress_mpa_draft_m_vs_pto_damping.png
-
-=== Main Effects: power_kw ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: power_kw ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-pto_damping             14.8750       3.1208            39.6%
-buoy_diam_m             12.6000       3.1208            33.6%
-draft_m                 10.0643       3.1208            26.8%
+buoy_diam_m             14.7214       3.1208            43.0%
+pto_damping             14.4500       3.1208            42.2%
+draft_m                  5.0964       3.1208            14.9%
+
+=== ANOVA Table: power_kw ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+buoy_diam_m                  2     658.7775     329.3888      4.085     0.0599
+draft_m                      2      70.4675      35.2338      0.437     0.6606
+pto_damping                  2     422.0058     211.0029      2.616     0.1336
+Lack of Fit                  6     732.7718     122.1286      1.514     0.4494
+Pure Error                   2     161.2867      80.6433
+Error                        8     894.0585      80.6433
+Total                       14    2045.3093     146.0935
 
 === Summary Statistics: power_kw ===
 
 buoy_diam_m:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  3                   4    21.2250     4.4620    17.4000    26.4000
-  5.5                 7    24.4571    15.0879     4.2000    42.7000
-  8                   4    33.8250     9.4348    28.0000    47.9000
+  3                   4    33.8500    12.5636    17.4000    47.9000
+  5.5                 7    19.1286     9.9744     4.2000    29.0000
+  8                   4    30.5250    10.2643    17.6000    42.7000
 
 draft_m:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  2                   4    26.4750    19.3954     4.2000    47.9000
-  4                   7    29.6143     7.9853    17.4000    42.7000
-  6                   4    19.5500     9.5838     9.6000    29.0000
+  2                   4    23.1750     9.4673    13.2000    33.9000
+  4                   7    28.2714    13.4850     9.6000    47.9000
+  6                   4    25.2000    14.3164     4.2000    36.2000
 
 pto_damping:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1000                4    22.8000    11.6905     9.6000    36.2000
-  3000                7    32.7000    10.1288    17.6000    47.9000
-  5000                4    17.8250    11.5089     4.2000    30.4000
+  1000                4    33.8250     9.4348    28.0000    47.9000
+  3000                7    25.5143     9.4859     9.6000    36.2000
+  5000                4    19.3750    16.4961     4.2000    42.7000
 
 === Main Effects: stress_mpa ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-pto_damping              5.6071       1.0038            49.4%
-draft_m                  3.5000       1.0038            30.8%
-buoy_diam_m              2.2500       1.0038            19.8%
+buoy_diam_m              5.3571       1.0038            53.4%
+pto_damping              2.7500       1.0038            27.4%
+draft_m                  1.9286       1.0038            19.2%
+
+=== ANOVA Table: stress_mpa ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+buoy_diam_m                  2      83.7429      41.8714      6.611     0.0202
+draft_m                      2      10.1357       5.0679      0.800     0.4822
+pto_damping                  2      15.1357       7.5679      1.195     0.3515
+Lack of Fit                  6      89.9190      14.9865      2.366     0.3266
+Pure Error                   2      12.6667       6.3333
+Error                        8     102.5857       6.3333
+Total                       14     211.6000      15.1143
 
 === Summary Statistics: stress_mpa ===
 
 buoy_diam_m:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  3                   4    14.7500     0.9574    14.0000    16.0000
-  5.5                 7    15.2857     5.2190    10.0000    23.0000
-  8                   4    17.0000     3.3665    15.0000    22.0000
+  3                   4    18.5000     3.4157    14.0000    22.0000
+  5.5                 7    13.1429     2.7343    10.0000    16.0000
+  8                   4    17.0000     4.0000    15.0000    23.0000
 
 draft_m:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  2                   4    16.7500     5.3774    10.0000    22.0000
-  4                   7    16.2857     3.2514    14.0000    23.0000
-  6                   4    13.2500     3.2016    10.0000    16.0000
+  2                   4    14.5000     3.3166    10.0000    18.0000
+  4                   7    16.4286     4.4293    11.0000    23.0000
+  6                   4    15.2500     4.1130    10.0000    20.0000
 
 pto_damping:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1000                4    15.0000     3.7417    11.0000    20.0000
-  3000                7    17.8571     3.3381    15.0000    23.0000
-  5000                4    12.2500     2.6300    10.0000    15.0000
-
-Pareto chart (power_kw): use_cases/255_wave_energy_buoy/results/analysis/pareto_power_kw.png
-
-Pareto chart (stress_mpa): use_cases/255_wave_energy_buoy/results/analysis/pareto_stress_mpa.png
-Main effects (power_kw): use_cases/255_wave_energy_buoy/results/analysis/main_effects_power_kw.png
-Main effects (stress_mpa): use_cases/255_wave_energy_buoy/results/analysis/main_effects_stress_mpa.png</div></div>
+  1000                4    17.0000     3.3665    15.0000    22.0000
+  3000                7    15.5714     2.8785    11.0000    20.0000
+  5000                4    14.2500     6.1305    10.0000    23.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: power_kw ===
 Direction: maximize
 
 Best observed run: #3
-  buoy_diam_m = 5.5
+  buoy_diam_m = 3
   draft_m = 4
-  pto_damping = 3000
+  pto_damping = 1000
   Value: 47.9
 
-RSM Model (linear, R² = 0.0583, Adj R² = -0.1985):
+RSM Model (linear, R² = 0.0361, Adj R² = -0.2267):
   Coefficients:
     intercept                      +26.0933
-    buoy_diam_m                    +0.8125
-    draft_m                        -2.9125
-    pto_damping                    +2.4000
+    buoy_diam_m                    +1.7750
+    draft_m                        +1.1875
+    pto_damping                    +2.1625
 
-RSM Model (quadratic, R² = 0.8337, Adj R² = 0.5344):
+RSM Model (quadratic, R² = 0.7932, Adj R² = 0.4210):
   Coefficients:
-    intercept                      +36.6000
-    buoy_diam_m                    +0.8125
-    draft_m                        -2.9125
-    pto_damping                    +2.4000
-    buoy_diam_m*draft_m            -11.9500
-    buoy_diam_m*pto_damping        +10.4750
-    draft_m*pto_damping            -5.2250
-    buoy_diam_m^2                  -8.7750
-    draft_m^2                      -7.1750
-    pto_damping^2                  -3.7500
+    intercept                      +19.8667
+    buoy_diam_m                    +1.7750
+    draft_m                        +1.1875
+    pto_damping                    +2.1625
+    buoy_diam_m*draft_m            +9.2750
+    buoy_diam_m*pto_damping        +8.9250
+    draft_m*pto_damping            -8.4000
+    buoy_diam_m^2                  +7.8417
+    draft_m^2                      -4.8333
+    pto_damping^2                  +8.6667
 
   Curvature analysis:
-    buoy_diam_m                    coef=-8.7750  concave (has a maximum)
-    draft_m                        coef=-7.1750  concave (has a maximum)
-    pto_damping                    coef=-3.7500  concave (has a maximum)
+    pto_damping                    coef=+8.6667  convex (has a minimum)
+    buoy_diam_m                    coef=+7.8417  convex (has a minimum)
+    draft_m                        coef=-4.8333  concave (has a maximum)
 
   Notable interactions:
-    buoy_diam_m*draft_m            coef=-11.9500  (antagonistic)
-    buoy_diam_m*pto_damping        coef=+10.4750  (synergistic)
-    draft_m*pto_damping            coef=-5.2250  (antagonistic)
+    buoy_diam_m*draft_m            coef=+9.2750  (synergistic)
+    buoy_diam_m*pto_damping        coef=+8.9250  (synergistic)
+    draft_m*pto_damping            coef=-8.4000  (antagonistic)
 
-  Predicted optimum (from quadratic model):
+  Predicted optimum (from quadratic model, at observed points):
     buoy_diam_m = 8
     draft_m = 4
     pto_damping = 5000
-    Predicted value: 37.7625
+    Predicted value: 49.2375
+
+  Surface optimum (via L-BFGS-B, quadratic model):
+    buoy_diam_m = 8
+    draft_m = 4.42672
+    pto_damping = 5000
+    Predicted value: 49.4575
 
   Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. draft_m  (effect: 9.2, contribution: 40.0%)
-  2. buoy_diam_m  (effect: 8.8, contribution: 38.3%)
-  3. pto_damping  (effect: 5.0, contribution: 21.8%)
+  1. pto_damping  (effect: 10.6, contribution: 39.1%)
+  2. buoy_diam_m  (effect: 9.3, contribution: 34.4%)
+  3. draft_m  (effect: 7.2, contribution: 26.5%)
 
 === Optimization: stress_mpa ===
 Direction: minimize
 
 Best observed run: #1
-  buoy_diam_m = 3
-  draft_m = 2
+  buoy_diam_m = 5.5
+  draft_m = 4
   pto_damping = 3000
   Value: 10.0
 
-RSM Model (linear, R² = 0.1099, Adj R² = -0.1329):
+RSM Model (linear, R² = 0.1193, Adj R² = -0.1209):
   Coefficients:
     intercept                      +15.6000
-    buoy_diam_m                    +0.8750
-    draft_m                        -0.5000
+    buoy_diam_m                    +1.1250
+    draft_m                        +0.0000
     pto_damping                    +1.3750
 
-RSM Model (quadratic, R² = 0.8019, Adj R² = 0.4453):
+RSM Model (quadratic, R² = 0.8232, Adj R² = 0.5049):
   Coefficients:
-    intercept                      +18.3333
-    buoy_diam_m                    +0.8750
-    draft_m                        -0.5000
+    intercept                      +13.3333
+    buoy_diam_m                    +1.1250
+    draft_m                        -0.0000
     pto_damping                    +1.3750
-    buoy_diam_m*draft_m            -4.0000
-    buoy_diam_m*pto_damping        +3.2500
-    draft_m*pto_damping            -0.5000
-    buoy_diam_m^2                  -1.2917
-    draft_m^2                      -3.0417
-    pto_damping^2                  -0.7917
+    buoy_diam_m*draft_m            +1.7500
+    buoy_diam_m*pto_damping        +4.0000
+    draft_m*pto_damping            -2.2500
+    buoy_diam_m^2                  +2.3333
+    draft_m^2                      -0.9167
+    pto_damping^2                  +2.8333
 
   Curvature analysis:
-    draft_m                        coef=-3.0417  concave (has a maximum)
-    buoy_diam_m                    coef=-1.2917  concave (has a maximum)
-    pto_damping                    coef=-0.7917  concave (has a maximum)
+    pto_damping                    coef=+2.8333  convex (has a minimum)
+    buoy_diam_m                    coef=+2.3333  convex (has a minimum)
+    draft_m                        coef=-0.9167  concave (has a maximum)
 
   Notable interactions:
-    buoy_diam_m*draft_m            coef=-4.0000  (antagonistic)
-    buoy_diam_m*pto_damping        coef=+3.2500  (synergistic)
-    draft_m*pto_damping            coef=-0.5000  (antagonistic)
+    buoy_diam_m*pto_damping        coef=+4.0000  (synergistic)
+    draft_m*pto_damping            coef=-2.2500  (antagonistic)
+    buoy_diam_m*draft_m            coef=+1.7500  (synergistic)
 
-  Predicted optimum (from quadratic model):
+  Predicted optimum (from quadratic model, at observed points):
     buoy_diam_m = 8
     draft_m = 4
     pto_damping = 5000
-    Predicted value: 21.7500
+    Predicted value: 25.0000
+
+  Surface optimum (via L-BFGS-B, quadratic model):
+    buoy_diam_m = 7.97768
+    draft_m = 2
+    pto_damping = 1000
+    Predicted value: 9.3331
 
   Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. draft_m  (effect: 3.4, contribution: 42.2%)
-  2. pto_damping  (effect: 2.8, contribution: 34.2%)
-  3. buoy_diam_m  (effect: 1.9, contribution: 23.6%)</div></div>
+  1. pto_damping  (effect: 4.1, contribution: 47.1%)
+  2. buoy_diam_m  (effect: 3.3, contribution: 38.1%)
+  3. draft_m  (effect: 1.3, contribution: 14.8%)</div></div>
   </section>
 
   <!-- Nav -->

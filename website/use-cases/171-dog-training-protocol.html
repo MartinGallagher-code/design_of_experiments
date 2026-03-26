@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>reliability pct</strong>, the most influential factors were session min (43.7%), progression rate (31.9%), reward ratio pct (24.4%). The best observed value was <strong>80.0</strong> (at session min = 12.5, reward ratio pct = 65, progression rate = 3).</p>
-<p>For <strong>sessions to learn</strong>, the most influential factors were session min (51.7%), reward ratio pct (26.2%), progression rate (22.1%). The best observed value was <strong>7.0</strong> (at session min = 12.5, reward ratio pct = 65, progression rate = 3).</p>
+    <p>For <strong>reliability pct</strong>, the most influential factors were reward ratio pct (44.4%), session min (31.9%), progression rate (23.6%). The best observed value was <strong>80.0</strong> (at session min = 5, reward ratio pct = 100, progression rate = 5).</p>
+<p>For <strong>sessions to learn</strong>, the most influential factors were reward ratio pct (43.8%), session min (30.3%), progression rate (25.8%). The best observed value was <strong>7.0</strong> (at session min = 5, reward ratio pct = 100, progression rate = 5).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -250,12 +249,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (reliability_pct (↑), sessions_to_learn (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/171_dog_training_protocol/config.json <span class="flag">--multi</span></div>
         </div>
@@ -263,7 +263,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -271,48 +271,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/171_dog_training_protocol/config.json \
     <span class="flag">--output</span> use_cases/171_dog_training_protocol/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Animal Care Experiment? Use the Manual Workflow</h4>
-        <p>Animal experiments involve living creatures with variable behavior, biological needs, and environmental responses that can't be simulated. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/171_dog_training_protocol/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/171_dog_training_protocol/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/171_dog_training_protocol/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/171_dog_training_protocol/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/171_dog_training_protocol/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/171_dog_training_protocol/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/171_dog_training_protocol/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -344,7 +302,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: reliability_pct</h3>
-    <p>Top factors: session_min (43.7%), progression_rate (31.9%), reward_ratio_pct (24.4%).</p>
+    <p>Top factors: reward_ratio_pct (44.4%), session_min (31.9%), progression_rate (23.6%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -357,7 +315,7 @@
     </div>
 
     <h3>Response: sessions_to_learn</h3>
-    <p>Top factors: session_min (51.7%), reward_ratio_pct (26.2%), progression_rate (22.1%).</p>
+    <p>Top factors: reward_ratio_pct (43.8%), session_min (30.3%), progression_rate (25.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -408,57 +366,202 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9545</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>reliability_pct</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>80.00 0.9545       80.00 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>sessions_to_learn</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>7.00 0.9545        7.00 sessions</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>session_min</code></td><td>12.5 min</td></tr>
+            <tr><td><code>reward_ratio_pct</code></td><td>65 %</td></tr>
+            <tr><td><code>progression_rate</code></td><td>3 level/wk</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #9</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>sessions_to_learn</code></td><td>7.00</td><td>7.00</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#4</td><td><strong>0.7350</strong></td><td style="font-size:.78rem;">session_min=20,  reward_ratio_pct=100,  progression_rate=5</td></tr>
+            <tr><td>#7</td><td><strong>0.7213</strong></td><td style="font-size:.78rem;">session_min=12.5,  reward_ratio_pct=65,  progression_rate=3</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>sessions_to_learn</code></td><td style="color:#dc2626;font-weight:600;">0.4241</td><td>quadratic</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9545
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+reliability_pct              1.5       0.9545       80.00 %   ↑
+sessions_to_learn            1.0       0.9545        7.00 sessions   ↓
+
+Recommended settings:
+  session_min = 12.5 min
+  reward_ratio_pct = 65 %
+  progression_rate = 3 level/wk
+  (from observed run #9)
+
+Trade-off summary:
+  reliability_pct: 80.00 (best observed: 80.00, sacrifice: +0.00)
+  sessions_to_learn: 7.00 (best observed: 7.00, sacrifice: +0.00)
+
+Model quality:
+  reliability_pct: R² = 0.4874 (quadratic)
+  sessions_to_learn: R² = 0.4241 (quadratic)
+
+Top 3 observed runs by overall desirability:
+  1. Run #9 (D=0.9545): session_min=12.5, reward_ratio_pct=65, progression_rate=3
+  2. Run #4 (D=0.7350): session_min=20, reward_ratio_pct=100, progression_rate=5
+  3. Run #7 (D=0.7213): session_min=12.5, reward_ratio_pct=65, progression_rate=3</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_reliability_pct_session_min_vs_reward_ratio_pct.png
-  RSM surface: rsm_reliability_pct_session_min_vs_progression_rate.png
-  RSM surface: rsm_reliability_pct_reward_ratio_pct_vs_progression_rate.png
-  RSM surface: rsm_sessions_to_learn_session_min_vs_reward_ratio_pct.png
-  RSM surface: rsm_sessions_to_learn_session_min_vs_progression_rate.png
-  RSM surface: rsm_sessions_to_learn_reward_ratio_pct_vs_progression_rate.png
-
-=== Main Effects: reliability_pct ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: reliability_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-session_min             13.0000       1.3268            43.7%
-progression_rate         9.5000       1.3268            31.9%
-reward_ratio_pct         7.2500       1.3268            24.4%
+reward_ratio_pct         8.0000       1.3268            44.4%
+session_min              5.7500       1.3268            31.9%
+progression_rate         4.2500       1.3268            23.6%
+
+=== ANOVA Table: reliability_pct ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+session_min                  4      51.6515      12.9129      0.196     0.9345
+reward_ratio_pct             4     134.5682      33.6420      0.510     0.7305
+progression_rate             4      40.9015      10.2254      0.155     0.9559
+Lack of Fit                  2     124.3220      62.1610      0.942     0.4342
+Pure Error                   7     461.8750      65.9821
+Error                        9     586.1970      65.9821
+Total                       21     813.3182      38.7294
 
 === Summary Statistics: reliability_pct ===
 
 session_min:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -1.19306            1    75.0000     0.0000    75.0000    75.0000
-  12.5               12    70.5000     6.3889    57.0000    76.0000
-  20                  4    71.0000     6.0553    62.0000    75.0000
-  26.1931             1    80.0000     0.0000    80.0000    80.0000
-  5                   4    67.0000     5.5976    62.0000    75.0000
+  -1.19306            1    74.0000     0.0000    74.0000    74.0000
+  12.5               12    69.9167     6.9079    57.0000    76.0000
+  20                  4    72.0000     4.0825    66.0000    75.0000
+  26.1931             1    75.0000     0.0000    75.0000    75.0000
+  5                   4    69.2500     7.8899    62.0000    80.0000
 
 reward_ratio_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1.09903             1    70.0000     0.0000    70.0000    70.0000
-  100                 4    72.2500     4.2720    66.0000    75.0000
+  1.09903             1    75.0000     0.0000    75.0000    75.0000
+  100                 4    74.2500     4.1932    70.0000    80.0000
   128.901             1    73.0000     0.0000    73.0000    73.0000
-  30                  4    65.7500     5.6789    62.0000    74.0000
-  65                 12    71.5000     7.0130    57.0000    80.0000
+  30                  4    67.0000     5.5976    62.0000    75.0000
+  65                 12    70.0000     6.9544    57.0000    76.0000
 
 progression_rate:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -0.651484           1    75.0000     0.0000    75.0000    75.0000
-  1                   4    66.5000     4.6547    62.0000    73.0000
-  3                  12    70.8333     6.7935    57.0000    80.0000
-  5                   4    71.5000     6.3509    62.0000    75.0000
-  6.65148             1    76.0000     0.0000    76.0000    76.0000
+  -0.651484           1    72.0000     0.0000    72.0000    72.0000
+  1                   4    68.5000     3.6968    65.0000    73.0000
+  3                  12    70.3333     7.1138    57.0000    76.0000
+  5                   4    72.7500     7.6322    62.0000    80.0000
+  6.65148             1    72.0000     0.0000    72.0000    72.0000
 
 === Main Effects: sessions_to_learn ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-session_min              6.4167       0.5695            51.7%
-reward_ratio_pct         3.2500       0.5695            26.2%
-progression_rate         2.7500       0.5695            22.1%
+reward_ratio_pct         3.2500       0.5695            43.8%
+session_min              2.2500       0.5695            30.3%
+progression_rate         1.9167       0.5695            25.8%
+
+=== ANOVA Table: sessions_to_learn ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+session_min                  4      15.4015       3.8504      0.435     0.7807
+reward_ratio_pct             4      28.1515       7.0379      0.795     0.5575
+progression_rate             4      13.1515       3.2879      0.371     0.8235
+Lack of Fit                  2      31.1136      15.5568      1.756     0.2409
+Pure Error                   7      62.0000       8.8571
+Error                        9      93.1136       8.8571
+Total                       21     149.8182       7.1342
 
 === Summary Statistics: sessions_to_learn ===
 
@@ -466,138 +569,145 @@ session_min:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
   -1.19306            1    12.0000     0.0000    12.0000    12.0000
-  12.5               12    13.4167     2.5391    11.0000    19.0000
-  20                  4    12.7500     2.5000    10.0000    16.0000
-  26.1931             1     7.0000     0.0000     7.0000     7.0000
-  5                   4    13.2500     2.6300    11.0000    16.0000
+  12.5               12    13.3333     2.5702    11.0000    19.0000
+  20                  4    11.2500     1.2583    10.0000    13.0000
+  26.1931             1    13.0000     0.0000    13.0000    13.0000
+  5                   4    13.5000     4.3589     7.0000    16.0000
 
 reward_ratio_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1.09903             1    15.0000     0.0000    15.0000    15.0000
-  100                 4    11.7500     0.9574    11.0000    13.0000
+  1.09903             1    12.0000     0.0000    12.0000    12.0000
+  100                 4    10.7500     3.3040     7.0000    15.0000
   128.901             1    12.0000     0.0000    12.0000    12.0000
-  30                  4    14.2500     2.8723    10.0000    16.0000
-  65                 12    12.7500     3.0785     7.0000    19.0000
+  30                  4    14.0000     2.4495    11.0000    16.0000
+  65                 12    13.4167     2.5391    11.0000    19.0000
 
 progression_rate:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -0.651484           1    13.0000     0.0000    13.0000    13.0000
-  1                   4    13.7500     2.6300    11.0000    16.0000
-  3                  12    13.0000     3.1042     7.0000    19.0000
-  5                   4    12.2500     2.2174    10.0000    15.0000
-  6.65148             1    11.0000     0.0000    11.0000    11.0000
-
-Pareto chart (reliability_pct): use_cases/171_dog_training_protocol/results/analysis/pareto_reliability_pct.png
-
-Pareto chart (sessions_to_learn): use_cases/171_dog_training_protocol/results/analysis/pareto_sessions_to_learn.png
-Main effects (reliability_pct): use_cases/171_dog_training_protocol/results/analysis/main_effects_reliability_pct.png
-Main effects (sessions_to_learn): use_cases/171_dog_training_protocol/results/analysis/main_effects_sessions_to_learn.png</div></div>
+  -0.651484           1    12.0000     0.0000    12.0000    12.0000
+  1                   4    13.2500     2.6300    11.0000    16.0000
+  3                  12    13.4167     2.5391    11.0000    19.0000
+  5                   4    11.5000     3.8730     7.0000    16.0000
+  6.65148             1    12.0000     0.0000    12.0000    12.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: reliability_pct ===
 Direction: maximize
 
 Best observed run: #9
-  session_min = 12.5
-  reward_ratio_pct = 65
-  progression_rate = 3
+  session_min = 5
+  reward_ratio_pct = 100
+  progression_rate = 5
   Value: 80.0
 
-RSM Model (linear, R² = 0.1732, Adj R² = 0.0354):
+RSM Model (linear, R² = 0.0949, Adj R² = -0.0559):
   Coefficients:
     intercept                      +70.5909
-    session_min                    +2.0661
-    reward_ratio_pct               +2.2200
-    progression_rate               -0.6374
+    session_min                    +0.3822
+    reward_ratio_pct               +1.6746
+    progression_rate               +1.5207
 
-RSM Model (quadratic, R² = 0.4118, Adj R² = -0.0293):
+RSM Model (quadratic, R² = 0.3443, Adj R² = -0.1474):
   Coefficients:
-    intercept                      +72.2620
-    session_min                    +2.0661
-    reward_ratio_pct               +2.2200
-    progression_rate               -0.6374
-    session_min*reward_ratio_pct   +1.3750
-    session_min*progression_rate   -2.6250
-    reward_ratio_pct*progression_rate -2.6250
-    session_min^2                  -0.3355
-    reward_ratio_pct^2             -1.8355
-    progression_rate^2             -0.3355
+    intercept                      +69.7883
+    session_min                    +0.3822
+    reward_ratio_pct               +1.6746
+    progression_rate               +1.5207
+    session_min*reward_ratio_pct   -2.6250
+    session_min*progression_rate   +0.8750
+    reward_ratio_pct*progression_rate +1.8750
+    session_min^2                  -1.2987
+    reward_ratio_pct^2             +0.8013
+    progression_rate^2             +1.7013
 
   Curvature analysis:
-    reward_ratio_pct               coef=-1.8355  concave (has a maximum)
-    progression_rate               coef=-0.3355  concave (has a maximum)
-    session_min                    coef=-0.3355  concave (has a maximum)
+    progression_rate               coef=+1.7013  convex (has a minimum)
+    session_min                    coef=-1.2987  concave (has a maximum)
+    reward_ratio_pct               coef=+0.8013  convex (has a minimum)
 
   Notable interactions:
-    session_min*progression_rate   coef=-2.6250  (antagonistic)
-    reward_ratio_pct*progression_rate coef=-2.6250  (antagonistic)
-    session_min*reward_ratio_pct   coef=+1.3750  (synergistic)
+    session_min*reward_ratio_pct   coef=-2.6250  (antagonistic)
+    reward_ratio_pct*progression_rate coef=+1.8750  (synergistic)
+    session_min*progression_rate   coef=+0.8750  (synergistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     session_min = 20
     reward_ratio_pct = 100
-    progression_rate = 1
-    Predicted value: 75.5144
+    progression_rate = 5
+    Predicted value: 74.1684
+
+  Surface optimum (via L-BFGS-B, linear model):
+    session_min = 20
+    reward_ratio_pct = 100
+    progression_rate = 5
+    Predicted value: 74.1684
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. reward_ratio_pct  (effect: 14.0, contribution: 40.3%)
-  2. session_min  (effect: 11.5, contribution: 33.1%)
-  3. progression_rate  (effect: 9.2, contribution: 26.6%)
+  1. session_min  (effect: 17.0, contribution: 44.1%)
+  2. reward_ratio_pct  (effect: 14.0, contribution: 36.3%)
+  3. progression_rate  (effect: 7.6, contribution: 19.7%)
 
 === Optimization: sessions_to_learn ===
 Direction: minimize
 
 Best observed run: #9
-  session_min = 12.5
-  reward_ratio_pct = 65
-  progression_rate = 3
+  session_min = 5
+  reward_ratio_pct = 100
+  progression_rate = 5
   Value: 7.0
 
-RSM Model (linear, R² = 0.0440, Adj R² = -0.1153):
+RSM Model (linear, R² = 0.1145, Adj R² = -0.0331):
   Coefficients:
     intercept                      +12.9091
-    session_min                    -0.4773
-    reward_ratio_pct               -0.4297
-    progression_rate               +0.1927
+    session_min                    +0.0031
+    reward_ratio_pct               -0.4416
+    progression_rate               -0.9871
 
-RSM Model (quadratic, R² = 0.3400, Adj R² = -0.1550):
+RSM Model (quadratic, R² = 0.2650, Adj R² = -0.2862):
   Coefficients:
-    intercept                      +11.6328
-    session_min                    -0.4773
-    reward_ratio_pct               -0.4297
-    progression_rate               +0.1927
-    session_min*reward_ratio_pct   -0.1250
-    session_min*progression_rate   +1.3750
-    reward_ratio_pct*progression_rate +0.8750
-    session_min^2                  +0.5882
-    reward_ratio_pct^2             +0.8882
-    progression_rate^2             +0.4382
+    intercept                      +13.5275
+    session_min                    +0.0031
+    reward_ratio_pct               -0.4416
+    progression_rate               -0.9871
+    session_min*reward_ratio_pct   +1.1250
+    session_min*progression_rate   -0.3750
+    reward_ratio_pct*progression_rate -0.8750
+    session_min^2                  -0.2092
+    reward_ratio_pct^2             -0.3592
+    progression_rate^2             -0.3592
 
   Curvature analysis:
-    reward_ratio_pct               coef=+0.8882  convex (has a minimum)
-    session_min                    coef=+0.5882  convex (has a minimum)
-    progression_rate               coef=+0.4382  convex (has a minimum)
+    progression_rate               coef=-0.3592  concave (has a maximum)
+    reward_ratio_pct               coef=-0.3592  concave (has a maximum)
+    session_min                    coef=-0.2092  concave (has a maximum)
 
   Notable interactions:
-    session_min*progression_rate   coef=+1.3750  (synergistic)
-    reward_ratio_pct*progression_rate coef=+0.8750  (synergistic)
+    session_min*reward_ratio_pct   coef=+1.1250  (synergistic)
+    reward_ratio_pct*progression_rate coef=-0.8750  (antagonistic)
+    session_min*progression_rate   coef=-0.3750  (antagonistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
+    session_min = 12.5
+    reward_ratio_pct = 65
+    progression_rate = -0.651484
+    Predicted value: 14.7113
+
+  Surface optimum (via L-BFGS-B, linear model):
     session_min = 5
-    reward_ratio_pct = 30
+    reward_ratio_pct = 100
     progression_rate = 5
-    Predicted value: 14.0088
+    Predicted value: 11.4773
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. session_min  (effect: 4.0, contribution: 33.3%)
-  2. reward_ratio_pct  (effect: 4.0, contribution: 33.3%)
-  3. progression_rate  (effect: 4.0, contribution: 33.3%)</div></div>
+  1. session_min  (effect: 6.8, contribution: 45.8%)
+  2. progression_rate  (effect: 4.5, contribution: 30.5%)
+  3. reward_ratio_pct  (effect: 3.5, contribution: 23.7%)</div></div>
   </section>
 
   <!-- Nav -->

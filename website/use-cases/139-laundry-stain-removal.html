@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -51,8 +50,8 @@
 
     
     <h3>Key Findings</h3>
-    <p>For <strong>stain removal pct</strong>, the most influential factors were water temp c (41.1%), soak min (24.2%), spin rpm (12.6%). The best observed value was <strong>99.0</strong> (at water temp c = 60, detergent ml = 15, soak min = 0).</p>
-<p>For <strong>fabric wear</strong>, the most influential factors were soak min (35.2%), water temp c (24.6%), agitation (18.6%). The best observed value was <strong>1.1</strong> (at water temp c = 60, detergent ml = 15, soak min = 0).</p>
+    <p>For <strong>stain removal pct</strong>, the most influential factors were spin rpm (28.4%), soak min (24.2%), bleach ml (24.2%). The best observed value was <strong>99.0</strong> (at water temp c = 20, detergent ml = 60, soak min = 0).</p>
+<p>For <strong>fabric wear</strong>, the most influential factors were spin rpm (29.9%), soak min (27.9%), water temp c (19.1%). The best observed value was <strong>1.1</strong> (at water temp c = 20, detergent ml = 60, soak min = 0).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -266,12 +265,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (stain_removal_pct (↑), fabric_wear (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/139_laundry_stain_removal/config.json <span class="flag">--multi</span></div>
         </div>
@@ -279,7 +279,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -287,48 +287,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/139_laundry_stain_removal/config.json \
     <span class="flag">--output</span> use_cases/139_laundry_stain_removal/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Product Test? Use the Manual Workflow</h4>
-        <p>These experiments involve real chemical reactions, material properties, and physical processes that require hands-on testing. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/139_laundry_stain_removal/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/139_laundry_stain_removal/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/139_laundry_stain_removal/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/139_laundry_stain_removal/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/139_laundry_stain_removal/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/139_laundry_stain_removal/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/139_laundry_stain_removal/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -360,7 +318,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: stain_removal_pct</h3>
-    <p>Top factors: water_temp_c (41.1%), soak_min (24.2%), spin_rpm (12.6%).</p>
+    <p>Top factors: spin_rpm (28.4%), soak_min (24.2%), bleach_ml (24.2%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -373,7 +331,7 @@
     </div>
 
     <h3>Response: fabric_wear</h3>
-    <p>Top factors: soak_min (35.2%), water_temp_c (24.6%), agitation (18.6%).</p>
+    <p>Top factors: spin_rpm (29.9%), soak_min (27.9%), water_temp_c (19.1%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -544,81 +502,214 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.6255</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>stain_removal_pct</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:67.82000000000001%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.6782</span>
+                </div>
+              </td>
+              <td>85.02 0.6782       85.02 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>fabric_wear</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:55.410000000000004%;height:100%;background:#f97316;border-radius:4px;"></div>
+                  </div>
+                  <span>0.5541</span>
+                </div>
+              </td>
+              <td>3.57 0.5541        3.57 pts</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>water_temp_c</code></td><td>20.77 C</td></tr>
+            <tr><td><code>detergent_ml</code></td><td>26.47 mL</td></tr>
+            <tr><td><code>soak_min</code></td><td>9.735 min</td></tr>
+            <tr><td><code>agitation</code></td><td>4.824 level</td></tr>
+            <tr><td><code>bleach_ml</code></td><td>29.91 mL</td></tr>
+            <tr><td><code>spin_rpm</code></td><td>710.6 rpm</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from RSM model prediction</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>fabric_wear</code></td><td>3.57</td><td>1.10</td><td><span style="color:#dc2626;">+2.47</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#6</td><td><strong>0.4982</strong></td><td style="font-size:.78rem;">water_temp_c=20,  detergent_ml=15,  soak_min=30,  agitation=1,  bleach_ml=30,  spin_rpm=1400</td></tr>
+            <tr><td>#7</td><td><strong>0.4303</strong></td><td style="font-size:.78rem;">water_temp_c=60,  detergent_ml=15,  soak_min=0,  agitation=5,  bleach_ml=30,  spin_rpm=600</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>fabric_wear</code></td><td style="color:#16a34a;font-weight:600;">0.8255</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.6255
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+stain_removal_pct            1.5       0.6782       85.02 %   ↑
+fabric_wear                  1.0       0.5541        3.57 pts   ↓
+
+Recommended settings:
+  water_temp_c = 20.77 C
+  detergent_ml = 26.47 mL
+  soak_min = 9.735 min
+  agitation = 4.824 level
+  bleach_ml = 29.91 mL
+  spin_rpm = 710.6 rpm
+  (from RSM model prediction)
+
+Trade-off summary:
+  stain_removal_pct: 85.02 (best observed: 99.00, sacrifice: +13.98)
+  fabric_wear: 3.57 (best observed: 1.10, sacrifice: +2.47)
+
+Model quality:
+  stain_removal_pct: R² = 0.8155 (linear)
+  fabric_wear: R² = 0.8255 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #1 (D=0.6050): water_temp_c=20, detergent_ml=15, soak_min=30, agitation=5, bleach_ml=0, spin_rpm=600
+  2. Run #6 (D=0.4982): water_temp_c=20, detergent_ml=15, soak_min=30, agitation=1, bleach_ml=30, spin_rpm=1400
+  3. Run #7 (D=0.4303): water_temp_c=60, detergent_ml=15, soak_min=0, agitation=5, bleach_ml=30, spin_rpm=600</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_stain_removal_pct_water_temp_c_vs_detergent_ml.png
-  RSM surface: rsm_stain_removal_pct_water_temp_c_vs_soak_min.png
-  RSM surface: rsm_stain_removal_pct_water_temp_c_vs_agitation.png
-  RSM surface: rsm_stain_removal_pct_water_temp_c_vs_bleach_ml.png
-  RSM surface: rsm_stain_removal_pct_water_temp_c_vs_spin_rpm.png
-  RSM surface: rsm_stain_removal_pct_detergent_ml_vs_soak_min.png
-  RSM surface: rsm_stain_removal_pct_detergent_ml_vs_agitation.png
-  RSM surface: rsm_stain_removal_pct_detergent_ml_vs_bleach_ml.png
-  RSM surface: rsm_stain_removal_pct_detergent_ml_vs_spin_rpm.png
-  RSM surface: rsm_stain_removal_pct_soak_min_vs_agitation.png
-  RSM surface: rsm_stain_removal_pct_soak_min_vs_bleach_ml.png
-  RSM surface: rsm_stain_removal_pct_soak_min_vs_spin_rpm.png
-  RSM surface: rsm_stain_removal_pct_agitation_vs_bleach_ml.png
-  RSM surface: rsm_stain_removal_pct_agitation_vs_spin_rpm.png
-  RSM surface: rsm_stain_removal_pct_bleach_ml_vs_spin_rpm.png
-  RSM surface: rsm_fabric_wear_water_temp_c_vs_detergent_ml.png
-  RSM surface: rsm_fabric_wear_water_temp_c_vs_soak_min.png
-  RSM surface: rsm_fabric_wear_water_temp_c_vs_agitation.png
-  RSM surface: rsm_fabric_wear_water_temp_c_vs_bleach_ml.png
-  RSM surface: rsm_fabric_wear_water_temp_c_vs_spin_rpm.png
-  RSM surface: rsm_fabric_wear_detergent_ml_vs_soak_min.png
-  RSM surface: rsm_fabric_wear_detergent_ml_vs_agitation.png
-  RSM surface: rsm_fabric_wear_detergent_ml_vs_bleach_ml.png
-  RSM surface: rsm_fabric_wear_detergent_ml_vs_spin_rpm.png
-  RSM surface: rsm_fabric_wear_soak_min_vs_agitation.png
-  RSM surface: rsm_fabric_wear_soak_min_vs_bleach_ml.png
-  RSM surface: rsm_fabric_wear_soak_min_vs_spin_rpm.png
-  RSM surface: rsm_fabric_wear_agitation_vs_bleach_ml.png
-  RSM surface: rsm_fabric_wear_agitation_vs_spin_rpm.png
-  RSM surface: rsm_fabric_wear_bleach_ml_vs_spin_rpm.png
-
-=== Main Effects: stain_removal_pct ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: stain_removal_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-water_temp_c           -19.5000       5.0595            41.1%
+spin_rpm                13.5000       5.0595            28.4%
 soak_min               -11.5000       5.0595            24.2%
-spin_rpm                -6.0000       5.0595            12.6%
-detergent_ml             5.5000       5.0595            11.6%
-bleach_ml               -4.0000       5.0595             8.4%
+bleach_ml               11.5000       5.0595            24.2%
+water_temp_c           -10.0000       5.0595            21.1%
 agitation                1.0000       5.0595             2.1%
+detergent_ml             0.0000       5.0595             0.0%
+
+=== ANOVA Table: stain_removal_pct ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+water_temp_c                 1     200.0000     200.0000      0.504     0.5007
+detergent_ml                 1       0.0000       0.0000      0.000     1.0000
+soak_min                     1     264.5000     264.5000      0.667     0.4411
+agitation                    1       2.0000       2.0000      0.005     0.9454
+bleach_ml                    1     264.5000     264.5000      0.667     0.4411
+spin_rpm                     1     364.5000     364.5000      0.919     0.3697
+water_temp_c*detergent_ml    1     264.5000     264.5000      0.667     0.4411
+water_temp_c*soak_min        1       0.0000       0.0000      0.000     1.0000
+water_temp_c*agitation       1     264.5000     264.5000      0.667     0.4411
+water_temp_c*bleach_ml       1       2.0000       2.0000      0.005     0.9454
+water_temp_c*spin_rpm        1     338.0000     338.0000      0.852     0.3867
+detergent_ml*soak_min        1     200.0000     200.0000      0.504     0.5007
+detergent_ml*agitation       1     364.5000     364.5000      0.919     0.3697
+detergent_ml*bleach_ml       1     338.0000     338.0000      0.852     0.3867
+detergent_ml*spin_rpm        1       2.0000       2.0000      0.005     0.9454
+soak_min*agitation           1     338.0000     338.0000      0.852     0.3867
+soak_min*bleach_ml           1     364.5000     364.5000      0.919     0.3697
+soak_min*spin_rpm            1     264.5000     264.5000      0.667     0.4411
+agitation*bleach_ml          1     200.0000     200.0000      0.504     0.5007
+agitation*spin_rpm           1       0.0000       0.0000      0.000     1.0000
+bleach_ml*spin_rpm           1     264.5000     264.5000      0.667     0.4411
+Error (Lenth PSE)            7    2777.2500     396.7500
+Total                        7    1433.5000     204.7857
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
 
 === Interaction Effects: stain_removal_pct ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-detergent_ml         soak_min                 -19.5000            15.2%
-agitation            bleach_ml                -19.5000            15.2%
-water_temp_c         detergent_ml             -11.5000             9.0%
-bleach_ml            spin_rpm                  11.5000             9.0%
-water_temp_c         spin_rpm                  11.0000             8.6%
-detergent_ml         bleach_ml                -11.0000             8.6%
-soak_min             agitation                -11.0000             8.6%
-detergent_ml         agitation                  6.0000             4.7%
-soak_min             bleach_ml                  6.0000             4.7%
-water_temp_c         soak_min                   5.5000             4.3%
-agitation            spin_rpm                  -5.5000             4.3%
-water_temp_c         agitation                 -4.0000             3.1%
-soak_min             spin_rpm                   4.0000             3.1%
-water_temp_c         bleach_ml                  1.0000             0.8%
-detergent_ml         spin_rpm                  -1.0000             0.8%
+detergent_ml         agitation                -13.5000            10.1%
+soak_min             bleach_ml                -13.5000            10.1%
+water_temp_c         spin_rpm                 -13.0000             9.7%
+detergent_ml         bleach_ml                 13.0000             9.7%
+soak_min             agitation                 13.0000             9.7%
+water_temp_c         detergent_ml             -11.5000             8.6%
+water_temp_c         agitation                 11.5000             8.6%
+soak_min             spin_rpm                 -11.5000             8.6%
+bleach_ml            spin_rpm                  11.5000             8.6%
+detergent_ml         soak_min                 -10.0000             7.5%
+agitation            bleach_ml                -10.0000             7.5%
+water_temp_c         bleach_ml                  1.0000             0.7%
+detergent_ml         spin_rpm                  -1.0000             0.7%
+water_temp_c         soak_min                   0.0000             0.0%
+agitation            spin_rpm                   0.0000             0.0%
 
 === Summary Statistics: stain_removal_pct ===
 
 water_temp_c:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  20                  4    79.5000    14.1774    65.0000    99.0000
-  60                  4    60.0000     4.8305    53.0000    64.0000
+  20                  4    74.7500    17.7459    61.0000    99.0000
+  60                  4    64.7500     9.8107    53.0000    77.0000
 
 detergent_ml:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  15                  4    67.0000     6.7823    62.0000    77.0000
-  60                  4    72.5000    20.2896    53.0000    99.0000
+  15                  4    69.7500     8.4607    61.0000    77.0000
+  60                  4    69.7500    20.1556    53.0000    99.0000
 
 soak_min:
   Level               N       Mean        Std        Min        Max
@@ -629,176 +720,216 @@ soak_min:
 agitation:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    69.2500     8.9582    61.0000    77.0000
-  5                   4    70.2500    19.9228    53.0000    99.0000
+  1                   4    69.2500    20.3695    53.0000    99.0000
+  5                   4    70.2500     7.8899    62.0000    77.0000
 
 bleach_ml:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   4    71.7500    18.2460    61.0000    99.0000
-  30                  4    67.7500    11.5866    53.0000    77.0000
+  0                   4    64.0000     9.8995    53.0000    77.0000
+  30                  4    75.5000    17.0783    61.0000    99.0000
 
 spin_rpm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1400                4    72.7500    20.1060    53.0000    99.0000
-  600                 4    66.7500     7.0415    61.0000    77.0000
+  1400                4    63.0000     1.8257    61.0000    65.0000
+  600                 4    76.5000    18.7883    53.0000    99.0000
 
 === Main Effects: fabric_wear ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-soak_min                -2.3250       0.6447            35.2%
-water_temp_c            -1.6250       0.6447            24.6%
-agitation                1.2250       0.6447            18.6%
-detergent_ml             0.9250       0.6447            14.0%
-spin_rpm                -0.4250       0.6447             6.4%
-bleach_ml                0.0750       0.6447             1.1%
+spin_rpm                 1.5250       0.6447            29.9%
+soak_min                -1.4250       0.6447            27.9%
+water_temp_c            -0.9750       0.6447            19.1%
+agitation               -0.7750       0.6447            15.2%
+detergent_ml             0.2750       0.6447             5.4%
+bleach_ml                0.1250       0.6447             2.5%
+
+=== ANOVA Table: fabric_wear ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+water_temp_c                 1       1.9013       1.9013      0.817     0.3961
+detergent_ml                 1       0.1513       0.1513      0.065     0.8061
+soak_min                     1       4.0612       4.0612      1.745     0.2280
+agitation                    1       1.2013       1.2013      0.516     0.4957
+bleach_ml                    1       0.0312       0.0312      0.013     0.9110
+spin_rpm                     1       4.6512       4.6512      1.999     0.2003
+water_temp_c*detergent_ml    1       4.0612       4.0612      1.745     0.2280
+water_temp_c*soak_min        1       0.1513       0.1513      0.065     0.8061
+water_temp_c*agitation       1       0.0313       0.0313      0.013     0.9110
+water_temp_c*bleach_ml       1       1.2013       1.2013      0.516     0.4957
+water_temp_c*spin_rpm        1      11.2813      11.2813      4.848     0.0636
+detergent_ml*soak_min        1       1.9013       1.9013      0.817     0.3961
+detergent_ml*agitation       1       4.6512       4.6512      1.999     0.2003
+detergent_ml*bleach_ml       1      11.2812      11.2812      4.848     0.0636
+detergent_ml*spin_rpm        1       1.2013       1.2013      0.516     0.4957
+soak_min*agitation           1      11.2812      11.2812      4.848     0.0636
+soak_min*bleach_ml           1       4.6512       4.6512      1.999     0.2003
+soak_min*spin_rpm            1       0.0312       0.0312      0.013     0.9110
+agitation*bleach_ml          1       1.9013       1.9013      0.817     0.3961
+agitation*spin_rpm           1       0.1513       0.1513      0.065     0.8061
+bleach_ml*spin_rpm           1       4.0612       4.0612      1.745     0.2280
+Error (Lenth PSE)            7      16.2881       2.3269
+Total                        7      23.2787       3.3255
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
 
 === Interaction Effects: fabric_wear ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-water_temp_c         detergent_ml              -2.3250            14.3%
-bleach_ml            spin_rpm                   2.3250            14.3%
-detergent_ml         soak_min                  -1.6250            10.0%
-agitation            bleach_ml                 -1.6250            10.0%
-water_temp_c         bleach_ml                  1.2250             7.5%
-detergent_ml         spin_rpm                  -1.2250             7.5%
-water_temp_c         spin_rpm                   1.0250             6.3%
-detergent_ml         bleach_ml                 -1.0250             6.3%
-soak_min             agitation                 -1.0250             6.3%
-water_temp_c         soak_min                   0.9250             5.7%
-agitation            spin_rpm                  -0.9250             5.7%
-detergent_ml         agitation                  0.4250             2.6%
-soak_min             bleach_ml                  0.4250             2.6%
-water_temp_c         agitation                  0.0750             0.5%
-soak_min             spin_rpm                  -0.0750             0.5%
+water_temp_c         spin_rpm                  -2.3750            13.7%
+detergent_ml         bleach_ml                  2.3750            13.7%
+soak_min             agitation                  2.3750            13.7%
+detergent_ml         agitation                 -1.5250             8.8%
+soak_min             bleach_ml                 -1.5250             8.8%
+water_temp_c         detergent_ml              -1.4250             8.2%
+bleach_ml            spin_rpm                   1.4250             8.2%
+detergent_ml         soak_min                  -0.9750             5.6%
+agitation            bleach_ml                 -0.9750             5.6%
+water_temp_c         bleach_ml                 -0.7750             4.5%
+detergent_ml         spin_rpm                   0.7750             4.5%
+water_temp_c         soak_min                   0.2750             1.6%
+agitation            spin_rpm                  -0.2750             1.6%
+water_temp_c         agitation                  0.1250             0.7%
+soak_min             spin_rpm                  -0.1250             0.7%
 
 === Summary Statistics: fabric_wear ===
 
 water_temp_c:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  20                  4     3.7750     2.1593     2.0000     6.7000
-  60                  4     2.1500     1.1561     1.1000     3.8000
+  20                  4     3.4500     2.5106     1.1000     6.7000
+  60                  4     2.4750     0.9069     1.8000     3.8000
 
 detergent_ml:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  15                  4     2.5000     0.8832     1.9000     3.8000
-  60                  4     3.4250     2.5316     1.1000     6.7000
+  15                  4     2.8250     1.3937     1.1000     4.1000
+  60                  4     3.1000     2.4014     1.8000     6.7000
 
 soak_min:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   4     4.1250     1.9738     1.9000     6.7000
-  30                  4     1.8000     0.5099     1.1000     2.3000
+  0                   4     3.6750     2.1762     1.9000     6.7000
+  30                  4     2.2500     1.2923     1.1000     4.1000
 
 agitation:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4     2.3500     1.2689     1.1000     4.1000
-  5                   4     3.5750     2.2692     1.8000     6.7000
+  1                   4     3.3500     2.5093     1.1000     6.7000
+  5                   4     2.5750     1.0308     1.9000     4.1000
 
 bleach_ml:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   4     2.9250     2.5487     1.1000     6.7000
-  30                  4     3.0000     1.1225     1.8000     4.1000
+  0                   4     2.9000     1.2193     1.8000     4.1000
+  30                  4     3.0250     2.5025     1.1000     6.7000
 
 spin_rpm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1400                4     3.1750     2.3599     1.8000     6.7000
-  600                 4     2.7500     1.4387     1.1000     4.1000
-
-Pareto chart (stain_removal_pct): use_cases/139_laundry_stain_removal/results/analysis/pareto_stain_removal_pct.png
-
-Pareto chart (fabric_wear): use_cases/139_laundry_stain_removal/results/analysis/pareto_fabric_wear.png
-Main effects (stain_removal_pct): use_cases/139_laundry_stain_removal/results/analysis/main_effects_stain_removal_pct.png
-Main effects (fabric_wear): use_cases/139_laundry_stain_removal/results/analysis/main_effects_fabric_wear.png</div></div>
+  1400                4     2.2000     1.1402     1.1000     3.8000
+  600                 4     3.7250     2.2157     1.8000     6.7000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: stain_removal_pct ===
 Direction: maximize
 
 Best observed run: #4
-  water_temp_c = 60
-  detergent_ml = 15
+  water_temp_c = 20
+  detergent_ml = 60
   soak_min = 0
   agitation = 1
-  bleach_ml = 0
-  spin_rpm = 1400
+  bleach_ml = 30
+  spin_rpm = 600
   Value: 99.0
 
-RSM Model (linear, R² = 0.7991, Adj R² = -0.4063):
+RSM Model (linear, R² = 0.9498, Adj R² = 0.6484):
   Coefficients:
     intercept                      +69.7500
-    water_temp_c                   +5.5000
-    detergent_ml                   -5.0000
-    soak_min                       +0.2500
-    agitation                      -6.5000
-    bleach_ml                      +0.2500
-    spin_rpm                       +6.7500
+    water_temp_c                   -8.7500
+    detergent_ml                   +2.0000
+    soak_min                       +0.5000
+    agitation                      -3.7500
+    bleach_ml                      +5.7500
+    spin_rpm                       -6.5000
 
-  Predicted optimum (from linear model):
-    water_temp_c = 60
-    detergent_ml = 15
+  Predicted optimum (from linear model, at observed points):
+    water_temp_c = 20
+    detergent_ml = 60
     soak_min = 0
     agitation = 1
-    bleach_ml = 0
-    spin_rpm = 1400
-    Predicted value: 93.0000
+    bleach_ml = 30
+    spin_rpm = 600
+    Predicted value: 96.0000
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Surface optimum (via L-BFGS-B, linear model):
+    water_temp_c = 20
+    detergent_ml = 60
+    soak_min = 30
+    agitation = 1
+    bleach_ml = 30
+    spin_rpm = 600
+    Predicted value: 97.0000
+
+  Model quality: Excellent fit — surface predictions are reliable.
 
 Factor importance:
-  1. spin_rpm  (effect: -13.5, contribution: 27.8%)
-  2. agitation  (effect: -13.0, contribution: 26.8%)
-  3. water_temp_c  (effect: 11.0, contribution: 22.7%)
-  4. detergent_ml  (effect: -10.0, contribution: 20.6%)
-  5. soak_min  (effect: 0.5, contribution: 1.0%)
-  6. bleach_ml  (effect: 0.5, contribution: 1.0%)
+  1. water_temp_c  (effect: -17.5, contribution: 32.1%)
+  2. spin_rpm  (effect: 13.0, contribution: 23.9%)
+  3. bleach_ml  (effect: 11.5, contribution: 21.1%)
+  4. agitation  (effect: -7.5, contribution: 13.8%)
+  5. detergent_ml  (effect: 4.0, contribution: 7.3%)
+  6. soak_min  (effect: 1.0, contribution: 1.8%)
 
 === Optimization: fabric_wear ===
 Direction: minimize
 
 Best observed run: #5
-  water_temp_c = 60
-  detergent_ml = 15
+  water_temp_c = 20
+  detergent_ml = 60
   soak_min = 0
   agitation = 5
-  bleach_ml = 30
-  spin_rpm = 600
+  bleach_ml = 0
+  spin_rpm = 1400
   Value: 1.1
 
-RSM Model (linear, R² = 0.8255, Adj R² = -0.2212):
+RSM Model (linear, R² = 0.9845, Adj R² = 0.8914):
   Coefficients:
     intercept                      +2.9625
-    water_temp_c                   +0.9625
+    water_temp_c                   -0.5875
     detergent_ml                   -0.0375
-    soak_min                       +0.0625
-    agitation                      -0.7375
-    bleach_ml                      -0.5875
-    spin_rpm                       +0.7625
+    soak_min                       -0.3875
+    agitation                      -0.6875
+    bleach_ml                      +1.1625
+    spin_rpm                       -0.7375
 
-  Predicted optimum (from linear model):
-    water_temp_c = 60
-    detergent_ml = 15
+  Predicted optimum (from linear model, at observed points):
+    water_temp_c = 20
+    detergent_ml = 60
     soak_min = 0
     agitation = 1
+    bleach_ml = 30
+    spin_rpm = 600
+    Predicted value: 6.4875
+
+  Surface optimum (via L-BFGS-B, linear model):
+    water_temp_c = 60
+    detergent_ml = 60
+    soak_min = 30
+    agitation = 5
     bleach_ml = 0
     spin_rpm = 1400
-    Predicted value: 5.9875
+    Predicted value: -0.6375
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Model quality: Excellent fit — surface predictions are reliable.
 
 Factor importance:
-  1. water_temp_c  (effect: 1.9, contribution: 30.6%)
-  2. spin_rpm  (effect: -1.5, contribution: 24.2%)
-  3. agitation  (effect: -1.5, contribution: 23.4%)
-  4. bleach_ml  (effect: -1.2, contribution: 18.7%)
-  5. soak_min  (effect: 0.1, contribution: 2.0%)
-  6. detergent_ml  (effect: -0.1, contribution: 1.2%)</div></div>
+  1. bleach_ml  (effect: 2.3, contribution: 32.3%)
+  2. spin_rpm  (effect: 1.5, contribution: 20.5%)
+  3. agitation  (effect: -1.4, contribution: 19.1%)
+  4. water_temp_c  (effect: -1.2, contribution: 16.3%)
+  5. soak_min  (effect: -0.8, contribution: 10.8%)
+  6. detergent_ml  (effect: -0.1, contribution: 1.0%)</div></div>
   </section>
 
   <!-- Nav -->

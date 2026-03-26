@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>capacity</strong>, the most influential factors were stall width (44.8%), aisle width (35.1%), stall angle (20.1%). The best observed value was <strong>225.0</strong> (at stall angle = 67.5, aisle width = 7.5, stall width = 3).</p>
-<p>For <strong>avg walk m</strong>, the most influential factors were aisle width (47.0%), stall width (34.5%), stall angle (18.6%). The best observed value was <strong>35.0</strong> (at stall angle = 90, aisle width = 6, stall width = 2.4).</p>
+    <p>For <strong>capacity</strong>, the most influential factors were stall angle (46.2%), stall width (39.0%), aisle width (14.8%). The best observed value was <strong>225.0</strong> (at stall angle = 67.5, aisle width = 7.5, stall width = 2.4).</p>
+<p>For <strong>avg walk m</strong>, the most influential factors were stall width (58.0%), stall angle (24.5%), aisle width (17.5%). The best observed value was <strong>35.0</strong> (at stall angle = 67.5, aisle width = 7.5, stall width = 3).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (capacity (↑), avg_walk_m (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/125_parking_lot_layout/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -264,48 +264,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/125_parking_lot_layout/config.json \
     <span class="flag">--output</span> use_cases/125_parking_lot_layout/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Vehicle Test? Use the Manual Workflow</h4>
-        <p>Automotive experiments require real driving conditions, fuel consumption measurement, and physical equipment adjustments. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/125_parking_lot_layout/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/125_parking_lot_layout/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/125_parking_lot_layout/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/125_parking_lot_layout/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/125_parking_lot_layout/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/125_parking_lot_layout/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/125_parking_lot_layout/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -337,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: capacity</h3>
-    <p>Top factors: stall_width (44.8%), aisle_width (35.1%), stall_angle (20.1%).</p>
+    <p>Top factors: stall_angle (46.2%), stall_width (39.0%), aisle_width (14.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -350,7 +308,7 @@
     </div>
 
     <h3>Response: avg_walk_m</h3>
-    <p>Top factors: aisle_width (47.0%), stall_width (34.5%), stall_angle (18.6%).</p>
+    <p>Top factors: stall_width (58.0%), stall_angle (24.5%), aisle_width (17.5%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -401,80 +359,219 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.8370</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>capacity</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>225.00 0.9545      225.00 spaces</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>avg_walk_m</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:68.72%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.6872</span>
+                </div>
+              </td>
+              <td>40.00 0.6872       40.00 m</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>stall_angle</code></td><td>67.5 deg</td></tr>
+            <tr><td><code>aisle_width</code></td><td>6 m</td></tr>
+            <tr><td><code>stall_width</code></td><td>2.7 m</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #1</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>avg_walk_m</code></td><td>40.00</td><td>35.00</td><td><span style="color:#dc2626;">+5.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#13</td><td><strong>0.6989</strong></td><td style="font-size:.78rem;">stall_angle=45,  aisle_width=4.5,  stall_width=2.7</td></tr>
+            <tr><td>#4</td><td><strong>0.6577</strong></td><td style="font-size:.78rem;">stall_angle=67.5,  aisle_width=4.5,  stall_width=2.4</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>avg_walk_m</code></td><td style="color:#dc2626;font-weight:600;">0.2882</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.8370
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+capacity                     1.5       0.9545      225.00 spaces   ↑
+avg_walk_m                   1.0       0.6872       40.00 m   ↓
+
+Recommended settings:
+  stall_angle = 67.5 deg
+  aisle_width = 6 m
+  stall_width = 2.7 m
+  (from observed run #1)
+
+Trade-off summary:
+  capacity: 225.00 (best observed: 225.00, sacrifice: +0.00)
+  avg_walk_m: 40.00 (best observed: 35.00, sacrifice: +5.00)
+
+Model quality:
+  capacity: R² = 0.6836 (quadratic)
+  avg_walk_m: R² = 0.2882 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #1 (D=0.8370): stall_angle=67.5, aisle_width=6, stall_width=2.7
+  2. Run #13 (D=0.6989): stall_angle=45, aisle_width=4.5, stall_width=2.7
+  3. Run #4 (D=0.6577): stall_angle=67.5, aisle_width=4.5, stall_width=2.4</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_capacity_stall_angle_vs_aisle_width.png
-  RSM surface: rsm_capacity_stall_angle_vs_stall_width.png
-  RSM surface: rsm_capacity_aisle_width_vs_stall_width.png
-  RSM surface: rsm_avg_walk_m_stall_angle_vs_aisle_width.png
-  RSM surface: rsm_avg_walk_m_stall_angle_vs_stall_width.png
-  RSM surface: rsm_avg_walk_m_aisle_width_vs_stall_width.png
-
-=== Main Effects: capacity ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: capacity ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-stall_width             37.6071       7.2413            44.8%
-aisle_width             29.5000       7.2413            35.1%
-stall_angle             16.9286       7.2413            20.1%
+stall_angle             21.9286       7.2413            46.2%
+stall_width             18.5000       7.2413            39.0%
+aisle_width              7.0000       7.2413            14.8%
+
+=== ANOVA Table: capacity ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+stall_angle                  2    1278.1357     639.0679      0.847     0.4637
+aisle_width                  2     120.6714      60.3357      0.080     0.9239
+stall_width                  2     943.8500     471.9250      0.626     0.5592
+Lack of Fit                  6    7160.2762    1193.3794      1.582     0.4365
+Pure Error                   2    1508.6667     754.3333
+Error                        8    8668.9429     754.3333
+Total                       14   11011.6000     786.5429
 
 === Summary Statistics: capacity ===
 
 stall_angle:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  45                  4   187.5000    14.8436   175.0000   209.0000
-  67.5                7   170.5714    31.9315   132.0000   225.0000
-  90                  4   179.2500    34.0820   131.0000   211.0000
+  45                  4   174.2500    31.8264   132.0000   209.0000
+  67.5                7   170.5714    32.1914   131.0000   225.0000
+  90                  4   192.5000    12.6095   184.0000   211.0000
 
 aisle_width:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  4.5                 4   196.0000    26.8452   166.0000   225.0000
-  6                   7   173.0000    29.3144   132.0000   209.0000
-  7.5                 4   166.5000    23.7978   131.0000   181.0000
+  4.5                 4   172.7500    32.9280   131.0000   209.0000
+  6                   7   178.7143    23.4145   133.0000   211.0000
+  7.5                 4   179.7500    38.0734   132.0000   225.0000
 
 stall_width:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  2.4                 4   179.0000     8.8318   166.0000   185.0000
-  2.7                 7   163.1429    31.4082   131.0000   211.0000
-  3                   4   200.7500    20.3695   179.0000   225.0000
+  2.4                 4   173.7500    32.8367   131.0000   211.0000
+  2.7                 7   172.0000    28.7286   132.0000   209.0000
+  3                   4   190.5000    25.0400   166.0000   225.0000
 
 === Main Effects: avg_walk_m ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-aisle_width              4.4286       1.3281            47.0%
-stall_width              3.2500       1.3281            34.5%
-stall_angle              1.7500       1.3281            18.6%
+stall_width              8.2857       1.3281            58.0%
+stall_angle              3.5000       1.3281            24.5%
+aisle_width              2.5000       1.3281            17.5%
+
+=== ANOVA Table: avg_walk_m ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+stall_angle                  2      26.0429      13.0214      2.056     0.1903
+aisle_width                  2      16.4000       8.2000      1.295     0.3257
+stall_width                  2     174.9714      87.4857     13.814     0.0025
+Lack of Fit                  6     140.3190      23.3865      3.693     0.2284
+Pure Error                   2      12.6667       6.3333
+Error                        8     152.9857       6.3333
+Total                       14     370.4000      26.4571
 
 === Summary Statistics: avg_walk_m ===
 
 stall_angle:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  45                  4    45.0000     6.1644    37.0000    52.0000
-  67.5                7    43.4286     4.1173    40.0000    50.0000
-  90                  4    43.2500     6.9940    35.0000    52.0000
+  45                  4    45.2500     4.9917    40.0000    52.0000
+  67.5                7    44.1429     5.7859    37.0000    52.0000
+  90                  4    41.7500     4.7871    35.0000    46.0000
 
 aisle_width:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  4.5                 4    42.7500     5.6199    37.0000    50.0000
-  6                   7    42.5714     4.3150    35.0000    48.0000
-  7.5                 4    47.0000     6.0000    40.0000    52.0000
+  4.5                 4    45.5000     7.5939    35.0000    52.0000
+  6                   7    43.0000     4.6547    37.0000    52.0000
+  7.5                 4    43.5000     4.1231    40.0000    48.0000
 
 stall_width:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  2.4                 4    43.7500     6.3443    35.0000    50.0000
-  2.7                 7    45.0000     5.8595    37.0000    52.0000
-  3                   4    41.7500     2.3629    40.0000    45.0000
-
-Pareto chart (capacity): use_cases/125_parking_lot_layout/results/analysis/pareto_capacity.png
-
-Pareto chart (avg_walk_m): use_cases/125_parking_lot_layout/results/analysis/pareto_avg_walk_m.png
-Main effects (capacity): use_cases/125_parking_lot_layout/results/analysis/main_effects_capacity.png
-Main effects (avg_walk_m): use_cases/125_parking_lot_layout/results/analysis/main_effects_avg_walk_m.png</div></div>
+  2.4                 4    49.0000     3.8297    44.0000    52.0000
+  2.7                 7    40.7143     3.9881    35.0000    46.0000
+  3                   4    44.0000     4.3205    40.0000    50.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: capacity ===
@@ -483,101 +580,114 @@ Direction: maximize
 Best observed run: #1
   stall_angle = 67.5
   aisle_width = 7.5
-  stall_width = 3
+  stall_width = 2.4
   Value: 225.0
 
-RSM Model (linear, R² = 0.3646, Adj R² = 0.1913):
+RSM Model (linear, R² = 0.1382, Adj R² = -0.0968):
   Coefficients:
     intercept                      +177.4000
-    stall_angle                    +10.2500
-    aisle_width                    +4.6250
-    stall_width                    +19.3750
+    stall_angle                    +6.5000
+    aisle_width                    -2.0000
+    stall_width                    -12.0000
 
-RSM Model (quadratic, R² = 0.8467, Adj R² = 0.5708):
+RSM Model (quadratic, R² = 0.7924, Adj R² = 0.4187):
   Coefficients:
-    intercept                      +184.0000
-    stall_angle                    +10.2500
-    aisle_width                    +4.6250
-    stall_width                    +19.3750
-    stall_angle*aisle_width        -11.0000
-    stall_angle*stall_width        -20.5000
-    aisle_width*stall_width        +25.7500
-    stall_angle^2                  -10.1250
-    aisle_width^2                  -4.8750
-    stall_width^2                  +2.6250
+    intercept                      +193.3333
+    stall_angle                    +6.5000
+    aisle_width                    -2.0000
+    stall_width                    -12.0000
+    stall_angle*aisle_width        -12.2500
+    stall_angle*stall_width        +0.2500
+    aisle_width*stall_width        +0.7500
+    stall_angle^2                  -32.7917
+    aisle_width^2                  -16.2917
+    stall_width^2                  +19.2083
 
   Curvature analysis:
-    stall_angle                    coef=-10.1250  concave (has a maximum)
-    aisle_width                    coef=-4.8750  concave (has a maximum)
-    stall_width                    coef=+2.6250  convex (has a minimum)
+    stall_angle                    coef=-32.7917  concave (has a maximum)
+    stall_width                    coef=+19.2083  convex (has a minimum)
+    aisle_width                    coef=-16.2917  concave (has a maximum)
 
   Notable interactions:
-    aisle_width*stall_width        coef=+25.7500  (synergistic)
-    stall_angle*stall_width        coef=-20.5000  (antagonistic)
-    stall_angle*aisle_width        coef=-11.0000  (antagonistic)
+    stall_angle*aisle_width        coef=-12.2500  (antagonistic)
+    aisle_width*stall_width        coef=+0.7500  (synergistic)
 
-  Predicted optimum (from quadratic model):
+  Predicted optimum (from quadratic model, at observed points):
     stall_angle = 67.5
-    aisle_width = 7.5
-    stall_width = 3
-    Predicted value: 231.5000
+    aisle_width = 4.5
+    stall_width = 2.4
+    Predicted value: 211.0000
+
+  Surface optimum (via L-BFGS-B, quadratic model):
+    stall_angle = 70.1877
+    aisle_width = 5.80604
+    stall_width = 2.4
+    Predicted value: 225.0928
 
   Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. stall_width  (effect: 38.8, contribution: 56.6%)
-  2. stall_angle  (effect: 20.5, contribution: 29.9%)
-  3. aisle_width  (effect: 9.2, contribution: 13.5%)
+  1. stall_angle  (effect: 39.5, contribution: 43.2%)
+  2. stall_width  (effect: 34.7, contribution: 37.9%)
+  3. aisle_width  (effect: 17.3, contribution: 18.9%)
 
 === Optimization: avg_walk_m ===
 Direction: minimize
 
 Best observed run: #13
-  stall_angle = 90
-  aisle_width = 6
-  stall_width = 2.4
+  stall_angle = 67.5
+  aisle_width = 7.5
+  stall_width = 3
   Value: 35.0
 
-RSM Model (linear, R² = 0.2774, Adj R² = 0.0803):
+RSM Model (linear, R² = 0.2855, Adj R² = 0.0906):
   Coefficients:
     intercept                      +43.8000
-    stall_angle                    -2.8750
-    aisle_width                    +2.1250
-    stall_width                    -0.2500
+    stall_angle                    +2.3750
+    aisle_width                    -1.7500
+    stall_width                    +2.1250
 
-RSM Model (quadratic, R² = 0.7397, Adj R² = 0.2711):
+RSM Model (quadratic, R² = 0.6254, Adj R² = -0.0489):
   Coefficients:
-    intercept                      +48.6667
-    stall_angle                    -2.8750
-    aisle_width                    +2.1250
-    stall_width                    -0.2500
-    stall_angle*aisle_width        +0.2500
-    stall_angle*stall_width        +4.0000
-    aisle_width*stall_width        +0.0000
-    stall_angle^2                  -1.4583
-    aisle_width^2                  -4.4583
-    stall_width^2                  -3.2083
+    intercept                      +42.0000
+    stall_angle                    +2.3750
+    aisle_width                    -1.7500
+    stall_width                    +2.1250
+    stall_angle*aisle_width        +2.5000
+    stall_angle*stall_width        -3.2500
+    aisle_width*stall_width        -2.5000
+    stall_angle^2                  +2.8750
+    aisle_width^2                  -0.3750
+    stall_width^2                  +0.8750
 
   Curvature analysis:
-    aisle_width                    coef=-4.4583  concave (has a maximum)
-    stall_width                    coef=-3.2083  concave (has a maximum)
-    stall_angle                    coef=-1.4583  concave (has a maximum)
+    stall_angle                    coef=+2.8750  convex (has a minimum)
+    stall_width                    coef=+0.8750  convex (has a minimum)
+    aisle_width                    coef=-0.3750  concave (has a maximum)
 
   Notable interactions:
-    stall_angle*stall_width        coef=+4.0000  (synergistic)
+    stall_angle*stall_width        coef=-3.2500  (antagonistic)
+    aisle_width*stall_width        coef=-2.5000  (antagonistic)
+    stall_angle*aisle_width        coef=+2.5000  (synergistic)
 
-  Predicted optimum (from quadratic model):
-    stall_angle = 45
+  Predicted optimum (from linear model, at observed points):
+    stall_angle = 90
     aisle_width = 6
-    stall_width = 2.4
-    Predicted value: 51.1250
+    stall_width = 3
+    Predicted value: 48.3000
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Surface optimum (via L-BFGS-B, linear model):
+    stall_angle = 45
+    aisle_width = 7.5
+    stall_width = 2.4
+    Predicted value: 37.5500
+
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. aisle_width  (effect: 6.2, contribution: 41.6%)
-  2. stall_angle  (effect: 5.8, contribution: 38.2%)
-  3. stall_width  (effect: 3.0, contribution: 20.2%)</div></div>
+  1. stall_angle  (effect: 5.2, contribution: 40.2%)
+  2. stall_width  (effect: 4.2, contribution: 32.8%)
+  3. aisle_width  (effect: 3.5, contribution: 27.0%)</div></div>
   </section>
 
   <!-- Nav -->

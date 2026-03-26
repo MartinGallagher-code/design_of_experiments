@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>range km</strong>, the most influential factors were speed kph (50.1%), cabin temp (21.9%), regen level (15.5%). The best observed value was <strong>614.0</strong> (at speed kph = 60, cabin temp = 26, regen level = 1).</p>
-<p>For <strong>kwh per 100km</strong>, the most influential factors were speed kph (34.4%), regen level (29.3%), cabin temp (28.3%). The best observed value was <strong>12.3</strong> (at speed kph = 60, cabin temp = 26, regen level = 1).</p>
+    <p>For <strong>range km</strong>, the most influential factors were cabin temp (43.6%), speed kph (27.2%), tire type (16.1%). The best observed value was <strong>614.0</strong> (at speed kph = 120, cabin temp = 18, regen level = 3).</p>
+<p>For <strong>kwh per 100km</strong>, the most influential factors were cabin temp (37.7%), speed kph (28.3%), tire type (26.0%). The best observed value was <strong>12.3</strong> (at speed kph = 120, cabin temp = 18, regen level = 3).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -253,12 +252,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (range_km (↑), kwh_per_100km (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/119_ev_range_optimization/config.json <span class="flag">--multi</span></div>
         </div>
@@ -266,7 +266,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -274,48 +274,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/119_ev_range_optimization/config.json \
     <span class="flag">--output</span> use_cases/119_ev_range_optimization/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Vehicle Test? Use the Manual Workflow</h4>
-        <p>Automotive experiments require real driving conditions, fuel consumption measurement, and physical equipment adjustments. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/119_ev_range_optimization/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/119_ev_range_optimization/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/119_ev_range_optimization/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/119_ev_range_optimization/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/119_ev_range_optimization/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/119_ev_range_optimization/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/119_ev_range_optimization/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -347,7 +305,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: range_km</h3>
-    <p>Top factors: speed_kph (50.1%), cabin_temp (21.9%), regen_level (15.5%).</p>
+    <p>Top factors: cabin_temp (43.6%), speed_kph (27.2%), tire_type (16.1%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -360,7 +318,7 @@
     </div>
 
     <h3>Response: kwh_per_100km</h3>
-    <p>Top factors: speed_kph (34.4%), regen_level (29.3%), cabin_temp (28.3%).</p>
+    <p>Top factors: cabin_temp (37.7%), speed_kph (28.3%), tire_type (26.0%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -411,237 +369,404 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9545</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>range_km</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>614.00 0.9545      614.00 km</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>kwh_per_100km</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>12.30 0.9545       12.30 kWh/100km</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>speed_kph</code></td><td>60 kph</td></tr>
+            <tr><td><code>cabin_temp</code></td><td>18 C</td></tr>
+            <tr><td><code>regen_level</code></td><td>3 level</td></tr>
+            <tr><td><code>tire_type</code></td><td>standard</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #16</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>kwh_per_100km</code></td><td>12.30</td><td>12.30</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#1</td><td><strong>0.7615</strong></td><td style="font-size:.78rem;">speed_kph=120,  cabin_temp=26,  regen_level=3,  tire_type=standard</td></tr>
+            <tr><td>#9</td><td><strong>0.7380</strong></td><td style="font-size:.78rem;">speed_kph=120,  cabin_temp=18,  regen_level=1,  tire_type=low_rolling</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>kwh_per_100km</code></td><td style="color:#dc2626;font-weight:600;">0.0679</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9545
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+range_km                     1.5       0.9545      614.00 km   ↑
+kwh_per_100km                1.0       0.9545       12.30 kWh/100km   ↓
+
+Recommended settings:
+  speed_kph = 60 kph
+  cabin_temp = 18 C
+  regen_level = 3 level
+  tire_type = standard
+  (from observed run #16)
+
+Trade-off summary:
+  range_km: 614.00 (best observed: 614.00, sacrifice: +0.00)
+  kwh_per_100km: 12.30 (best observed: 12.30, sacrifice: +0.00)
+
+Model quality:
+  range_km: R² = 0.0731 (linear)
+  kwh_per_100km: R² = 0.0679 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #16 (D=0.9545): speed_kph=60, cabin_temp=18, regen_level=3, tire_type=standard
+  2. Run #1 (D=0.7615): speed_kph=120, cabin_temp=26, regen_level=3, tire_type=standard
+  3. Run #9 (D=0.7380): speed_kph=120, cabin_temp=18, regen_level=1, tire_type=low_rolling</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_range_km_speed_kph_vs_cabin_temp.png
-  RSM surface: rsm_range_km_speed_kph_vs_regen_level.png
-  RSM surface: rsm_range_km_cabin_temp_vs_regen_level.png
-  RSM surface: rsm_kwh_per_100km_speed_kph_vs_cabin_temp.png
-  RSM surface: rsm_kwh_per_100km_speed_kph_vs_regen_level.png
-  RSM surface: rsm_kwh_per_100km_cabin_temp_vs_regen_level.png
-
-=== Main Effects: range_km ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: range_km ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-speed_kph              -60.7500      24.7322            50.1%
-cabin_temp              26.5000      24.7322            21.9%
-regen_level            -18.7500      24.7322            15.5%
-tire_type               15.2500      24.7322            12.6%
+cabin_temp              99.5000      24.7322            43.6%
+speed_kph              -62.0000      24.7322            27.2%
+tire_type               36.7500      24.7322            16.1%
+regen_level             30.0000      24.7322            13.1%
+
+=== ANOVA Table: range_km ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+speed_kph                    1   15376.0000   15376.0000      2.466     0.1772
+cabin_temp                   1   39601.0000   39601.0000      6.350     0.0532
+regen_level                  1    3600.0000    3600.0000      0.577     0.4816
+tire_type                    1    5402.2500    5402.2500      0.866     0.3947
+speed_kph*cabin_temp         1   29070.2500   29070.2500      4.662     0.0833
+speed_kph*regen_level        1    3660.2500    3660.2500      0.587     0.4782
+speed_kph*tire_type          1   11881.0000   11881.0000      1.905     0.2260
+cabin_temp*regen_level       1    4556.2500    4556.2500      0.731     0.4317
+cabin_temp*tire_type         1     361.0000     361.0000      0.058     0.8194
+regen_level*tire_type        1    2116.0000    2116.0000      0.339     0.5855
+Error                        5   31179.7500    6235.9500
+Total                       15  146803.7500    9786.9167
 
 === Interaction Effects: range_km ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-regen_level          tire_type                 97.2500            44.4%
-speed_kph            cabin_temp               -44.0000            20.1%
-speed_kph            tire_type                -43.7500            20.0%
-cabin_temp           regen_level               29.0000            13.2%
-cabin_temp           tire_type                 -5.0000             2.3%
-speed_kph            regen_level               -0.2500             0.1%
+speed_kph            cabin_temp               -85.2500            36.1%
+speed_kph            tire_type                 54.5000            23.1%
+cabin_temp           regen_level               33.7500            14.3%
+speed_kph            regen_level              -30.2500            12.8%
+regen_level          tire_type                 23.0000             9.7%
+cabin_temp           tire_type                  9.5000             4.0%
 
 === Summary Statistics: range_km ===
 
 speed_kph:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  120                 8   430.5000   127.3062   269.0000   614.0000
-  60                  8   369.7500    51.5385   297.0000   449.0000
+  120                 8   431.1250   111.3186   297.0000   614.0000
+  60                  8   369.1250    79.8971   269.0000   498.0000
 
 cabin_temp:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  18                  8   386.8750    92.9492   269.0000   520.0000
-  26                  8   413.3750   109.2297   297.0000   614.0000
+  18                  8   350.3750    46.3648   294.0000   427.0000
+  26                  8   449.8750   114.7388   269.0000   614.0000
 
 regen_level:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   8   409.5000    86.0913   294.0000   520.0000
-  3                   8   390.7500   115.5827   269.0000   614.0000
+  1                   8   385.1250    85.6395   269.0000   520.0000
+  3                   8   415.1250   114.5581   294.0000   614.0000
 
 tire_type:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  low_rolling         8   392.5000    90.7918   269.0000   520.0000
-  standard            8   407.7500   112.2316   294.0000   614.0000
+  low_rolling         8   381.7500   126.2217   269.0000   614.0000
+  standard            8   418.5000    65.3321   338.0000   511.0000
 
 === Main Effects: kwh_per_100km ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-speed_kph                1.6875       1.2001            34.4%
-regen_level              1.4375       1.2001            29.3%
-cabin_temp              -1.3875       1.2001            28.3%
-tire_type               -0.3875       1.2001             7.9%
+cabin_temp              -4.1125       1.2001            37.7%
+speed_kph                3.0875       1.2001            28.3%
+tire_type               -2.8375       1.2001            26.0%
+regen_level             -0.8625       1.2001             7.9%
+
+=== ANOVA Table: kwh_per_100km ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+speed_kph                    1      38.1306      38.1306      2.194     0.1986
+cabin_temp                   1      67.6506      67.6506      3.893     0.1055
+regen_level                  1       2.9756       2.9756      0.171     0.6962
+tire_type                    1      32.2056      32.2056      1.853     0.2315
+speed_kph*cabin_temp         1      65.2056      65.2056      3.752     0.1105
+speed_kph*regen_level        1       6.6306       6.6306      0.382     0.5638
+speed_kph*tire_type          1      25.7556      25.7556      1.482     0.2777
+cabin_temp*regen_level       1       9.1506       9.1506      0.527     0.5006
+cabin_temp*tire_type         1       3.9006       3.9006      0.224     0.6556
+regen_level*tire_type        1       7.1556       7.1556      0.412     0.5493
+Error                        5      86.8831      17.3766
+Total                       15     345.6444      23.0430
 
 === Interaction Effects: kwh_per_100km ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-regen_level          tire_type                 -4.6375            40.0%
-speed_kph            cabin_temp                 2.3125            19.9%
-speed_kph            tire_type                  2.1125            18.2%
-cabin_temp           regen_level               -1.1875            10.2%
-cabin_temp           tire_type                  0.7375             6.4%
-speed_kph            regen_level               -0.6125             5.3%
+speed_kph            cabin_temp                 4.0375            34.5%
+speed_kph            tire_type                 -2.5375            21.7%
+cabin_temp           regen_level               -1.5125            12.9%
+regen_level          tire_type                 -1.3375            11.4%
+speed_kph            regen_level                1.2875            11.0%
+cabin_temp           tire_type                 -0.9875             8.4%
 
 === Summary Statistics: kwh_per_100km ===
 
 speed_kph:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  120                 8    19.1750     6.3023    12.3000    28.2000
-  60                  8    20.8625     2.8339    16.7000    25.0000
+  120                 8    18.4750     4.7373    12.3000    25.0000
+  60                  8    21.5625     4.6356    15.4000    28.2000
 
 cabin_temp:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  18                  8    20.7125     5.0896    14.1000    28.2000
-  26                  8    19.3250     4.7301    12.3000    25.0000
+  18                  8    22.0750     2.8734    17.5000    26.4000
+  26                  8    17.9625     5.6087    12.3000    28.2000
 
 regen_level:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   8    19.3000     4.5356    14.1000    26.4000
-  3                   8    20.7375     5.2560    12.3000    28.2000
+  1                   8    20.4500     4.7585    14.1000    28.2000
+  3                   8    19.5875     5.1293    12.3000    26.4000
 
 tire_type:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  low_rolling         8    20.2125     4.9020    14.1000    28.2000
-  standard            8    19.8250     5.0261    12.3000    26.4000
-
-Pareto chart (range_km): use_cases/119_ev_range_optimization/results/analysis/pareto_range_km.png
-
-Pareto chart (kwh_per_100km): use_cases/119_ev_range_optimization/results/analysis/pareto_kwh_per_100km.png
-Main effects (range_km): use_cases/119_ev_range_optimization/results/analysis/main_effects_range_km.png
-Main effects (kwh_per_100km): use_cases/119_ev_range_optimization/results/analysis/main_effects_kwh_per_100km.png</div></div>
+  low_rolling         8    21.4375     5.9838    12.3000    28.2000
+  standard            8    18.6000     2.9952    14.5000    22.4000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: range_km ===
 Direction: maximize
 
 Best observed run: #16
-  speed_kph = 60
-  cabin_temp = 26
-  regen_level = 1
-  tire_type = low_rolling
+  speed_kph = 120
+  cabin_temp = 18
+  regen_level = 3
+  tire_type = standard
   Value: 614.0
 
-RSM Model (linear, R² = 0.1951, Adj R² = -0.0975):
+RSM Model (linear, R² = 0.0839, Adj R² = -0.2492):
   Coefficients:
     intercept                      +400.1250
-    speed_kph                      -4.5000
-    cabin_temp                     +12.7500
-    regen_level                    -2.7500
-    tire_type                      -40.0000
+    speed_kph                      -26.1250
+    cabin_temp                     +3.2500
+    regen_level                    -0.1250
+    tire_type                      +8.7500
 
-RSM Model (quadratic, R² = 0.6885, Adj R² = -3.6722):
+RSM Model (quadratic, R² = 0.8300, Adj R² = -1.5507):
   Coefficients:
     intercept                      +80.0250
-    speed_kph                      -4.5000
-    cabin_temp                     +12.7500
-    regen_level                    -2.7500
-    tire_type                      -40.0000
-    speed_kph*cabin_temp           -48.8750
-    speed_kph*regen_level          +13.8750
-    speed_kph*tire_type            +21.6250
-    cabin_temp*regen_level         -37.3750
-    cabin_temp*tire_type           -7.8750
-    regen_level*tire_type          +4.3750
+    speed_kph                      -26.1250
+    cabin_temp                     +3.2500
+    regen_level                    -0.1250
+    tire_type                      +8.7500
+    speed_kph*cabin_temp           -19.0000
+    speed_kph*regen_level          +68.1250
+    speed_kph*tire_type            +16.0000
+    cabin_temp*regen_level         +4.7500
+    cabin_temp*tire_type           -32.8750
+    regen_level*tire_type          +22.0000
     speed_kph^2                    +80.0250
     cabin_temp^2                   +80.0250
     regen_level^2                  +80.0250
     tire_type^2                    +80.0250
 
   Curvature analysis:
-    tire_type                      coef=+80.0250  convex (has a minimum)
     speed_kph                      coef=+80.0250  convex (has a minimum)
     cabin_temp                     coef=+80.0250  convex (has a minimum)
     regen_level                    coef=+80.0250  convex (has a minimum)
+    tire_type                      coef=+80.0250  convex (has a minimum)
 
   Notable interactions:
-    speed_kph*cabin_temp           coef=-48.8750  (antagonistic)
-    cabin_temp*regen_level         coef=-37.3750  (antagonistic)
-    speed_kph*tire_type            coef=+21.6250  (synergistic)
-    speed_kph*regen_level          coef=+13.8750  (synergistic)
-    cabin_temp*tire_type           coef=-7.8750  (antagonistic)
-    regen_level*tire_type          coef=+4.3750  (synergistic)
+    speed_kph*regen_level          coef=+68.1250  (synergistic)
+    cabin_temp*tire_type           coef=-32.8750  (antagonistic)
+    regen_level*tire_type          coef=+22.0000  (synergistic)
+    speed_kph*cabin_temp           coef=-19.0000  (antagonistic)
+    speed_kph*tire_type            coef=+16.0000  (synergistic)
+    cabin_temp*regen_level         coef=+4.7500  (synergistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
+    speed_kph = 60
+    cabin_temp = 26
+    regen_level = 1
+    tire_type = standard
+    Predicted value: 438.3750
+
+  Surface optimum (via L-BFGS-B, linear model):
     speed_kph = 60
     cabin_temp = 26
     regen_level = 1
     tire_type = low_rolling
-    Predicted value: 460.1250
+    Predicted value: 438.3750
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. tire_type  (effect: -80.0, contribution: 66.7%)
-  2. cabin_temp  (effect: 25.5, contribution: 21.2%)
-  3. speed_kph  (effect: 9.0, contribution: 7.5%)
-  4. regen_level  (effect: -5.5, contribution: 4.6%)
+  1. speed_kph  (effect: 52.2, contribution: 68.3%)
+  2. tire_type  (effect: 17.5, contribution: 22.9%)
+  3. cabin_temp  (effect: 6.5, contribution: 8.5%)
+  4. regen_level  (effect: -0.2, contribution: 0.3%)
 
 === Optimization: kwh_per_100km ===
 Direction: minimize
 
 Best observed run: #16
-  speed_kph = 60
-  cabin_temp = 26
-  regen_level = 1
-  tire_type = low_rolling
+  speed_kph = 120
+  cabin_temp = 18
+  regen_level = 3
+  tire_type = standard
   Value: 12.3
 
-RSM Model (linear, R² = 0.1990, Adj R² = -0.0923):
+RSM Model (linear, R² = 0.1311, Adj R² = -0.1849):
   Coefficients:
     intercept                      +20.0188
-    speed_kph                      +0.0312
-    cabin_temp                     -0.7187
-    regen_level                    -0.0562
-    tire_type                      +1.9437
+    speed_kph                      +1.4437
+    cabin_temp                     -0.7562
+    regen_level                    +0.0062
+    tire_type                      -0.4188
 
-RSM Model (quadratic, R² = 0.6227, Adj R² = -4.6589):
+RSM Model (quadratic, R² = 0.8682, Adj R² = -0.9771):
   Coefficients:
     intercept                      +4.0038
-    speed_kph                      +0.0312
-    cabin_temp                     -0.7187
-    regen_level                    -0.0562
-    tire_type                      +1.9438
-    speed_kph*cabin_temp           +2.0687
-    speed_kph*regen_level          -0.8188
-    speed_kph*tire_type            -0.7937
-    cabin_temp*regen_level         +1.8813
-    cabin_temp*tire_type           -0.1188
-    regen_level*tire_type          +0.1437
+    speed_kph                      +1.4437
+    cabin_temp                     -0.7562
+    regen_level                    +0.0062
+    tire_type                      -0.4188
+    speed_kph*cabin_temp           +0.7937
+    speed_kph*regen_level          -3.3938
+    speed_kph*tire_type            -0.3937
+    cabin_temp*regen_level         -0.4688
+    cabin_temp*tire_type           +1.6062
+    regen_level*tire_type          -0.9062
     speed_kph^2                    +4.0038
     cabin_temp^2                   +4.0038
     regen_level^2                  +4.0038
     tire_type^2                    +4.0038
 
   Curvature analysis:
-    speed_kph                      coef=+4.0038  convex (has a minimum)
     cabin_temp                     coef=+4.0038  convex (has a minimum)
+    speed_kph                      coef=+4.0038  convex (has a minimum)
     regen_level                    coef=+4.0038  convex (has a minimum)
     tire_type                      coef=+4.0038  convex (has a minimum)
 
   Notable interactions:
-    speed_kph*cabin_temp           coef=+2.0687  (synergistic)
-    cabin_temp*regen_level         coef=+1.8813  (synergistic)
-    speed_kph*regen_level          coef=-0.8188  (antagonistic)
-    speed_kph*tire_type            coef=-0.7937  (antagonistic)
+    speed_kph*regen_level          coef=-3.3938  (antagonistic)
+    cabin_temp*tire_type           coef=+1.6062  (synergistic)
+    regen_level*tire_type          coef=-0.9062  (antagonistic)
+    speed_kph*cabin_temp           coef=+0.7937  (synergistic)
+    cabin_temp*regen_level         coef=-0.4688  (antagonistic)
+    speed_kph*tire_type            coef=-0.3937  (antagonistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     speed_kph = 120
     cabin_temp = 18
+    regen_level = 3
+    tire_type = low_rolling
+    Predicted value: 22.6438
+
+  Surface optimum (via L-BFGS-B, linear model):
+    speed_kph = 60
+    cabin_temp = 26
     regen_level = 1
-    tire_type = standard
-    Predicted value: 22.7688
+    tire_type = low_rolling
+    Predicted value: 17.3938
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. tire_type  (effect: 3.9, contribution: 70.7%)
-  2. cabin_temp  (effect: -1.4, contribution: 26.1%)
-  3. regen_level  (effect: -0.1, contribution: 2.0%)
-  4. speed_kph  (effect: -0.1, contribution: 1.1%)</div></div>
+  1. speed_kph  (effect: -2.9, contribution: 55.0%)
+  2. cabin_temp  (effect: -1.5, contribution: 28.8%)
+  3. tire_type  (effect: -0.8, contribution: 16.0%)
+  4. regen_level  (effect: 0.0, contribution: 0.2%)</div></div>
   </section>
 
   <!-- Nav -->

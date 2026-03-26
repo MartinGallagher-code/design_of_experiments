@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>end to end latency ms</strong>, the most influential factors were watermark delay s (56.6%), parallelism (28.5%), window size s (15.0%). The best observed value was <strong>126.0</strong> (at window size s = 5, watermark delay s = 15.5, parallelism = 4).</p>
-<p>For <strong>result accuracy</strong>, the most influential factors were watermark delay s (37.8%), parallelism (35.9%), window size s (26.4%). The best observed value was <strong>97.9</strong> (at window size s = 62.5, watermark delay s = 30, parallelism = 4).</p>
+    <p>For <strong>end to end latency ms</strong>, the most influential factors were window size s (58.9%), parallelism (28.3%), watermark delay s (12.8%). The best observed value was <strong>126.0</strong> (at window size s = 120, watermark delay s = 1, parallelism = 18).</p>
+<p>For <strong>result accuracy</strong>, the most influential factors were window size s (52.0%), watermark delay s (41.2%), parallelism (6.8%). The best observed value was <strong>97.9</strong> (at window size s = 5, watermark delay s = 15.5, parallelism = 4).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (end_to_end_latency_ms (↓), result_accuracy (↑)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/39_stream_processing_windowing/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -295,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: end_to_end_latency_ms</h3>
-    <p>Top factors: watermark_delay_s (56.6%), parallelism (28.5%), window_size_s (15.0%).</p>
+    <p>Top factors: window_size_s (58.9%), parallelism (28.3%), watermark_delay_s (12.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -308,7 +308,7 @@
     </div>
 
     <h3>Response: result_accuracy</h3>
-    <p>Top factors: watermark_delay_s (37.8%), parallelism (35.9%), window_size_s (26.4%).</p>
+    <p>Top factors: window_size_s (52.0%), watermark_delay_s (41.2%), parallelism (6.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -359,171 +359,336 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.7094</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>end_to_end_latency_ms</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:57.550000000000004%;height:100%;background:#f97316;border-radius:4px;"></div>
+                  </div>
+                  <span>0.5755</span>
+                </div>
+              </td>
+              <td>568.00 0.5755      568.00 ms</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>result_accuracy</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:81.55%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.8155</span>
+                </div>
+              </td>
+              <td>95.30 0.8155       95.30 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>window_size_s</code></td><td>62.5 s</td></tr>
+            <tr><td><code>watermark_delay_s</code></td><td>15.5 s</td></tr>
+            <tr><td><code>parallelism</code></td><td>18 slots</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #12</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>result_accuracy</code></td><td>95.30</td><td>97.90</td><td><span style="color:#dc2626;">+2.60</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#2</td><td><strong>0.6524</strong></td><td style="font-size:.78rem;">window_size_s=120,  watermark_delay_s=1,  parallelism=18</td></tr>
+            <tr><td>#6</td><td><strong>0.6443</strong></td><td style="font-size:.78rem;">window_size_s=62.5,  watermark_delay_s=1,  parallelism=4</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>result_accuracy</code></td><td style="color:#dc2626;font-weight:600;">0.0749</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.7094
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+end_to_end_latency_ms        1.0       0.5755      568.00 ms   ↓
+result_accuracy              1.5       0.8155       95.30 %   ↑
+
+Recommended settings:
+  window_size_s = 62.5 s
+  watermark_delay_s = 15.5 s
+  parallelism = 18 slots
+  (from observed run #12)
+
+Trade-off summary:
+  end_to_end_latency_ms: 568.00 (best observed: 126.00, sacrifice: +442.00)
+  result_accuracy: 95.30 (best observed: 97.90, sacrifice: +2.60)
+
+Model quality:
+  end_to_end_latency_ms: R² = 0.7354 (quadratic)
+  result_accuracy: R² = 0.0749 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #12 (D=0.7094): window_size_s=62.5, watermark_delay_s=15.5, parallelism=18
+  2. Run #2 (D=0.6524): window_size_s=120, watermark_delay_s=1, parallelism=18
+  3. Run #6 (D=0.6443): window_size_s=62.5, watermark_delay_s=1, parallelism=4</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: end_to_end_latency_ms ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-watermark_delay_s      418.9286      80.3772            56.6%
-parallelism            210.9286      80.3772            28.5%
-window_size_s          110.7500      80.3772            15.0%
+window_size_s          310.2500      80.3772            58.9%
+parallelism            149.0000      80.3772            28.3%
+watermark_delay_s       67.2500      80.3772            12.8%
+
+=== ANOVA Table: end_to_end_latency_ms ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+window_size_s                2  198245.8690   99122.9345    286.207     0.0000
+watermark_delay_s            2    9398.7262    4699.3631     13.569     0.0027
+parallelism                  2   48476.4048   24238.2024     69.985     0.0000
+Lack of Fit                  6 1099891.6667  183315.2778    529.303     0.0019
+Pure Error                   2     692.6667     346.3333
+Error                        8 1100584.3333     346.3333
+Total                       14 1356705.3333   96907.5238
 
 === Summary Statistics: end_to_end_latency_ms ===
 
 window_size_s:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  120                 4   490.0000   327.6462   126.0000   900.0000
-  5                   4   600.7500   313.9186   372.0000  1065.0000
-  62.5                7   536.7143   345.0129   167.0000  1186.0000
+  120                 4   404.5000   184.0969   170.0000   604.0000
+  5                   4   714.7500   450.0410   126.0000  1186.0000
+  62.5                7   520.4286   273.6097   167.0000  1065.0000
 
 watermark_delay_s:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4   794.5000   313.3874   488.0000  1186.0000
-  15.5                7   375.5714   182.3685   126.0000   647.0000
-  30                  4   578.2500   368.9430   170.0000  1065.0000
+  1                   4   579.5000   228.1892   372.0000   900.0000
+  15.5                7   536.1429   324.3128   126.0000  1186.0000
+  30                  4   512.2500   432.0582   167.0000  1065.0000
 
 parallelism:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  18                  7   615.4286   295.5091   167.0000  1065.0000
-  32                  4   548.5000   453.7059   126.0000  1186.0000
-  4                   4   404.5000   184.0969   170.0000   604.0000
+  18                  7   523.7143   219.1002   170.0000   900.0000
+  32                  4   482.2500   405.0435   126.0000  1065.0000
+  4                   4   631.2500   419.5310   167.0000  1186.0000
 
 === Main Effects: result_accuracy ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-watermark_delay_s        4.5250       1.2116            37.8%
-parallelism              4.3000       1.2116            35.9%
-window_size_s            3.1607       1.2116            26.4%
+window_size_s            5.8500       1.2116            52.0%
+watermark_delay_s        4.6250       1.2116            41.2%
+parallelism              0.7643       1.2116             6.8%
+
+=== ANOVA Table: result_accuracy ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+window_size_s                2      69.5022      34.7511      2.495     0.1439
+watermark_delay_s            2      43.9475      21.9738      1.577     0.2645
+parallelism                  2       1.9833       0.9916      0.071     0.9319
+Lack of Fit                  6     164.9563      27.4927      1.974     0.3739
+Pure Error                   2      27.8600      13.9300
+Error                        8     192.8163      13.9300
+Total                       14     308.2493      22.0178
 
 === Summary Statistics: result_accuracy ===
 
 window_size_s:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  120                 4    91.7000     4.1093    87.8000    95.3000
-  5                   4    91.9750     1.8136    89.9000    94.3000
-  62.5                7    88.8143     5.9645    80.9000    97.9000
+  120                 4    87.7500     2.9894    84.8000    91.6000
+  5                   4    93.6000     4.2701    87.8000    97.9000
+  62.5                7    90.1429     5.1192    80.9000    95.3000
 
 watermark_delay_s:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    92.8250     5.0711    86.1000    97.9000
-  15.5                7    88.3000     4.1089    80.9000    93.5000
-  30                  4    91.7500     4.7655    84.8000    95.3000
+  1                   4    93.0000     2.6895    89.9000    95.3000
+  15.5                7    90.1286     4.3316    85.9000    97.9000
+  30                  4    88.3750     6.5835    80.9000    94.3000
 
 parallelism:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  18                  7    91.0286     5.5150    80.9000    95.3000
-  32                  4    92.0500     4.3669    87.8000    97.9000
-  4                   4    87.7500     2.9894    84.8000    91.6000</div></div>
+  18                  7    90.8143     3.9206    84.8000    95.2000
+  32                  4    90.1250     2.9170    87.8000    94.3000
+  4                   4    90.0500     7.9270    80.9000    97.9000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: end_to_end_latency_ms ===
 Direction: minimize
 
 Best observed run: #7
-  window_size_s = 5
-  watermark_delay_s = 15.5
-  parallelism = 4
+  window_size_s = 120
+  watermark_delay_s = 1
+  parallelism = 18
   Value: 126.0
 
-RSM Model (linear, R² = 0.0730, Adj R² = -0.1798):
+RSM Model (linear, R² = 0.1970, Adj R² = -0.0220):
   Coefficients:
     intercept                      +541.3333
-    window_size_s                  +15.2500
-    watermark_delay_s              +93.3750
-    parallelism                    -58.6250
+    window_size_s                  +8.8750
+    watermark_delay_s              +84.6250
+    parallelism                    -161.7500
 
-RSM Model (quadratic, R² = 0.4191, Adj R² = -0.6264):
+RSM Model (quadratic, R² = 0.9363, Adj R² = 0.8216):
   Coefficients:
-    intercept                      +825.0000
-    window_size_s                  +15.2500
-    watermark_delay_s              +93.3750
-    parallelism                    -58.6250
-    window_size_s*watermark_delay_s -17.0000
-    window_size_s*parallelism      -108.0000
-    watermark_delay_s*parallelism  -84.2500
-    window_size_s^2                -300.6250
-    watermark_delay_s^2            -121.8750
-    parallelism^2                  -109.3750
+    intercept                      +476.0000
+    window_size_s                  +8.8750
+    watermark_delay_s              +84.6250
+    parallelism                    -161.7500
+    window_size_s*watermark_delay_s +91.5000
+    window_size_s*parallelism      +402.7500
+    watermark_delay_s*parallelism  +148.2500
+    window_size_s^2                +41.7500
+    watermark_delay_s^2            -124.2500
+    parallelism^2                  +205.0000
 
   Curvature analysis:
-    window_size_s                  coef=-300.6250  concave (has a maximum)
-    watermark_delay_s              coef=-121.8750  concave (has a maximum)
-    parallelism                    coef=-109.3750  concave (has a maximum)
+    parallelism                    coef=+205.0000  convex (has a minimum)
+    watermark_delay_s              coef=-124.2500  concave (has a maximum)
+    window_size_s                  coef=+41.7500  convex (has a minimum)
 
   Notable interactions:
-    window_size_s*parallelism      coef=-108.0000  (antagonistic)
-    watermark_delay_s*parallelism  coef=-84.2500  (antagonistic)
-    window_size_s*watermark_delay_s coef=-17.0000  (antagonistic)
+    window_size_s*parallelism      coef=+402.7500  (synergistic)
+    watermark_delay_s*parallelism  coef=+148.2500  (synergistic)
+    window_size_s*watermark_delay_s coef=+91.5000  (synergistic)
 
-  Predicted optimum (from linear model):
-    window_size_s = 62.5
-    watermark_delay_s = 30
+  Predicted optimum (from quadratic model, at observed points):
+    window_size_s = 5
+    watermark_delay_s = 15.5
     parallelism = 4
-    Predicted value: 693.3333
+    Predicted value: 1278.3750
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Surface optimum (via L-BFGS-B, quadratic model):
+    window_size_s = 5
+    watermark_delay_s = 1
+    parallelism = 32
+    Predicted value: -116.2500
+
+  Model quality: Excellent fit — surface predictions are reliable.
 
 Factor importance:
-  1. window_size_s  (effect: 299.4, contribution: 48.0%)
-  2. watermark_delay_s  (effect: 186.8, contribution: 29.9%)
-  3. parallelism  (effect: 137.8, contribution: 22.1%)
+  1. parallelism  (effect: 372.6, contribution: 57.9%)
+  2. watermark_delay_s  (effect: 226.5, contribution: 35.2%)
+  3. window_size_s  (effect: 44.9, contribution: 7.0%)
 
 === Optimization: result_accuracy ===
 Direction: maximize
 
 Best observed run: #10
-  window_size_s = 62.5
-  watermark_delay_s = 30
+  window_size_s = 5
+  watermark_delay_s = 15.5
   parallelism = 4
   Value: 97.9
 
-RSM Model (linear, R² = 0.1128, Adj R² = -0.1292):
+RSM Model (linear, R² = 0.1927, Adj R² = -0.0274):
   Coefficients:
     intercept                      +90.4267
-    window_size_s                  +0.0250
-    watermark_delay_s              +1.7625
-    parallelism                    -1.1125
+    window_size_s                  -0.6000
+    watermark_delay_s              +0.9375
+    parallelism                    -2.4875
 
-RSM Model (quadratic, R² = 0.6950, Adj R² = 0.1461):
+RSM Model (quadratic, R² = 0.9168, Adj R² = 0.7671):
   Coefficients:
-    intercept                      +94.0333
-    window_size_s                  +0.0250
-    watermark_delay_s              +1.7625
-    parallelism                    -1.1125
-    window_size_s*watermark_delay_s -1.8500
-    window_size_s*parallelism      -1.7500
-    watermark_delay_s*parallelism  +0.1750
-    window_size_s^2                -4.2542
-    watermark_delay_s^2            -4.4292
-    parallelism^2                  +1.9208
+    intercept                      +92.4333
+    window_size_s                  -0.6000
+    watermark_delay_s              +0.9375
+    parallelism                    -2.4875
+    window_size_s*watermark_delay_s -1.2000
+    window_size_s*parallelism      +6.3500
+    watermark_delay_s*parallelism  +2.3750
+    window_size_s^2                -2.8542
+    watermark_delay_s^2            -1.0792
+    parallelism^2                  +0.1708
 
   Curvature analysis:
-    watermark_delay_s              coef=-4.4292  concave (has a maximum)
-    window_size_s                  coef=-4.2542  concave (has a maximum)
-    parallelism                    coef=+1.9208  convex (has a minimum)
+    window_size_s                  coef=-2.8542  concave (has a maximum)
+    watermark_delay_s              coef=-1.0792  concave (has a maximum)
+    parallelism                    coef=+0.1708  convex (has a minimum)
 
   Notable interactions:
-    window_size_s*watermark_delay_s coef=-1.8500  (antagonistic)
-    window_size_s*parallelism      coef=-1.7500  (antagonistic)
+    window_size_s*parallelism      coef=+6.3500  (synergistic)
+    watermark_delay_s*parallelism  coef=+2.3750  (synergistic)
+    window_size_s*watermark_delay_s coef=-1.2000  (antagonistic)
 
-  Predicted optimum (from quadratic model):
-    window_size_s = 120
+  Predicted optimum (from quadratic model, at observed points):
+    window_size_s = 5
     watermark_delay_s = 15.5
     parallelism = 4
-    Predicted value: 94.5875
+    Predicted value: 99.1875
 
-  Model quality: Moderate fit — use predictions directionally, not precisely.
+  Surface optimum (via L-BFGS-B, quadratic model):
+    window_size_s = 5
+    watermark_delay_s = 13.9044
+    parallelism = 4
+    Predicted value: 99.2006
+
+  Model quality: Excellent fit — surface predictions are reliable.
 
 Factor importance:
-  1. watermark_delay_s  (effect: 6.0, contribution: 43.7%)
-  2. window_size_s  (effect: 4.1, contribution: 29.8%)
-  3. parallelism  (effect: 3.7, contribution: 26.5%)</div></div>
+  1. parallelism  (effect: 5.0, contribution: 48.6%)
+  2. window_size_s  (effect: 3.4, contribution: 33.1%)
+  3. watermark_delay_s  (effect: 1.9, contribution: 18.3%)</div></div>
   </section>
 
   <!-- Nav -->

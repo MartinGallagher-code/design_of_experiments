@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -51,8 +50,8 @@
 
     
     <h3>Key Findings</h3>
-    <p>For <strong>monthly kwh</strong>, the most influential factors were inlet temp c (39.8%), tank r value (30.8%), pipe insulation (19.2%). The best observed value was <strong>290.0</strong> (at thermostat c = 65, tank r value = 18, pipe insulation = 1).</p>
-<p>For <strong>availability pct</strong>, the most influential factors were thermostat c (51.9%), tank r value (19.0%), pipe insulation (13.9%). The best observed value was <strong>100.0</strong> (at thermostat c = 48, tank r value = 18, pipe insulation = 0).</p>
+    <p>For <strong>monthly kwh</strong>, the most influential factors were thermostat c (38.6%), inlet temp c (25.9%), pipe insulation (24.2%). The best observed value was <strong>290.0</strong> (at thermostat c = 65, tank r value = 6, pipe insulation = 0).</p>
+<p>For <strong>availability pct</strong>, the most influential factors were recirc timer (41.4%), pipe insulation (27.3%), thermostat c (13.1%). The best observed value was <strong>100.0</strong> (at thermostat c = 65, tank r value = 6, pipe insulation = 0).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -256,12 +255,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (monthly_kwh (↓), availability_pct (↑)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/132_water_heater_efficiency/config.json <span class="flag">--multi</span></div>
         </div>
@@ -269,7 +269,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -277,48 +277,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/132_water_heater_efficiency/config.json \
     <span class="flag">--output</span> use_cases/132_water_heater_efficiency/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Home &amp; Environment Test? Use the Manual Workflow</h4>
-        <p>Home and environmental experiments involve real weather conditions, thermal properties, and physical installations that must be measured in situ. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/132_water_heater_efficiency/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/132_water_heater_efficiency/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/132_water_heater_efficiency/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/132_water_heater_efficiency/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/132_water_heater_efficiency/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/132_water_heater_efficiency/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/132_water_heater_efficiency/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -350,7 +308,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: monthly_kwh</h3>
-    <p>Top factors: inlet_temp_c (39.8%), tank_r_value (30.8%), pipe_insulation (19.2%).</p>
+    <p>Top factors: thermostat_c (38.6%), inlet_temp_c (25.9%), pipe_insulation (24.2%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -363,7 +321,7 @@
     </div>
 
     <h3>Response: availability_pct</h3>
-    <p>Top factors: thermostat_c (51.9%), tank_r_value (19.0%), pipe_insulation (13.9%).</p>
+    <p>Top factors: recirc_timer (41.4%), pipe_insulation (27.3%), thermostat_c (13.1%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -484,144 +442,295 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9076</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>monthly_kwh</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:84.16%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.8416</span>
+                </div>
+              </td>
+              <td>311.00 0.8416      311.00 kWh</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>availability_pct</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>100.00 0.9545      100.00 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>thermostat_c</code></td><td>65 C</td></tr>
+            <tr><td><code>tank_r_value</code></td><td>6 R-value</td></tr>
+            <tr><td><code>pipe_insulation</code></td><td>0 bool</td></tr>
+            <tr><td><code>recirc_timer</code></td><td>0 bool</td></tr>
+            <tr><td><code>inlet_temp_c</code></td><td>5 C</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #4</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>availability_pct</code></td><td>100.00</td><td>100.00</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#6</td><td><strong>0.5094</strong></td><td style="font-size:.78rem;">thermostat_c=65,  tank_r_value=18,  pipe_insulation=1,  recirc_timer=1,  inlet_temp_c=20</td></tr>
+            <tr><td>#1</td><td><strong>0.4438</strong></td><td style="font-size:.78rem;">thermostat_c=48,  tank_r_value=18,  pipe_insulation=0,  recirc_timer=0,  inlet_temp_c=20</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>availability_pct</code></td><td style="color:#dc2626;font-weight:600;">0.3118</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9076
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+monthly_kwh                  1.0       0.8416      311.00 kWh   ↓
+availability_pct             1.5       0.9545      100.00 %   ↑
+
+Recommended settings:
+  thermostat_c = 65 C
+  tank_r_value = 6 R-value
+  pipe_insulation = 0 bool
+  recirc_timer = 0 bool
+  inlet_temp_c = 5 C
+  (from observed run #4)
+
+Trade-off summary:
+  monthly_kwh: 311.00 (best observed: 290.00, sacrifice: +21.00)
+  availability_pct: 100.00 (best observed: 100.00, sacrifice: +0.00)
+
+Model quality:
+  monthly_kwh: R² = 0.8537 (linear)
+  availability_pct: R² = 0.3118 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #4 (D=0.9076): thermostat_c=65, tank_r_value=6, pipe_insulation=0, recirc_timer=0, inlet_temp_c=5
+  2. Run #6 (D=0.5094): thermostat_c=65, tank_r_value=18, pipe_insulation=1, recirc_timer=1, inlet_temp_c=20
+  3. Run #1 (D=0.4438): thermostat_c=48, tank_r_value=18, pipe_insulation=0, recirc_timer=0, inlet_temp_c=20</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_monthly_kwh_thermostat_c_vs_tank_r_value.png
-  RSM surface: rsm_monthly_kwh_thermostat_c_vs_pipe_insulation.png
-  RSM surface: rsm_monthly_kwh_thermostat_c_vs_recirc_timer.png
-  RSM surface: rsm_monthly_kwh_thermostat_c_vs_inlet_temp_c.png
-  RSM surface: rsm_monthly_kwh_tank_r_value_vs_pipe_insulation.png
-  RSM surface: rsm_monthly_kwh_tank_r_value_vs_recirc_timer.png
-  RSM surface: rsm_monthly_kwh_tank_r_value_vs_inlet_temp_c.png
-  RSM surface: rsm_monthly_kwh_pipe_insulation_vs_recirc_timer.png
-  RSM surface: rsm_monthly_kwh_pipe_insulation_vs_inlet_temp_c.png
-  RSM surface: rsm_monthly_kwh_recirc_timer_vs_inlet_temp_c.png
-  RSM surface: rsm_availability_pct_thermostat_c_vs_tank_r_value.png
-  RSM surface: rsm_availability_pct_thermostat_c_vs_pipe_insulation.png
-  RSM surface: rsm_availability_pct_thermostat_c_vs_recirc_timer.png
-  RSM surface: rsm_availability_pct_thermostat_c_vs_inlet_temp_c.png
-  RSM surface: rsm_availability_pct_tank_r_value_vs_pipe_insulation.png
-  RSM surface: rsm_availability_pct_tank_r_value_vs_recirc_timer.png
-  RSM surface: rsm_availability_pct_tank_r_value_vs_inlet_temp_c.png
-  RSM surface: rsm_availability_pct_pipe_insulation_vs_recirc_timer.png
-  RSM surface: rsm_availability_pct_pipe_insulation_vs_inlet_temp_c.png
-  RSM surface: rsm_availability_pct_recirc_timer_vs_inlet_temp_c.png
-
-=== Main Effects: monthly_kwh ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: monthly_kwh ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-inlet_temp_c           -61.7500      20.1671            39.8%
-tank_r_value            47.7500      20.1671            30.8%
-pipe_insulation         29.7500      20.1671            19.2%
-recirc_timer            13.2500      20.1671             8.5%
-thermostat_c             2.7500      20.1671             1.8%
+thermostat_c           -54.7500      20.1671            38.6%
+inlet_temp_c            36.7500      20.1671            25.9%
+pipe_insulation         34.2500      20.1671            24.2%
+tank_r_value           -13.2500      20.1671             9.3%
+recirc_timer            -2.7500      20.1671             1.9%
+
+=== ANOVA Table: monthly_kwh ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+thermostat_c                 1    5995.1250    5995.1250      1.480     0.2781
+tank_r_value                 1     351.1250     351.1250      0.087     0.7803
+pipe_insulation              1    2346.1250    2346.1250      0.579     0.4810
+recirc_timer                 1      15.1250      15.1250      0.004     0.9536
+inlet_temp_c                 1    2701.1250    2701.1250      0.667     0.4513
+thermostat_c*tank_r_value    1    2346.1250    2346.1250      0.579     0.4810
+thermostat_c*pipe_insulation    1     351.1250     351.1250      0.087     0.7803
+thermostat_c*recirc_timer    1    2701.1250    2701.1250      0.667     0.4513
+thermostat_c*inlet_temp_c    1      15.1250      15.1250      0.004     0.9536
+tank_r_value*pipe_insulation    1    5995.1250    5995.1250      1.480     0.2781
+tank_r_value*recirc_timer    1    7626.1250    7626.1250      1.882     0.2284
+tank_r_value*inlet_temp_c    1    3741.1250    3741.1250      0.923     0.3807
+pipe_insulation*recirc_timer    1    3741.1250    3741.1250      0.923     0.3807
+pipe_insulation*inlet_temp_c    1    7626.1250    7626.1250      1.882     0.2284
+recirc_timer*inlet_temp_c    1    5995.1250    5995.1250      1.480     0.2781
+Error (Lenth PSE)            5   20258.4375    4051.6875
+Total                        7   22775.8750    3253.6964
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
 
 === Interaction Effects: monthly_kwh ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-thermostat_c         recirc_timer              61.7500            18.1%
-tank_r_value         inlet_temp_c             -50.2500            14.7%
-pipe_insulation      recirc_timer             -50.2500            14.7%
-thermostat_c         pipe_insulation          -47.7500            14.0%
-tank_r_value         recirc_timer             -41.2500            12.1%
-pipe_insulation      inlet_temp_c             -41.2500            12.1%
-thermostat_c         tank_r_value             -29.7500             8.7%
-thermostat_c         inlet_temp_c             -13.2500             3.9%
-tank_r_value         pipe_insulation           -2.7500             0.8%
-recirc_timer         inlet_temp_c              -2.7500             0.8%
+tank_r_value         recirc_timer              61.7500            15.2%
+pipe_insulation      inlet_temp_c              61.7500            15.2%
+tank_r_value         pipe_insulation           54.7500            13.5%
+recirc_timer         inlet_temp_c              54.7500            13.5%
+tank_r_value         inlet_temp_c              43.2500            10.6%
+pipe_insulation      recirc_timer              43.2500            10.6%
+thermostat_c         recirc_timer             -36.7500             9.0%
+thermostat_c         tank_r_value             -34.2500             8.4%
+thermostat_c         pipe_insulation           13.2500             3.3%
+thermostat_c         inlet_temp_c               2.7500             0.7%
 
 === Summary Statistics: monthly_kwh ===
 
 thermostat_c:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  48                  4   350.2500    74.6788   290.0000   459.0000
-  65                  4   353.0000    44.8330   311.0000   404.0000
+  48                  4   379.0000    64.8640   320.0000   459.0000
+  65                  4   324.2500    37.2324   290.0000   377.0000
 
 tank_r_value:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  18                  4   327.7500    37.2324   290.0000   377.0000
-  6                   4   375.5000    68.4519   319.0000   459.0000
+  18                  4   358.2500    39.2545   319.0000   404.0000
+  6                   4   345.0000    77.0325   290.0000   459.0000
 
 pipe_insulation:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   4   336.7500    48.3141   290.0000   404.0000
-  1                   4   366.5000    68.3203   311.0000   459.0000
+  0                   4   334.5000    49.5480   290.0000   404.0000
+  1                   4   368.7500    65.9918   319.0000   459.0000
 
 recirc_timer:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   4   345.0000    77.0325   290.0000   459.0000
-  1                   4   358.2500    39.2545   319.0000   404.0000
+  0                   4   353.0000    44.8330   311.0000   404.0000
+  1                   4   350.2500    74.6788   290.0000   459.0000
 
 inlet_temp_c:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  20                  4   382.5000    70.4769   290.0000   459.0000
-  5                   4   320.7500     9.1059   311.0000   333.0000
+  20                  4   333.2500    49.1757   290.0000   404.0000
+  5                   4   370.0000    65.3707   311.0000   459.0000
 
 === Main Effects: availability_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-thermostat_c            10.2500       2.7349            51.9%
-tank_r_value            -3.7500       2.7349            19.0%
-pipe_insulation          2.7500       2.7349            13.9%
-inlet_temp_c             1.7500       2.7349             8.9%
-recirc_timer             1.2500       2.7349             6.3%
+recirc_timer           -10.2500       2.7349            41.4%
+pipe_insulation         -6.7500       2.7349            27.3%
+thermostat_c             3.2500       2.7349            13.1%
+inlet_temp_c             3.2500       2.7349            13.1%
+tank_r_value            -1.2500       2.7349             5.1%
+
+=== ANOVA Table: availability_pct ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+thermostat_c                 1      21.1250      21.1250      0.667     0.4513
+tank_r_value                 1       3.1250       3.1250      0.099     0.7662
+pipe_insulation              1      91.1250      91.1250      2.876     0.1507
+recirc_timer                 1     210.1250     210.1250      6.631     0.0497
+inlet_temp_c                 1      21.1250      21.1250      0.667     0.4513
+thermostat_c*tank_r_value    1      91.1250      91.1250      2.876     0.1507
+thermostat_c*pipe_insulation    1       3.1250       3.1250      0.099     0.7662
+thermostat_c*recirc_timer    1      21.1250      21.1250      0.667     0.4513
+thermostat_c*inlet_temp_c    1     210.1250     210.1250      6.631     0.0497
+tank_r_value*pipe_insulation    1      21.1250      21.1250      0.667     0.4513
+tank_r_value*recirc_timer    1       6.1250       6.1250      0.193     0.6785
+tank_r_value*inlet_temp_c    1      66.1250      66.1250      2.087     0.2082
+pipe_insulation*recirc_timer    1      66.1250      66.1250      2.087     0.2082
+pipe_insulation*inlet_temp_c    1       6.1250       6.1250      0.193     0.6785
+recirc_timer*inlet_temp_c    1      21.1250      21.1250      0.667     0.4513
+Error (Lenth PSE)            5     158.4375      31.6875
+Total                        7     418.8750      59.8393
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
 
 === Interaction Effects: availability_pct ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-tank_r_value         pipe_insulation          -10.2500            18.6%
-recirc_timer         inlet_temp_c             -10.2500            18.6%
-tank_r_value         recirc_timer               6.2500            11.4%
-tank_r_value         inlet_temp_c              -6.2500            11.4%
-pipe_insulation      recirc_timer              -6.2500            11.4%
-pipe_insulation      inlet_temp_c               6.2500            11.4%
-thermostat_c         pipe_insulation            3.7500             6.8%
-thermostat_c         tank_r_value              -2.7500             5.0%
-thermostat_c         recirc_timer              -1.7500             3.2%
-thermostat_c         inlet_temp_c              -1.2500             2.3%
+thermostat_c         inlet_temp_c              10.2500            23.8%
+thermostat_c         tank_r_value               6.7500            15.7%
+tank_r_value         inlet_temp_c               5.7500            13.4%
+pipe_insulation      recirc_timer               5.7500            13.4%
+thermostat_c         recirc_timer              -3.2500             7.6%
+tank_r_value         pipe_insulation           -3.2500             7.6%
+recirc_timer         inlet_temp_c              -3.2500             7.6%
+tank_r_value         recirc_timer              -1.7500             4.1%
+pipe_insulation      inlet_temp_c              -1.7500             4.1%
+thermostat_c         pipe_insulation            1.2500             2.9%
 
 === Summary Statistics: availability_pct ===
 
 thermostat_c:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  48                  4    80.0000     1.8257    78.0000    82.0000
-  65                  4    90.2500     8.1394    81.0000   100.0000
+  48                  4    83.5000     6.5574    78.0000    93.0000
+  65                  4    86.7500     9.4648    79.0000   100.0000
 
 tank_r_value:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  18                  4    87.0000     9.2736    79.0000   100.0000
-  6                   4    83.2500     6.6521    78.0000    93.0000
+  18                  4    85.7500     5.5000    81.0000    93.0000
+  6                   4    84.5000    10.4083    78.0000   100.0000
 
 pipe_insulation:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   4    83.7500     6.2915    79.0000    93.0000
-  1                   4    86.5000     9.7468    78.0000   100.0000
+  0                   4    88.5000     9.7468    79.0000   100.0000
+  1                   4    81.7500     3.7749    78.0000    87.0000
 
 recirc_timer:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   4    84.5000    10.4083    78.0000   100.0000
-  1                   4    85.7500     5.5000    81.0000    93.0000
+  0                   4    90.2500     8.1394    81.0000   100.0000
+  1                   4    80.0000     1.8257    78.0000    82.0000
 
 inlet_temp_c:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  20                  4    84.2500     7.0887    78.0000    93.0000
-  5                   4    86.0000     9.3452    81.0000   100.0000
-
-Pareto chart (monthly_kwh): use_cases/132_water_heater_efficiency/results/analysis/pareto_monthly_kwh.png
-
-Pareto chart (availability_pct): use_cases/132_water_heater_efficiency/results/analysis/pareto_availability_pct.png
-Main effects (monthly_kwh): use_cases/132_water_heater_efficiency/results/analysis/main_effects_monthly_kwh.png
-Main effects (availability_pct): use_cases/132_water_heater_efficiency/results/analysis/main_effects_availability_pct.png</div></div>
+  20                  4    83.5000     6.4031    79.0000    93.0000
+  5                   4    86.7500     9.5699    78.0000   100.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: monthly_kwh ===
@@ -629,74 +738,90 @@ Direction: minimize
 
 Best observed run: #5
   thermostat_c = 65
-  tank_r_value = 18
-  pipe_insulation = 1
+  tank_r_value = 6
+  pipe_insulation = 0
   recirc_timer = 1
   inlet_temp_c = 20
   Value: 290.0
 
-RSM Model (linear, R² = 0.4050, Adj R² = -1.0824):
+RSM Model (linear, R² = 0.5415, Adj R² = -0.6048):
   Coefficients:
     intercept                      +351.6250
-    thermostat_c                   +13.1250
-    tank_r_value                   -27.1250
-    pipe_insulation                -4.1250
-    recirc_timer                   +14.3750
-    inlet_temp_c                   -4.6250
+    thermostat_c                   -3.3750
+    tank_r_value                   +27.1250
+    pipe_insulation                +20.6250
+    recirc_timer                   +9.6250
+    inlet_temp_c                   +16.6250
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
+    thermostat_c = 65
+    tank_r_value = 18
+    pipe_insulation = 1
+    recirc_timer = 1
+    inlet_temp_c = 20
+    Predicted value: 422.2500
+
+  Surface optimum (via L-BFGS-B, linear model):
     thermostat_c = 65
     tank_r_value = 6
     pipe_insulation = 0
-    recirc_timer = 1
-    inlet_temp_c = 20
-    Predicted value: 405.7500
+    recirc_timer = 0
+    inlet_temp_c = 5
+    Predicted value: 274.2500
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. tank_r_value  (effect: 54.2, contribution: 42.8%)
-  2. recirc_timer  (effect: 28.8, contribution: 22.7%)
-  3. thermostat_c  (effect: 26.2, contribution: 20.7%)
-  4. inlet_temp_c  (effect: 9.2, contribution: 7.3%)
-  5. pipe_insulation  (effect: -8.2, contribution: 6.5%)
+  1. tank_r_value  (effect: -54.2, contribution: 35.1%)
+  2. pipe_insulation  (effect: 41.2, contribution: 26.7%)
+  3. inlet_temp_c  (effect: -33.2, contribution: 21.5%)
+  4. recirc_timer  (effect: 19.2, contribution: 12.4%)
+  5. thermostat_c  (effect: -6.8, contribution: 4.4%)
 
 === Optimization: availability_pct ===
 Direction: maximize
 
 Best observed run: #4
-  thermostat_c = 48
-  tank_r_value = 18
+  thermostat_c = 65
+  tank_r_value = 6
   pipe_insulation = 0
-  recirc_timer = 1
+  recirc_timer = 0
   inlet_temp_c = 5
   Value: 100.0
 
-RSM Model (linear, R² = 0.9612, Adj R² = 0.8642):
+RSM Model (linear, R² = 0.6341, Adj R² = -0.2805):
   Coefficients:
     intercept                      +85.1250
-    thermostat_c                   -3.6250
-    tank_r_value                   +1.6250
-    pipe_insulation                -0.1250
-    recirc_timer                   +2.3750
-    inlet_temp_c                   -5.3750
+    thermostat_c                   -0.3750
+    tank_r_value                   -1.6250
+    pipe_insulation                -3.1250
+    recirc_timer                   -3.8750
+    inlet_temp_c                   -2.3750
 
-  Predicted optimum (from linear model):
-    thermostat_c = 48
-    tank_r_value = 18
+  Predicted optimum (from linear model, at observed points):
+    thermostat_c = 65
+    tank_r_value = 6
     pipe_insulation = 0
-    recirc_timer = 1
+    recirc_timer = 0
     inlet_temp_c = 5
-    Predicted value: 98.2500
+    Predicted value: 95.7500
 
-  Model quality: Excellent fit — surface predictions are reliable.
+  Surface optimum (via L-BFGS-B, linear model):
+    thermostat_c = 48
+    tank_r_value = 6
+    pipe_insulation = 0
+    recirc_timer = 0
+    inlet_temp_c = 5
+    Predicted value: 96.5000
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. inlet_temp_c  (effect: 10.8, contribution: 41.0%)
-  2. thermostat_c  (effect: -7.2, contribution: 27.6%)
-  3. recirc_timer  (effect: 4.8, contribution: 18.1%)
-  4. tank_r_value  (effect: -3.2, contribution: 12.4%)
-  5. pipe_insulation  (effect: -0.2, contribution: 1.0%)</div></div>
+  1. recirc_timer  (effect: -7.8, contribution: 34.1%)
+  2. pipe_insulation  (effect: -6.2, contribution: 27.5%)
+  3. inlet_temp_c  (effect: 4.8, contribution: 20.9%)
+  4. tank_r_value  (effect: 3.2, contribution: 14.3%)
+  5. thermostat_c  (effect: -0.8, contribution: 3.3%)</div></div>
   </section>
 
   <!-- Nav -->

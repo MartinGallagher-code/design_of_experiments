@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>resolution</strong>, the most influential factors were flow ml min (47.1%), column temp c (37.9%), organic pct (15.0%). The best observed value was <strong>3.37</strong> (at flow ml min = 2, organic pct = 55, column temp c = 55).</p>
-<p>For <strong>run time min</strong>, the most influential factors were flow ml min (44.5%), organic pct (38.2%), column temp c (17.3%). The best observed value was <strong>9.3</strong> (at flow ml min = 2, organic pct = 80, column temp c = 40).</p>
+    <p>For <strong>resolution</strong>, the most influential factors were column temp c (39.0%), organic pct (37.7%), flow ml min (23.2%). The best observed value was <strong>3.37</strong> (at flow ml min = 2, organic pct = 30, column temp c = 40).</p>
+<p>For <strong>run time min</strong>, the most influential factors were column temp c (54.8%), organic pct (23.6%), flow ml min (21.6%). The best observed value was <strong>9.3</strong> (at flow ml min = 0.5, organic pct = 55, column temp c = 55).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (resolution (↑), run_time_min (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/189_chromatography_separation/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -264,48 +264,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/189_chromatography_separation/config.json \
     <span class="flag">--output</span> use_cases/189_chromatography_separation/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Laboratory Experiment? Use the Manual Workflow</h4>
-        <p>Laboratory experiments involve real chemical reactions, biological processes, and analytical instruments. Results must be measured from actual samples. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/189_chromatography_separation/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/189_chromatography_separation/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/189_chromatography_separation/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/189_chromatography_separation/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/189_chromatography_separation/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/189_chromatography_separation/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/189_chromatography_separation/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -337,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: resolution</h3>
-    <p>Top factors: flow_ml_min (47.1%), column_temp_c (37.9%), organic_pct (15.0%).</p>
+    <p>Top factors: column_temp_c (39.0%), organic_pct (37.7%), flow_ml_min (23.2%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -350,7 +308,7 @@
     </div>
 
     <h3>Response: run_time_min</h3>
-    <p>Top factors: flow_ml_min (44.5%), organic_pct (38.2%), column_temp_c (17.3%).</p>
+    <p>Top factors: column_temp_c (54.8%), organic_pct (23.6%), flow_ml_min (21.6%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -401,80 +359,219 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.6274</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>resolution</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:47.43%;height:100%;background:#f97316;border-radius:4px;"></div>
+                  </div>
+                  <span>0.4743</span>
+                </div>
+              </td>
+              <td>2.25 0.4743        2.25 Rs</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>run_time_min</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>9.30 0.9545        9.30 min</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>flow_ml_min</code></td><td>2 mL/min</td></tr>
+            <tr><td><code>organic_pct</code></td><td>55 %</td></tr>
+            <tr><td><code>column_temp_c</code></td><td>55 C</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #10</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>run_time_min</code></td><td>9.30</td><td>9.30</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#14</td><td><strong>0.6139</strong></td><td style="font-size:.78rem;">flow_ml_min=2,  organic_pct=30,  column_temp_c=40</td></tr>
+            <tr><td>#7</td><td><strong>0.6094</strong></td><td style="font-size:.78rem;">flow_ml_min=0.5,  organic_pct=55,  column_temp_c=55</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>run_time_min</code></td><td style="color:#dc2626;font-weight:600;">0.1527</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.6274
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+resolution                   1.5       0.4743        2.25 Rs   ↑
+run_time_min                 1.0       0.9545        9.30 min   ↓
+
+Recommended settings:
+  flow_ml_min = 2 mL/min
+  organic_pct = 55 %
+  column_temp_c = 55 C
+  (from observed run #10)
+
+Trade-off summary:
+  resolution: 2.25 (best observed: 3.37, sacrifice: +1.12)
+  run_time_min: 9.30 (best observed: 9.30, sacrifice: +0.00)
+
+Model quality:
+  resolution: R² = 0.2787 (linear)
+  run_time_min: R² = 0.1527 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #10 (D=0.6274): flow_ml_min=2, organic_pct=55, column_temp_c=55
+  2. Run #14 (D=0.6139): flow_ml_min=2, organic_pct=30, column_temp_c=40
+  3. Run #7 (D=0.6094): flow_ml_min=0.5, organic_pct=55, column_temp_c=55</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_resolution_flow_ml_min_vs_organic_pct.png
-  RSM surface: rsm_resolution_flow_ml_min_vs_column_temp_c.png
-  RSM surface: rsm_resolution_organic_pct_vs_column_temp_c.png
-  RSM surface: rsm_run_time_min_flow_ml_min_vs_organic_pct.png
-  RSM surface: rsm_run_time_min_flow_ml_min_vs_column_temp_c.png
-  RSM surface: rsm_run_time_min_organic_pct_vs_column_temp_c.png
-
-=== Main Effects: resolution ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: resolution ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-flow_ml_min              0.4696       0.1520            47.1%
-column_temp_c            0.3775       0.1520            37.9%
-organic_pct              0.1493       0.1520            15.0%
+column_temp_c            0.4575       0.1520            39.0%
+organic_pct              0.4421       0.1520            37.7%
+flow_ml_min              0.2725       0.1520            23.2%
+
+=== ANOVA Table: resolution ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+flow_ml_min                  2       0.1821       0.0910      0.644     0.5505
+organic_pct                  2       0.5221       0.2610      1.846     0.2192
+column_temp_c                2       0.5573       0.2786      1.970     0.2015
+Lack of Fit                  6       3.3053       0.5509      3.895     0.2183
+Pure Error                   2       0.2829       0.1414
+Error                        8       3.5882       0.1414
+Total                       14       4.8496       0.3464
 
 === Summary Statistics: resolution ===
 
 flow_ml_min:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.5                 4     2.0375     0.8488     1.2500     2.9400
-  1.25                7     2.5071     0.5457     1.6700     3.3700
-  2                   4     2.1550     0.2849     1.8700     2.5100
+  0.5                 4     2.3800     0.8188     1.3800     3.3700
+  1.25                7     2.3386     0.4460     1.6700     2.8900
+  2                   4     2.1075     0.6982     1.2500     2.9400
 
 organic_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  30                  4     2.2550     0.4135     1.6700     2.5800
-  55                  7     2.2457     0.5616     1.3800     2.9400
-  80                  4     2.3950     0.8910     1.2500     3.3700
+  30                  4     2.5450     0.7421     1.6700     3.3700
+  55                  7     2.1029     0.6286     1.2500     2.9400
+  80                  4     2.3550     0.3185     1.9900     2.7100
 
 column_temp_c:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  25                  4     2.4625     0.8227     1.6700     3.3700
-  40                  7     2.3043     0.5169     1.2500     2.8900
-  55                  4     2.0850     0.5560     1.3800     2.7100
+  25                  4     1.9725     0.6429     1.2500     2.7100
+  40                  7     2.4300     0.4920     1.8700     3.3700
+  55                  4     2.3550     0.7303     1.3800     2.9400
 
 === Main Effects: run_time_min ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-flow_ml_min              4.2250       1.0429            44.5%
-organic_pct              3.6250       1.0429            38.2%
-column_temp_c            1.6429       1.0429            17.3%
+column_temp_c            3.4286       1.0429            54.8%
+organic_pct              1.4786       1.0429            23.6%
+flow_ml_min              1.3536       1.0429            21.6%
+
+=== ANOVA Table: run_time_min ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+flow_ml_min                  2       6.8400       3.4200      4.863     0.0415
+organic_pct                  2       5.9975       2.9988      4.264     0.0549
+column_temp_c                2      31.3875      15.6938     22.313     0.0005
+Lack of Fit                  6     182.7775      30.4629     43.312     0.0227
+Pure Error                   2       1.4067       0.7033
+Error                        8     184.1842       0.7033
+Total                       14     228.4093      16.3150
 
 === Summary Statistics: run_time_min ===
 
 flow_ml_min:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.5                 4    16.9000     2.2271    14.7000    19.9000
-  1.25                7    16.5429     5.0059    10.2000    23.0000
-  2                   4    12.6750     2.3071     9.3000    14.5000
+  0.5                 4    14.9750     3.5264    10.5000    19.0000
+  1.25                7    16.3286     4.4980    10.2000    23.0000
+  2                   4    14.9750     4.5778     9.3000    19.9000
 
 organic_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  30                  4    14.1750     2.6998    10.5000    17.0000
-  55                  7    15.1714     3.4793    10.2000    21.3000
-  80                  4    17.8000     5.9200     9.3000    23.0000
+  30                  4    16.6500     5.2054     9.3000    21.3000
+  55                  7    15.1714     2.9522    10.5000    19.9000
+  80                  4    15.3250     5.4414    10.2000    23.0000
 
 column_temp_c:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  25                  4    16.6000     2.3847    13.3000    19.0000
-  40                  7    14.9571     4.4646     9.3000    21.3000
-  55                  4    15.7500     5.3157    10.5000    23.0000
-
-Pareto chart (resolution): use_cases/189_chromatography_separation/results/analysis/pareto_resolution.png
-
-Pareto chart (run_time_min): use_cases/189_chromatography_separation/results/analysis/pareto_run_time_min.png
-Main effects (resolution): use_cases/189_chromatography_separation/results/analysis/main_effects_resolution.png
-Main effects (run_time_min): use_cases/189_chromatography_separation/results/analysis/main_effects_run_time_min.png</div></div>
+  25                  4    17.6000     5.3298    10.5000    23.0000
+  40                  7    14.1714     2.8552     9.3000    19.0000
+  55                  4    16.1250     4.5785    10.2000    21.3000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: resolution ===
@@ -482,103 +579,114 @@ Direction: maximize
 
 Best observed run: #7
   flow_ml_min = 2
-  organic_pct = 55
-  column_temp_c = 55
+  organic_pct = 30
+  column_temp_c = 40
   Value: 3.37
 
-RSM Model (linear, R² = 0.1131, Adj R² = -0.1288):
+RSM Model (linear, R² = 0.1708, Adj R² = -0.0553):
   Coefficients:
     intercept                      +2.2880
-    flow_ml_min                    +0.1713
-    organic_pct                    -0.0637
-    column_temp_c                  +0.1875
+    flow_ml_min                    +0.2913
+    organic_pct                    +0.0125
+    column_temp_c                  -0.1362
 
-RSM Model (quadratic, R² = 0.7834, Adj R² = 0.3936):
+RSM Model (quadratic, R² = 0.6937, Adj R² = 0.1424):
   Coefficients:
-    intercept                      +2.6800
-    flow_ml_min                    +0.1712
-    organic_pct                    -0.0637
-    column_temp_c                  +0.1875
-    flow_ml_min*organic_pct        +0.3850
-    flow_ml_min*column_temp_c      +0.1175
-    organic_pct*column_temp_c      +0.5375
-    flow_ml_min^2                  -0.2775
-    organic_pct^2                  -0.5575
-    column_temp_c^2                +0.1000
+    intercept                      +2.2533
+    flow_ml_min                    +0.2913
+    organic_pct                    +0.0125
+    column_temp_c                  -0.1362
+    flow_ml_min*organic_pct        -0.1375
+    flow_ml_min*column_temp_c      -0.4700
+    organic_pct*column_temp_c      +0.0125
+    flow_ml_min^2                  -0.2442
+    organic_pct^2                  +0.5333
+    column_temp_c^2                -0.2242
 
   Curvature analysis:
-    organic_pct                    coef=-0.5575  concave (has a maximum)
-    flow_ml_min                    coef=-0.2775  concave (has a maximum)
-    column_temp_c                  coef=+0.1000  negligible curvature
+    organic_pct                    coef=+0.5333  convex (has a minimum)
+    flow_ml_min                    coef=-0.2442  concave (has a maximum)
+    column_temp_c                  coef=-0.2242  concave (has a maximum)
 
   Notable interactions:
-    organic_pct*column_temp_c      coef=+0.5375  (synergistic)
-    flow_ml_min*organic_pct        coef=+0.3850  (synergistic)
+    flow_ml_min*column_temp_c      coef=-0.4700  (antagonistic)
 
-  Predicted optimum (from quadratic model):
+  Predicted optimum (from quadratic model, at observed points):
     flow_ml_min = 2
-    organic_pct = 55
-    column_temp_c = 55
-    Predicted value: 2.9787
+    organic_pct = 30
+    column_temp_c = 40
+    Predicted value: 2.9588
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Surface optimum (via L-BFGS-B, quadratic model):
+    flow_ml_min = 2
+    organic_pct = 30
+    column_temp_c = 25
+    Predicted value: 3.3533
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. organic_pct  (effect: 0.6, contribution: 43.5%)
-  2. flow_ml_min  (effect: 0.4, contribution: 29.7%)
-  3. column_temp_c  (effect: 0.4, contribution: 26.8%)
+  1. flow_ml_min  (effect: 0.6, contribution: 37.8%)
+  2. organic_pct  (effect: 0.6, contribution: 37.5%)
+  3. column_temp_c  (effect: 0.4, contribution: 24.7%)
 
 === Optimization: run_time_min ===
 Direction: minimize
 
 Best observed run: #10
-  flow_ml_min = 2
-  organic_pct = 80
-  column_temp_c = 40
+  flow_ml_min = 0.5
+  organic_pct = 55
+  column_temp_c = 55
   Value: 9.3
 
-RSM Model (linear, R² = 0.0882, Adj R² = -0.1605):
+RSM Model (linear, R² = 0.2634, Adj R² = 0.0625):
   Coefficients:
     intercept                      +15.6067
-    flow_ml_min                    +1.4625
-    organic_pct                    -0.4875
-    column_temp_c                  -0.3750
+    flow_ml_min                    +1.8000
+    organic_pct                    +0.1625
+    column_temp_c                  -2.0625
 
-RSM Model (quadratic, R² = 0.7736, Adj R² = 0.3662):
+RSM Model (quadratic, R² = 0.6960, Adj R² = 0.1487):
   Coefficients:
-    intercept                      +19.7000
-    flow_ml_min                    +1.4625
-    organic_pct                    -0.4875
-    column_temp_c                  -0.3750
-    flow_ml_min*organic_pct        -4.3500
-    flow_ml_min*column_temp_c      +1.8250
-    organic_pct*column_temp_c      +0.5750
-    flow_ml_min^2                  -3.3000
-    organic_pct^2                  -2.3000
-    column_temp_c^2                -2.0750
+    intercept                      +15.4000
+    flow_ml_min                    +1.8000
+    organic_pct                    +0.1625
+    column_temp_c                  -2.0625
+    flow_ml_min*organic_pct        -0.5500
+    flow_ml_min*column_temp_c      +4.0000
+    organic_pct*column_temp_c      +1.5750
+    flow_ml_min^2                  -1.5375
+    organic_pct^2                  +1.8875
+    column_temp_c^2                +0.0375
 
   Curvature analysis:
-    flow_ml_min                    coef=-3.3000  concave (has a maximum)
-    organic_pct                    coef=-2.3000  concave (has a maximum)
-    column_temp_c                  coef=-2.0750  concave (has a maximum)
+    organic_pct                    coef=+1.8875  convex (has a minimum)
+    flow_ml_min                    coef=-1.5375  concave (has a maximum)
+    column_temp_c                  coef=+0.0375  negligible curvature
 
   Notable interactions:
-    flow_ml_min*organic_pct        coef=-4.3500  (antagonistic)
-    flow_ml_min*column_temp_c      coef=+1.8250  (synergistic)
-    organic_pct*column_temp_c      coef=+0.5750  (synergistic)
+    flow_ml_min*column_temp_c      coef=+4.0000  (synergistic)
+    organic_pct*column_temp_c      coef=+1.5750  (synergistic)
+    flow_ml_min*organic_pct        coef=-0.5500  (antagonistic)
 
-  Predicted optimum (from quadratic model):
-    flow_ml_min = 2
+  Predicted optimum (from quadratic model, at observed points):
+    flow_ml_min = 1.25
     organic_pct = 30
-    column_temp_c = 40
-    Predicted value: 20.4000
+    column_temp_c = 25
+    Predicted value: 20.8000
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Surface optimum (via L-BFGS-B, quadratic model):
+    flow_ml_min = 0.5
+    organic_pct = 39.851
+    column_temp_c = 55
+    Predicted value: 5.3444
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. flow_ml_min  (effect: 4.4, contribution: 50.0%)
-  2. organic_pct  (effect: 2.4, contribution: 27.0%)
-  3. column_temp_c  (effect: 2.1, contribution: 23.0%)</div></div>
+  1. column_temp_c  (effect: 4.1, contribution: 41.7%)
+  2. flow_ml_min  (effect: 3.6, contribution: 36.4%)
+  3. organic_pct  (effect: 2.2, contribution: 21.8%)</div></div>
   </section>
 
   <!-- Nav -->

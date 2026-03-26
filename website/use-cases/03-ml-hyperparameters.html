@@ -51,8 +51,8 @@
 
     
     <h3>Key Findings</h3>
-    <p>For <strong>accuracy</strong>, the most influential factors were dropout (37.4%), learning rate (31.6%), batch size (24.3%). The best observed value was <strong>78.1</strong> (at learning rate = 0.001, batch size = 32, dropout = 0.1).</p>
-<p>For <strong>training time</strong>, the most influential factors were dropout (32.7%), learning rate (26.8%), batch size (23.0%). The best observed value was <strong>77.3</strong> (at learning rate = 0.001, batch size = 32, dropout = 0.1).</p>
+    <p>For <strong>accuracy</strong>, the most influential factors were hidden layers (29.8%), optimizer (28.5%), batch size (23.8%). The best observed value was <strong>78.1</strong> (at learning rate = 0.1, batch size = 32, dropout = 0.5).</p>
+<p>For <strong>training time</strong>, the most influential factors were optimizer (31.5%), batch size (28.9%), hidden layers (25.2%). The best observed value was <strong>77.3</strong> (at learning rate = 0.1, batch size = 32, dropout = 0.5).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -62,6 +62,7 @@
     <li>The screening results can guide factor reduction &mdash; drop factors contributing less than 5% and re-run with a smaller, more focused design.</li>
   </ul>
   </section>
+
 
 
   <section class="uc-section">
@@ -112,6 +113,7 @@
       </div>
     </div>
   </section>
+
 
 
 
@@ -493,6 +495,139 @@ Factor importance:
   4. optimizer  (effect: -6.9, contribution: 10.8%)
   5. batch_size  (effect: 2.1, contribution: 3.3%)</div></div>
 
+  </section>
+
+  
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9545</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>accuracy</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>78.10 0.9545       78.10 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>training_time</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>77.30 0.9545       77.30 sec</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>learning_rate</code></td><td>0.1</td></tr>
+            <tr><td><code>batch_size</code></td><td>256</td></tr>
+            <tr><td><code>dropout</code></td><td>0.5</td></tr>
+            <tr><td><code>hidden_layers</code></td><td>6</td></tr>
+            <tr><td><code>optimizer</code></td><td>adam</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #4</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>training_time</code></td><td>77.30</td><td>77.30</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#3</td><td><strong>0.8029</strong></td><td style="font-size:.78rem;">learning_rate=0.001,  batch_size=256,  dropout=0.5,  hidden_layers=2,  optimizer=sgd</td></tr>
+            <tr><td>#6</td><td><strong>0.7830</strong></td><td style="font-size:.78rem;">learning_rate=0.1,  batch_size=32,  dropout=0.1,  hidden_layers=2,  optimizer=sgd</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>training_time</code></td><td style="color:#ca8a04;font-weight:600;">0.5486</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9545
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+accuracy                     1.5       0.9545       78.10 %   ↑
+training_time                1.0       0.9545       77.30 sec   ↓
+
+Recommended settings:
+  learning_rate = 0.1
+  batch_size = 256
+  dropout = 0.5
+  hidden_layers = 6
+  optimizer = adam
+  (from observed run #4)
+
+Trade-off summary:
+  accuracy: 78.10 (best observed: 78.10, sacrifice: +0.00)
+  training_time: 77.30 (best observed: 77.30, sacrifice: +0.00)
+
+Model quality:
+  accuracy: R² = 0.4248 (linear)
+  training_time: R² = 0.5486 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #4 (D=0.9545): learning_rate=0.1, batch_size=256, dropout=0.5, hidden_layers=6, optimizer=adam
+  2. Run #3 (D=0.8029): learning_rate=0.001, batch_size=256, dropout=0.5, hidden_layers=2, optimizer=sgd
+  3. Run #6 (D=0.7830): learning_rate=0.1, batch_size=32, dropout=0.1, hidden_layers=2, optimizer=sgd</div></div>
   </section>
 
   <div class="chapter-nav">

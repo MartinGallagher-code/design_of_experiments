@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>detection pct</strong>, the most influential factors were burial m (41.8%), filter hz (33.7%), spacing km (13.3%). The best observed value was <strong>100.0</strong> (at spacing km = 25, burial m = 0, sample hz = 40).</p>
-<p>For <strong>false trigger day</strong>, the most influential factors were burial m (42.4%), filter hz (39.6%), sample hz (17.2%). The best observed value was <strong>-0.0</strong> (at spacing km = 25, burial m = 3, sample hz = 200).</p>
+    <p>For <strong>detection pct</strong>, the most influential factors were filter hz (35.8%), spacing km (26.9%), sample hz (25.4%). The best observed value was <strong>100.0</strong> (at spacing km = 25, burial m = 3, sample hz = 200).</p>
+<p>For <strong>false trigger day</strong>, the most influential factors were sample hz (45.3%), burial m (43.5%), spacing km (8.3%). The best observed value was <strong>-0.0</strong> (at spacing km = 25, burial m = 0, sample hz = 40).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -253,12 +252,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (detection_pct (↑), false_trigger_day (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/232_seismograph_placement/config.json <span class="flag">--multi</span></div>
         </div>
@@ -266,7 +266,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -274,48 +274,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/232_seismograph_placement/config.json \
     <span class="flag">--output</span> use_cases/232_seismograph_placement/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Geoscience Experiment? Use the Manual Workflow</h4>
-        <p>Geoscience experiments involve real soil, rock, water, and field conditions. Results require physical sampling and laboratory analysis. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/232_seismograph_placement/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/232_seismograph_placement/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/232_seismograph_placement/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/232_seismograph_placement/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/232_seismograph_placement/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/232_seismograph_placement/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/232_seismograph_placement/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -347,7 +305,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: detection_pct</h3>
-    <p>Top factors: burial_m (41.8%), filter_hz (33.7%), spacing_km (13.3%).</p>
+    <p>Top factors: filter_hz (35.8%), spacing_km (26.9%), sample_hz (25.4%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -360,7 +318,7 @@
     </div>
 
     <h3>Response: false_trigger_day</h3>
-    <p>Top factors: burial_m (42.4%), filter_hz (39.6%), sample_hz (17.2%).</p>
+    <p>Top factors: sample_hz (45.3%), burial_m (43.5%), spacing_km (8.3%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -441,114 +399,259 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.7819</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>detection_pct</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:88.08%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.8808</span>
+                </div>
+              </td>
+              <td>97.00 0.8808       97.00 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>false_trigger_day</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:65.39%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.6539</span>
+                </div>
+              </td>
+              <td>4.20 0.6539        4.20 per_day</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>spacing_km</code></td><td>25 km</td></tr>
+            <tr><td><code>burial_m</code></td><td>3 m</td></tr>
+            <tr><td><code>sample_hz</code></td><td>200 Hz</td></tr>
+            <tr><td><code>filter_hz</code></td><td>0.5 Hz</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #1</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>false_trigger_day</code></td><td>4.20</td><td>-0.00</td><td><span style="color:#dc2626;">+4.20</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#3</td><td><strong>0.7413</strong></td><td style="font-size:.78rem;">spacing_km=5,  burial_m=3,  sample_hz=40,  filter_hz=0.5</td></tr>
+            <tr><td>#4</td><td><strong>0.6201</strong></td><td style="font-size:.78rem;">spacing_km=25,  burial_m=3,  sample_hz=40,  filter_hz=0.5</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>false_trigger_day</code></td><td style="color:#dc2626;font-weight:600;">0.4224</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.7819
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+detection_pct                1.5       0.8808       97.00 %   ↑
+false_trigger_day            1.0       0.6539        4.20 per_day   ↓
+
+Recommended settings:
+  spacing_km = 25 km
+  burial_m = 3 m
+  sample_hz = 200 Hz
+  filter_hz = 0.5 Hz
+  (from observed run #1)
+
+Trade-off summary:
+  detection_pct: 97.00 (best observed: 100.00, sacrifice: +3.00)
+  false_trigger_day: 4.20 (best observed: -0.00, sacrifice: +4.20)
+
+Model quality:
+  detection_pct: R² = 0.2867 (linear)
+  false_trigger_day: R² = 0.4224 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #1 (D=0.7819): spacing_km=25, burial_m=3, sample_hz=200, filter_hz=0.5
+  2. Run #3 (D=0.7413): spacing_km=5, burial_m=3, sample_hz=40, filter_hz=0.5
+  3. Run #4 (D=0.6201): spacing_km=25, burial_m=3, sample_hz=40, filter_hz=0.5</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_detection_pct_spacing_km_vs_burial_m.png
-  RSM surface: rsm_detection_pct_spacing_km_vs_sample_hz.png
-  RSM surface: rsm_detection_pct_spacing_km_vs_filter_hz.png
-  RSM surface: rsm_detection_pct_burial_m_vs_sample_hz.png
-  RSM surface: rsm_detection_pct_burial_m_vs_filter_hz.png
-  RSM surface: rsm_detection_pct_sample_hz_vs_filter_hz.png
-  RSM surface: rsm_false_trigger_day_spacing_km_vs_burial_m.png
-  RSM surface: rsm_false_trigger_day_spacing_km_vs_sample_hz.png
-  RSM surface: rsm_false_trigger_day_spacing_km_vs_filter_hz.png
-  RSM surface: rsm_false_trigger_day_burial_m_vs_sample_hz.png
-  RSM surface: rsm_false_trigger_day_burial_m_vs_filter_hz.png
-  RSM surface: rsm_false_trigger_day_sample_hz_vs_filter_hz.png
-
-=== Main Effects: detection_pct ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: detection_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-burial_m                10.2500       2.7180            41.8%
-filter_hz                8.2500       2.7180            33.7%
-spacing_km              -3.2500       2.7180            13.3%
-sample_hz               -2.7500       2.7180            11.2%
+filter_hz               -6.0000       2.7180            35.8%
+spacing_km              -4.5000       2.7180            26.9%
+sample_hz               -4.2500       2.7180            25.4%
+burial_m                 2.0000       2.7180            11.9%
+
+=== ANOVA Table: detection_pct ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+spacing_km                   1      81.0000      81.0000      0.604     0.4724
+burial_m                     1      16.0000      16.0000      0.119     0.7439
+sample_hz                    1      72.2500      72.2500      0.538     0.4960
+filter_hz                    1     144.0000     144.0000      1.073     0.3477
+spacing_km*burial_m          1      36.0000      36.0000      0.268     0.6266
+spacing_km*sample_hz         1     182.2500     182.2500      1.358     0.2964
+spacing_km*filter_hz         1     144.0000     144.0000      1.073     0.3477
+burial_m*sample_hz           1       6.2500       6.2500      0.047     0.8377
+burial_m*filter_hz           1     400.0000     400.0000      2.981     0.1449
+sample_hz*filter_hz          1      20.2500      20.2500      0.151     0.7137
+Error                        5     671.0000     134.2000
+Total                       15    1773.0000     118.2000
 
 === Interaction Effects: detection_pct ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-sample_hz            filter_hz                 -9.0000            40.0%
-burial_m             sample_hz                  6.0000            26.7%
-spacing_km           burial_m                   3.0000            13.3%
-spacing_km           sample_hz                  2.5000            11.1%
-burial_m             filter_hz                 -1.5000             6.7%
-spacing_km           filter_hz                 -0.5000             2.2%
+burial_m             filter_hz                 10.0000            34.2%
+spacing_km           sample_hz                 -6.7500            23.1%
+spacing_km           filter_hz                 -6.0000            20.5%
+spacing_km           burial_m                   3.0000            10.3%
+sample_hz            filter_hz                 -2.2500             7.7%
+burial_m             sample_hz                  1.2500             4.3%
 
 === Summary Statistics: detection_pct ===
 
 spacing_km:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  25                  8    82.8750     9.9633    68.0000   100.0000
-  5                   8    79.6250    12.1648    63.0000    97.0000
+  25                  8    83.5000     9.8561    68.0000    97.0000
+  5                   8    79.0000    12.0238    63.0000   100.0000
 
 burial_m:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   8    76.1250     9.6723    63.0000    89.0000
-  3                   8    86.3750     9.9848    72.0000   100.0000
+  0                   8    80.2500    12.7475    63.0000   100.0000
+  3                   8    82.2500     9.4074    68.0000    97.0000
 
 sample_hz:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  200                 8    82.6250    11.9515    63.0000   100.0000
-  40                  8    79.8750    10.3017    68.0000    97.0000
+  200                 8    83.3750    12.9608    68.0000   100.0000
+  40                  8    79.1250     8.6592    63.0000    88.0000
 
 filter_hz:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.5                 8    77.1250    11.8856    63.0000    97.0000
-  10                  8    85.3750     8.5513    72.0000   100.0000
+  0.5                 8    84.2500     9.8959    68.0000   100.0000
+  10                  8    78.2500    11.6097    63.0000    97.0000
 
 === Main Effects: false_trigger_day ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-burial_m                -3.7875       0.9672            42.4%
-filter_hz                3.5375       0.9672            39.6%
-sample_hz               -1.5375       0.9672            17.2%
-spacing_km               0.0625       0.9672             0.7%
+sample_hz               -2.5125       0.9672            45.3%
+burial_m                -2.4125       0.9672            43.5%
+spacing_km               0.4625       0.9672             8.3%
+filter_hz                0.1625       0.9672             2.9%
+
+=== ANOVA Table: false_trigger_day ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+spacing_km                   1       0.8556       0.8556      0.038     0.8532
+burial_m                     1      23.2806      23.2806      1.033     0.3560
+sample_hz                    1      25.2506      25.2506      1.121     0.3382
+filter_hz                    1       0.1056       0.1056      0.005     0.9481
+spacing_km*burial_m          1      16.2006      16.2006      0.719     0.4351
+spacing_km*sample_hz         1       1.3806       1.3806      0.061     0.8143
+spacing_km*filter_hz         1       3.3306       3.3306      0.148     0.7164
+burial_m*sample_hz           1       3.1506       3.1506      0.140     0.7238
+burial_m*filter_hz           1       0.1806       0.1806      0.008     0.9321
+sample_hz*filter_hz          1      38.1306      38.1306      1.692     0.2500
+Error                        5     112.6481      22.5296
+Total                       15     224.5144      14.9676
 
 === Interaction Effects: false_trigger_day ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-sample_hz            filter_hz                 -2.5875            57.8%
-spacing_km           burial_m                   0.7875            17.6%
-burial_m             sample_hz                 -0.7125            15.9%
-spacing_km           sample_hz                 -0.2625             5.9%
-burial_m             filter_hz                  0.1125             2.5%
-spacing_km           filter_hz                  0.0125             0.3%
+sample_hz            filter_hz                 -3.0875            40.1%
+spacing_km           burial_m                   2.0125            26.1%
+spacing_km           filter_hz                 -0.9125            11.9%
+burial_m             sample_hz                  0.8875            11.5%
+spacing_km           sample_hz                 -0.5875             7.6%
+burial_m             filter_hz                  0.2125             2.8%
 
 === Summary Statistics: false_trigger_day ===
 
 spacing_km:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  25                  8     6.5375     4.2102    -0.0000    11.9000
-  5                   8     6.6000     3.7876     1.8000    12.7000
+  25                  8     6.3375     2.9554     1.0000    10.8000
+  5                   8     6.8000     4.8184    -0.0000    12.7000
 
 burial_m:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   8     8.4625     3.4875     2.9000    12.7000
-  3                   8     4.6750     3.4225    -0.0000     8.8000
+  0                   8     7.7750     2.4616     2.9000    10.8000
+  3                   8     5.3625     4.7632    -0.0000    12.7000
 
 sample_hz:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  200                 8     7.3375     4.2715    -0.0000    12.7000
-  40                  8     5.8000     3.5323     1.0000    10.8000
+  200                 8     7.8250     3.6185     1.8000    12.7000
+  40                  8     5.3125     3.9208    -0.0000    11.9000
 
 filter_hz:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.5                 8     4.8000     3.4472    -0.0000    10.1000
-  10                  8     8.3375     3.6111     1.8000    12.7000
-
-Pareto chart (detection_pct): use_cases/232_seismograph_placement/results/analysis/pareto_detection_pct.png
-
-Pareto chart (false_trigger_day): use_cases/232_seismograph_placement/results/analysis/pareto_false_trigger_day.png
-Main effects (detection_pct): use_cases/232_seismograph_placement/results/analysis/main_effects_detection_pct.png
-Main effects (false_trigger_day): use_cases/232_seismograph_placement/results/analysis/main_effects_false_trigger_day.png</div></div>
+  0.5                 8     6.4875     3.6306     1.0000    11.9000
+  10                  8     6.6500     4.3448    -0.0000    12.7000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: detection_pct ===
@@ -556,129 +659,143 @@ Direction: maximize
 
 Best observed run: #4
   spacing_km = 25
-  burial_m = 0
-  sample_hz = 40
-  filter_hz = 0.5
+  burial_m = 3
+  sample_hz = 200
+  filter_hz = 10
   Value: 100.0
 
-RSM Model (linear, R² = 0.0994, Adj R² = -0.2281):
+RSM Model (linear, R² = 0.2263, Adj R² = -0.0550):
   Coefficients:
     intercept                      +81.2500
-    spacing_km                     +0.6250
-    burial_m                       -2.2500
-    sample_hz                      -2.0000
-    filter_hz                      +1.2500
+    spacing_km                     +2.5000
+    burial_m                       -1.2500
+    sample_hz                      +2.8750
+    filter_hz                      +3.0000
 
-RSM Model (quadratic, R² = 0.9103, Adj R² = -0.3452):
+RSM Model (quadratic, R² = 0.5510, Adj R² = -5.7343):
   Coefficients:
     intercept                      +16.2500
-    spacing_km                     +0.6250
-    burial_m                       -2.2500
-    sample_hz                      -2.0000
-    filter_hz                      +1.2500
-    spacing_km*burial_m            -4.6250
-    spacing_km*sample_hz           -2.1250
-    spacing_km*filter_hz           -3.1250
-    burial_m*sample_hz             +6.2500
-    burial_m*filter_hz             +2.7500
-    sample_hz*filter_hz            -2.7500
+    spacing_km                     +2.5000
+    burial_m                       -1.2500
+    sample_hz                      +2.8750
+    filter_hz                      +3.0000
+    spacing_km*burial_m            +3.5000
+    spacing_km*sample_hz           -1.3750
+    spacing_km*filter_hz           +0.5000
+    burial_m*sample_hz             +4.3750
+    burial_m*filter_hz             +0.7500
+    sample_hz*filter_hz            +1.3750
     spacing_km^2                   +16.2500
     burial_m^2                     +16.2500
     sample_hz^2                    +16.2500
     filter_hz^2                    +16.2500
 
   Curvature analysis:
-    burial_m                       coef=+16.2500  convex (has a minimum)
     spacing_km                     coef=+16.2500  convex (has a minimum)
+    burial_m                       coef=+16.2500  convex (has a minimum)
     sample_hz                      coef=+16.2500  convex (has a minimum)
     filter_hz                      coef=+16.2500  convex (has a minimum)
 
   Notable interactions:
-    burial_m*sample_hz             coef=+6.2500  (synergistic)
-    spacing_km*burial_m            coef=-4.6250  (antagonistic)
-    spacing_km*filter_hz           coef=-3.1250  (antagonistic)
-    sample_hz*filter_hz            coef=-2.7500  (antagonistic)
-    burial_m*filter_hz             coef=+2.7500  (synergistic)
-    spacing_km*sample_hz           coef=-2.1250  (antagonistic)
+    burial_m*sample_hz             coef=+4.3750  (synergistic)
+    spacing_km*burial_m            coef=+3.5000  (synergistic)
+    sample_hz*filter_hz            coef=+1.3750  (synergistic)
+    spacing_km*sample_hz           coef=-1.3750  (antagonistic)
+    burial_m*filter_hz             coef=+0.7500  (synergistic)
+    spacing_km*filter_hz           coef=+0.5000  (synergistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     spacing_km = 25
     burial_m = 0
-    sample_hz = 40
+    sample_hz = 200
     filter_hz = 10
-    Predicted value: 87.3750
+    Predicted value: 90.8750
+
+  Surface optimum (via L-BFGS-B, linear model):
+    spacing_km = 25
+    burial_m = 0
+    sample_hz = 200
+    filter_hz = 10
+    Predicted value: 90.8750
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. burial_m  (effect: -4.5, contribution: 36.7%)
-  2. sample_hz  (effect: 4.0, contribution: 32.7%)
-  3. filter_hz  (effect: 2.5, contribution: 20.4%)
-  4. spacing_km  (effect: -1.2, contribution: 10.2%)
+  1. filter_hz  (effect: 6.0, contribution: 31.2%)
+  2. sample_hz  (effect: -5.8, contribution: 29.9%)
+  3. spacing_km  (effect: -5.0, contribution: 26.0%)
+  4. burial_m  (effect: -2.5, contribution: 13.0%)
 
 === Optimization: false_trigger_day ===
 Direction: minimize
 
 Best observed run: #11
   spacing_km = 25
-  burial_m = 3
-  sample_hz = 200
+  burial_m = 0
+  sample_hz = 40
   filter_hz = 10
   Value: -0.0
 
-RSM Model (linear, R² = 0.3126, Adj R² = 0.0627):
+RSM Model (linear, R² = 0.1464, Adj R² = -0.1640):
   Coefficients:
     intercept                      +6.5688
-    spacing_km                     -0.4437
-    burial_m                       -1.3188
-    sample_hz                      -1.3188
-    filter_hz                      +0.8438
+    spacing_km                     +0.3563
+    burial_m                       +0.7812
+    sample_hz                      +1.1437
+    filter_hz                      +0.0937
 
-RSM Model (quadratic, R² = 0.7122, Adj R² = -3.3169):
+RSM Model (quadratic, R² = 0.6510, Adj R² = -4.2355):
   Coefficients:
     intercept                      +1.3138
-    spacing_km                     -0.4437
-    burial_m                       -1.3188
-    sample_hz                      -1.3187
-    filter_hz                      +0.8438
-    spacing_km*burial_m            -0.5062
-    spacing_km*sample_hz           +0.3438
-    spacing_km*filter_hz           -1.8938
-    burial_m*sample_hz             -1.1812
-    burial_m*filter_hz             +0.4562
-    sample_hz*filter_hz            +0.2062
+    spacing_km                     +0.3563
+    burial_m                       +0.7813
+    sample_hz                      +1.1437
+    filter_hz                      +0.0937
+    spacing_km*burial_m            +0.4187
+    spacing_km*sample_hz           +1.7813
+    spacing_km*filter_hz           -1.3938
+    burial_m*sample_hz             +0.0063
+    burial_m*filter_hz             -1.1437
+    sample_hz*filter_hz            +0.6938
     spacing_km^2                   +1.3138
     burial_m^2                     +1.3138
     sample_hz^2                    +1.3138
     filter_hz^2                    +1.3138
 
   Curvature analysis:
+    spacing_km                     coef=+1.3138  convex (has a minimum)
     burial_m                       coef=+1.3138  convex (has a minimum)
     sample_hz                      coef=+1.3138  convex (has a minimum)
-    spacing_km                     coef=+1.3138  convex (has a minimum)
     filter_hz                      coef=+1.3138  convex (has a minimum)
 
   Notable interactions:
-    spacing_km*filter_hz           coef=-1.8938  (antagonistic)
-    burial_m*sample_hz             coef=-1.1812  (antagonistic)
-    spacing_km*burial_m            coef=-0.5062  (antagonistic)
-    burial_m*filter_hz             coef=+0.4562  (synergistic)
-    spacing_km*sample_hz           coef=+0.3438  (synergistic)
+    spacing_km*sample_hz           coef=+1.7813  (synergistic)
+    spacing_km*filter_hz           coef=-1.3938  (antagonistic)
+    burial_m*filter_hz             coef=-1.1437  (antagonistic)
+    sample_hz*filter_hz            coef=+0.6938  (synergistic)
+    spacing_km*burial_m            coef=+0.4187  (synergistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
+    spacing_km = 25
+    burial_m = 3
+    sample_hz = 200
+    filter_hz = 10
+    Predicted value: 8.9438
+
+  Surface optimum (via L-BFGS-B, linear model):
     spacing_km = 5
     burial_m = 0
     sample_hz = 40
-    filter_hz = 10
-    Predicted value: 10.4938
+    filter_hz = 0.5
+    Predicted value: 4.1938
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. burial_m  (effect: -2.6, contribution: 33.6%)
-  2. sample_hz  (effect: 2.6, contribution: 33.6%)
-  3. filter_hz  (effect: 1.7, contribution: 21.5%)
-  4. spacing_km  (effect: 0.9, contribution: 11.3%)</div></div>
+  1. sample_hz  (effect: -2.3, contribution: 48.2%)
+  2. burial_m  (effect: 1.6, contribution: 32.9%)
+  3. spacing_km  (effect: -0.7, contribution: 15.0%)
+  4. filter_hz  (effect: 0.2, contribution: 3.9%)</div></div>
   </section>
 
   <!-- Nav -->

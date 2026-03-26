@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>foam score</strong>, the most influential factors were surfactant pct (53.0%), ph level (25.4%), viscosity cp (21.5%). The best observed value was <strong>8.2</strong> (at surfactant pct = 8, ph level = 6.5, viscosity cp = 2000).</p>
-<p>For <strong>scalp dryness</strong>, the most influential factors were surfactant pct (67.5%), ph level (16.9%), viscosity cp (15.6%). The best observed value was <strong>2.8</strong> (at surfactant pct = 22.1287, ph level = 5.5, viscosity cp = 5000).</p>
+    <p>For <strong>foam score</strong>, the most influential factors were viscosity cp (38.3%), surfactant pct (31.7%), ph level (29.9%). The best observed value was <strong>8.2</strong> (at surfactant pct = 13, ph level = 5.5, viscosity cp = 5000).</p>
+<p>For <strong>scalp dryness</strong>, the most influential factors were surfactant pct (41.5%), viscosity cp (31.9%), ph level (26.6%). The best observed value was <strong>2.8</strong> (at surfactant pct = 8, ph level = 4.5, viscosity cp = 2000).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -250,12 +249,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (foam_score (↑), scalp_dryness (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/220_shampoo_foam/config.json <span class="flag">--multi</span></div>
         </div>
@@ -263,7 +263,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -271,48 +271,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/220_shampoo_foam/config.json \
     <span class="flag">--output</span> use_cases/220_shampoo_foam/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Cosmetics Formulation? Use the Manual Workflow</h4>
-        <p>Cosmetics experiments involve real chemical formulations, skin application, and sensory evaluation that must be tested on actual products. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/220_shampoo_foam/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/220_shampoo_foam/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/220_shampoo_foam/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/220_shampoo_foam/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/220_shampoo_foam/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/220_shampoo_foam/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/220_shampoo_foam/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -344,7 +302,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: foam_score</h3>
-    <p>Top factors: surfactant_pct (53.0%), ph_level (25.4%), viscosity_cp (21.5%).</p>
+    <p>Top factors: viscosity_cp (38.3%), surfactant_pct (31.7%), ph_level (29.9%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -357,7 +315,7 @@
     </div>
 
     <h3>Response: scalp_dryness</h3>
-    <p>Top factors: surfactant_pct (67.5%), ph_level (16.9%), viscosity_cp (15.6%).</p>
+    <p>Top factors: surfactant_pct (41.5%), viscosity_cp (31.9%), ph_level (26.6%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -408,193 +366,345 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.7802</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>foam_score</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:80.89%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.8089</span>
+                </div>
+              </td>
+              <td>7.11 0.8089        7.11 pts</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>scalp_dryness</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:73.9%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7390</span>
+                </div>
+              </td>
+              <td>3.77 0.7390        3.77 pts</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>surfactant_pct</code></td><td>18 %</td></tr>
+            <tr><td><code>ph_level</code></td><td>4.5 pH</td></tr>
+            <tr><td><code>viscosity_cp</code></td><td>2000 cP</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from RSM model prediction</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>scalp_dryness</code></td><td>3.77</td><td>2.80</td><td><span style="color:#dc2626;">+0.97</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#15</td><td><strong>0.6885</strong></td><td style="font-size:.78rem;">surfactant_pct=8,  ph_level=6.5,  viscosity_cp=8000</td></tr>
+            <tr><td>#18</td><td><strong>0.6864</strong></td><td style="font-size:.78rem;">surfactant_pct=18,  ph_level=4.5,  viscosity_cp=8000</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>scalp_dryness</code></td><td style="color:#dc2626;font-weight:600;">0.1553</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.7802
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+foam_score                   1.5       0.8089        7.11 pts   ↑
+scalp_dryness                1.0       0.7390        3.77 pts   ↓
+
+Recommended settings:
+  surfactant_pct = 18 %
+  ph_level = 4.5 pH
+  viscosity_cp = 2000 cP
+  (from RSM model prediction)
+
+Trade-off summary:
+  foam_score: 7.11 (best observed: 8.20, sacrifice: +1.09)
+  scalp_dryness: 3.77 (best observed: 2.80, sacrifice: +0.97)
+
+Model quality:
+  foam_score: R² = 0.4202 (quadratic)
+  scalp_dryness: R² = 0.1553 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #17 (D=0.7703): surfactant_pct=18, ph_level=4.5, viscosity_cp=2000
+  2. Run #15 (D=0.6885): surfactant_pct=8, ph_level=6.5, viscosity_cp=8000
+  3. Run #18 (D=0.6864): surfactant_pct=18, ph_level=4.5, viscosity_cp=8000</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_foam_score_surfactant_pct_vs_ph_level.png
-  RSM surface: rsm_foam_score_surfactant_pct_vs_viscosity_cp.png
-  RSM surface: rsm_foam_score_ph_level_vs_viscosity_cp.png
-  RSM surface: rsm_scalp_dryness_surfactant_pct_vs_ph_level.png
-  RSM surface: rsm_scalp_dryness_surfactant_pct_vs_viscosity_cp.png
-  RSM surface: rsm_scalp_dryness_ph_level_vs_viscosity_cp.png
-
-=== Main Effects: foam_score ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: foam_score ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-surfactant_pct           3.7000       0.3277            53.0%
-ph_level                 1.7750       0.3277            25.4%
-viscosity_cp             1.5000       0.3277            21.5%
+viscosity_cp             3.0500       0.3277            38.3%
+surfactant_pct           2.5250       0.3277            31.7%
+ph_level                 2.3833       0.3277            29.9%
+
+=== ANOVA Table: foam_score ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+surfactant_pct               4      10.9395       2.7349      3.397     0.0590
+ph_level                     4      20.1595       5.0399      6.261     0.0108
+viscosity_cp                 4      17.4636       4.3659      5.423     0.0167
+Lack of Fit                  2       0.0000       0.0000      0.000     1.0000
+Pure Error                   7       5.6350       0.8050
+Error                        9       1.0411       0.8050
+Total                       21      49.6036       2.3621
 
 === Summary Statistics: foam_score ===
 
 surfactant_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  13                 12     5.6083     1.6340     1.4000     7.7000
-  18                  4     6.4750     0.5315     5.8000     6.9000
-  22.1287             1     7.1000     0.0000     7.1000     7.1000
-  3.87129             1     3.4000     0.0000     3.4000     3.4000
-  8                   4     5.8250     1.7970     4.2000     8.2000
+  13                 12     6.1417     1.3379     3.4000     8.2000
+  18                  4     5.6750     1.1442     4.7000     7.2000
+  22.1287             1     6.9000     0.0000     6.9000     6.9000
+  3.87129             1     6.2000     0.0000     6.2000     6.2000
+  8                   4     4.3750     2.2396     1.4000     6.2000
 
 ph_level:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  3.67426             1     4.9000     0.0000     4.9000     4.9000
-  4.5                 4     6.6750     1.4523     4.7000     8.2000
-  5.5                12     5.5750     1.8041     1.4000     7.7000
-  6.5                 4     5.6250     0.9743     4.2000     6.3000
-  7.32574             1     6.0000     0.0000     6.0000     6.0000
+  3.67426             1     4.2000     0.0000     4.2000     4.2000
+  4.5                 4     6.0750     0.9430     4.9000     7.2000
+  5.5                12     6.3583     1.2026     3.4000     8.2000
+  6.5                 4     3.9750     1.9033     1.4000     5.9000
+  7.32574             1     6.3000     0.0000     6.3000     6.3000
 
 viscosity_cp:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -477.226            1     6.0000     0.0000     6.0000     6.0000
-  10477.2             1     6.2000     0.0000     6.2000     6.2000
-  2000                4     5.4000     1.2028     4.2000     6.9000
-  5000               12     5.4667     1.8022     1.4000     7.7000
-  8000                4     6.9000     0.9201     6.2000     8.2000
+  -477.226            1     3.4000     0.0000     3.4000     3.4000
+  10477.2             1     6.0000     0.0000     6.0000     6.0000
+  2000                4     5.5000     1.4810     3.9000     7.2000
+  5000               12     6.4500     1.0265     4.2000     8.2000
+  8000                4     4.5500     2.1579     1.4000     6.0000
 
 === Main Effects: scalp_dryness ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-surfactant_pct           4.1000       0.2169            67.5%
-ph_level                 1.0250       0.2169            16.9%
-viscosity_cp             0.9500       0.2169            15.6%
+surfactant_pct           2.6500       0.2169            41.5%
+viscosity_cp             2.0333       0.2169            31.9%
+ph_level                 1.7000       0.2169            26.6%
+
+=== ANOVA Table: scalp_dryness ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+surfactant_pct               4       6.0408       1.5102      1.185     0.3802
+ph_level                     4       3.7208       0.9302      0.730     0.5937
+viscosity_cp                 4       6.3183       1.5796      1.240     0.3606
+Lack of Fit                  2       0.0000       0.0000      0.000     1.0000
+Pure Error                   7       8.9200       1.2743
+Error                        9       5.6600       1.2743
+Total                       21      21.7400       1.0352
 
 === Summary Statistics: scalp_dryness ===
 
 surfactant_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  13                 12     4.1167     0.6408     2.8000     5.3000
-  18                  4     4.8000     1.2275     3.7000     6.3000
-  22.1287             1     6.9000     0.0000     6.9000     6.9000
-  3.87129             1     2.8000     0.0000     2.8000     2.8000
-  8                   4     4.6250     0.8342     3.9000     5.8000
+  13                 12     4.5083     1.0983     2.8000     6.9000
+  18                  4     4.4000     0.6164     3.9000     5.3000
+  22.1287             1     6.3000     0.0000     6.3000     6.3000
+  3.87129             1     4.2000     0.0000     4.2000     4.2000
+  8                   4     3.6500     0.6557     2.8000     4.3000
 
 ph_level:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  3.67426             1     4.2000     0.0000     4.2000     4.2000
-  4.5                 4     4.9250     1.3175     3.7000     6.3000
-  5.5                12     4.2500     1.1172     2.8000     6.9000
-  6.5                 4     4.5000     0.6055     3.9000     5.3000
-  7.32574             1     3.9000     0.0000     3.9000     3.9000
+  3.67426             1     4.6000     0.0000     4.6000     4.6000
+  4.5                 4     4.4500     0.5802     4.0000     5.3000
+  5.5                12     4.5583     1.2026     2.8000     6.9000
+  6.5                 4     3.6000     0.6055     2.8000     4.2000
+  7.32574             1     5.3000     0.0000     5.3000     5.3000
 
 viscosity_cp:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -477.226            1     3.8000     0.0000     3.8000     3.8000
-  10477.2             1     4.2000     0.0000     4.2000     4.2000
-  2000                4     4.6750     1.1325     3.9000     6.3000
-  5000               12     4.2583     1.1139     2.8000     6.9000
-  8000                4     4.7500     0.9678     3.7000     5.8000
-
-Pareto chart (foam_score): use_cases/220_shampoo_foam/results/analysis/pareto_foam_score.png
-
-Pareto chart (scalp_dryness): use_cases/220_shampoo_foam/results/analysis/pareto_scalp_dryness.png
-Main effects (foam_score): use_cases/220_shampoo_foam/results/analysis/main_effects_foam_score.png
-Main effects (scalp_dryness): use_cases/220_shampoo_foam/results/analysis/main_effects_scalp_dryness.png</div></div>
+  -477.226            1     2.8000     0.0000     2.8000     2.8000
+  10477.2             1     3.8000     0.0000     3.8000     3.8000
+  2000                4     4.0750     1.0340     2.8000     5.3000
+  5000               12     4.8333     1.0395     3.7000     6.9000
+  8000                4     3.9750     0.3304     3.5000     4.2000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: foam_score ===
 Direction: maximize
 
 Best observed run: #2
-  surfactant_pct = 8
-  ph_level = 6.5
-  viscosity_cp = 2000
+  surfactant_pct = 13
+  ph_level = 5.5
+  viscosity_cp = 5000
   Value: 8.2
 
-RSM Model (linear, R² = 0.1696, Adj R² = 0.0312):
+RSM Model (linear, R² = 0.2037, Adj R² = 0.0710):
   Coefficients:
     intercept                      +5.7727
-    surfactant_pct                 -0.5258
-    ph_level                       +0.2045
-    viscosity_cp                   -0.5051
+    surfactant_pct                 -0.6384
+    ph_level                       +0.4322
+    viscosity_cp                   +0.3077
 
-RSM Model (quadratic, R² = 0.4621, Adj R² = 0.0587):
+RSM Model (quadratic, R² = 0.6947, Adj R² = 0.4657):
   Coefficients:
-    intercept                      +5.2648
-    surfactant_pct                 -0.5258
-    ph_level                       +0.2045
-    viscosity_cp                   -0.5051
-    surfactant_pct*ph_level        -0.9500
-    surfactant_pct*viscosity_cp    -0.2500
-    ph_level*viscosity_cp          -0.2000
-    surfactant_pct^2               -0.0411
-    ph_level^2                     +0.3189
-    viscosity_cp^2                 +0.4839
+    intercept                      +6.2175
+    surfactant_pct                 -0.6384
+    ph_level                       +0.4322
+    viscosity_cp                   +0.3077
+    surfactant_pct*ph_level        +0.0500
+    surfactant_pct*viscosity_cp    -0.4500
+    ph_level*viscosity_cp          -0.9250
+    surfactant_pct^2               -0.7524
+    ph_level^2                     -0.2574
+    viscosity_cp^2                 +0.3426
 
   Curvature analysis:
-    viscosity_cp                   coef=+0.4839  convex (has a minimum)
-    ph_level                       coef=+0.3189  convex (has a minimum)
-    surfactant_pct                 coef=-0.0411  negligible curvature
+    surfactant_pct                 coef=-0.7524  concave (has a maximum)
+    viscosity_cp                   coef=+0.3426  convex (has a minimum)
+    ph_level                       coef=-0.2574  concave (has a maximum)
 
   Notable interactions:
-    surfactant_pct*ph_level        coef=-0.9500  (antagonistic)
+    ph_level*viscosity_cp          coef=-0.9250  (antagonistic)
+    surfactant_pct*viscosity_cp    coef=-0.4500  (antagonistic)
 
-  Predicted optimum (from quadratic model):
-    surfactant_pct = 8
-    ph_level = 6.5
-    viscosity_cp = 2000
-    Predicted value: 8.1622
+  Predicted optimum (from quadratic model, at observed points):
+    surfactant_pct = 13
+    ph_level = 5.5
+    viscosity_cp = 10477.2
+    Predicted value: 7.9213
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Surface optimum (via L-BFGS-B, quadratic model):
+    surfactant_pct = 9.2172
+    ph_level = 4.5
+    viscosity_cp = 8000
+    Predicted value: 7.5339
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. surfactant_pct  (effect: 3.2, contribution: 51.0%)
-  2. viscosity_cp  (effect: 1.8, contribution: 28.6%)
-  3. ph_level  (effect: 1.3, contribution: 20.4%)
+  1. surfactant_pct  (effect: 4.9, contribution: 54.0%)
+  2. viscosity_cp  (effect: 2.7, contribution: 29.5%)
+  3. ph_level  (effect: 1.5, contribution: 16.5%)
 
 === Optimization: scalp_dryness ===
 Direction: minimize
 
 Best observed run: #3
-  surfactant_pct = 22.1287
-  ph_level = 5.5
-  viscosity_cp = 5000
+  surfactant_pct = 8
+  ph_level = 4.5
+  viscosity_cp = 2000
   Value: 2.8
 
-RSM Model (linear, R² = 0.3430, Adj R² = 0.2335):
+RSM Model (linear, R² = 0.1118, Adj R² = -0.0362):
   Coefficients:
     intercept                      +4.4000
-    surfactant_pct                 -0.3038
-    ph_level                       -0.0762
-    viscosity_cp                   -0.6405
+    surfactant_pct                 +0.1038
+    ph_level                       +0.3919
+    viscosity_cp                   -0.0373
 
-RSM Model (quadratic, R² = 0.8238, Adj R² = 0.6917):
+RSM Model (quadratic, R² = 0.4443, Adj R² = 0.0276):
   Coefficients:
-    intercept                      +4.4224
-    surfactant_pct                 -0.3038
-    ph_level                       -0.0762
-    viscosity_cp                   -0.6405
-    surfactant_pct*ph_level        -0.8375
-    surfactant_pct*viscosity_cp    -0.2375
-    ph_level*viscosity_cp          +0.0875
-    surfactant_pct^2               -0.2412
-    ph_level^2                     -0.1362
-    viscosity_cp^2                 +0.3438
+    intercept                      +4.7947
+    surfactant_pct                 +0.1038
+    ph_level                       +0.3919
+    viscosity_cp                   -0.0373
+    surfactant_pct*ph_level        +0.2250
+    surfactant_pct*viscosity_cp    -0.1750
+    ph_level*viscosity_cp          -0.5750
+    surfactant_pct^2               -0.3474
+    ph_level^2                     -0.2874
+    viscosity_cp^2                 +0.0426
 
   Curvature analysis:
-    viscosity_cp                   coef=+0.3438  convex (has a minimum)
-    surfactant_pct                 coef=-0.2412  concave (has a maximum)
-    ph_level                       coef=-0.1362  concave (has a maximum)
+    surfactant_pct                 coef=-0.3474  concave (has a maximum)
+    ph_level                       coef=-0.2874  concave (has a maximum)
+    viscosity_cp                   coef=+0.0426  negligible curvature
 
   Notable interactions:
-    surfactant_pct*ph_level        coef=-0.8375  (antagonistic)
+    ph_level*viscosity_cp          coef=-0.5750  (antagonistic)
 
-  Predicted optimum (from quadratic model):
-    surfactant_pct = 13
-    ph_level = 5.5
-    viscosity_cp = -477.226
-    Predicted value: 6.7379
+  Predicted optimum (from quadratic model, at observed points):
+    surfactant_pct = 18
+    ph_level = 6.5
+    viscosity_cp = 2000
+    Predicted value: 5.7106
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Surface optimum (via L-BFGS-B, quadratic model):
+    surfactant_pct = 8
+    ph_level = 4.5
+    viscosity_cp = 2000
+    Predicted value: 3.2193
+
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. viscosity_cp  (effect: 2.9, contribution: 51.3%)
-  2. surfactant_pct  (effect: 1.9, contribution: 33.8%)
-  3. ph_level  (effect: 0.9, contribution: 14.9%)</div></div>
+  1. ph_level  (effect: 1.3, contribution: 34.6%)
+  2. viscosity_cp  (effect: 1.3, contribution: 33.1%)
+  3. surfactant_pct  (effect: 1.2, contribution: 32.3%)</div></div>
   </section>
 
   <!-- Nav -->

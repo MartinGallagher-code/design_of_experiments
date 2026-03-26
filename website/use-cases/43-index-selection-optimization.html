@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>build time s</strong>, the most influential factors were parallel workers (41.6%), maintenance work mem mb (30.5%), fill factor (27.9%). The best observed value was <strong>97.0</strong> (at fill factor = 75, maintenance work mem mb = 64, parallel workers = 8).</p>
-<p>For <strong>query speedup</strong>, the most influential factors were maintenance work mem mb (47.1%), fill factor (43.9%), parallel workers (9.0%). The best observed value was <strong>39.5</strong> (at fill factor = 100, maintenance work mem mb = 2048, parallel workers = 4).</p>
+    <p>For <strong>build time s</strong>, the most influential factors were fill factor (38.7%), parallel workers (36.5%), maintenance work mem mb (24.8%). The best observed value was <strong>97.0</strong> (at fill factor = 100, maintenance work mem mb = 1056, parallel workers = 8).</p>
+<p>For <strong>query speedup</strong>, the most influential factors were parallel workers (56.9%), fill factor (34.5%), maintenance work mem mb (8.6%). The best observed value was <strong>39.5</strong> (at fill factor = 50, maintenance work mem mb = 2048, parallel workers = 4).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (build_time_s (↓), query_speedup (↑)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/43_index_selection_optimization/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -295,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: build_time_s</h3>
-    <p>Top factors: parallel_workers (41.6%), maintenance_work_mem_mb (30.5%), fill_factor (27.9%).</p>
+    <p>Top factors: fill_factor (38.7%), parallel_workers (36.5%), maintenance_work_mem_mb (24.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -308,7 +308,7 @@
     </div>
 
     <h3>Response: query_speedup</h3>
-    <p>Top factors: maintenance_work_mem_mb (47.1%), fill_factor (43.9%), parallel_workers (9.0%).</p>
+    <p>Top factors: parallel_workers (56.9%), fill_factor (34.5%), maintenance_work_mem_mb (8.6%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -359,172 +359,336 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.8664</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>build_time_s</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:74.91%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7491</span>
+                </div>
+              </td>
+              <td>144.00 0.7491      144.00 s</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>query_speedup</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>39.50 0.9545       39.50 x</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>fill_factor</code></td><td>75 %</td></tr>
+            <tr><td><code>maintenance_work_mem_mb</code></td><td>64 MB</td></tr>
+            <tr><td><code>parallel_workers</code></td><td>8 count</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #3</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>query_speedup</code></td><td>39.50</td><td>39.50</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#12</td><td><strong>0.8014</strong></td><td style="font-size:.78rem;">fill_factor=50,  maintenance_work_mem_mb=1056,  parallel_workers=8</td></tr>
+            <tr><td>#10</td><td><strong>0.7210</strong></td><td style="font-size:.78rem;">fill_factor=50,  maintenance_work_mem_mb=1056,  parallel_workers=0</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>query_speedup</code></td><td style="color:#ca8a04;font-weight:600;">0.6275</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.8664
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+build_time_s                 1.0       0.7491      144.00 s   ↓
+query_speedup                1.5       0.9545       39.50 x   ↑
+
+Recommended settings:
+  fill_factor = 75 %
+  maintenance_work_mem_mb = 64 MB
+  parallel_workers = 8 count
+  (from observed run #3)
+
+Trade-off summary:
+  build_time_s: 144.00 (best observed: 97.00, sacrifice: +47.00)
+  query_speedup: 39.50 (best observed: 39.50, sacrifice: +0.00)
+
+Model quality:
+  build_time_s: R² = 0.3902 (linear)
+  query_speedup: R² = 0.6275 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #3 (D=0.8664): fill_factor=75, maintenance_work_mem_mb=64, parallel_workers=8
+  2. Run #12 (D=0.8014): fill_factor=50, maintenance_work_mem_mb=1056, parallel_workers=8
+  3. Run #10 (D=0.7210): fill_factor=50, maintenance_work_mem_mb=1056, parallel_workers=0</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: build_time_s ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-parallel_workers        67.8214      14.7512            41.6%
-maintenance_work_mem_mb    49.7500      14.7512            30.5%
-fill_factor             45.5714      14.7512            27.9%
+fill_factor             43.7857      14.7512            38.7%
+parallel_workers        41.2143      14.7512            36.5%
+maintenance_work_mem_mb    28.0000      14.7512            24.8%
+
+=== ANOVA Table: build_time_s ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+fill_factor                  2    5869.3048    2934.6524      0.578     0.5828
+maintenance_work_mem_mb      2    1568.8048     784.4024      0.155     0.8593
+parallel_workers             2    4346.3048    2173.1524      0.428     0.6658
+Lack of Fit                  6   23758.6524    3959.7754      0.780     0.6561
+Pure Error                   2   10152.6667    5076.3333
+Error                        8   33911.3190    5076.3333
+Total                       14   45695.7333    3263.9810
 
 === Summary Statistics: build_time_s ===
 
 fill_factor:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4   196.5000    38.2317   156.0000   237.0000
-  50                  4   231.0000    52.7320   186.0000   290.0000
-  75                  7   185.4286    67.8156    97.0000   305.0000
+  100                 4   214.0000    61.1555   173.0000   305.0000
+  50                  4   223.5000    54.8057   156.0000   290.0000
+  75                  7   179.7143    57.1481    97.0000   261.0000
 
 maintenance_work_mem_mb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1056                7   211.5714    64.7685   142.0000   305.0000
-  2048                4   215.7500    33.1197   191.0000   261.0000
-  64                  4   166.0000    59.6825    97.0000   237.0000
+  1056                7   200.2857    78.4256    97.0000   305.0000
+  2048                4   214.7500    34.1602   187.0000   261.0000
+  64                  4   186.7500    35.2266   142.0000   228.0000
 
 parallel_workers:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   4   199.5000    63.3640   144.0000   290.0000
-  4                   7   225.5714    52.0924   142.0000   305.0000
-  8                   4   157.7500    43.4156    97.0000   191.0000
+  0                   4   198.5000    73.9301   142.0000   305.0000
+  4                   7   186.2857    50.3842    97.0000   237.0000
+  8                   4   227.5000    56.9239   173.0000   290.0000
 
 === Main Effects: query_speedup ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-maintenance_work_mem_mb     9.9000       2.0367            47.1%
-fill_factor              9.2321       2.0367            43.9%
-parallel_workers         1.8964       2.0367             9.0%
+parallel_workers        11.3500       2.0367            56.9%
+fill_factor              6.8786       2.0367            34.5%
+maintenance_work_mem_mb     1.7250       2.0367             8.6%
+
+=== ANOVA Table: query_speedup ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+fill_factor                  2     141.4630      70.7315      2.220     0.1710
+maintenance_work_mem_mb      2       8.3898       4.1949      0.132     0.8785
+parallel_workers             2     333.2398     166.6199      5.229     0.0353
+Lack of Fit                  6     324.2780      54.0463      1.696     0.4162
+Pure Error                   2      63.7267      31.8633
+Error                        8     388.0046      31.8633
+Total                       14     871.0973      62.2212
 
 === Summary Statistics: query_speedup ===
 
 fill_factor:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4    24.5750     4.7584    18.0000    28.5000
-  50                  4    17.5250     8.2431    10.5000    26.9000
-  75                  7    26.7571     7.9406    16.7000    39.5000
+  100                 4    21.7500     4.6379    16.7000    26.9000
+  50                  4    20.0500     7.3813    10.7000    27.6000
+  75                  7    26.9286     9.1438    10.5000    39.5000
 
 maintenance_work_mem_mb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1056                7    21.6714     6.9519    10.7000    31.3000
-  2048                4    20.5500     7.5598    10.5000    27.6000
-  64                  4    30.4500     7.2785    22.0000    39.5000
+  1056                7    24.2000     9.8934    10.7000    39.5000
+  2048                4    22.4750     8.0649    10.5000    27.6000
+  64                  4    24.1000     5.1737    19.2000    31.3000
 
 parallel_workers:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   4    24.8250    11.7653    10.7000    39.5000
-  4                   7    22.9286     7.2803    10.5000    31.3000
-  8                   4    23.9750     6.5393    18.0000    31.8000</div></div>
+  0                   4    22.7250     6.7549    16.7000    31.3000
+  4                   7    28.2000     6.3545    19.2000    39.5000
+  8                   4    16.8500     7.2730    10.5000    24.2000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: build_time_s ===
 Direction: minimize
 
 Best observed run: #12
-  fill_factor = 75
-  maintenance_work_mem_mb = 64
+  fill_factor = 100
+  maintenance_work_mem_mb = 1056
   parallel_workers = 8
   Value: 97.0
 
-RSM Model (linear, R² = 0.1613, Adj R² = -0.0674):
+RSM Model (linear, R² = 0.0248, Adj R² = -0.2411):
   Coefficients:
     intercept                      +200.5333
-    fill_factor                    +4.1250
-    maintenance_work_mem_mb        +23.0000
-    parallel_workers               -19.3750
+    fill_factor                    -9.2500
+    maintenance_work_mem_mb        -7.5000
+    parallel_workers               -0.2500
 
-RSM Model (quadratic, R² = 0.7004, Adj R² = 0.1613):
+RSM Model (quadratic, R² = 0.2802, Adj R² = -1.0155):
   Coefficients:
-    intercept                      +187.0000
-    fill_factor                    +4.1250
-    maintenance_work_mem_mb        +23.0000
-    parallel_workers               -19.3750
-    fill_factor*maintenance_work_mem_mb -69.5000
-    fill_factor*parallel_workers   -11.2500
-    maintenance_work_mem_mb*parallel_workers +4.5000
-    fill_factor^2                  +28.8750
-    maintenance_work_mem_mb^2      +12.1250
-    parallel_workers^2             -15.6250
+    intercept                      +207.6667
+    fill_factor                    -9.2500
+    maintenance_work_mem_mb        -7.5000
+    parallel_workers               -0.2500
+    fill_factor*maintenance_work_mem_mb +19.7500
+    fill_factor*parallel_workers   -33.7500
+    maintenance_work_mem_mb*parallel_workers +26.7500
+    fill_factor^2                  -24.4583
+    maintenance_work_mem_mb^2      +2.0417
+    parallel_workers^2             +9.0417
 
   Curvature analysis:
-    fill_factor                    coef=+28.8750  convex (has a minimum)
-    parallel_workers               coef=-15.6250  concave (has a maximum)
-    maintenance_work_mem_mb        coef=+12.1250  convex (has a minimum)
+    fill_factor                    coef=-24.4583  concave (has a maximum)
+    parallel_workers               coef=+9.0417  convex (has a minimum)
+    maintenance_work_mem_mb        coef=+2.0417  convex (has a minimum)
 
   Notable interactions:
-    fill_factor*maintenance_work_mem_mb coef=-69.5000  (antagonistic)
-    fill_factor*parallel_workers   coef=-11.2500  (antagonistic)
-    maintenance_work_mem_mb*parallel_workers coef=+4.5000  (synergistic)
+    fill_factor*parallel_workers   coef=-33.7500  (antagonistic)
+    maintenance_work_mem_mb*parallel_workers coef=+26.7500  (synergistic)
+    fill_factor*maintenance_work_mem_mb coef=+19.7500  (synergistic)
 
-  Predicted optimum (from quadratic model):
+  Predicted optimum (from linear model, at observed points):
     fill_factor = 50
-    maintenance_work_mem_mb = 2048
+    maintenance_work_mem_mb = 64
     parallel_workers = 4
-    Predicted value: 316.3750
+    Predicted value: 217.2833
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Surface optimum (via L-BFGS-B, linear model):
+    fill_factor = 100
+    maintenance_work_mem_mb = 2048
+    parallel_workers = 8
+    Predicted value: 183.5333
+
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. maintenance_work_mem_mb  (effect: 46.0, contribution: 39.0%)
-  2. parallel_workers  (effect: 38.8, contribution: 32.8%)
-  3. fill_factor  (effect: 33.2, contribution: 28.2%)
+  1. fill_factor  (effect: 34.5, contribution: 57.1%)
+  2. maintenance_work_mem_mb  (effect: 15.0, contribution: 24.8%)
+  3. parallel_workers  (effect: 10.9, contribution: 18.0%)
 
 === Optimization: query_speedup ===
 Direction: maximize
 
 Best observed run: #3
-  fill_factor = 100
+  fill_factor = 50
   maintenance_work_mem_mb = 2048
   parallel_workers = 4
   Value: 39.5
 
-RSM Model (linear, R² = 0.2283, Adj R² = 0.0178):
+RSM Model (linear, R² = 0.1595, Adj R² = -0.0697):
   Coefficients:
     intercept                      +23.7133
-    fill_factor                    +3.7250
-    maintenance_work_mem_mb        -0.3000
-    parallel_workers               +3.3000
+    fill_factor                    -3.3875
+    maintenance_work_mem_mb        -0.3625
+    parallel_workers               +2.4000
 
-RSM Model (quadratic, R² = 0.6479, Adj R² = 0.0143):
+RSM Model (quadratic, R² = 0.6464, Adj R² = 0.0100):
   Coefficients:
-    intercept                      +24.8000
-    fill_factor                    +3.7250
-    maintenance_work_mem_mb        -0.3000
-    parallel_workers               +3.3000
-    fill_factor*maintenance_work_mem_mb +9.0750
-    fill_factor*parallel_workers   +0.3250
-    maintenance_work_mem_mb*parallel_workers +0.8250
-    fill_factor^2                  +0.7875
-    maintenance_work_mem_mb^2      -2.8125
-    parallel_workers^2             -0.0125
+    intercept                      +20.4000
+    fill_factor                    -3.3875
+    maintenance_work_mem_mb        -0.3625
+    parallel_workers               +2.4000
+    fill_factor*maintenance_work_mem_mb -3.4250
+    fill_factor*parallel_workers   +6.0000
+    maintenance_work_mem_mb*parallel_workers -0.8000
+    fill_factor^2                  +6.4625
+    maintenance_work_mem_mb^2      +2.9125
+    parallel_workers^2             -3.1625
 
   Curvature analysis:
-    maintenance_work_mem_mb        coef=-2.8125  concave (has a maximum)
-    fill_factor                    coef=+0.7875  convex (has a minimum)
-    parallel_workers               coef=-0.0125  negligible curvature
+    fill_factor                    coef=+6.4625  convex (has a minimum)
+    parallel_workers               coef=-3.1625  concave (has a maximum)
+    maintenance_work_mem_mb        coef=+2.9125  convex (has a minimum)
 
   Notable interactions:
-    fill_factor*maintenance_work_mem_mb coef=+9.0750  (synergistic)
-    maintenance_work_mem_mb*parallel_workers coef=+0.8250  (synergistic)
-    fill_factor*parallel_workers   coef=+0.3250  (synergistic)
+    fill_factor*parallel_workers   coef=+6.0000  (synergistic)
+    fill_factor*maintenance_work_mem_mb coef=-3.4250  (antagonistic)
+    maintenance_work_mem_mb*parallel_workers coef=-0.8000  (antagonistic)
 
-  Predicted optimum (from linear model):
-    fill_factor = 100
-    maintenance_work_mem_mb = 1056
-    parallel_workers = 8
-    Predicted value: 30.7383
+  Predicted optimum (from quadratic model, at observed points):
+    fill_factor = 50
+    maintenance_work_mem_mb = 2048
+    parallel_workers = 4
+    Predicted value: 36.2250
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Surface optimum (via L-BFGS-B, quadratic model):
+    fill_factor = 50
+    maintenance_work_mem_mb = 2048
+    parallel_workers = 1.21739
+    Predicted value: 37.7554
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. fill_factor  (effect: 7.4, contribution: 43.3%)
-  2. parallel_workers  (effect: 6.6, contribution: 38.3%)
-  3. maintenance_work_mem_mb  (effect: 3.2, contribution: 18.4%)</div></div>
+  1. fill_factor  (effect: 9.9, contribution: 51.6%)
+  2. parallel_workers  (effect: 6.2, contribution: 32.6%)
+  3. maintenance_work_mem_mb  (effect: 3.0, contribution: 15.9%)</div></div>
   </section>
 
   <!-- Nav -->

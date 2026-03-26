@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>growth rate g</strong>, the most influential factors were red blue ratio (51.1%), ppfd (26.9%), photoperiod hrs (22.0%). The best observed value was <strong>7.2</strong> (at red blue ratio = 4.5, ppfd = 500, photoperiod hrs = 16).</p>
-<p>For <strong>heat watts</strong>, the most influential factors were red blue ratio (59.1%), ppfd (24.0%), photoperiod hrs (16.8%). The best observed value was <strong>20.0</strong> (at red blue ratio = 4.5, ppfd = 800, photoperiod hrs = 20).</p>
+    <p>For <strong>growth rate g</strong>, the most influential factors were red blue ratio (54.4%), photoperiod hrs (29.3%), ppfd (16.3%). The best observed value was <strong>7.2</strong> (at red blue ratio = 1, ppfd = 800, photoperiod hrs = 16).</p>
+<p>For <strong>heat watts</strong>, the most influential factors were red blue ratio (59.5%), photoperiod hrs (26.5%), ppfd (14.0%). The best observed value was <strong>20.0</strong> (at red blue ratio = 8, ppfd = 500, photoperiod hrs = 12).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (growth_rate_g (↑), heat_watts (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/133_led_grow_light/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -264,48 +264,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/133_led_grow_light/config.json \
     <span class="flag">--output</span> use_cases/133_led_grow_light/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Plant Growth Experiment? Use the Manual Workflow</h4>
-        <p>LED grow light experiments involve real plants, photosynthesis, and growth over time. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/133_led_grow_light/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/133_led_grow_light/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/133_led_grow_light/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/133_led_grow_light/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/133_led_grow_light/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/133_led_grow_light/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/133_led_grow_light/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -337,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: growth_rate_g</h3>
-    <p>Top factors: red_blue_ratio (51.1%), ppfd (26.9%), photoperiod_hrs (22.0%).</p>
+    <p>Top factors: red_blue_ratio (54.4%), photoperiod_hrs (29.3%), ppfd (16.3%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -350,7 +308,7 @@
     </div>
 
     <h3>Response: heat_watts</h3>
-    <p>Top factors: red_blue_ratio (59.1%), ppfd (24.0%), photoperiod_hrs (16.8%).</p>
+    <p>Top factors: red_blue_ratio (59.5%), photoperiod_hrs (26.5%), ppfd (14.0%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -401,185 +359,336 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ea580c;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ea580c;line-height:1.2;">D = 0.5964</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>growth_rate_g</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:61.56%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.6156</span>
+                </div>
+              </td>
+              <td>5.00 0.6156        5.00 g/day</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>heat_watts</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:56.88999999999999%;height:100%;background:#f97316;border-radius:4px;"></div>
+                  </div>
+                  <span>0.5689</span>
+                </div>
+              </td>
+              <td>48.00 0.5689       48.00 W</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>red_blue_ratio</code></td><td>4.5 ratio</td></tr>
+            <tr><td><code>ppfd</code></td><td>500 umol/m2/s</td></tr>
+            <tr><td><code>photoperiod_hrs</code></td><td>16 hrs</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #6</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>heat_watts</code></td><td>48.00</td><td>20.00</td><td><span style="color:#dc2626;">+28.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#2</td><td><strong>0.5906</strong></td><td style="font-size:.78rem;">red_blue_ratio=4.5,  ppfd=200,  photoperiod_hrs=12</td></tr>
+            <tr><td>#5</td><td><strong>0.5812</strong></td><td style="font-size:.78rem;">red_blue_ratio=8,  ppfd=500,  photoperiod_hrs=12</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>heat_watts</code></td><td style="color:#dc2626;font-weight:600;">0.1434</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.5964
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+growth_rate_g                1.5       0.6156        5.00 g/day   ↑
+heat_watts                   1.0       0.5689       48.00 W   ↓
+
+Recommended settings:
+  red_blue_ratio = 4.5 ratio
+  ppfd = 500 umol/m2/s
+  photoperiod_hrs = 16 hrs
+  (from observed run #6)
+
+Trade-off summary:
+  growth_rate_g: 5.00 (best observed: 7.20, sacrifice: +2.20)
+  heat_watts: 48.00 (best observed: 20.00, sacrifice: +28.00)
+
+Model quality:
+  growth_rate_g: R² = 0.1294 (linear)
+  heat_watts: R² = 0.1434 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #6 (D=0.5964): red_blue_ratio=4.5, ppfd=500, photoperiod_hrs=16
+  2. Run #2 (D=0.5906): red_blue_ratio=4.5, ppfd=200, photoperiod_hrs=12
+  3. Run #5 (D=0.5812): red_blue_ratio=8, ppfd=500, photoperiod_hrs=12</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_growth_rate_g_red_blue_ratio_vs_ppfd.png
-  RSM surface: rsm_growth_rate_g_red_blue_ratio_vs_photoperiod_hrs.png
-  RSM surface: rsm_growth_rate_g_ppfd_vs_photoperiod_hrs.png
-  RSM surface: rsm_heat_watts_red_blue_ratio_vs_ppfd.png
-  RSM surface: rsm_heat_watts_red_blue_ratio_vs_photoperiod_hrs.png
-  RSM surface: rsm_heat_watts_ppfd_vs_photoperiod_hrs.png
-
-=== Main Effects: growth_rate_g ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: growth_rate_g ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-red_blue_ratio           2.8500       0.4708            51.1%
-ppfd                     1.5000       0.4708            26.9%
-photoperiod_hrs          1.2250       0.4708            22.0%
+red_blue_ratio           2.2250       0.4708            54.4%
+photoperiod_hrs          1.2000       0.4708            29.3%
+ppfd                     0.6679       0.4708            16.3%
+
+=== ANOVA Table: growth_rate_g ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+red_blue_ratio               2      11.5933       5.7966      5.222     0.0354
+ppfd                         2       1.1647       0.5823      0.525     0.6108
+photoperiod_hrs              2       3.2743       1.6372      1.475     0.2849
+Lack of Fit                  6      28.2970       4.7162      4.249     0.2027
+Pure Error                   2       2.2200       1.1100
+Error                        8      30.5170       1.1100
+Total                       14      46.5493       3.3250
 
 === Summary Statistics: growth_rate_g ===
 
 red_blue_ratio:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4     5.0250     1.6317     3.3000     7.2000
-  4.5                 7     2.9000     1.4130     1.3000     5.0000
-  8                   4     5.7500     0.9000     5.0000     6.8000
+  1                   4     2.8000     1.5875     1.5000     5.1000
+  4.5                 7     4.5857     1.9351     1.3000     7.2000
+  8                   4     5.0250     1.2816     3.8000     6.8000
 
 ppfd:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  200                 4     5.3250     1.3200     4.1000     7.2000
-  500                 7     3.8286     1.7452     1.3000     6.2000
-  800                 4     3.8250     2.3429     1.5000     6.8000
+  200                 4     4.3000     0.8907     3.3000     5.1000
+  500                 7     4.4429     1.9069     1.5000     6.8000
+  800                 4     3.7750     2.6575     1.3000     7.2000
 
 photoperiod_hrs:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  12                  4     4.7000     1.5642     2.5000     6.2000
-  16                  7     4.3857     2.2071     1.3000     7.2000
-  20                  4     3.4750     1.4886     1.5000     5.0000
+  12                  4     3.4750     2.3641     1.3000     6.8000
+  16                  7     4.4000     1.2806     2.1000     6.2000
+  20                  4     4.6750     2.3571     1.5000     7.2000
 
 === Main Effects: heat_watts ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-red_blue_ratio          30.2500       5.2251            59.1%
-ppfd                    12.2857       5.2251            24.0%
-photoperiod_hrs          8.6071       5.2251            16.8%
+red_blue_ratio          32.0000       5.2251            59.5%
+photoperiod_hrs         14.2500       5.2251            26.5%
+ppfd                     7.5000       5.2251            14.0%
+
+=== ANOVA Table: heat_watts ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+red_blue_ratio               2    2049.9048    1024.9524     15.298     0.0018
+ppfd                         2     149.5833      74.7917      1.116     0.3736
+photoperiod_hrs              2     416.8690     208.4345      3.111     0.1001
+Lack of Fit                  6    2982.9762     497.1627      7.420     0.1235
+Pure Error                   2     134.0000      67.0000
+Error                        8    3116.9762      67.0000
+Total                       14    5733.3333     409.5238
 
 === Summary Statistics: heat_watts ===
 
 red_blue_ratio:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    61.7500    20.5649    39.0000    86.0000
-  4.5                 7    37.0000    12.3018    20.0000    53.0000
-  8                   4    67.2500    14.9750    49.0000    85.0000
+  1                   4    36.0000    11.2842    26.0000    52.0000
+  4.5                 7    51.2857    20.4753    20.0000    86.0000
+  8                   4    68.0000    16.1864    46.0000    85.0000
 
 ppfd:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  200                 4    59.0000    18.1292    48.0000    86.0000
-  500                 7    46.7143    17.4520    20.0000    71.0000
-  800                 4    53.0000    29.0172    26.0000    85.0000
+  200                 4    46.5000     5.5678    39.0000    52.0000
+  500                 7    54.0000    21.2132    26.0000    85.0000
+  800                 4    52.7500    30.5000    20.0000    86.0000
 
 photoperiod_hrs:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  12                  4    48.7500    13.6473    31.0000    64.0000
-  16                  7    55.8571    25.2417    20.0000    86.0000
-  20                  4    47.2500    19.2938    26.0000    71.0000
-
-Pareto chart (growth_rate_g): use_cases/133_led_grow_light/results/analysis/pareto_growth_rate_g.png
-
-Pareto chart (heat_watts): use_cases/133_led_grow_light/results/analysis/pareto_heat_watts.png
-Main effects (growth_rate_g): use_cases/133_led_grow_light/results/analysis/main_effects_growth_rate_g.png
-Main effects (heat_watts): use_cases/133_led_grow_light/results/analysis/main_effects_heat_watts.png</div></div>
+  12                  4    43.7500    28.5818    20.0000    85.0000
+  16                  7    52.5714    11.6025    35.0000    70.0000
+  20                  4    58.0000    26.1916    26.0000    86.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: growth_rate_g ===
 Direction: maximize
 
 Best observed run: #12
-  red_blue_ratio = 4.5
-  ppfd = 500
+  red_blue_ratio = 1
+  ppfd = 800
   photoperiod_hrs = 16
   Value: 7.2
 
-RSM Model (linear, R² = 0.0899, Adj R² = -0.1584):
+RSM Model (linear, R² = 0.1522, Adj R² = -0.0791):
   Coefficients:
     intercept                      +4.2267
-    red_blue_ratio                 +0.1875
-    ppfd                           -0.4875
-    photoperiod_hrs                -0.5000
+    red_blue_ratio                 -0.3625
+    ppfd                           +0.3375
+    photoperiod_hrs                +0.8000
 
-RSM Model (quadratic, R² = 0.5607, Adj R² = -0.2299):
+RSM Model (quadratic, R² = 0.5563, Adj R² = -0.2423):
   Coefficients:
-    intercept                      +4.0000
-    red_blue_ratio                 +0.1875
-    ppfd                           -0.4875
-    photoperiod_hrs                -0.5000
-    red_blue_ratio*ppfd            +1.3500
-    red_blue_ratio*photoperiod_hrs +0.8750
-    ppfd*photoperiod_hrs           -0.3750
-    red_blue_ratio^2               +0.8500
-    ppfd^2                         -1.2000
-    photoperiod_hrs^2              +0.7750
+    intercept                      +5.1000
+    red_blue_ratio                 -0.3625
+    ppfd                           +0.3375
+    photoperiod_hrs                +0.8000
+    red_blue_ratio*ppfd            -1.1250
+    red_blue_ratio*photoperiod_hrs +1.3500
+    ppfd*photoperiod_hrs           -0.4000
+    red_blue_ratio^2               +0.1125
+    ppfd^2                         -1.0875
+    photoperiod_hrs^2              -0.6625
 
   Curvature analysis:
-    ppfd                           coef=-1.2000  concave (has a maximum)
-    red_blue_ratio                 coef=+0.8500  convex (has a minimum)
-    photoperiod_hrs                coef=+0.7750  convex (has a minimum)
+    ppfd                           coef=-1.0875  concave (has a maximum)
+    photoperiod_hrs                coef=-0.6625  concave (has a maximum)
+    red_blue_ratio                 coef=+0.1125  convex (has a minimum)
 
   Notable interactions:
-    red_blue_ratio*ppfd            coef=+1.3500  (synergistic)
-    red_blue_ratio*photoperiod_hrs coef=+0.8750  (synergistic)
-    ppfd*photoperiod_hrs           coef=-0.3750  (antagonistic)
+    red_blue_ratio*photoperiod_hrs coef=+1.3500  (synergistic)
+    red_blue_ratio*ppfd            coef=-1.1250  (antagonistic)
+    ppfd*photoperiod_hrs           coef=-0.4000  (antagonistic)
 
-  Predicted optimum (from linear model):
-    red_blue_ratio = 4.5
-    ppfd = 200
-    photoperiod_hrs = 12
-    Predicted value: 5.2142
+  Predicted optimum (from linear model, at observed points):
+    red_blue_ratio = 1
+    ppfd = 500
+    photoperiod_hrs = 20
+    Predicted value: 5.3892
+
+  Surface optimum (via L-BFGS-B, linear model):
+    red_blue_ratio = 1
+    ppfd = 800
+    photoperiod_hrs = 20
+    Predicted value: 5.7267
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. ppfd  (effect: 1.8, contribution: 43.2%)
-  2. photoperiod_hrs  (effect: 1.3, contribution: 31.2%)
-  3. red_blue_ratio  (effect: 1.1, contribution: 25.6%)
+  1. photoperiod_hrs  (effect: 1.6, contribution: 43.1%)
+  2. ppfd  (effect: 1.4, contribution: 37.3%)
+  3. red_blue_ratio  (effect: 0.7, contribution: 19.5%)
 
 === Optimization: heat_watts ===
 Direction: minimize
 
 Best observed run: #1
-  red_blue_ratio = 4.5
-  ppfd = 800
-  photoperiod_hrs = 20
+  red_blue_ratio = 8
+  ppfd = 500
+  photoperiod_hrs = 12
   Value: 20.0
 
-RSM Model (linear, R² = 0.0245, Adj R² = -0.2416):
+RSM Model (linear, R² = 0.2444, Adj R² = 0.0383):
   Coefficients:
     intercept                      +51.6667
-    red_blue_ratio                 +2.3750
-    ppfd                           -2.5000
-    photoperiod_hrs                -2.3750
+    red_blue_ratio                 +0.2500
+    ppfd                           +5.0000
+    photoperiod_hrs                +12.2500
 
-RSM Model (quadratic, R² = 0.5433, Adj R² = -0.2788):
+RSM Model (quadratic, R² = 0.5031, Adj R² = -0.3915):
   Coefficients:
-    intercept                      +50.3333
-    red_blue_ratio                 +2.3750
-    ppfd                           -2.5000
-    photoperiod_hrs                -2.3750
-    red_blue_ratio*ppfd            +7.7500
-    red_blue_ratio*photoperiod_hrs +2.0000
-    ppfd*photoperiod_hrs           -6.7500
-    red_blue_ratio^2               +10.0833
-    ppfd^2                         -19.6667
-    photoperiod_hrs^2              +12.0833
+    intercept                      +55.3333
+    red_blue_ratio                 +0.2500
+    ppfd                           +5.0000
+    photoperiod_hrs                +12.2500
+    red_blue_ratio*ppfd            -7.2500
+    red_blue_ratio*photoperiod_hrs +15.2500
+    ppfd*photoperiod_hrs           -5.2500
+    red_blue_ratio^2               +2.7083
+    ppfd^2                         -2.7917
+    photoperiod_hrs^2              -6.7917
 
   Curvature analysis:
-    ppfd                           coef=-19.6667  concave (has a maximum)
-    photoperiod_hrs                coef=+12.0833  convex (has a minimum)
-    red_blue_ratio                 coef=+10.0833  convex (has a minimum)
+    photoperiod_hrs                coef=-6.7917  concave (has a maximum)
+    ppfd                           coef=-2.7917  concave (has a maximum)
+    red_blue_ratio                 coef=+2.7083  convex (has a minimum)
 
   Notable interactions:
-    red_blue_ratio*ppfd            coef=+7.7500  (synergistic)
-    ppfd*photoperiod_hrs           coef=-6.7500  (antagonistic)
-    red_blue_ratio*photoperiod_hrs coef=+2.0000  (synergistic)
+    red_blue_ratio*photoperiod_hrs coef=+15.2500  (synergistic)
+    red_blue_ratio*ppfd            coef=-7.2500  (antagonistic)
+    ppfd*photoperiod_hrs           coef=-5.2500  (antagonistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     red_blue_ratio = 4.5
+    ppfd = 800
+    photoperiod_hrs = 20
+    Predicted value: 68.9167
+
+  Surface optimum (via L-BFGS-B, linear model):
+    red_blue_ratio = 1
     ppfd = 200
     photoperiod_hrs = 12
-    Predicted value: 56.5417
+    Predicted value: 34.1667
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. ppfd  (effect: 23.8, contribution: 45.8%)
-  2. photoperiod_hrs  (effect: 15.1, contribution: 29.2%)
-  3. red_blue_ratio  (effect: 13.0, contribution: 25.1%)</div></div>
+  1. photoperiod_hrs  (effect: 24.5, contribution: 64.2%)
+  2. ppfd  (effect: 10.0, contribution: 26.2%)
+  3. red_blue_ratio  (effect: 3.6, contribution: 9.6%)</div></div>
   </section>
 
   <!-- Nav -->

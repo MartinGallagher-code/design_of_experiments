@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -51,8 +50,8 @@
 
     
     <h3>Key Findings</h3>
-    <p>For <strong>detection rate</strong>, the most influential factors were connection limit (34.3%), anomaly window s (23.3%), challenge mode (14.9%). The best observed value was <strong>101.9</strong> (at syn rate limit = 1000, connection limit = 100, challenge mode = javascript).</p>
-<p>For <strong>false positive pct</strong>, the most influential factors were syn rate limit (27.0%), anomaly window s (25.0%), connection limit (19.9%). The best observed value was <strong>-0.24</strong> (at syn rate limit = 50000, connection limit = 100, challenge mode = off).</p>
+    <p>For <strong>detection rate</strong>, the most influential factors were geo blocking (33.6%), connection limit (23.3%), anomaly window s (20.8%). The best observed value was <strong>101.9</strong> (at syn rate limit = 1000, connection limit = 100, challenge mode = javascript).</p>
+<p>For <strong>false positive pct</strong>, the most influential factors were anomaly window s (28.2%), whitelist size (26.1%), geo blocking (20.4%). The best observed value was <strong>-0.24</strong> (at syn rate limit = 1000, connection limit = 100, challenge mode = javascript).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -266,12 +265,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (detection_rate (↑), false_positive_pct (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/53_ddos_mitigation_threshold/config.json <span class="flag">--multi</span></div>
         </div>
@@ -279,7 +279,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -318,7 +318,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: detection_rate</h3>
-    <p>Top factors: connection_limit (34.3%), anomaly_window_s (23.3%), challenge_mode (14.9%).</p>
+    <p>Top factors: geo_blocking (33.6%), connection_limit (23.3%), anomaly_window_s (20.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -331,7 +331,7 @@
     </div>
 
     <h3>Response: false_positive_pct</h3>
-    <p>Top factors: syn_rate_limit (27.0%), anomaly_window_s (25.0%), connection_limit (19.9%).</p>
+    <p>Top factors: anomaly_window_s (28.2%), whitelist_size (26.1%), geo_blocking (20.4%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -412,141 +412,333 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.6765</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>detection_rate</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:66.9%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.6690</span>
+                </div>
+              </td>
+              <td>94.52 0.6690       94.52 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>false_positive_pct</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:68.78999999999999%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.6879</span>
+                </div>
+              </td>
+              <td>3.81 0.6879        3.81 %</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>syn_rate_limit</code></td><td>3635 pps</td></tr>
+            <tr><td><code>connection_limit</code></td><td>2397 conns/IP</td></tr>
+            <tr><td><code>challenge_mode</code></td><td>javascript</td></tr>
+            <tr><td><code>geo_blocking</code></td><td>off</td></tr>
+            <tr><td><code>anomaly_window_s</code></td><td>11.97 s</td></tr>
+            <tr><td><code>whitelist_size</code></td><td>9963 IPs</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from RSM model prediction</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>false_positive_pct</code></td><td>3.81</td><td>-0.24</td><td><span style="color:#dc2626;">+4.05</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#6</td><td><strong>0.5054</strong></td><td style="font-size:.78rem;">syn_rate_limit=1000,  connection_limit=10000,  challenge_mode=off,  geo_blocking=off,  anomaly_window_s=300,  whitelist_size=100</td></tr>
+            <tr><td>#7</td><td><strong>0.4898</strong></td><td style="font-size:.78rem;">syn_rate_limit=1000,  connection_limit=100,  challenge_mode=javascript,  geo_blocking=on,  anomaly_window_s=10,  whitelist_size=100</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>false_positive_pct</code></td><td style="color:#16a34a;font-weight:600;">0.9692</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.6765
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+detection_rate               1.5       0.6690       94.52 %   ↑
+false_positive_pct           1.0       0.6879        3.81 %   ↓
+
+Recommended settings:
+  syn_rate_limit = 3635 pps
+  connection_limit = 2397 conns/IP
+  challenge_mode = javascript
+  geo_blocking = off
+  anomaly_window_s = 11.97 s
+  whitelist_size = 9963 IPs
+  (from RSM model prediction)
+
+Trade-off summary:
+  detection_rate: 94.52 (best observed: 101.90, sacrifice: +7.38)
+  false_positive_pct: 3.81 (best observed: -0.24, sacrifice: +4.05)
+
+Model quality:
+  detection_rate: R² = 0.9121 (linear)
+  false_positive_pct: R² = 0.9692 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #1 (D=0.6384): syn_rate_limit=1000, connection_limit=100, challenge_mode=javascript, geo_blocking=off, anomaly_window_s=300, whitelist_size=10000
+  2. Run #6 (D=0.5054): syn_rate_limit=1000, connection_limit=10000, challenge_mode=off, geo_blocking=off, anomaly_window_s=300, whitelist_size=100
+  3. Run #7 (D=0.4898): syn_rate_limit=1000, connection_limit=100, challenge_mode=javascript, geo_blocking=on, anomaly_window_s=10, whitelist_size=100</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: detection_rate ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-connection_limit         9.8000       2.7088            34.3%
-anomaly_window_s        -6.6500       2.7088            23.3%
-challenge_mode          -4.2500       2.7088            14.9%
-geo_blocking            -2.8000       2.7088             9.8%
-whitelist_size           2.6000       2.7088             9.1%
-syn_rate_limit           2.4500       2.7088             8.6%
+geo_blocking             9.8000       2.7088            33.6%
+connection_limit         6.8000       2.7088            23.3%
+anomaly_window_s        -6.0500       2.7088            20.8%
+whitelist_size           5.0000       2.7088            17.2%
+challenge_mode           0.8500       2.7088             2.9%
+syn_rate_limit          -0.6500       2.7088             2.2%
+
+=== ANOVA Table: detection_rate ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+syn_rate_limit               1       0.8450       0.8450      0.022     0.8865
+connection_limit             1      92.4800      92.4800      2.397     0.1655
+challenge_mode               1       1.4450       1.4450      0.037     0.8520
+geo_blocking                 1     192.0800     192.0800      4.978     0.0609
+anomaly_window_s             1      73.2050      73.2050      1.897     0.2108
+whitelist_size               1      50.0000      50.0000      1.296     0.2924
+syn_rate_limit*connection_limit    1       1.4450       1.4450      0.037     0.8520
+syn_rate_limit*challenge_mode    1      92.4800      92.4800      2.397     0.1655
+syn_rate_limit*geo_blocking    1      73.2050      73.2050      1.897     0.2108
+syn_rate_limit*anomaly_window_s    1     192.0800     192.0800      4.978     0.0609
+syn_rate_limit*whitelist_size    1       0.8450       0.8450      0.022     0.8865
+connection_limit*challenge_mode    1       0.8450       0.8450      0.022     0.8865
+connection_limit*geo_blocking    1      50.0000      50.0000      1.296     0.2924
+connection_limit*anomaly_window_s    1       0.8450       0.8450      0.022     0.8865
+connection_limit*whitelist_size    1     192.0800     192.0800      4.978     0.0609
+challenge_mode*geo_blocking    1       0.8450       0.8450      0.022     0.8865
+challenge_mode*anomaly_window_s    1      50.0000      50.0000      1.296     0.2924
+challenge_mode*whitelist_size    1      73.2050      73.2050      1.897     0.2108
+geo_blocking*anomaly_window_s    1       0.8450       0.8450      0.022     0.8865
+geo_blocking*whitelist_size    1      92.4800      92.4800      2.397     0.1655
+anomaly_window_s*whitelist_size    1       1.4450       1.4450      0.037     0.8520
+Error (Lenth PSE)            7     270.0862      38.5837
+Total                        7     410.9000      58.7000
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
 
 === Interaction Effects: detection_rate ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-syn_rate_limit       challenge_mode            -9.8000            13.5%
-geo_blocking         whitelist_size             9.8000            13.5%
-syn_rate_limit       geo_blocking              -6.6500             9.2%
-challenge_mode       whitelist_size             6.6500             9.2%
-syn_rate_limit       whitelist_size            -5.1500             7.1%
-connection_limit     anomaly_window_s          -5.1500             7.1%
-challenge_mode       geo_blocking               5.1500             7.1%
-syn_rate_limit       connection_limit           4.2500             5.9%
-anomaly_window_s     whitelist_size             4.2500             5.9%
-syn_rate_limit       anomaly_window_s          -2.8000             3.9%
-connection_limit     whitelist_size            -2.8000             3.9%
-connection_limit     geo_blocking               2.6000             3.6%
-challenge_mode       anomaly_window_s          -2.6000             3.6%
-connection_limit     challenge_mode            -2.4500             3.4%
-geo_blocking         anomaly_window_s           2.4500             3.4%
+syn_rate_limit       anomaly_window_s           9.8000            16.3%
+connection_limit     whitelist_size             9.8000            16.3%
+syn_rate_limit       challenge_mode            -6.8000            11.3%
+geo_blocking         whitelist_size             6.8000            11.3%
+syn_rate_limit       geo_blocking              -6.0500            10.0%
+challenge_mode       whitelist_size             6.0500            10.0%
+connection_limit     geo_blocking               5.0000             8.3%
+challenge_mode       anomaly_window_s          -5.0000             8.3%
+syn_rate_limit       connection_limit          -0.8500             1.4%
+anomaly_window_s     whitelist_size            -0.8500             1.4%
+connection_limit     challenge_mode             0.6500             1.1%
+geo_blocking         anomaly_window_s          -0.6500             1.1%
+syn_rate_limit       whitelist_size             0.6500             1.1%
+connection_limit     anomaly_window_s           0.6500             1.1%
+challenge_mode       geo_blocking              -0.6500             1.1%
 
 === Summary Statistics: detection_rate ===
 
 syn_rate_limit:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1000                4    86.4250     5.9354    81.7000    95.0000
-  50000               4    88.8750     9.8861    78.4000   101.9000
+  1000                4    87.9750    10.4669    78.4000   101.9000
+  50000               4    87.3250     5.2086    83.4000    95.0000
 
 connection_limit:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4    82.7500     3.3985    78.4000    85.6000
-  10000               4    92.5500     7.8352    83.4000   101.9000
+  100                 4    84.2500     4.7599    78.4000    89.9000
+  10000               4    91.0500     9.1369    81.7000   101.9000
 
 challenge_mode:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  javascript          4    89.7750     8.7496    81.7000   101.9000
-  off                 4    85.5250     6.9548    78.4000    95.0000
+  javascript          4    87.2250     7.0268    78.4000    95.0000
+  off                 4    88.0750     9.3332    81.7000   101.9000
 
 geo_blocking:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4    89.0500     8.6219    83.4000   101.9000
-  on                  4    86.2500     7.5765    78.4000    95.0000
+  off                 4    82.7500     3.3985    78.4000    85.6000
+  on                  4    92.5500     7.8352    83.4000   101.9000
 
 anomaly_window_s:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4    90.9750     9.1976    81.7000   101.9000
-  300                 4    84.3250     4.7843    78.4000    89.9000
+  10                  4    90.6750     7.7728    85.3000   101.9000
+  300                 4    84.6250     7.2214    78.4000    95.0000
 
 whitelist_size:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4    86.3500    10.5724    78.4000   101.9000
-  10000               4    88.9500     4.5479    85.3000    95.0000
+  100                 4    85.1500     3.5464    81.7000    89.9000
+  10000               4    90.1500    10.3790    78.4000   101.9000
 
 === Main Effects: false_positive_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-syn_rate_limit           5.5725       1.7731            27.0%
-anomaly_window_s        -5.1475       1.7731            25.0%
-connection_limit         4.1025       1.7731            19.9%
-geo_blocking            -2.4525       1.7731            11.9%
-whitelist_size           1.6925       1.7731             8.2%
-challenge_mode          -1.6475       1.7731             8.0%
+anomaly_window_s        -5.6825       1.7731            28.2%
+whitelist_size           5.2525       1.7731            26.1%
+geo_blocking             4.1025       1.7731            20.4%
+challenge_mode           2.2375       1.7731            11.1%
+syn_rate_limit          -1.5375       1.7731             7.6%
+connection_limit         1.3275       1.7731             6.6%
+
+=== ANOVA Table: false_positive_pct ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+syn_rate_limit               1       4.7278       4.7278      0.667     0.4411
+connection_limit             1       3.5245       3.5245      0.497     0.5036
+challenge_mode               1      10.0128      10.0128      1.412     0.2735
+geo_blocking                 1      33.6610      33.6610      4.747     0.0658
+anomaly_window_s             1      64.5816      64.5816      9.107     0.0194
+whitelist_size               1      55.1775      55.1775      7.781     0.0269
+syn_rate_limit*connection_limit    1      10.0128      10.0128      1.412     0.2735
+syn_rate_limit*challenge_mode    1       3.5245       3.5245      0.497     0.5036
+syn_rate_limit*geo_blocking    1      64.5816      64.5816      9.107     0.0194
+syn_rate_limit*anomaly_window_s    1      33.6610      33.6610      4.747     0.0658
+syn_rate_limit*whitelist_size    1       4.3660       4.3660      0.616     0.4584
+connection_limit*challenge_mode    1       4.7278       4.7278      0.667     0.4411
+connection_limit*geo_blocking    1      55.1775      55.1775      7.781     0.0269
+connection_limit*anomaly_window_s    1       4.3660       4.3660      0.616     0.4584
+connection_limit*whitelist_size    1      33.6610      33.6610      4.747     0.0658
+challenge_mode*geo_blocking    1       4.3660       4.3660      0.616     0.4584
+challenge_mode*anomaly_window_s    1      55.1775      55.1775      7.781     0.0269
+challenge_mode*whitelist_size    1      64.5816      64.5816      9.107     0.0194
+geo_blocking*anomaly_window_s    1       4.7278       4.7278      0.667     0.4411
+geo_blocking*whitelist_size    1       3.5245       3.5245      0.497     0.5036
+anomaly_window_s*whitelist_size    1      10.0128      10.0128      1.412     0.2735
+Error (Lenth PSE)            7      49.6420       7.0917
+Total                        7     176.0513      25.1502
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
 
 === Interaction Effects: false_positive_pct ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-connection_limit     challenge_mode            -5.5725            12.2%
-geo_blocking         anomaly_window_s           5.5725            12.2%
-syn_rate_limit       geo_blocking              -5.1475            11.3%
-challenge_mode       whitelist_size             5.1475            11.3%
-syn_rate_limit       challenge_mode            -4.1025             9.0%
-geo_blocking         whitelist_size             4.1025             9.0%
-syn_rate_limit       anomaly_window_s          -2.4525             5.4%
-connection_limit     whitelist_size            -2.4525             5.4%
-connection_limit     geo_blocking               1.6925             3.7%
-challenge_mode       anomaly_window_s          -1.6925             3.7%
-syn_rate_limit       connection_limit           1.6475             3.6%
-anomaly_window_s     whitelist_size             1.6475             3.6%
-syn_rate_limit       whitelist_size            -1.4325             3.1%
-connection_limit     anomaly_window_s          -1.4325             3.1%
-challenge_mode       geo_blocking               1.4325             3.1%
+syn_rate_limit       geo_blocking              -5.6825            12.7%
+challenge_mode       whitelist_size             5.6825            12.7%
+connection_limit     geo_blocking               5.2525            11.7%
+challenge_mode       anomaly_window_s          -5.2525            11.7%
+syn_rate_limit       anomaly_window_s           4.1025             9.2%
+connection_limit     whitelist_size             4.1025             9.2%
+syn_rate_limit       connection_limit          -2.2375             5.0%
+anomaly_window_s     whitelist_size            -2.2375             5.0%
+connection_limit     challenge_mode             1.5375             3.4%
+geo_blocking         anomaly_window_s          -1.5375             3.4%
+syn_rate_limit       whitelist_size             1.4775             3.3%
+connection_limit     anomaly_window_s           1.4775             3.3%
+challenge_mode       geo_blocking              -1.4775             3.3%
+syn_rate_limit       challenge_mode            -1.3275             3.0%
+geo_blocking         whitelist_size             1.3275             3.0%
 
 === Summary Statistics: false_positive_pct ===
 
 syn_rate_limit:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1000                4     1.4425     2.7722    -0.2400     5.5800
-  50000               4     7.0150     5.5042     0.2100    13.5600
+  1000                4     4.9975     6.3955    -0.0000    13.5600
+  50000               4     3.4600     4.0256    -0.2400     8.0700
 
 connection_limit:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4     2.1775     3.9323    -0.0000     8.0700
-  10000               4     6.2800     5.6569    -0.2400    13.5600
+  100                 4     3.5650     4.2063    -0.2400     8.0700
+  10000               4     4.8925     6.3100    -0.0000    13.5600
 
 challenge_mode:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  javascript          4     5.0525     6.3413    -0.0000    13.5600
-  off                 4     3.4050     4.0819    -0.2400     8.0700
+  javascript          4     3.1100     3.2334     0.2100     6.2200
+  off                 4     5.3475     6.7001    -0.2400    13.5600
 
 geo_blocking:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4     5.4550     6.5882    -0.2400    13.5600
-  on                  4     3.0025     3.3570    -0.0000     6.2200
+  off                 4     2.1775     3.9323    -0.0000     8.0700
+  on                  4     6.2800     5.6569    -0.2400    13.5600
 
 anomaly_window_s:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4     6.8025     5.6285    -0.0000    13.5600
-  300                 4     1.6550     3.0561    -0.2400     6.2200
+  10                  4     7.0700     5.4139     0.4300    13.5600
+  300                 4     1.3875     2.8010    -0.2400     5.5800
 
 whitelist_size:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4     3.3825     6.7875    -0.2400    13.5600
-  10000               4     5.0750     3.2717     0.4300     8.0700</div></div>
+  100                 4     1.6025     3.0908    -0.2400     6.2200
+  10000               4     6.8550     5.5442     0.2100    13.5600</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: detection_rate ===
@@ -561,75 +753,93 @@ Best observed run: #4
   whitelist_size = 10000
   Value: 101.9
 
-RSM Model (linear, R² = 0.9517, Adj R² = 0.6619):
+RSM Model (linear, R² = 0.4217, Adj R² = -3.0480):
   Coefficients:
     intercept                      +87.6500
-    syn_rate_limit                 -3.3250
-    connection_limit               +0.4000
-    challenge_mode                 -3.0250
-    geo_blocking                   -3.6500
-    anomaly_window_s               +3.8250
-    whitelist_size                 -0.7500
+    syn_rate_limit                 -2.0250
+    connection_limit               -0.5000
+    challenge_mode                 -2.4750
+    geo_blocking                   -0.3250
+    anomaly_window_s               +0.1500
+    whitelist_size                 +3.3250
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     syn_rate_limit = 1000
     connection_limit = 100
     challenge_mode = javascript
     geo_blocking = off
     anomaly_window_s = 300
     whitelist_size = 10000
-    Predicted value: 100.3250
+    Predicted value: 96.4500
 
-  Model quality: Excellent fit — surface predictions are reliable.
+  Surface optimum (via L-BFGS-B, linear model):
+    syn_rate_limit = 1000
+    connection_limit = 100
+    challenge_mode = off
+    geo_blocking = off
+    anomaly_window_s = 300
+    whitelist_size = 10000
+    Predicted value: 96.4500
+
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. anomaly_window_s  (effect: 7.6, contribution: 25.5%)
-  2. geo_blocking  (effect: -7.3, contribution: 24.4%)
-  3. syn_rate_limit  (effect: -6.6, contribution: 22.2%)
-  4. challenge_mode  (effect: -6.0, contribution: 20.2%)
-  5. whitelist_size  (effect: -1.5, contribution: 5.0%)
-  6. connection_limit  (effect: 0.8, contribution: 2.7%)
+  1. whitelist_size  (effect: 6.6, contribution: 37.8%)
+  2. challenge_mode  (effect: -5.0, contribution: 28.1%)
+  3. syn_rate_limit  (effect: -4.1, contribution: 23.0%)
+  4. connection_limit  (effect: -1.0, contribution: 5.7%)
+  5. geo_blocking  (effect: -0.7, contribution: 3.7%)
+  6. anomaly_window_s  (effect: 0.3, contribution: 1.7%)
 
 === Optimization: false_positive_pct ===
 Direction: minimize
 
 Best observed run: #5
-  syn_rate_limit = 50000
+  syn_rate_limit = 1000
   connection_limit = 100
-  challenge_mode = off
+  challenge_mode = javascript
   geo_blocking = on
-  anomaly_window_s = 300
+  anomaly_window_s = 10
   whitelist_size = 100
   Value: -0.24
 
-RSM Model (linear, R² = 0.9804, Adj R² = 0.8630):
+RSM Model (linear, R² = 0.7763, Adj R² = -0.5659):
   Coefficients:
     intercept                      +4.2287
-    syn_rate_limit                 -2.5738
-    connection_limit               -1.1712
-    challenge_mode                 -2.8413
-    geo_blocking                   -2.1638
-    anomaly_window_s               +0.6038
-    whitelist_size                 -0.6787
+    syn_rate_limit                 -0.5487
+    connection_limit               +0.7913
+    challenge_mode                 -2.6738
+    geo_blocking                   -0.7688
+    anomaly_window_s               +1.3388
+    whitelist_size                 +2.5738
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     syn_rate_limit = 1000
     connection_limit = 100
     challenge_mode = javascript
     geo_blocking = off
     anomaly_window_s = 300
     whitelist_size = 10000
-    Predicted value: 12.9038
+    Predicted value: 11.3412
 
-  Model quality: Excellent fit — surface predictions are reliable.
+  Surface optimum (via L-BFGS-B, linear model):
+    syn_rate_limit = 50000
+    connection_limit = 100
+    challenge_mode = javascript
+    geo_blocking = on
+    anomaly_window_s = 10
+    whitelist_size = 100
+    Predicted value: -4.4663
+
+  Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. challenge_mode  (effect: -5.7, contribution: 28.3%)
-  2. syn_rate_limit  (effect: -5.1, contribution: 25.7%)
-  3. geo_blocking  (effect: -4.3, contribution: 21.6%)
-  4. connection_limit  (effect: -2.3, contribution: 11.7%)
-  5. whitelist_size  (effect: -1.4, contribution: 6.8%)
-  6. anomaly_window_s  (effect: 1.2, contribution: 6.0%)</div></div>
+  1. challenge_mode  (effect: -5.3, contribution: 30.8%)
+  2. whitelist_size  (effect: 5.1, contribution: 29.6%)
+  3. anomaly_window_s  (effect: 2.7, contribution: 15.4%)
+  4. connection_limit  (effect: 1.6, contribution: 9.1%)
+  5. geo_blocking  (effect: -1.5, contribution: 8.8%)
+  6. syn_rate_limit  (effect: -1.1, contribution: 6.3%)</div></div>
   </section>
 
   <!-- Nav -->

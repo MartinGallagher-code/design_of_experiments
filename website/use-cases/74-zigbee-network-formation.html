@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -51,8 +50,8 @@
 
     
     <h3>Key Findings</h3>
-    <p>For <strong>join time sec</strong>, the most influential factors were scan duration exp (41.0%), poll rate ms (31.0%), link cost threshold (15.9%). The best observed value was <strong>6.3</strong> (at scan duration exp = 7, max children = 20, link cost threshold = 1).</p>
-<p>For <strong>network stability pct</strong>, the most influential factors were poll rate ms (33.5%), scan duration exp (26.8%), link cost threshold (26.8%). The best observed value was <strong>99.5</strong> (at scan duration exp = 7, max children = 20, link cost threshold = 1).</p>
+    <p>For <strong>join time sec</strong>, the most influential factors were link cost threshold (34.7%), route table size (34.3%), poll rate ms (17.1%). The best observed value was <strong>6.3</strong> (at scan duration exp = 7, max children = 20, link cost threshold = 1).</p>
+<p>For <strong>network stability pct</strong>, the most influential factors were max children (35.8%), poll rate ms (27.1%), route table size (25.4%). The best observed value was <strong>99.5</strong> (at scan duration exp = 7, max children = 20, link cost threshold = 1).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -256,12 +255,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (join_time_sec (↓), network_stability_pct (↑)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/74_zigbee_network_formation/config.json <span class="flag">--multi</span></div>
         </div>
@@ -269,7 +269,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -308,7 +308,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: join_time_sec</h3>
-    <p>Top factors: scan_duration_exp (41.0%), poll_rate_ms (31.0%), link_cost_threshold (15.9%).</p>
+    <p>Top factors: link_cost_threshold (34.7%), route_table_size (34.3%), poll_rate_ms (17.1%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -321,7 +321,7 @@
     </div>
 
     <h3>Response: network_stability_pct</h3>
-    <p>Top factors: poll_rate_ms (33.5%), scan_duration_exp (26.8%), link_cost_threshold (26.8%).</p>
+    <p>Top factors: max_children (35.8%), poll_rate_ms (27.1%), route_table_size (25.4%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -442,111 +442,289 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9545</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>join_time_sec</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>6.30 0.9545        6.30 sec</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>network_stability_pct</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>99.50 0.9545       99.50 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>scan_duration_exp</code></td><td>2 exp</td></tr>
+            <tr><td><code>max_children</code></td><td>20 nodes</td></tr>
+            <tr><td><code>link_cost_threshold</code></td><td>7 cost</td></tr>
+            <tr><td><code>route_table_size</code></td><td>10 entries</td></tr>
+            <tr><td><code>poll_rate_ms</code></td><td>100 ms</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #3</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>network_stability_pct</code></td><td>99.50</td><td>99.50</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#2</td><td><strong>0.5677</strong></td><td style="font-size:.78rem;">scan_duration_exp=7,  max_children=20,  link_cost_threshold=7,  route_table_size=50,  poll_rate_ms=2000</td></tr>
+            <tr><td>#5</td><td><strong>0.5537</strong></td><td style="font-size:.78rem;">scan_duration_exp=7,  max_children=4,  link_cost_threshold=7,  route_table_size=10,  poll_rate_ms=2000</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>network_stability_pct</code></td><td style="color:#ca8a04;font-weight:600;">0.7244</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9545
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+join_time_sec                1.0       0.9545        6.30 sec   ↓
+network_stability_pct        1.5       0.9545       99.50 %   ↑
+
+Recommended settings:
+  scan_duration_exp = 2 exp
+  max_children = 20 nodes
+  link_cost_threshold = 7 cost
+  route_table_size = 10 entries
+  poll_rate_ms = 100 ms
+  (from observed run #3)
+
+Trade-off summary:
+  join_time_sec: 6.30 (best observed: 6.30, sacrifice: +0.00)
+  network_stability_pct: 99.50 (best observed: 99.50, sacrifice: +0.00)
+
+Model quality:
+  join_time_sec: R² = 0.8797 (linear)
+  network_stability_pct: R² = 0.7244 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #3 (D=0.9545): scan_duration_exp=2, max_children=20, link_cost_threshold=7, route_table_size=10, poll_rate_ms=100
+  2. Run #2 (D=0.5677): scan_duration_exp=7, max_children=20, link_cost_threshold=7, route_table_size=50, poll_rate_ms=2000
+  3. Run #5 (D=0.5537): scan_duration_exp=7, max_children=4, link_cost_threshold=7, route_table_size=10, poll_rate_ms=2000</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: join_time_sec ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-scan_duration_exp        8.0000       2.9748            41.0%
-poll_rate_ms             6.0500       2.9748            31.0%
-link_cost_threshold      3.1000       2.9748            15.9%
-route_table_size         1.4000       2.9748             7.2%
-max_children            -0.9500       2.9748             4.9%
+link_cost_threshold     -9.7500       2.9748            34.7%
+route_table_size         9.6500       2.9748            34.3%
+poll_rate_ms             4.8000       2.9748            17.1%
+scan_duration_exp       -2.6000       2.9748             9.3%
+max_children             1.3000       2.9748             4.6%
+
+=== ANOVA Table: join_time_sec ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+scan_duration_exp            1      13.5200      13.5200      0.667     0.4513
+max_children                 1       3.3800       3.3800      0.167     0.7000
+link_cost_threshold          1     190.1250     190.1250      9.375     0.0280
+route_table_size             1     186.2450     186.2450      9.184     0.0291
+poll_rate_ms                 1      46.0800      46.0800      2.272     0.1921
+scan_duration_exp*max_children    1     186.2450     186.2450      9.184     0.0291
+scan_duration_exp*link_cost_threshold    1      46.0800      46.0800      2.272     0.1921
+scan_duration_exp*route_table_size    1       3.3800       3.3800      0.167     0.7000
+scan_duration_exp*poll_rate_ms    1     190.1250     190.1250      9.375     0.0280
+max_children*link_cost_threshold    1       7.2200       7.2200      0.356     0.5767
+max_children*route_table_size    1      13.5200      13.5200      0.667     0.4513
+max_children*poll_rate_ms    1      49.0050      49.0050      2.416     0.1808
+link_cost_threshold*route_table_size    1      49.0050      49.0050      2.416     0.1808
+link_cost_threshold*poll_rate_ms    1      13.5200      13.5200      0.667     0.4513
+route_table_size*poll_rate_ms    1       7.2200       7.2200      0.356     0.5767
+Error (Lenth PSE)            5     101.4000      20.2800
+Total                        7     495.5750      70.7964
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
 
 === Interaction Effects: join_time_sec ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-max_children         link_cost_threshold        8.9000            14.8%
-route_table_size     poll_rate_ms              -8.9000            14.8%
-max_children         route_table_size          -8.0000            13.3%
-link_cost_threshold  poll_rate_ms               8.0000            13.3%
-max_children         poll_rate_ms               7.4500            12.4%
-link_cost_threshold  route_table_size          -7.4500            12.4%
-scan_duration_exp    link_cost_threshold        6.0500            10.0%
-scan_duration_exp    poll_rate_ms               3.1000             5.1%
-scan_duration_exp    max_children              -1.4000             2.3%
-scan_duration_exp    route_table_size           0.9500             1.6%
+scan_duration_exp    poll_rate_ms              -9.7500            22.0%
+scan_duration_exp    max_children              -9.6500            21.7%
+max_children         poll_rate_ms               4.9500            11.1%
+link_cost_threshold  route_table_size          -4.9500            11.1%
+scan_duration_exp    link_cost_threshold        4.8000            10.8%
+max_children         route_table_size           2.6000             5.9%
+link_cost_threshold  poll_rate_ms              -2.6000             5.9%
+max_children         link_cost_threshold        1.9000             4.3%
+route_table_size     poll_rate_ms              -1.9000             4.3%
+scan_duration_exp    route_table_size          -1.3000             2.9%
 
 === Summary Statistics: join_time_sec ===
 
 scan_duration_exp:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  2                   4    12.2250     1.9155     9.8000    14.2000
-  7                   4    20.2250    10.9021     6.3000    31.8000
+  2                   4    17.5250    10.6600     6.3000    31.8000
+  7                   4    14.9250     6.8592     9.8000    25.0000
 
 max_children:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  20                  4    16.7000     6.4281     9.8000    25.0000
-  4                   4    15.7500    11.1027     6.3000    31.8000
+  20                  4    15.5750     7.8623     6.3000    25.0000
+  4                   4    16.8750    10.1118     9.8000    31.8000
 
 link_cost_threshold:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    14.6750     7.7276     6.3000    25.0000
-  7                   4    17.7750     9.9533     9.8000    31.8000
+  1                   4    21.1000     9.4566     9.8000    31.8000
+  7                   4    11.3500     3.5199     6.3000    14.2000
 
 route_table_size:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4    15.5250    11.3212     6.3000    31.8000
-  50                  4    16.9250     5.9763    11.7000    25.0000
+  10                  4    11.4000     4.8173     6.3000    17.8000
+  50                  4    21.0500     8.9389    13.2000    31.8000
 
 poll_rate_ms:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4    13.2000     8.1784     6.3000    25.0000
-  2000                4    19.2500     8.5967    13.2000    31.8000
+  100                 4    13.8250     8.1209     6.3000    25.0000
+  2000                4    18.6250     9.1587    11.7000    31.8000
 
 === Main Effects: network_stability_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-poll_rate_ms            -7.9750       2.9371            33.5%
-scan_duration_exp        6.3750       2.9371            26.8%
-link_cost_threshold     -6.3750       2.9371            26.8%
-max_children            -2.3250       2.9371             9.8%
-route_table_size         0.7250       2.9371             3.0%
+max_children           -10.5250       2.9371            35.8%
+poll_rate_ms            -7.9750       2.9371            27.1%
+route_table_size        -7.4750       2.9371            25.4%
+scan_duration_exp       -1.7250       2.9371             5.9%
+link_cost_threshold      1.7250       2.9371             5.9%
+
+=== ANOVA Table: network_stability_pct ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+scan_duration_exp            1       5.9512       5.9512      0.667     0.4513
+max_children                 1     221.5513     221.5513     24.818     0.0042
+link_cost_threshold          1       5.9512       5.9512      0.667     0.4513
+route_table_size             1     111.7512     111.7512     12.519     0.0166
+poll_rate_ms                 1     127.2012     127.2012     14.249     0.0130
+scan_duration_exp*max_children    1     111.7512     111.7512     12.519     0.0166
+scan_duration_exp*link_cost_threshold    1     127.2013     127.2013     14.249     0.0130
+scan_duration_exp*route_table_size    1     221.5513     221.5513     24.818     0.0042
+scan_duration_exp*poll_rate_ms    1       5.9513       5.9513      0.667     0.4513
+max_children*link_cost_threshold    1       0.7812       0.7812      0.088     0.7793
+max_children*route_table_size    1       5.9512       5.9512      0.667     0.4513
+max_children*poll_rate_ms    1       9.9012       9.9012      1.109     0.3405
+link_cost_threshold*route_table_size    1       9.9013       9.9013      1.109     0.3405
+link_cost_threshold*poll_rate_ms    1       5.9513       5.9513      0.667     0.4513
+route_table_size*poll_rate_ms    1       0.7813       0.7813      0.088     0.7793
+Error (Lenth PSE)            5      44.6344       8.9269
+Total                        7     483.0888      69.0127
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
 
 === Interaction Effects: network_stability_pct ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-scan_duration_exp    link_cost_threshold       -7.9750            14.0%
-max_children         link_cost_threshold       -7.5750            13.3%
-route_table_size     poll_rate_ms               7.5750            13.3%
-scan_duration_exp    poll_rate_ms              -6.3750            11.2%
-max_children         route_table_size          -6.3750            11.2%
-link_cost_threshold  poll_rate_ms               6.3750            11.2%
-max_children         poll_rate_ms              -5.7750            10.2%
-link_cost_threshold  route_table_size           5.7750            10.2%
-scan_duration_exp    route_table_size           2.3250             4.1%
-scan_duration_exp    max_children              -0.7250             1.3%
+scan_duration_exp    route_table_size          10.5250            28.6%
+scan_duration_exp    link_cost_threshold       -7.9750            21.6%
+scan_duration_exp    max_children               7.4750            20.3%
+max_children         poll_rate_ms               2.2250             6.0%
+link_cost_threshold  route_table_size          -2.2250             6.0%
+scan_duration_exp    poll_rate_ms               1.7250             4.7%
+max_children         route_table_size           1.7250             4.7%
+link_cost_threshold  poll_rate_ms              -1.7250             4.7%
+max_children         link_cost_threshold        0.6250             1.7%
+route_table_size     poll_rate_ms              -0.6250             1.7%
 
 === Summary Statistics: network_stability_pct ===
 
 scan_duration_exp:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  2                   4    80.8000     1.6693    79.9000    83.3000
-  7                   4    87.1750    11.4520    71.8000    99.5000
+  2                   4    84.8500    11.8413    71.8000    99.5000
+  7                   4    83.1250     4.3393    79.9000    89.2000
 
 max_children:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  20                  4    85.1500     4.3470    79.9000    89.2000
-  4                   4    82.8250    11.7698    71.8000    99.5000
+  20                  4    89.2500     7.9559    80.1000    99.5000
+  4                   4    78.7250     4.8870    71.8000    83.3000
 
 link_cost_threshold:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    87.1750     9.2913    79.9000    99.5000
-  7                   4    80.8000     6.8998    71.8000    88.2000
+  1                   4    83.1250     7.9780    71.8000    89.2000
+  7                   4    84.8500     9.7671    79.9000    99.5000
 
 route_table_size:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4    83.6250    11.6308    71.8000    99.5000
-  50                  4    84.3500     5.0402    79.9000    89.2000
+  10                  4    87.7250     8.5574    79.9000    99.5000
+  50                  4    80.2500     7.1099    71.8000    89.2000
 
 poll_rate_ms:
   Level               N       Mean        Std        Min        Max
@@ -566,31 +744,39 @@ Best observed run: #3
   poll_rate_ms = 100
   Value: 6.3
 
-RSM Model (linear, R² = 0.4163, Adj R² = -1.0428):
+RSM Model (linear, R² = 0.8932, Adj R² = 0.6262):
   Coefficients:
     intercept                      +16.2250
-    scan_duration_exp              -1.9250
-    max_children                   -3.3500
-    link_cost_threshold            +1.5000
-    route_table_size               -0.7000
-    poll_rate_ms                   -2.8500
+    scan_duration_exp              +1.0500
+    max_children                   -5.9750
+    link_cost_threshold            +3.7250
+    route_table_size               -1.5500
+    poll_rate_ms                   +1.5000
 
-  Predicted optimum (from linear model):
-    scan_duration_exp = 2
+  Predicted optimum (from linear model, at observed points):
+    scan_duration_exp = 7
     max_children = 4
     link_cost_threshold = 7
+    route_table_size = 10
+    poll_rate_ms = 2000
+    Predicted value: 30.0250
+
+  Surface optimum (via L-BFGS-B, linear model):
+    scan_duration_exp = 2
+    max_children = 20
+    link_cost_threshold = 1
     route_table_size = 50
     poll_rate_ms = 100
-    Predicted value: 25.1500
+    Predicted value: 2.4250
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. max_children  (effect: 6.7, contribution: 32.4%)
-  2. poll_rate_ms  (effect: -5.7, contribution: 27.6%)
-  3. scan_duration_exp  (effect: -3.8, contribution: 18.6%)
-  4. link_cost_threshold  (effect: 3.0, contribution: 14.5%)
-  5. route_table_size  (effect: -1.4, contribution: 6.8%)
+  1. max_children  (effect: 11.9, contribution: 43.3%)
+  2. link_cost_threshold  (effect: 7.4, contribution: 27.0%)
+  3. route_table_size  (effect: -3.1, contribution: 11.2%)
+  4. poll_rate_ms  (effect: 3.0, contribution: 10.9%)
+  5. scan_duration_exp  (effect: 2.1, contribution: 7.6%)
 
 === Optimization: network_stability_pct ===
 Direction: maximize
@@ -603,31 +789,39 @@ Best observed run: #3
   poll_rate_ms = 100
   Value: 99.5
 
-RSM Model (linear, R² = 0.9391, Adj R² = 0.7869):
+RSM Model (linear, R² = 0.9773, Adj R² = 0.9206):
   Coefficients:
     intercept                      +83.9875
-    scan_duration_exp              +3.1375
-    max_children                   +2.9375
-    link_cost_threshold            -6.0625
-    route_table_size               -0.3625
-    poll_rate_ms                   -1.1625
+    scan_duration_exp              +0.9125
+    max_children                   +1.7125
+    link_cost_threshold            -2.8875
+    route_table_size               +3.1875
+    poll_rate_ms                   -6.0625
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     scan_duration_exp = 7
     max_children = 20
     link_cost_threshold = 1
     route_table_size = 50
     poll_rate_ms = 100
-    Predicted value: 96.9250
+    Predicted value: 98.7500
+
+  Surface optimum (via L-BFGS-B, linear model):
+    scan_duration_exp = 7
+    max_children = 20
+    link_cost_threshold = 1
+    route_table_size = 50
+    poll_rate_ms = 100
+    Predicted value: 98.7500
 
   Model quality: Excellent fit — surface predictions are reliable.
 
 Factor importance:
-  1. link_cost_threshold  (effect: -12.1, contribution: 44.4%)
-  2. scan_duration_exp  (effect: 6.3, contribution: 23.0%)
-  3. max_children  (effect: -5.9, contribution: 21.5%)
-  4. poll_rate_ms  (effect: -2.3, contribution: 8.5%)
-  5. route_table_size  (effect: -0.7, contribution: 2.7%)</div></div>
+  1. poll_rate_ms  (effect: -12.1, contribution: 41.1%)
+  2. route_table_size  (effect: 6.4, contribution: 21.6%)
+  3. link_cost_threshold  (effect: -5.8, contribution: 19.6%)
+  4. max_children  (effect: -3.4, contribution: 11.6%)
+  5. scan_duration_exp  (effect: 1.8, contribution: 6.2%)</div></div>
   </section>
 
   <!-- Nav -->

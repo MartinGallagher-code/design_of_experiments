@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -51,8 +50,8 @@
 
     
     <h3>Key Findings</h3>
-    <p>For <strong>latency overhead ms</strong>, the most influential factors were tracing sample pct (46.4%), connection pool (39.2%), access log (8.6%). The best observed value was <strong>0.5</strong> (at concurrency = 8, circuit breaker max = 100, access log = off).</p>
-<p>For <strong>sidecar cpu pct</strong>, the most influential factors were tracing sample pct (31.9%), access log (31.7%), concurrency (17.7%). The best observed value was <strong>0.5</strong> (at concurrency = 8, circuit breaker max = 100, access log = off).</p>
+    <p>For <strong>latency overhead ms</strong>, the most influential factors were concurrency (35.7%), tracing sample pct (16.7%), connection pool (16.0%). The best observed value was <strong>0.5</strong> (at concurrency = 1, circuit breaker max = 100, access log = on).</p>
+<p>For <strong>sidecar cpu pct</strong>, the most influential factors were circuit breaker max (39.6%), compression (24.2%), tracing sample pct (17.6%). The best observed value was <strong>0.5</strong> (at concurrency = 8, circuit breaker max = 100, access log = off).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -270,6 +269,18 @@
     <div class="uc-step">
       <div class="uc-step-num">6</div>
       <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/35_service_mesh_sidecar/config.json <span class="flag">--multi</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">7</div>
+      <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
@@ -307,7 +318,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: latency_overhead_ms</h3>
-    <p>Top factors: tracing_sample_pct (46.4%), connection_pool (39.2%), access_log (8.6%).</p>
+    <p>Top factors: concurrency (35.7%), tracing_sample_pct (16.7%), connection_pool (16.0%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -320,7 +331,7 @@
     </div>
 
     <h3>Response: sidecar_cpu_pct</h3>
-    <p>Top factors: tracing_sample_pct (31.9%), access_log (31.7%), concurrency (17.7%).</p>
+    <p>Top factors: circuit_breaker_max (39.6%), compression (24.2%), tracing_sample_pct (17.6%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -401,183 +412,384 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9756</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>latency_overhead_ms</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.97%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9597</span>
+                </div>
+              </td>
+              <td>0.47 0.9597        0.47 ms</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>sidecar_cpu_pct</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:100.0%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>1.0000</span>
+                </div>
+              </td>
+              <td>-0.85 1.0000       -0.85 %</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>concurrency</code></td><td>7.519 threads</td></tr>
+            <tr><td><code>circuit_breaker_max</code></td><td>2010 conns</td></tr>
+            <tr><td><code>access_log</code></td><td>off</td></tr>
+            <tr><td><code>tracing_sample_pct</code></td><td>4.427 %</td></tr>
+            <tr><td><code>compression</code></td><td>on</td></tr>
+            <tr><td><code>connection_pool</code></td><td>173.4 conns</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from RSM model prediction</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>sidecar_cpu_pct</code></td><td>-0.85</td><td>0.50</td><td><span style="color:#16a34a;">-1.35</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#1</td><td><strong>0.7794</strong></td><td style="font-size:.78rem;">concurrency=1,  circuit_breaker_max=10000,  access_log=off,  tracing_sample_pct=1,  compression=on,  connection_pool=100</td></tr>
+            <tr><td>#5</td><td><strong>0.6660</strong></td><td style="font-size:.78rem;">concurrency=8,  circuit_breaker_max=10000,  access_log=on,  tracing_sample_pct=1,  compression=off,  connection_pool=100</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>sidecar_cpu_pct</code></td><td style="color:#16a34a;font-weight:600;">0.9236</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9756
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+latency_overhead_ms          1.5       0.9597        0.47 ms   ↓
+sidecar_cpu_pct              1.0       1.0000       -0.85 %   ↓
+
+Recommended settings:
+  concurrency = 7.519 threads
+  circuit_breaker_max = 2010 conns
+  access_log = off
+  tracing_sample_pct = 4.427 %
+  compression = on
+  connection_pool = 173.4 conns
+  (from RSM model prediction)
+
+Trade-off summary:
+  latency_overhead_ms: 0.47 (best observed: 0.50, sacrifice: -0.03)
+  sidecar_cpu_pct: -0.85 (best observed: 0.50, sacrifice: -1.35)
+
+Model quality:
+  latency_overhead_ms: R² = 0.9062 (linear)
+  sidecar_cpu_pct: R² = 0.9236 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #8 (D=0.8916): concurrency=8, circuit_breaker_max=100, access_log=off, tracing_sample_pct=100, compression=on, connection_pool=100
+  2. Run #1 (D=0.7794): concurrency=1, circuit_breaker_max=10000, access_log=off, tracing_sample_pct=1, compression=on, connection_pool=100
+  3. Run #5 (D=0.6660): concurrency=8, circuit_breaker_max=10000, access_log=on, tracing_sample_pct=1, compression=off, connection_pool=100</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: latency_overhead_ms ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-tracing_sample_pct       2.5750       0.6632            46.4%
-connection_pool         -2.1750       0.6632            39.2%
-access_log               0.4750       0.6632             8.6%
-circuit_breaker_max      0.1750       0.6632             3.2%
-compression             -0.1250       0.6632             2.3%
-concurrency              0.0250       0.6632             0.5%
+concurrency              2.6250       0.6632            35.7%
+tracing_sample_pct       1.2250       0.6632            16.7%
+connection_pool          1.1750       0.6632            16.0%
+compression             -1.0750       0.6632            14.6%
+access_log               0.6750       0.6632             9.2%
+circuit_breaker_max      0.5750       0.6632             7.8%
+
+=== ANOVA Table: latency_overhead_ms ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+concurrency                  1      13.7813      13.7813      5.231     0.0560
+circuit_breaker_max          1       0.6613       0.6613      0.251     0.6317
+access_log                   1       0.9112       0.9112      0.346     0.5749
+tracing_sample_pct           1       3.0013       3.0013      1.139     0.3212
+compression                  1       2.3113       2.3113      0.877     0.3801
+connection_pool              1       2.7612       2.7612      1.048     0.3400
+concurrency*circuit_breaker_max    1       0.9112       0.9112      0.346     0.5749
+concurrency*access_log       1       0.6613       0.6613      0.251     0.6317
+concurrency*tracing_sample_pct    1       2.3112       2.3112      0.877     0.3801
+concurrency*compression      1       3.0012       3.0012      1.139     0.3212
+concurrency*connection_pool    1       1.2012       1.2012      0.456     0.5212
+circuit_breaker_max*access_log    1      13.7813      13.7813      5.231     0.0560
+circuit_breaker_max*tracing_sample_pct    1       2.7612       2.7612      1.048     0.3400
+circuit_breaker_max*compression    1       1.2012       1.2012      0.456     0.5212
+circuit_breaker_max*connection_pool    1       3.0013       3.0013      1.139     0.3212
+access_log*tracing_sample_pct    1       1.2012       1.2012      0.456     0.5212
+access_log*compression       1       2.7613       2.7613      1.048     0.3400
+access_log*connection_pool    1       2.3113       2.3113      0.877     0.3801
+tracing_sample_pct*compression    1      13.7812      13.7812      5.231     0.0560
+tracing_sample_pct*connection_pool    1       0.6612       0.6612      0.251     0.6317
+compression*connection_pool    1       0.9112       0.9112      0.346     0.5749
+Error (Lenth PSE)            7      18.4406       2.6344
+Total                        7      24.6288       3.5184
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
 
 === Interaction Effects: latency_overhead_ms ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-concurrency          compression                2.5750            19.0%
-circuit_breaker_max  connection_pool            2.5750            19.0%
-circuit_breaker_max  tracing_sample_pct        -2.1750            16.0%
-access_log           compression               -2.1750            16.0%
-concurrency          connection_pool            0.8250             6.1%
-circuit_breaker_max  compression                0.8250             6.1%
-access_log           tracing_sample_pct         0.8250             6.1%
-concurrency          circuit_breaker_max        0.4750             3.5%
-compression          connection_pool            0.4750             3.5%
-concurrency          access_log                 0.1750             1.3%
-tracing_sample_pct   connection_pool            0.1750             1.3%
-concurrency          tracing_sample_pct        -0.1250             0.9%
-access_log           connection_pool           -0.1250             0.9%
-circuit_breaker_max  access_log                 0.0250             0.2%
-tracing_sample_pct   compression                0.0250             0.2%
+circuit_breaker_max  access_log                 2.6250            15.4%
+tracing_sample_pct   compression                2.6250            15.4%
+concurrency          compression                1.2250             7.2%
+circuit_breaker_max  connection_pool            1.2250             7.2%
+circuit_breaker_max  tracing_sample_pct         1.1750             6.9%
+access_log           compression                1.1750             6.9%
+concurrency          tracing_sample_pct        -1.0750             6.3%
+access_log           connection_pool           -1.0750             6.3%
+concurrency          connection_pool            0.7750             4.6%
+circuit_breaker_max  compression                0.7750             4.6%
+access_log           tracing_sample_pct         0.7750             4.6%
+concurrency          circuit_breaker_max        0.6750             4.0%
+compression          connection_pool            0.6750             4.0%
+concurrency          access_log                 0.5750             3.4%
+tracing_sample_pct   connection_pool            0.5750             3.4%
 
 === Summary Statistics: latency_overhead_ms ===
 
 concurrency:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4     3.2000     2.3367     0.5000     6.2000
-  8                   4     3.2250     1.6581     1.0000     4.8000
+  1                   4     1.9000     1.3491     0.5000     3.2000
+  8                   4     4.5250     1.3401     3.0000     6.2000
 
 circuit_breaker_max:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4     3.1250     2.8088     0.5000     6.2000
-  10000               4     3.3000     0.5477     2.9000     4.1000
+  100                 4     2.9250     1.5521     1.0000     4.8000
+  10000               4     3.5000     2.3622     0.5000     6.2000
 
 access_log:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4     2.9750     1.5586     1.0000     4.8000
-  on                  4     3.4500     2.3728     0.5000     6.2000
+  off                 4     2.8750     1.7765     0.5000     4.8000
+  on                  4     3.5500     2.1794     1.0000     6.2000
 
 tracing_sample_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4     1.9250     1.3745     0.5000     3.2000
-  100                 4     4.5000     1.3784     2.9000     6.2000
+  1                   4     2.6000     2.1649     0.5000     4.8000
+  100                 4     3.8250     1.5882     2.9000     6.2000
 
 compression:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4     3.2750     2.1562     1.0000     6.2000
-  on                  4     3.1500     1.8841     0.5000     4.8000
+  off                 4     3.7500     0.8660     2.9000     4.8000
+  on                  4     2.6750     2.5863     0.5000     6.2000
 
 connection_pool:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4     4.3000     1.5011     3.0000     6.2000
-  1000                4     2.1250     1.6741     0.5000     4.1000
+  100                 4     2.6250     1.5174     0.5000     4.1000
+  1000                4     3.8000     2.2331     1.0000     6.2000
 
 === Main Effects: sidecar_cpu_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-tracing_sample_pct       7.7250       2.7524            31.9%
-access_log              -7.6750       2.7524            31.7%
-concurrency              4.2750       2.7524            17.7%
-circuit_breaker_max     -4.0250       2.7524            16.6%
-compression              0.3750       2.7524             1.5%
-connection_pool         -0.1250       2.7524             0.5%
+circuit_breaker_max     -9.6250       2.7524            39.6%
+compression             -5.8750       2.7524            24.2%
+tracing_sample_pct      -4.2750       2.7524            17.6%
+concurrency              2.2250       2.7524             9.2%
+connection_pool          2.0750       2.7524             8.5%
+access_log              -0.2250       2.7524             0.9%
+
+=== ANOVA Table: sidecar_cpu_pct ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+concurrency                  1       9.9012       9.9012      0.284     0.6105
+circuit_breaker_max          1     185.2812     185.2812      5.318     0.0545
+access_log                   1       0.1012       0.1012      0.003     0.9585
+tracing_sample_pct           1      36.5513      36.5513      1.049     0.3398
+compression                  1      69.0312      69.0312      1.981     0.2021
+connection_pool              1       8.6113       8.6113      0.247     0.6343
+concurrency*circuit_breaker_max    1       0.1013       0.1013      0.003     0.9585
+concurrency*access_log       1     185.2813     185.2813      5.318     0.0545
+concurrency*tracing_sample_pct    1      69.0312      69.0312      1.981     0.2021
+concurrency*compression      1      36.5513      36.5513      1.049     0.3398
+concurrency*connection_pool    1     114.7612     114.7612      3.294     0.1124
+circuit_breaker_max*access_log    1       9.9013       9.9013      0.284     0.6105
+circuit_breaker_max*tracing_sample_pct    1       8.6113       8.6113      0.247     0.6343
+circuit_breaker_max*compression    1     114.7613     114.7613      3.294     0.1124
+circuit_breaker_max*connection_pool    1      36.5513      36.5513      1.049     0.3398
+access_log*tracing_sample_pct    1     114.7613     114.7613      3.294     0.1124
+access_log*compression       1       8.6113       8.6113      0.247     0.6343
+access_log*connection_pool    1      69.0312      69.0312      1.981     0.2021
+tracing_sample_pct*compression    1       9.9012       9.9012      0.284     0.6105
+tracing_sample_pct*connection_pool    1     185.2812     185.2812      5.318     0.0545
+compression*connection_pool    1       0.1013       0.1013      0.003     0.9585
+Error (Lenth PSE)            7     243.8756      34.8394
+Total                        7     424.2387      60.6055
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
 
 === Interaction Effects: sidecar_cpu_pct ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-concurrency          compression                7.7250            10.8%
-circuit_breaker_max  connection_pool            7.7250            10.8%
-concurrency          circuit_breaker_max       -7.6750            10.7%
-concurrency          connection_pool           -7.6750            10.7%
-circuit_breaker_max  compression               -7.6750            10.7%
-access_log           tracing_sample_pct        -7.6750            10.7%
-compression          connection_pool           -7.6750            10.7%
-circuit_breaker_max  access_log                 4.2750             6.0%
-tracing_sample_pct   compression                4.2750             6.0%
-concurrency          access_log                -4.0250             5.6%
-tracing_sample_pct   connection_pool           -4.0250             5.6%
-concurrency          tracing_sample_pct         0.3750             0.5%
-access_log           connection_pool            0.3750             0.5%
-circuit_breaker_max  tracing_sample_pct        -0.1250             0.2%
-access_log           compression               -0.1250             0.2%
+concurrency          access_log                -9.6250            13.5%
+tracing_sample_pct   connection_pool           -9.6250            13.5%
+concurrency          connection_pool            7.5750            10.6%
+circuit_breaker_max  compression                7.5750            10.6%
+access_log           tracing_sample_pct         7.5750            10.6%
+concurrency          tracing_sample_pct        -5.8750             8.2%
+access_log           connection_pool           -5.8750             8.2%
+concurrency          compression               -4.2750             6.0%
+circuit_breaker_max  connection_pool           -4.2750             6.0%
+circuit_breaker_max  access_log                 2.2250             3.1%
+tracing_sample_pct   compression                2.2250             3.1%
+circuit_breaker_max  tracing_sample_pct         2.0750             2.9%
+access_log           compression                2.0750             2.9%
+concurrency          circuit_breaker_max       -0.2250             0.3%
+compression          connection_pool           -0.2250             0.3%
 
 === Summary Statistics: sidecar_cpu_pct ===
 
 concurrency:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4     6.1250     6.4381     0.5000    15.4000
-  8                   4    10.4000     9.3691     4.4000    24.2000
+  1                   4     7.1500     6.3553     0.5000    15.4000
+  8                   4     9.3750     9.8855     4.2000    24.2000
 
 circuit_breaker_max:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4    10.2750     9.4733     4.2000    24.2000
-  10000               4     6.2500     6.3930     0.5000    15.4000
+  100                 4    13.0750     8.7030     4.4000    24.2000
+  10000               4     3.4500     1.9774     0.5000     4.7000
 
 access_log:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4    12.1000    10.1045     0.5000    24.2000
-  on                  4     4.4250     0.2062     4.2000     4.7000
+  off                 4     8.3750    10.7090     0.5000    24.2000
+  on                  4     8.1500     5.1669     4.2000    15.4000
 
 tracing_sample_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4     4.4000     3.1843     0.5000     8.3000
-  100                 4    12.1250     9.5650     4.2000    24.2000
+  1                   4    10.4000     9.3691     4.4000    24.2000
+  100                 4     6.1250     6.4381     0.5000    15.4000
 
 compression:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4     8.0750     5.2354     4.2000    15.4000
-  on                  4     8.4500    10.6729     0.5000    24.2000
+  off                 4    11.2000    10.6986     0.5000    24.2000
+  on                  4     5.3250     1.9856     4.2000     8.3000
 
 connection_pool:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4     8.3250    10.7342     0.5000    24.2000
-  1000                4     8.2000     5.1166     4.4000    15.4000</div></div>
+  100                 4     7.2250     5.4518     4.4000    15.4000
+  1000                4     9.3000    10.4317     0.5000    24.2000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: latency_overhead_ms ===
 Direction: minimize
 
 Best observed run: #8
-  concurrency = 8
+  concurrency = 1
   circuit_breaker_max = 100
-  access_log = off
+  access_log = on
   tracing_sample_pct = 1
-  compression = off
+  compression = on
   connection_pool = 1000
   Value: 0.5
 
-RSM Model (linear, R² = 0.7295, Adj R² = -0.8933):
+RSM Model (linear, R² = 0.9573, Adj R² = 0.7012):
   Coefficients:
     intercept                      +3.2125
-    concurrency                    +0.4625
-    circuit_breaker_max            +1.2875
-    access_log                     +0.5375
-    tracing_sample_pct             +0.0625
-    compression                    +0.2625
+    concurrency                    +0.0875
+    circuit_breaker_max            -0.0125
+    access_log                     +0.2125
+    tracing_sample_pct             +1.3625
+    compression                    -1.0125
     connection_pool                -0.1125
 
-  Predicted optimum (from linear model):
-    concurrency = 8
-    circuit_breaker_max = 10000
+  Predicted optimum (from linear model, at observed points):
+    concurrency = 1
+    circuit_breaker_max = 100
     access_log = on
     tracing_sample_pct = 100
+    compression = off
+    connection_pool = 100
+    Predicted value: 5.8375
+
+  Surface optimum (via L-BFGS-B, linear model):
+    concurrency = 1
+    circuit_breaker_max = 10000
+    access_log = off
+    tracing_sample_pct = 1
     compression = on
     connection_pool = 1000
-    Predicted value: 5.7125
+    Predicted value: 0.4125
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Model quality: Excellent fit — surface predictions are reliable.
 
 Factor importance:
-  1. circuit_breaker_max  (effect: 2.6, contribution: 47.2%)
-  2. access_log  (effect: 1.1, contribution: 19.7%)
-  3. concurrency  (effect: 0.9, contribution: 17.0%)
-  4. compression  (effect: 0.5, contribution: 9.6%)
-  5. connection_pool  (effect: -0.2, contribution: 4.1%)
-  6. tracing_sample_pct  (effect: 0.1, contribution: 2.3%)
+  1. tracing_sample_pct  (effect: 2.7, contribution: 48.7%)
+  2. compression  (effect: -2.0, contribution: 36.2%)
+  3. access_log  (effect: 0.4, contribution: 7.6%)
+  4. connection_pool  (effect: -0.2, contribution: 4.0%)
+  5. concurrency  (effect: 0.2, contribution: 3.1%)
+  6. circuit_breaker_max  (effect: -0.0, contribution: 0.4%)
 
 === Optimization: sidecar_cpu_pct ===
 Direction: minimize
@@ -591,34 +803,43 @@ Best observed run: #5
   connection_pool = 100
   Value: 0.5
 
-RSM Model (linear, R² = 0.5633, Adj R² = -2.0572):
+RSM Model (linear, R² = 0.8455, Adj R² = -0.0816):
   Coefficients:
     intercept                      +8.2625
-    concurrency                    +0.0625
-    circuit_breaker_max            +3.8625
-    access_log                     +2.0125
-    tracing_sample_pct             +1.1625
-    compression                    +2.8625
+    concurrency                    -2.0125
+    circuit_breaker_max            +4.8875
+    access_log                     -1.0875
+    tracing_sample_pct             +0.1375
+    compression                    -3.7875
     connection_pool                +1.1625
 
-  Predicted optimum (from linear model):
-    concurrency = 8
+  Predicted optimum (from linear model, at observed points):
+    concurrency = 1
     circuit_breaker_max = 10000
-    access_log = on
+    access_log = off
     tracing_sample_pct = 100
-    compression = on
+    compression = off
     connection_pool = 1000
-    Predicted value: 19.3875
+    Predicted value: 21.3375
 
-  Model quality: Moderate fit — use predictions directionally, not precisely.
+  Surface optimum (via L-BFGS-B, linear model):
+    concurrency = 8
+    circuit_breaker_max = 100
+    access_log = on
+    tracing_sample_pct = 1
+    compression = on
+    connection_pool = 100
+    Predicted value: -4.8125
+
+  Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. circuit_breaker_max  (effect: 7.7, contribution: 34.7%)
-  2. compression  (effect: 5.7, contribution: 25.7%)
-  3. access_log  (effect: 4.0, contribution: 18.1%)
-  4. tracing_sample_pct  (effect: 2.3, contribution: 10.4%)
-  5. connection_pool  (effect: 2.3, contribution: 10.4%)
-  6. concurrency  (effect: 0.1, contribution: 0.6%)</div></div>
+  1. circuit_breaker_max  (effect: 9.8, contribution: 37.4%)
+  2. compression  (effect: -7.6, contribution: 29.0%)
+  3. concurrency  (effect: -4.0, contribution: 15.4%)
+  4. connection_pool  (effect: 2.3, contribution: 8.9%)
+  5. access_log  (effect: -2.2, contribution: 8.3%)
+  6. tracing_sample_pct  (effect: 0.3, contribution: 1.1%)</div></div>
   </section>
 
   <!-- Nav -->

@@ -1065,6 +1065,8 @@
 
       <p>The third word (CEFG) is the "generalized interaction" of the first two generators. The <strong>minimum word length</strong> in the defining relation determines the resolution. Here, the shortest word has 4 letters, so this is a Resolution IV design.</p>
 
+      <p>The DOE Helper Tool automatically computes and displays the alias structure when you use the <code>info</code> command with a fractional factorial design. This tells you exactly which effects are confounded with each other, so you can interpret your results correctly.</p>
+
       <div class="warning-box">
         <h4>Minimum Aberration</h4>
         <p>Among all designs with the same resolution, the <strong>minimum aberration</strong> design has the fewest short words in its defining relation. This minimizes the number of low-order effects that are aliased together. The DOE Helper Tool uses minimum-aberration generators by default &mdash; the pyDOE3 library selects them automatically.</p>
@@ -1152,6 +1154,22 @@
       </div>
 
       <p>The combined 16-run design is equivalent to a full 2<sup>4</sup> factorial. All aliases are resolved. The cost: you've doubled your runs from 8 to 16, but you only do this when the initial analysis reveals ambiguity worth resolving. In many cases, the initial 8-run fraction is sufficient.</p>
+
+      <div class="keypoint-box">
+        <h4>Augmentation in the DOE Helper Tool</h4>
+        <p>The <code>doe augment</code> command automates design augmentation. It supports fold-over, star points (to upgrade a factorial to CCD), and center points (to detect curvature and estimate pure error):</p>
+      </div>
+
+      <pre><code># Fold-over to de-alias effects
+doe augment --config config.json --type fold_over
+
+# Add star points for RSM
+doe augment --config config.json --type star_points
+
+# Add center points to detect curvature
+doe augment --config config.json --type center_points</code></pre>
+
+      <p>The augmented script only runs the new experiments &mdash; it skips already-completed runs automatically.</p>
 
       <h2 id="choosing-fraction">Choosing the Right Fraction</h2>
 
@@ -1767,21 +1785,29 @@ checkpoint_interval        3.9         3.1             3.7%</div>
         <thead><tr><th>Question You Need to Answer</th><th>Design</th><th>Typical Runs</th></tr></thead>
         <tbody>
           <tr><td>Which of these 10+ factors matter?</td><td><strong>Plackett-Burman</strong></td><td>8&ndash;20</td></tr>
+          <tr><td>Screen factors + detect curvature?</td><td><strong>Definitive Screening</strong></td><td>2k+1</td></tr>
           <tr><td>Main effects + some interactions? (5&ndash;8 factors)</td><td><strong>Fractional Factorial</strong></td><td>16&ndash;32</td></tr>
           <tr><td>All effects, no compromises? (2&ndash;4 factors)</td><td><strong>Full Factorial</strong></td><td>4&ndash;16</td></tr>
+          <tr><td>Robust design with signal-to-noise ratios?</td><td><strong>Taguchi</strong></td><td>4&ndash;27</td></tr>
           <tr><td>Find the quadratic optimum? Corners safe?</td><td><strong>CCD</strong></td><td>13&ndash;50</td></tr>
           <tr><td>Find the quadratic optimum? Corners dangerous?</td><td><strong>Box-Behnken</strong></td><td>13&ndash;46</td></tr>
+          <tr><td>Custom run count, maximum information?</td><td><strong>D-Optimal</strong></td><td>Any</td></tr>
           <tr><td>Uniform coverage of a large continuous space?</td><td><strong>Latin Hypercube</strong></td><td>10&ndash;100+</td></tr>
+          <tr><td>Formulation where components sum to 1?</td><td><strong>Mixture (Simplex)</strong></td><td>Depends on components</td></tr>
         </tbody>
       </table>
 
       <div class="keypoint-box">
         <h4>The Design Selection Flowchart</h4>
-        <p><strong>Step 1:</strong> How many factors? If &gt; 6, start with screening (PB). If 2&ndash;5, go to Step 2.<br>
-        <strong>Step 2:</strong> Do you need interactions? If no, PB is sufficient. If yes, use fractional or full factorial.<br>
-        <strong>Step 3:</strong> Do you suspect curvature? Check center points. If center-point mean differs from factorial mean, upgrade to CCD or Box-Behnken.<br>
-        <strong>Step 4:</strong> Are corner conditions feasible? If yes, CCD. If no, Box-Behnken.<br>
-        <strong>Step 5:</strong> Is the factor space continuous with many dimensions? Consider LHS for initial exploration.</p>
+        <p><strong>Step 1:</strong> Is this a mixture/formulation problem? If yes, use Mixture Simplex designs.<br>
+        <strong>Step 2:</strong> How many factors? If &gt; 6, start with screening (PB or Definitive Screening). DSD is preferred when you suspect curvature &mdash; it detects it in the same experiment.<br>
+        <strong>Step 3:</strong> Do you need interactions? If no, PB is sufficient. If yes, use fractional or full factorial.<br>
+        <strong>Step 4:</strong> Do you suspect curvature? Check center points. If center-point mean differs from factorial mean, upgrade to CCD or Box-Behnken.<br>
+        <strong>Step 5:</strong> Are corner conditions feasible? If yes, CCD. If no, Box-Behnken.<br>
+        <strong>Step 6:</strong> Is the factor space continuous with many dimensions? Consider LHS for initial exploration.<br>
+        <strong>Step 7:</strong> Need a specific number of runs? Use D-Optimal to maximize information per run.<br>
+        <strong>Step 8:</strong> Need robust design against noise factors? Use Taguchi orthogonal arrays.<br>
+        <strong>Step 9:</strong> Need to extend an existing design? Use <code>doe augment</code> with fold-over, star points, or center points.</p>
       </div>
 
       <h2 id="chemical-example">Worked Example: Chemical Process Optimization</h2>
@@ -2381,6 +2407,16 @@ checkpoint_interval        3.9         3.1             3.7%</div>
 
       <p>As a rough guide: a 2<sup>k</sup> design with 2 replicates can detect effects about 2&ndash;3 times the noise standard deviation with 80% power. If your effects are likely smaller than that, you need more replicates or a larger design.</p>
 
+      <p>The DOE Helper Tool computes power for each factor using the non-central F distribution:</p>
+
+      <pre><code># Check power before running the experiment
+doe power --config config.json --sigma 2.0 --delta 5.0
+
+# Or estimate sigma from existing results
+doe power --config config.json --delta 5.0 --results-dir results/</code></pre>
+
+      <p>If power is below 0.80 for important factors, increase <code>block_count</code> in your config to add replicates, or widen your factor ranges to increase the expected effect size.</p>
+
       <div class="analogy">
         <h4>&#x1F50D; The Signal-to-Noise Analogy</h4>
         <p>Detecting an effect in a noisy experiment is like hearing a conversation in a loud room. A large effect (loud voice) is easy to detect even with few replicates. A small effect (whisper) requires either a quiet room (low noise) or many listeners (many replicates) to be heard reliably.</p>
@@ -2573,7 +2609,14 @@ Temperature = 187°C,  Catalyst = 3.7%
 
       <h2 id="model-adequacy">Model Adequacy</h2>
 
-      <p>Before trusting any prediction, you must verify that the model actually fits the data. The tool reports several diagnostics:</p>
+      <p>Before trusting any prediction, you must verify that the model actually fits the data. The tool reports several diagnostics automatically:</p>
+
+      <ul>
+        <li><strong>R&sup2; and Adjusted R&sup2;</strong> &mdash; Overall model fit.</li>
+        <li><strong>PRESS statistic and Predicted R&sup2;</strong> &mdash; Leave-one-out cross-validation measure that penalizes influential observations. A large gap between R&sup2; and Predicted R&sup2; indicates overfitting.</li>
+        <li><strong>ANOVA table</strong> &mdash; F-tests and p-values for each term, lack-of-fit test, and Lenth's PSE for unreplicated designs.</li>
+        <li><strong>Diagnostic plots</strong> &mdash; Residuals vs. fitted values (check for patterns), normal probability plot of residuals (check for normality), residuals vs. run order (check for drift), and predicted vs. actual (check for bias). These are generated automatically by <code>doe analyze</code>.</li>
+      </ul>
 
       <h3>R&sup2; and Adjusted R&sup2;</h3>
 
@@ -2620,7 +2663,7 @@ Temperature = 187°C,  Catalyst = 3.7%
 
       <h2 id="finding-optimum">Finding the Optimum</h2>
 
-      <p>The <code>optimize</code> command reports two things: the <strong>best observed run</strong> (the highest actual measurement) and the <strong>predicted optimum</strong> from the RSM model.</p>
+      <p>The <code>optimize</code> command reports three things: the <strong>best observed run</strong> (the highest actual measurement), the <strong>predicted optimum at observed points</strong> from the RSM model, and the <strong>true surface optimum</strong> found by numerically optimizing the fitted polynomial using L-BFGS-B with multiple random restarts.</p>
 
       <div class="comparison-grid">
         <div class="comparison-card" style="background: #eff6ff; border: 1px solid #93c5fd;">
@@ -2651,6 +2694,12 @@ Temperature = 187°C,  Catalyst = 3.7%
         <li>Run a few experiments along that path, stepping outward from the center, until the response stops improving.</li>
         <li>Center a new CCD around the best point found on the path.</li>
       </ol>
+
+      <p>The DOE Helper Tool automates steps 1&ndash;2 with the <code>--steepest</code> flag:</p>
+
+      <pre><code>doe optimize --config config.json --steepest</code></pre>
+
+      <p>This generates a table of recommended follow-up experiment points along the gradient direction, with predicted response values at each step.</p>
 
       <div class="analogy">
         <h4>&#x26F0; Hill-Climbing in Fog</h4>
@@ -3163,20 +3212,24 @@ Temperature = 187°C,  Catalyst = 3.7%
 
       <h2 id="ug-configuration">Configuration Reference</h2>
 
-      <p>Every experiment starts with a YAML configuration file that describes your factors, responses, and design choices. Here is a minimal example:</p>
+      <p>Every experiment starts with a JSON configuration file that describes your factors, responses, and design choices. Here is a minimal example:</p>
 
-      <pre><code>design_type: full_factorial
-factors:
-  temperature:
-    low: 60
-    high: 80
-  pressure:
-    low: 1.0
-    high: 2.0
-responses:
-  - yield</code></pre>
+      <pre><code>{
+  "factors": [
+    {"name": "temperature", "levels": ["60", "80"], "type": "continuous"},
+    {"name": "pressure", "levels": ["1.0", "2.0"], "type": "continuous"}
+  ],
+  "responses": [
+    {"name": "yield", "optimize": "maximize"}
+  ],
+  "settings": {
+    "operation": "full_factorial"
+  }
+}</code></pre>
 
-      <p>The configuration supports many more fields &mdash; blocking, center points, custom factor levels, optimization targets, and more. The complete field-by-field reference is in the <a href="howto.html#configuration">Configuration Reference</a>.</p>
+      <p>The tool supports 11 design types: <code>full_factorial</code>, <code>fractional_factorial</code>, <code>plackett_burman</code>, <code>latin_hypercube</code>, <code>central_composite</code>, <code>box_behnken</code>, <code>definitive_screening</code>, <code>taguchi</code>, <code>d_optimal</code>, <code>mixture_simplex_lattice</code>, and <code>mixture_simplex_centroid</code>.</p>
+
+      <p>The configuration supports many more fields &mdash; blocking, center points, custom factor levels, optimization targets, response weights for multi-objective optimization, and more. The complete field-by-field reference is in the <a href="howto.html#configuration">Configuration Reference</a>.</p>
 
       <h2 id="ug-cli">CLI Commands</h2>
 
@@ -3186,10 +3239,12 @@ responses:
         <thead><tr><th>Command</th><th>Purpose</th><th>Workflow Phase</th></tr></thead>
         <tbody>
           <tr><td><code>doe generate</code></td><td>Create a design matrix and runner script</td><td>Plan &amp; execute</td></tr>
-          <tr><td><code>doe analyze</code></td><td>Compute effects, ANOVA, and diagnostic plots</td><td>Analyze</td></tr>
-          <tr><td><code>doe optimize</code></td><td>Find optimal factor settings from results</td><td>Optimize</td></tr>
-          <tr><td><code>doe report</code></td><td>Generate an HTML report with all charts and tables</td><td>Report</td></tr>
-          <tr><td><code>doe info</code></td><td>Show version, design catalogue, and config defaults</td><td>Setup</td></tr>
+          <tr><td><code>doe analyze</code></td><td>Compute effects, ANOVA, diagnostics, and all plots</td><td>Analyze</td></tr>
+          <tr><td><code>doe optimize</code></td><td>Find optimal factor settings (surface optimization, steepest ascent, multi-objective)</td><td>Optimize</td></tr>
+          <tr><td><code>doe power</code></td><td>Compute statistical power for each factor</td><td>Plan</td></tr>
+          <tr><td><code>doe augment</code></td><td>Extend a design with fold-over, star points, or center points</td><td>Plan &amp; execute</td></tr>
+          <tr><td><code>doe report</code></td><td>Generate an HTML report with all charts, ANOVA tables, and diagnostics</td><td>Report</td></tr>
+          <tr><td><code>doe info</code></td><td>Show design summary, alias structure, and D/A/G-efficiency metrics</td><td>Setup</td></tr>
           <tr><td><code>doe record</code></td><td>Manually enter a result for a specific run</td><td>Execute (manual)</td></tr>
           <tr><td><code>doe status</code></td><td>Show progress of an in-flight experiment</td><td>Execute</td></tr>
           <tr><td><code>doe export-worksheet</code></td><td>Export a printable run sheet for manual experiments</td><td>Execute (manual)</td></tr>

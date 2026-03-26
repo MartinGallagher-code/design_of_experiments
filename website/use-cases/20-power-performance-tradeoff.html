@@ -57,8 +57,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>gflops</strong>, the most influential factors were gpu power cap (44.5%), mem freq (28.3%), cpu power cap (27.1%). The best observed value was <strong>36207.2146</strong> (at cpu power cap = 180, gpu power cap = 300, mem freq = 2800).</p>
-<p>For <strong>gflops per watt</strong>, the most influential factors were gpu power cap (46.1%), mem freq (27.4%), cpu power cap (26.5%). The best observed value was <strong>6.43</strong> (at cpu power cap = 120, gpu power cap = 400, mem freq = 3200).</p>
+    <p>For <strong>gflops</strong>, the most influential factors were mem freq (42.6%), gpu power cap (38.8%), cpu power cap (18.5%). The best observed value was <strong>36207.2146</strong> (at cpu power cap = 180, gpu power cap = 300, mem freq = 2800).</p>
+<p>For <strong>gflops per watt</strong>, the most influential factors were gpu power cap (54.6%), mem freq (27.2%), cpu power cap (18.2%). The best observed value was <strong>6.43</strong> (at cpu power cap = 180, gpu power cap = 300, mem freq = 2800).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -67,6 +67,7 @@
     <li>Consider whether any fixed factors should be varied in a future study.</li>
   </ul>
   </section>
+
 
   <section class="uc-section">
     <h2>Experimental Setup</h2>
@@ -95,6 +96,7 @@
       </div>
     </div>
   </section>
+
 
 
 
@@ -301,6 +303,135 @@ Factor importance:
   1. mem_freq  (effect: 0.6, contribution: 42.3%)
   2. cpu_power_cap  (effect: 0.5, contribution: 35.3%)
   3. gpu_power_cap  (effect: 0.3, contribution: 22.4%)</div></div>
+  </section>
+
+  
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ea580c;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ea580c;line-height:1.2;">D = 0.5226</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>gflops</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:66.63%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.6663</span>
+                </div>
+              </td>
+              <td>30611.84 0.6663    30611.84 GFLOPS</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>gflops_per_watt</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:36.29%;height:100%;background:#ef4444;border-radius:4px;"></div>
+                  </div>
+                  <span>0.3629</span>
+                </div>
+              </td>
+              <td>4.79 0.3629        4.79 GFLOPS/W</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>cpu_power_cap</code></td><td>180 watts</td></tr>
+            <tr><td><code>gpu_power_cap</code></td><td>300 watts</td></tr>
+            <tr><td><code>mem_freq</code></td><td>2800 MHz</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #17</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>gflops_per_watt</code></td><td>4.79</td><td>6.43</td><td><span style="color:#dc2626;">+1.64</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#18</td><td><strong>0.4812</strong></td><td style="font-size:.78rem;">cpu_power_cap=180,  gpu_power_cap=482.574,  mem_freq=2800</td></tr>
+            <tr><td>#10</td><td><strong>0.4694</strong></td><td style="font-size:.78rem;">cpu_power_cap=180,  gpu_power_cap=300,  mem_freq=2800</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>gflops_per_watt</code></td><td style="color:#ca8a04;font-weight:600;">0.5257</td><td>quadratic</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.5226
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+gflops                       1.5       0.6663    30611.84 GFLOPS   ↑
+gflops_per_watt              1.0       0.3629        4.79 GFLOPS/W   ↑
+
+Recommended settings:
+  cpu_power_cap = 180 watts
+  gpu_power_cap = 300 watts
+  mem_freq = 2800 MHz
+  (from observed run #17)
+
+Trade-off summary:
+  gflops: 30611.84 (best observed: 36207.21, sacrifice: +5595.37)
+  gflops_per_watt: 4.79 (best observed: 6.43, sacrifice: +1.64)
+
+Model quality:
+  gflops: R² = 0.0142 (linear)
+  gflops_per_watt: R² = 0.5257 (quadratic)
+
+Top 3 observed runs by overall desirability:
+  1. Run #17 (D=0.5226): cpu_power_cap=180, gpu_power_cap=300, mem_freq=2800
+  2. Run #18 (D=0.4812): cpu_power_cap=180, gpu_power_cap=482.574, mem_freq=2800
+  3. Run #10 (D=0.4694): cpu_power_cap=180, gpu_power_cap=300, mem_freq=2800</div></div>
   </section>
 
   <div class="chapter-nav">

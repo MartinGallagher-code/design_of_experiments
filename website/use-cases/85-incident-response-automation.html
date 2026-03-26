@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -51,8 +50,8 @@
 
     
     <h3>Key Findings</h3>
-    <p>For <strong>mttr min</strong>, the most influential factors were runbook timeout sec (37.8%), auto remediation enabled (22.5%), alert threshold severity (18.2%). The best observed value was <strong>5.2</strong> (at alert threshold severity = 5, escalation delay min = 15, auto remediation enabled = off).</p>
-<p>For <strong>false escalation pct</strong>, the most influential factors were alert threshold severity (42.3%), runbook timeout sec (26.2%), escalation delay min (21.0%). The best observed value was <strong>-0.6</strong> (at alert threshold severity = 1, escalation delay min = 1, auto remediation enabled = on).</p>
+    <p>For <strong>mttr min</strong>, the most influential factors were notification channels (36.2%), alert threshold severity (26.5%), runbook timeout sec (20.5%). The best observed value was <strong>5.2</strong> (at alert threshold severity = 1, escalation delay min = 15, auto remediation enabled = on).</p>
+<p>For <strong>false escalation pct</strong>, the most influential factors were escalation delay min (42.4%), runbook timeout sec (38.5%), alert threshold severity (17.2%). The best observed value was <strong>-0.6</strong> (at alert threshold severity = 5, escalation delay min = 15, auto remediation enabled = off).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -260,6 +259,18 @@
     <div class="uc-step">
       <div class="uc-step-num">6</div>
       <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/85_incident_response_automation/config.json <span class="flag">--multi</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">7</div>
+      <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
@@ -297,7 +308,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: mttr_min</h3>
-    <p>Top factors: runbook_timeout_sec (37.8%), auto_remediation_enabled (22.5%), alert_threshold_severity (18.2%).</p>
+    <p>Top factors: notification_channels (36.2%), alert_threshold_severity (26.5%), runbook_timeout_sec (20.5%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -310,7 +321,7 @@
     </div>
 
     <h3>Response: false_escalation_pct</h3>
-    <p>Top factors: alert_threshold_severity (42.3%), runbook_timeout_sec (26.2%), escalation_delay_min (21.0%).</p>
+    <p>Top factors: escalation_delay_min (42.4%), runbook_timeout_sec (38.5%), alert_threshold_severity (17.2%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -391,192 +402,386 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.7301</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>mttr_min</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:80.53%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.8053</span>
+                </div>
+              </td>
+              <td>17.28 0.8053       17.28 min</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>false_escalation_pct</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:63.029999999999994%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.6303</span>
+                </div>
+              </td>
+              <td>6.00 0.6303        6.00 %</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>alert_threshold_severity</code></td><td>4.829 level</td></tr>
+            <tr><td><code>escalation_delay_min</code></td><td>1.588 min</td></tr>
+            <tr><td><code>auto_remediation_enabled</code></td><td>off</td></tr>
+            <tr><td><code>runbook_timeout_sec</code></td><td>242.9 sec</td></tr>
+            <tr><td><code>notification_channels</code></td><td>1.256 channels</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from RSM model prediction</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>false_escalation_pct</code></td><td>6.00</td><td>-0.60</td><td><span style="color:#dc2626;">+6.60</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#8</td><td><strong>0.6481</strong></td><td style="font-size:.78rem;">alert_threshold_severity=1,  escalation_delay_min=1,  auto_remediation_enabled=off,  runbook_timeout_sec=300,  notification_channels=5</td></tr>
+            <tr><td>#6</td><td><strong>0.6132</strong></td><td style="font-size:.78rem;">alert_threshold_severity=5,  escalation_delay_min=15,  auto_remediation_enabled=off,  runbook_timeout_sec=300,  notification_channels=1</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>false_escalation_pct</code></td><td style="color:#16a34a;font-weight:600;">0.9083</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.7301
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+mttr_min                     1.5       0.8053       17.28 min   ↓
+false_escalation_pct         1.0       0.6303        6.00 %   ↓
+
+Recommended settings:
+  alert_threshold_severity = 4.829 level
+  escalation_delay_min = 1.588 min
+  auto_remediation_enabled = off
+  runbook_timeout_sec = 242.9 sec
+  notification_channels = 1.256 channels
+  (from RSM model prediction)
+
+Trade-off summary:
+  mttr_min: 17.28 (best observed: 5.20, sacrifice: +12.08)
+  false_escalation_pct: 6.00 (best observed: -0.60, sacrifice: +6.60)
+
+Model quality:
+  mttr_min: R² = 0.9891 (linear)
+  false_escalation_pct: R² = 0.9083 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #2 (D=0.6675): alert_threshold_severity=5, escalation_delay_min=1, auto_remediation_enabled=off, runbook_timeout_sec=30, notification_channels=1
+  2. Run #8 (D=0.6481): alert_threshold_severity=1, escalation_delay_min=1, auto_remediation_enabled=off, runbook_timeout_sec=300, notification_channels=5
+  3. Run #6 (D=0.6132): alert_threshold_severity=5, escalation_delay_min=15, auto_remediation_enabled=off, runbook_timeout_sec=300, notification_channels=1</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: mttr_min ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-runbook_timeout_sec     32.3250       8.2491            37.8%
-auto_remediation_enabled   -19.2750       8.2491            22.5%
-alert_threshold_severity   -15.5250       8.2491            18.2%
-notification_channels    13.4750       8.2491            15.8%
-escalation_delay_min    -4.9250       8.2491             5.8%
+notification_channels   -30.0750       8.2491            36.2%
+alert_threshold_severity    22.0250       8.2491            26.5%
+runbook_timeout_sec    -17.0250       8.2491            20.5%
+escalation_delay_min   -13.7250       8.2491            16.5%
+auto_remediation_enabled    -0.1750       8.2491             0.2%
+
+=== ANOVA Table: mttr_min ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+alert_threshold_severity     1     970.2013     970.2013      1.717     0.2471
+escalation_delay_min         1     376.7512     376.7512      0.667     0.4513
+auto_remediation_enabled     1       0.0612       0.0612      0.000     0.9921
+runbook_timeout_sec          1     579.7013     579.7013      1.026     0.3576
+notification_channels        1    1809.0113    1809.0113      3.201     0.1336
+alert_threshold_severity*escalation_delay_min    1     579.7012     579.7012      1.026     0.3576
+alert_threshold_severity*auto_remediation_enabled    1    1809.0112    1809.0112      3.201     0.1336
+alert_threshold_severity*runbook_timeout_sec    1     376.7512     376.7512      0.667     0.4513
+alert_threshold_severity*notification_channels    1       0.0612       0.0612      0.000     0.9921
+escalation_delay_min*auto_remediation_enabled    1      34.8613      34.8613      0.062     0.8137
+escalation_delay_min*runbook_timeout_sec    1     970.2012     970.2012      1.717     0.2471
+escalation_delay_min*notification_channels    1      40.0512      40.0512      0.071     0.8007
+auto_remediation_enabled*runbook_timeout_sec    1      40.0512      40.0512      0.071     0.8007
+auto_remediation_enabled*notification_channels    1     970.2012     970.2012      1.717     0.2471
+runbook_timeout_sec*notification_channels    1      34.8612      34.8612      0.062     0.8137
+Error (Lenth PSE)            5    2825.6344     565.1269
+Total                        7    3810.6387     544.3770
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
 
 === Interaction Effects: mttr_min ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-alert_threshold_severity escalation_delay_min      32.3250            28.2%
-alert_threshold_severity notification_channels     -19.2750            16.8%
-escalation_delay_min runbook_timeout_sec      -15.5250            13.5%
-auto_remediation_enabled notification_channels     -15.5250            13.5%
-alert_threshold_severity auto_remediation_enabled      13.4750            11.8%
-escalation_delay_min auto_remediation_enabled       6.4750             5.6%
-runbook_timeout_sec  notification_channels       6.4750             5.6%
-alert_threshold_severity runbook_timeout_sec       -4.9250             4.3%
-escalation_delay_min notification_channels       0.3250             0.3%
-auto_remediation_enabled runbook_timeout_sec        0.3250             0.3%
+alert_threshold_severity auto_remediation_enabled     -30.0750            24.6%
+escalation_delay_min runbook_timeout_sec       22.0250            18.0%
+auto_remediation_enabled notification_channels      22.0250            18.0%
+alert_threshold_severity escalation_delay_min     -17.0250            13.9%
+alert_threshold_severity runbook_timeout_sec      -13.7250            11.2%
+escalation_delay_min notification_channels       4.4750             3.7%
+auto_remediation_enabled runbook_timeout_sec        4.4750             3.7%
+escalation_delay_min auto_remediation_enabled       4.1750             3.4%
+runbook_timeout_sec  notification_channels       4.1750             3.4%
+alert_threshold_severity notification_channels      -0.1750             0.1%
 
 === Summary Statistics: mttr_min ===
 
 alert_threshold_severity:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    40.7250    28.8557     8.8000    78.8000
-  5                   4    25.2000    16.6397     5.2000    39.4000
+  1                   4    21.9500    17.3685     5.2000    38.4000
+  5                   4    43.9750    25.3998    17.8000    78.8000
 
 escalation_delay_min:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    35.4250    32.2780     5.2000    78.8000
-  15                  4    30.5000    14.5662     8.8000    39.4000
+  1                   4    39.8250    30.2078     5.2000    78.8000
+  15                  4    26.1000    15.2355     8.8000    39.4000
 
 auto_remediation_enabled:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4    42.6000    25.7873    17.8000    78.8000
-  on                  4    23.3250    18.9088     5.2000    39.9000
+  off                 4    33.0500    34.1422     5.2000    78.8000
+  on                  4    32.8750    10.2226    17.8000    39.9000
 
 runbook_timeout_sec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  30                  4    16.8000    13.4848     5.2000    35.4000
-  300                 4    49.1250    19.7932    38.4000    78.8000
+  30                  4    41.4750    28.7097     8.8000    78.8000
+  300                 4    24.4500    15.8975     5.2000    39.4000
 
 notification_channels:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    26.2250    15.3823     8.8000    39.9000
-  5                   4    39.7000    30.2084     5.2000    78.8000
+  1                   4    48.0000    20.6036    35.4000    78.8000
+  5                   4    17.9250    15.5789     5.2000    39.9000
 
 === Main Effects: false_escalation_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-alert_threshold_severity     8.8250       2.2120            42.3%
-runbook_timeout_sec     -5.4750       2.2120            26.2%
-escalation_delay_min     4.3750       2.2120            21.0%
-auto_remediation_enabled    -1.7250       2.2120             8.3%
-notification_channels    -0.4750       2.2120             2.3%
+escalation_delay_min     8.0750       2.2120            42.4%
+runbook_timeout_sec      7.3250       2.2120            38.5%
+alert_threshold_severity    -3.2750       2.2120            17.2%
+auto_remediation_enabled     0.2750       2.2120             1.4%
+notification_channels    -0.0750       2.2120             0.4%
+
+=== ANOVA Table: false_escalation_pct ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+alert_threshold_severity     1      21.4513      21.4513     39.587     0.0015
+escalation_delay_min         1     130.4112     130.4112    240.667     0.0000
+auto_remediation_enabled     1       0.1512       0.1512      0.279     0.6199
+runbook_timeout_sec          1     107.3112     107.3112    198.037     0.0000
+notification_channels        1       0.0112       0.0112      0.021     0.8911
+alert_threshold_severity*escalation_delay_min    1     107.3113     107.3113    198.037     0.0000
+alert_threshold_severity*auto_remediation_enabled    1       0.0113       0.0113      0.021     0.8911
+alert_threshold_severity*runbook_timeout_sec    1     130.4112     130.4112    240.667     0.0000
+alert_threshold_severity*notification_channels    1       0.1513       0.1513      0.279     0.6199
+escalation_delay_min*auto_remediation_enabled    1      14.3113      14.3113     26.411     0.0036
+escalation_delay_min*runbook_timeout_sec    1      21.4513      21.4513     39.587     0.0015
+escalation_delay_min*notification_channels    1       0.3613       0.3613      0.667     0.4513
+auto_remediation_enabled*runbook_timeout_sec    1       0.3613       0.3613      0.667     0.4513
+auto_remediation_enabled*notification_channels    1      21.4513      21.4513     39.587     0.0015
+runbook_timeout_sec*notification_channels    1      14.3112      14.3112     26.411     0.0036
+Error (Lenth PSE)            5       2.7094       0.5419
+Total                        7     274.0087      39.1441
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
 
 === Interaction Effects: false_escalation_pct ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-escalation_delay_min runbook_timeout_sec        8.8250            24.3%
-auto_remediation_enabled notification_channels       8.8250            24.3%
-alert_threshold_severity escalation_delay_min      -5.4750            15.1%
-alert_threshold_severity runbook_timeout_sec        4.3750            12.1%
-escalation_delay_min auto_remediation_enabled       2.4750             6.8%
-runbook_timeout_sec  notification_channels       2.4750             6.8%
-alert_threshold_severity notification_channels      -1.7250             4.8%
-escalation_delay_min notification_channels       0.8250             2.3%
-auto_remediation_enabled runbook_timeout_sec        0.8250             2.3%
-alert_threshold_severity auto_remediation_enabled      -0.4750             1.3%
+alert_threshold_severity runbook_timeout_sec        8.0750            28.3%
+alert_threshold_severity escalation_delay_min       7.3250            25.7%
+escalation_delay_min runbook_timeout_sec       -3.2750            11.5%
+auto_remediation_enabled notification_channels      -3.2750            11.5%
+escalation_delay_min auto_remediation_enabled       2.6750             9.4%
+runbook_timeout_sec  notification_channels       2.6750             9.4%
+escalation_delay_min notification_channels       0.4250             1.5%
+auto_remediation_enabled runbook_timeout_sec        0.4250             1.5%
+alert_threshold_severity notification_channels       0.2750             1.0%
+alert_threshold_severity auto_remediation_enabled      -0.0750             0.3%
 
 === Summary Statistics: false_escalation_pct ===
 
 alert_threshold_severity:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4     5.7750     5.8111    -0.6000    10.9000
-  5                   4    14.6000     2.3763    12.4000    17.9000
+  1                   4    11.8250     1.3841    10.5000    13.5000
+  5                   4     8.5500     9.0703    -0.6000    17.9000
 
 escalation_delay_min:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4     8.0000     8.6375    -0.6000    17.9000
-  15                  4    12.3750     1.9923    10.5000    14.6000
+  1                   4     6.1500     6.2815    -0.6000    12.4000
+  15                  4    14.2250     2.8999    10.9000    17.9000
 
 auto_remediation_enabled:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4    11.0500     6.5775     2.3000    17.9000
-  on                  4     9.3250     6.7889    -0.6000    14.6000
+  off                 4    10.0500     5.3855     2.3000    14.6000
+  on                  4    10.3250     7.8919    -0.6000    17.9000
 
 runbook_timeout_sec:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  30                  4    12.9250     3.4160    10.5000    17.9000
-  300                 4     7.4500     7.7255    -0.6000    14.6000
+  30                  4     6.5250     6.7431    -0.6000    13.5000
+  300                 4    13.8500     3.1775    10.5000    17.9000
 
 notification_channels:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    10.4250     7.8974    -0.6000    17.9000
-  5                   4     9.9500     5.3681     2.3000    14.6000</div></div>
+  1                   4    10.2250     5.5602     2.3000    14.6000
+  5                   4    10.1500     7.7728    -0.6000    17.9000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: mttr_min ===
 Direction: minimize
 
 Best observed run: #6
-  alert_threshold_severity = 5
+  alert_threshold_severity = 1
   escalation_delay_min = 15
-  auto_remediation_enabled = off
-  runbook_timeout_sec = 300
+  auto_remediation_enabled = on
+  runbook_timeout_sec = 30
   notification_channels = 1
   Value: 5.2
 
-RSM Model (linear, R² = 0.7490, Adj R² = 0.1215):
+RSM Model (linear, R² = 0.8774, Adj R² = 0.5709):
   Coefficients:
     intercept                      +32.9625
-    alert_threshold_severity       -11.0125
-    escalation_delay_min           +2.0875
-    auto_remediation_enabled       -0.0875
-    runbook_timeout_sec            -2.2375
-    notification_channels          +15.0375
+    alert_threshold_severity       +16.1625
+    escalation_delay_min           -9.8875
+    auto_remediation_enabled       +2.0875
+    runbook_timeout_sec            -0.0875
+    notification_channels          +7.3875
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
+    alert_threshold_severity = 5
+    escalation_delay_min = 1
+    auto_remediation_enabled = on
+    runbook_timeout_sec = 30
+    notification_channels = 5
+    Predicted value: 68.5750
+
+  Surface optimum (via L-BFGS-B, linear model):
     alert_threshold_severity = 1
     escalation_delay_min = 15
     auto_remediation_enabled = off
-    runbook_timeout_sec = 30
-    notification_channels = 5
-    Predicted value: 63.4250
+    runbook_timeout_sec = 300
+    notification_channels = 1
+    Predicted value: -2.6500
 
   Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. notification_channels  (effect: 30.1, contribution: 49.4%)
-  2. alert_threshold_severity  (effect: -22.0, contribution: 36.2%)
-  3. runbook_timeout_sec  (effect: -4.5, contribution: 7.3%)
-  4. escalation_delay_min  (effect: 4.2, contribution: 6.9%)
-  5. auto_remediation_enabled  (effect: -0.2, contribution: 0.3%)
+  1. alert_threshold_severity  (effect: 32.3, contribution: 45.4%)
+  2. escalation_delay_min  (effect: -19.8, contribution: 27.8%)
+  3. notification_channels  (effect: 14.8, contribution: 20.7%)
+  4. auto_remediation_enabled  (effect: 4.2, contribution: 5.9%)
+  5. runbook_timeout_sec  (effect: -0.2, contribution: 0.2%)
 
 === Optimization: false_escalation_pct ===
 Direction: minimize
 
 Best observed run: #2
-  alert_threshold_severity = 1
-  escalation_delay_min = 1
-  auto_remediation_enabled = on
+  alert_threshold_severity = 5
+  escalation_delay_min = 15
+  auto_remediation_enabled = off
   runbook_timeout_sec = 300
   notification_channels = 1
   Value: -0.6
 
-RSM Model (linear, R² = 0.1324, Adj R² = -2.0365):
+RSM Model (linear, R² = 0.3323, Adj R² = -1.3368):
   Coefficients:
     intercept                      +10.1875
-    alert_threshold_severity       +1.6375
-    escalation_delay_min           +1.3375
-    auto_remediation_enabled       +0.1375
-    runbook_timeout_sec            -0.2125
-    notification_channels          +0.0375
+    alert_threshold_severity       -2.7375
+    escalation_delay_min           -1.1375
+    auto_remediation_enabled       +1.3375
+    runbook_timeout_sec            +0.1375
+    notification_channels          -0.8875
 
-  Predicted optimum (from linear model):
-    alert_threshold_severity = 5
-    escalation_delay_min = 15
+  Predicted optimum (from linear model, at observed points):
+    alert_threshold_severity = 1
+    escalation_delay_min = 1
     auto_remediation_enabled = on
     runbook_timeout_sec = 300
+    notification_channels = 1
+    Predicted value: 16.4250
+
+  Surface optimum (via L-BFGS-B, linear model):
+    alert_threshold_severity = 5
+    escalation_delay_min = 15
+    auto_remediation_enabled = off
+    runbook_timeout_sec = 30
     notification_channels = 5
-    Predicted value: 13.1250
+    Predicted value: 3.9500
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. alert_threshold_severity  (effect: 3.3, contribution: 48.7%)
-  2. escalation_delay_min  (effect: 2.7, contribution: 39.8%)
-  3. runbook_timeout_sec  (effect: -0.4, contribution: 6.3%)
-  4. auto_remediation_enabled  (effect: 0.3, contribution: 4.1%)
-  5. notification_channels  (effect: 0.1, contribution: 1.1%)</div></div>
+  1. alert_threshold_severity  (effect: -5.5, contribution: 43.9%)
+  2. auto_remediation_enabled  (effect: 2.7, contribution: 21.4%)
+  3. escalation_delay_min  (effect: -2.3, contribution: 18.2%)
+  4. notification_channels  (effect: -1.8, contribution: 14.2%)
+  5. runbook_timeout_sec  (effect: 0.3, contribution: 2.2%)</div></div>
   </section>
 
   <!-- Nav -->

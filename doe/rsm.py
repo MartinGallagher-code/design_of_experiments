@@ -5,7 +5,17 @@ from itertools import combinations
 
 import numpy as np
 
-from .models import DesignMatrix, DOEConfig, ExperimentRun
+from .models import DesignMatrix, DOEConfig, ExperimentRun, Factor
+
+
+@dataclass
+class ModelDiagnostics:
+    residuals: list[float]
+    fitted_values: list[float]
+    hat_matrix_diag: list[float]  # leverage values
+    press: float  # PRESS statistic
+    predicted_r_squared: float
+    run_ids: list[int] = field(default_factory=list)
 
 
 @dataclass
@@ -16,6 +26,7 @@ class RSMModel:
     adj_r_squared: float
     predicted_optimum: dict[str, str]  # factor_name -> level_value
     predicted_value: float
+    diagnostics: ModelDiagnostics | None = None
 
 
 def _encode_factor_value(value: str, factor) -> float:
@@ -154,6 +165,30 @@ def fit_rsm(
     predicted_optimum = {fname: best_run.factor_values[fname] for fname in factor_names}
     predicted_value = float(y_pred[best_idx])
 
+    # Model diagnostics: hat matrix, leverage, PRESS
+    diagnostics = None
+    try:
+        XtX_inv = np.linalg.pinv(X.T @ X)
+        H = X @ XtX_inv @ X.T
+        h_diag = np.diag(H)
+        resid = y - y_pred
+
+        # PRESS: leave-one-out via algebraic shortcut
+        press_residuals = resid / (1.0 - h_diag + 1e-12)
+        press = float(np.sum(press_residuals ** 2))
+        predicted_r_squared = 1.0 - press / ss_tot if ss_tot > 0 else 0.0
+
+        diagnostics = ModelDiagnostics(
+            residuals=[float(r) for r in resid],
+            fitted_values=[float(f) for f in y_pred],
+            hat_matrix_diag=[float(h) for h in h_diag],
+            press=press,
+            predicted_r_squared=predicted_r_squared,
+            run_ids=[r.run_id for r in valid_runs],
+        )
+    except Exception:
+        pass  # graceful fallback if diagnostics fail
+
     return RSMModel(
         response_name="",
         coefficients=coefficients,
@@ -161,4 +196,145 @@ def fit_rsm(
         adj_r_squared=adj_r_squared,
         predicted_optimum=predicted_optimum,
         predicted_value=predicted_value,
+        diagnostics=diagnostics,
     )
+
+
+def optimize_surface(
+    model: RSMModel,
+    factor_names: list[str],
+    factors: list,
+    direction: str = "maximize",
+    n_restarts: int = 10,
+) -> dict:
+    """Find the true optimum of a fitted RSM surface using scipy.optimize.
+
+    Uses L-BFGS-B with multiple random restarts to avoid local optima.
+    Operates in coded space [-1, 1] then decodes to natural units.
+
+    Returns dict with 'optimal_settings', 'predicted_value', 'converged'.
+    """
+    from scipy.optimize import minimize as scipy_minimize
+
+    coefs = model.coefficients
+    n_factors = len(factor_names)
+
+    def predict_coded(x_coded):
+        """Evaluate the polynomial at coded values."""
+        val = coefs.get("intercept", 0.0)
+        for i, fname in enumerate(factor_names):
+            val += coefs.get(fname, 0.0) * x_coded[i]
+        for i in range(n_factors):
+            for j in range(i + 1, n_factors):
+                key = f"{factor_names[i]}*{factor_names[j]}"
+                val += coefs.get(key, 0.0) * x_coded[i] * x_coded[j]
+            key = f"{factor_names[i]}^2"
+            val += coefs.get(key, 0.0) * x_coded[i] ** 2
+        return val
+
+    def objective(x_coded):
+        val = predict_coded(x_coded)
+        return -val if direction == "maximize" else val
+
+    bounds = [(-1.0, 1.0)] * n_factors
+    rng = np.random.default_rng(42)
+
+    best_result = None
+    best_obj = float('inf')
+
+    for _ in range(n_restarts):
+        x0 = rng.uniform(-1, 1, size=n_factors)
+        try:
+            result = scipy_minimize(objective, x0, method="L-BFGS-B", bounds=bounds)
+            if result.fun < best_obj:
+                best_obj = result.fun
+                best_result = result
+        except Exception:
+            continue
+
+    if best_result is None:
+        return {"optimal_settings": {}, "predicted_value": 0.0, "converged": False}
+
+    # Decode coded values back to natural units
+    factor_map = {f.name: f for f in factors}
+    optimal_settings = {}
+    for i, fname in enumerate(factor_names):
+        factor = factor_map[fname]
+        coded_val = best_result.x[i]
+        if factor.type in ("continuous", "ordinal"):
+            try:
+                low = float(factor.levels[0])
+                high = float(factor.levels[1])
+                center = (low + high) / 2.0
+                half_range = (high - low) / 2.0
+                optimal_settings[fname] = f"{center + coded_val * half_range:.6g}"
+            except ValueError:
+                optimal_settings[fname] = f"{coded_val:.4f}"
+        else:
+            optimal_settings[fname] = factor.levels[1] if coded_val > 0 else factor.levels[0]
+
+    predicted_value = predict_coded(best_result.x)
+
+    return {
+        "optimal_settings": optimal_settings,
+        "predicted_value": float(predicted_value),
+        "converged": bool(best_result.success),
+    }
+
+
+def steepest_ascent(
+    model: RSMModel,
+    factor_names: list[str],
+    factors: list,
+    direction: str = "maximize",
+    n_steps: int = 10,
+) -> list[dict]:
+    """Generate a steepest ascent/descent pathway from a linear RSM model.
+
+    The gradient in coded space is the vector of linear coefficients.
+    Returns a list of dicts, each with factor settings at that step.
+    """
+    coefs = model.coefficients
+    factor_map = {f.name: f for f in factors}
+
+    # Gradient = linear coefficients
+    gradient = np.array([coefs.get(fname, 0.0) for fname in factor_names])
+    if direction == "minimize":
+        gradient = -gradient
+
+    # Normalize so the largest step equals 1 coded unit
+    max_grad = np.max(np.abs(gradient))
+    if max_grad == 0:
+        return []
+    step_vector = gradient / max_grad
+
+    pathway = []
+    for step in range(n_steps + 1):
+        coded_point = step_vector * step * 0.5  # 0.5 coded units per step
+        settings = {}
+        predicted = coefs.get("intercept", 0.0)
+        for i, fname in enumerate(factor_names):
+            factor = factor_map[fname]
+            coded_val = coded_point[i]
+            predicted += coefs.get(fname, 0.0) * coded_val
+
+            # Decode to natural units
+            if factor.type in ("continuous", "ordinal"):
+                try:
+                    low = float(factor.levels[0])
+                    high = float(factor.levels[1])
+                    center = (low + high) / 2.0
+                    half_range = (high - low) / 2.0
+                    settings[fname] = f"{center + coded_val * half_range:.6g}"
+                except ValueError:
+                    settings[fname] = f"{coded_val:.4f}"
+            else:
+                settings[fname] = factor.levels[1] if coded_val > 0 else factor.levels[0]
+
+        pathway.append({
+            "step": step,
+            "settings": settings,
+            "predicted_value": float(predicted),
+        })
+
+    return pathway

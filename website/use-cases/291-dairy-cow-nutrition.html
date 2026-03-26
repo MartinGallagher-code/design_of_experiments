@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>milk kg day</strong>, the most influential factors were protein pct (85.1%), energy mcal (8.2%), forage pct (6.7%). The best observed value was <strong>35.2</strong> (at forage pct = 55, protein pct = 17, energy mcal = 1.65).</p>
-<p>For <strong>feed cost day</strong>, the most influential factors were protein pct (74.2%), energy mcal (16.7%), forage pct (9.1%). The best observed value was <strong>5.03</strong> (at forage pct = 70, protein pct = 14, energy mcal = 1.65).</p>
+    <p>For <strong>milk kg day</strong>, the most influential factors were energy mcal (41.4%), protein pct (37.3%), forage pct (21.3%). The best observed value was <strong>35.2</strong> (at forage pct = 40, protein pct = 14, energy mcal = 1.65).</p>
+<p>For <strong>feed cost day</strong>, the most influential factors were protein pct (36.2%), forage pct (34.0%), energy mcal (29.7%). The best observed value was <strong>5.03</strong> (at forage pct = 70, protein pct = 14, energy mcal = 1.65).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (milk_kg_day (↑), feed_cost_day (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/291_dairy_cow_nutrition/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -264,48 +264,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/291_dairy_cow_nutrition/config.json \
     <span class="flag">--output</span> use_cases/291_dairy_cow_nutrition/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Farm &amp; Livestock Experiment? Use the Manual Workflow</h4>
-        <p>Livestock experiments involve real animals, feed, facilities, and biological responses that can't be simulated. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/291_dairy_cow_nutrition/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/291_dairy_cow_nutrition/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/291_dairy_cow_nutrition/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/291_dairy_cow_nutrition/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/291_dairy_cow_nutrition/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/291_dairy_cow_nutrition/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/291_dairy_cow_nutrition/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -337,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: milk_kg_day</h3>
-    <p>Top factors: protein_pct (85.1%), energy_mcal (8.2%), forage_pct (6.7%).</p>
+    <p>Top factors: energy_mcal (41.4%), protein_pct (37.3%), forage_pct (21.3%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -350,7 +308,7 @@
     </div>
 
     <h3>Response: feed_cost_day</h3>
-    <p>Top factors: protein_pct (74.2%), energy_mcal (16.7%), forage_pct (9.1%).</p>
+    <p>Top factors: protein_pct (36.2%), forage_pct (34.0%), energy_mcal (29.7%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -401,131 +359,277 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.6190</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>milk_kg_day</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:70.56%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7056</span>
+                </div>
+              </td>
+              <td>30.60 0.7056       30.60 kg/day</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>feed_cost_day</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:50.849999999999994%;height:100%;background:#f97316;border-radius:4px;"></div>
+                  </div>
+                  <span>0.5085</span>
+                </div>
+              </td>
+              <td>8.16 0.5085        8.16 USD/day</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>forage_pct</code></td><td>40 %</td></tr>
+            <tr><td><code>protein_pct</code></td><td>14 %CP</td></tr>
+            <tr><td><code>energy_mcal</code></td><td>1.65 Mcal/kg</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #2</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>feed_cost_day</code></td><td>8.16</td><td>5.03</td><td><span style="color:#dc2626;">+3.13</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#13</td><td><strong>0.5936</strong></td><td style="font-size:.78rem;">forage_pct=55,  protein_pct=14,  energy_mcal=1.5</td></tr>
+            <tr><td>#5</td><td><strong>0.5690</strong></td><td style="font-size:.78rem;">forage_pct=70,  protein_pct=17,  energy_mcal=1.8</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>feed_cost_day</code></td><td style="color:#ca8a04;font-weight:600;">0.6100</td><td>quadratic</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.6190
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+milk_kg_day                  1.5       0.7056       30.60 kg/day   ↑
+feed_cost_day                1.0       0.5085        8.16 USD/day   ↓
+
+Recommended settings:
+  forage_pct = 40 %
+  protein_pct = 14 %CP
+  energy_mcal = 1.65 Mcal/kg
+  (from observed run #2)
+
+Trade-off summary:
+  milk_kg_day: 30.60 (best observed: 35.20, sacrifice: +4.60)
+  feed_cost_day: 8.16 (best observed: 5.03, sacrifice: +3.13)
+
+Model quality:
+  milk_kg_day: R² = 0.6849 (quadratic)
+  feed_cost_day: R² = 0.6100 (quadratic)
+
+Top 3 observed runs by overall desirability:
+  1. Run #2 (D=0.6190): forage_pct=40, protein_pct=14, energy_mcal=1.65
+  2. Run #13 (D=0.5936): forage_pct=55, protein_pct=14, energy_mcal=1.5
+  3. Run #5 (D=0.5690): forage_pct=70, protein_pct=17, energy_mcal=1.8</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_milk_kg_day_forage_pct_vs_protein_pct.png
-  RSM surface: rsm_milk_kg_day_forage_pct_vs_energy_mcal.png
-  RSM surface: rsm_milk_kg_day_protein_pct_vs_energy_mcal.png
-  RSM surface: rsm_feed_cost_day_forage_pct_vs_protein_pct.png
-  RSM surface: rsm_feed_cost_day_forage_pct_vs_energy_mcal.png
-  RSM surface: rsm_feed_cost_day_protein_pct_vs_energy_mcal.png
-
-=== Main Effects: milk_kg_day ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: milk_kg_day ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-protein_pct             10.1500       1.2333            85.1%
-energy_mcal              0.9821       1.2333             8.2%
-forage_pct               0.8000       1.2333             6.7%
+energy_mcal              5.3000       1.2333            41.4%
+protein_pct              4.7750       1.2333            37.3%
+forage_pct               2.7214       1.2333            21.3%
+
+=== ANOVA Table: milk_kg_day ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+forage_pct                   2      19.7175       9.8588      7.951     0.0126
+protein_pct                  2      54.3447      27.1723     21.913     0.0006
+energy_mcal                  2      59.2522      29.6261     23.892     0.0004
+Lack of Fit                  6     183.6149      30.6025     24.679     0.0394
+Pure Error                   2       2.4800       1.2400
+Error                        8     186.0949       1.2400
+Total                       14     319.4093      22.8150
 
 === Summary Statistics: milk_kg_day ===
 
 forage_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  40                  4    27.6250     6.4861    18.4000    33.4000
-  55                  7    28.0286     4.3870    22.3000    34.8000
-  70                  4    28.4250     5.0480    23.8000    35.2000
+  40                  4    26.1500     4.1356    22.3000    30.3000
+  55                  7    28.8714     5.7668    18.4000    35.2000
+  70                  4    28.4250     4.0352    23.8000    33.4000
 
 protein_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  14                  4    23.0500     3.5875    18.4000    27.1000
-  17                  7    27.9143     2.9874    22.3000    30.6000
-  20                  4    33.2000     2.6483    29.4000    35.2000
+  14                  4    29.7000     3.8341    25.5000    34.8000
+  17                  7    28.8429     3.2827    22.9000    33.4000
+  20                  4    24.9250     7.2182    18.4000    35.2000
 
 energy_mcal:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1.5                 4    28.5250     1.0436    27.1000    29.4000
-  1.65                7    27.5429     6.1887    18.4000    35.2000
-  1.8                 4    28.3750     5.2671    22.9000    34.8000
+  1.5                 4    31.1000     4.2466    25.5000    35.2000
+  1.65                7    27.5429     3.1675    22.3000    30.6000
+  1.8                 4    25.8000     6.9728    18.4000    34.8000
 
 === Main Effects: feed_cost_day ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-protein_pct              3.7350       0.4937            74.2%
-energy_mcal              0.8393       0.4937            16.7%
-forage_pct               0.4579       0.4937             9.1%
+protein_pct              1.8625       0.4937            36.2%
+forage_pct               1.7493       0.4937            34.0%
+energy_mcal              1.5275       0.4937            29.7%
+
+=== ANOVA Table: feed_cost_day ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+forage_pct                   2       8.1838       4.0919      9.673     0.0073
+protein_pct                  2       7.5389       3.7694      8.911     0.0092
+energy_mcal                  2       6.7996       3.3998      8.037     0.0122
+Lack of Fit                  6      27.8248       4.6375     10.962     0.0859
+Pure Error                   2       0.8461       0.4230
+Error                        8      28.6708       0.4230
+Total                       14      51.1932       3.6567
 
 === Summary Statistics: feed_cost_day ===
 
 forage_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  40                  4     8.2300     2.1808     5.1200    10.0500
-  55                  7     8.0171     2.0064     5.0300    11.4100
-  70                  4     8.4750     2.0191     6.8000    11.3600
+  40                  4     6.9850     1.6320     5.0300     8.4000
+  55                  7     8.7343     2.2245     5.1200    11.4100
+  70                  4     8.4650     1.3329     6.8000    10.0500
 
 protein_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  14                  4     6.6325     1.3474     5.1200     8.3600
-  17                  7     7.8486     1.3626     5.0300     9.3500
-  20                  4    10.3675     1.3067     8.6500    11.4100
+  14                  4     8.9400     1.7221     7.4400    11.4100
+  17                  7     8.4100     1.1773     6.2500    10.0500
+  20                  4     7.0775     2.9688     5.0300    11.3600
 
 energy_mcal:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1.5                 4     8.6650     0.4816     8.3000     9.3500
-  1.65                7     7.8257     2.3780     5.0300    11.3600
-  1.8                 4     8.3750     2.2062     6.2500    11.4100
-
-Pareto chart (milk_kg_day): use_cases/291_dairy_cow_nutrition/results/analysis/pareto_milk_kg_day.png
-
-Pareto chart (feed_cost_day): use_cases/291_dairy_cow_nutrition/results/analysis/pareto_feed_cost_day.png
-Main effects (milk_kg_day): use_cases/291_dairy_cow_nutrition/results/analysis/main_effects_milk_kg_day.png
-Main effects (feed_cost_day): use_cases/291_dairy_cow_nutrition/results/analysis/main_effects_feed_cost_day.png</div></div>
+  1.5                 4     9.3125     1.7393     7.4400    11.3600
+  1.65                7     7.7929     1.4369     5.0300     9.3500
+  1.8                 4     7.7850     2.7646     5.1200    11.4100</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: milk_kg_day ===
 Direction: maximize
 
 Best observed run: #12
-  forage_pct = 55
-  protein_pct = 17
+  forage_pct = 40
+  protein_pct = 14
   energy_mcal = 1.65
   Value: 35.2
 
-RSM Model (linear, R² = 0.2869, Adj R² = 0.0924):
+RSM Model (linear, R² = 0.2480, Adj R² = 0.0429):
   Coefficients:
     intercept                      +28.0267
-    forage_pct                     -1.0500
-    protein_pct                    +2.2750
-    energy_mcal                    -2.2750
+    forage_pct                     -3.1250
+    protein_pct                    +0.3250
+    energy_mcal                    -0.1750
 
-RSM Model (quadratic, R² = 0.6670, Adj R² = 0.0677):
+RSM Model (quadratic, R² = 0.3189, Adj R² = -0.9071):
   Coefficients:
-    intercept                      +31.6667
-    forage_pct                     -1.0500
-    protein_pct                    +2.2750
-    energy_mcal                    -2.2750
-    forage_pct*protein_pct         -0.2500
-    forage_pct*energy_mcal         -0.6000
-    protein_pct*energy_mcal        +0.0000
-    forage_pct^2                   -1.7583
-    protein_pct^2                  -5.4583
-    energy_mcal^2                  +0.3917
+    intercept                      +29.4333
+    forage_pct                     -3.1250
+    protein_pct                    +0.3250
+    energy_mcal                    -0.1750
+    forage_pct*protein_pct         -0.5250
+    forage_pct*energy_mcal         -0.8750
+    protein_pct*energy_mcal        +0.2250
+    forage_pct^2                   +0.0708
+    protein_pct^2                  -2.1792
+    energy_mcal^2                  -0.5292
 
   Curvature analysis:
-    protein_pct                    coef=-5.4583  concave (has a maximum)
-    forage_pct                     coef=-1.7583  concave (has a maximum)
-    energy_mcal                    coef=+0.3917  convex (has a minimum)
+    protein_pct                    coef=-2.1792  concave (has a maximum)
+    energy_mcal                    coef=-0.5292  concave (has a maximum)
+    forage_pct                     coef=+0.0708  negligible curvature
 
   Notable interactions:
-    forage_pct*energy_mcal         coef=-0.6000  (antagonistic)
+    forage_pct*energy_mcal         coef=-0.8750  (antagonistic)
+    forage_pct*protein_pct         coef=-0.5250  (antagonistic)
 
-  Predicted optimum (from linear model):
-    forage_pct = 55
+  Predicted optimum (from linear model, at observed points):
+    forage_pct = 40
+    protein_pct = 20
+    energy_mcal = 1.65
+    Predicted value: 31.4767
+
+  Surface optimum (via L-BFGS-B, linear model):
+    forage_pct = 40
     protein_pct = 20
     energy_mcal = 1.5
-    Predicted value: 32.5767
+    Predicted value: 31.6517
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. protein_pct  (effect: 7.6, contribution: 52.2%)
-  2. energy_mcal  (effect: 4.5, contribution: 31.1%)
-  3. forage_pct  (effect: 2.4, contribution: 16.7%)
+  1. forage_pct  (effect: 6.2, contribution: 67.4%)
+  2. protein_pct  (effect: 2.5, contribution: 26.6%)
+  3. energy_mcal  (effect: 0.6, contribution: 6.0%)
 
 === Optimization: feed_cost_day ===
 Direction: minimize
@@ -536,46 +640,53 @@ Best observed run: #1
   energy_mcal = 1.65
   Value: 5.03
 
-RSM Model (linear, R² = 0.3580, Adj R² = 0.1829):
+RSM Model (linear, R² = 0.3416, Adj R² = 0.1620):
   Coefficients:
     intercept                      +8.1960
-    forage_pct                     -0.3725
-    protein_pct                    +1.1200
-    energy_mcal                    -0.9475
+    forage_pct                     -1.4513
+    protein_pct                    +0.2738
+    energy_mcal                    +0.0700
 
-RSM Model (quadratic, R² = 0.6833, Adj R² = 0.1132):
+RSM Model (quadratic, R² = 0.3910, Adj R² = -0.7053):
   Coefficients:
-    intercept                      +9.2733
-    forage_pct                     -0.3725
-    protein_pct                    +1.1200
-    energy_mcal                    -0.9475
-    forage_pct*protein_pct         +0.0750
-    forage_pct*energy_mcal         -0.6850
-    protein_pct*energy_mcal        -0.2700
-    forage_pct^2                   -0.7417
-    protein_pct^2                  -1.7617
-    energy_mcal^2                  +0.4833
+    intercept                      +8.6067
+    forage_pct                     -1.4513
+    protein_pct                    +0.2738
+    energy_mcal                    +0.0700
+    forage_pct*protein_pct         +0.3500
+    forage_pct*energy_mcal         -0.1075
+    protein_pct*energy_mcal        +0.4225
+    forage_pct^2                   -0.1358
+    protein_pct^2                  -0.5808
+    energy_mcal^2                  -0.0533
 
   Curvature analysis:
-    protein_pct                    coef=-1.7617  concave (has a maximum)
-    forage_pct                     coef=-0.7417  concave (has a maximum)
-    energy_mcal                    coef=+0.4833  convex (has a minimum)
+    protein_pct                    coef=-0.5808  concave (has a maximum)
+    forage_pct                     coef=-0.1358  concave (has a maximum)
+    energy_mcal                    coef=-0.0533  negligible curvature
 
   Notable interactions:
-    forage_pct*energy_mcal         coef=-0.6850  (antagonistic)
+    protein_pct*energy_mcal        coef=+0.4225  (synergistic)
+    forage_pct*protein_pct         coef=+0.3500  (synergistic)
 
-  Predicted optimum (from linear model):
-    forage_pct = 55
+  Predicted optimum (from linear model, at observed points):
+    forage_pct = 40
     protein_pct = 20
+    energy_mcal = 1.65
+    Predicted value: 9.9210
+
+  Surface optimum (via L-BFGS-B, linear model):
+    forage_pct = 70
+    protein_pct = 14
     energy_mcal = 1.5
-    Predicted value: 10.2635
+    Predicted value: 6.4010
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. protein_pct  (effect: 2.9, contribution: 49.5%)
-  2. energy_mcal  (effect: 1.9, contribution: 32.8%)
-  3. forage_pct  (effect: 1.0, contribution: 17.7%)</div></div>
+  1. forage_pct  (effect: 2.9, contribution: 74.7%)
+  2. protein_pct  (effect: 0.8, contribution: 21.7%)
+  3. energy_mcal  (effect: 0.1, contribution: 3.6%)</div></div>
   </section>
 
   <!-- Nav -->

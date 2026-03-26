@@ -45,6 +45,7 @@ def main():
     opt.add_argument("--response", default=None, help="Optimize for a specific response (default: all)")
     opt.add_argument("--partial", action="store_true", help="Analyze only completed runs, skipping missing results")
     opt.add_argument("--multi", action="store_true", help="Multi-objective optimization using desirability functions")
+    opt.add_argument("--steepest", action="store_true", help="Show steepest ascent/descent pathway")
 
     # --- report ---
     rep = subparsers.add_parser("report", help="Generate an interactive HTML report")
@@ -63,6 +64,24 @@ def main():
     sta = subparsers.add_parser("status", help="Show experiment progress")
     sta.add_argument("--config", required=True, metavar="FILE", help="Input JSON config file")
     sta.add_argument("--seed", type=int, default=42, help="Random seed for run order (default: 42)")
+
+    # --- power ---
+    pwr = subparsers.add_parser("power", help="Compute statistical power for each factor")
+    pwr.add_argument("--config", required=True, metavar="FILE", help="Input JSON config file")
+    pwr.add_argument("--sigma", type=float, default=None, help="Error standard deviation (estimated from results if omitted)")
+    pwr.add_argument("--delta", type=float, default=None, help="Minimum detectable effect size")
+    pwr.add_argument("--alpha", type=float, default=0.05, help="Significance level (default: 0.05)")
+    pwr.add_argument("--results-dir", default=None, help="Override out_directory from config")
+    pwr.add_argument("--partial", action="store_true", help="Analyze only completed runs")
+
+    # --- augment ---
+    aug = subparsers.add_parser("augment", help="Augment an existing design with additional runs")
+    aug.add_argument("--config", required=True, metavar="FILE", help="Input JSON config file")
+    aug.add_argument("--type", required=True, choices=["fold_over", "star_points", "center_points"],
+                     help="Type of augmentation")
+    aug.add_argument("--output", default="run_experiments_augmented.sh", help="Output script path")
+    aug.add_argument("--format", choices=["sh", "py"], default="sh", help="Script format")
+    aug.add_argument("--seed", type=int, default=None, help="Random seed for run order")
 
     # --- export-worksheet ---
     ew = subparsers.add_parser("export-worksheet", help="Export design as a printable worksheet")
@@ -100,11 +119,49 @@ def main():
         cfg = load_config(args.config, strict=False)
         matrix = generate_design(cfg)
         _print_matrix(matrix, cfg)
+        # Show design evaluation metrics
+        try:
+            from doe.design import evaluate_design
+            metrics = evaluate_design(matrix, cfg)
+            if metrics:
+                print("\nDesign Evaluation Metrics:")
+                print(f"  D-efficiency: {metrics.get('d_efficiency', 0):.1f}%")
+                print(f"  A-efficiency: {metrics.get('a_efficiency', 0):.4f}")
+                print(f"  G-efficiency: {metrics.get('g_efficiency', 0):.1f}%")
+        except Exception:
+            pass
 
     elif args.command == "optimize":
         cfg = load_config(args.config)
         matrix = generate_design(cfg)
-        if args.multi:
+        if args.steepest:
+            from doe.analysis import _load_all_results
+            from doe.rsm import fit_rsm, steepest_ascent as _steepest
+            results_dir = args.results_dir or cfg.out_directory or "results"
+            all_data = _load_all_results(matrix.runs, results_dir, partial=args.partial)
+            for resp in cfg.responses:
+                responses = {}
+                for run in matrix.runs:
+                    data = all_data.get(run.run_id, {})
+                    if resp.name in data:
+                        responses[run.run_id] = float(data[resp.name])
+                if not responses:
+                    continue
+                valid_runs = [r for r in matrix.runs if r.run_id in responses]
+                model = fit_rsm(valid_runs, responses, matrix.factor_names, cfg.factors, model_type="linear")
+                pathway = _steepest(model, matrix.factor_names, cfg.factors, direction=resp.optimize)
+                print(f"\n=== Steepest {'Ascent' if resp.optimize == 'maximize' else 'Descent'}: {resp.name} ===")
+                print(f"{'Step':<6}", end="")
+                for fname in matrix.factor_names:
+                    print(f"{fname:>14}", end="")
+                print(f"{'Predicted':>14}")
+                print("-" * (6 + 14 * (len(matrix.factor_names) + 1)))
+                for pt in pathway:
+                    print(f"{pt['step']:<6}", end="")
+                    for fname in matrix.factor_names:
+                        print(f"{pt['settings'][fname]:>14}", end="")
+                    print(f"{pt['predicted_value']:>14.4f}")
+        elif args.multi:
             from doe.optimize import multi_objective
             multi_objective(matrix, cfg, results_dir=args.results_dir, partial=args.partial)
         else:
@@ -126,6 +183,22 @@ def main():
         cfg = load_config(args.config)
         matrix = generate_design(cfg, seed=args.seed)
         _handle_status(matrix, cfg)
+
+    elif args.command == "power":
+        cfg = load_config(args.config)
+        matrix = generate_design(cfg)
+        _handle_power(matrix, cfg, args)
+
+    elif args.command == "augment":
+        cfg = load_config(args.config)
+        matrix = generate_design(cfg, seed=args.seed)
+        from doe.design import augment_design
+        augmented = augment_design(matrix, cfg, augment_type=args.type)
+        from doe.codegen import generate_script
+        generate_script(augmented, cfg, args.output, format=args.format)
+        n_new = augmented.metadata.get("n_augmented_runs", 0)
+        print(f"Augmented design: {len(matrix.runs)} original + {n_new} new = {len(augmented.runs)} total runs")
+        print(f"Generated -> {args.output}")
 
     elif args.command == "export-worksheet":
         cfg = load_config(args.config)
@@ -405,6 +478,88 @@ def _format_markdown_worksheet(columns, rows, matrix, cfg, multiple_blocks):
     return "\n".join(lines)
 
 
+def _handle_power(matrix, cfg, args):
+    """Compute and display statistical power for each factor."""
+    from scipy.stats import f as f_dist, ncf
+
+    n = len(matrix.runs)
+    n_factors = len(matrix.factor_names)
+
+    sigma = args.sigma
+    delta = args.delta
+    alpha = args.alpha
+
+    # If sigma not provided, try to estimate from results
+    if sigma is None:
+        try:
+            from doe.analysis import _load_all_results
+            from doe.rsm import fit_rsm
+            results_dir = args.results_dir or cfg.out_directory or "results"
+            all_data = _load_all_results(matrix.runs, results_dir, partial=args.partial)
+            # Use first response to estimate sigma from residuals
+            resp = cfg.responses[0]
+            responses = {}
+            for run in matrix.runs:
+                data = all_data.get(run.run_id, {})
+                if resp.name in data:
+                    responses[run.run_id] = float(data[resp.name])
+            if responses:
+                valid_runs = [r for r in matrix.runs if r.run_id in responses]
+                model = fit_rsm(valid_runs, responses, matrix.factor_names, cfg.factors, model_type="linear")
+                if model.diagnostics and model.diagnostics.residuals:
+                    import numpy as np
+                    sigma = float(np.std(model.diagnostics.residuals, ddof=1))
+                    print(f"Estimated sigma from residuals: {sigma:.4f}")
+        except Exception:
+            pass
+
+    if sigma is None:
+        print("Error: --sigma is required when no results are available for estimation.")
+        print("Usage: doe power --config FILE --sigma FLOAT [--delta FLOAT]")
+        return
+
+    if delta is None:
+        delta = 2 * sigma  # default: detect effect of 2 sigma
+
+    print(f"\nPower Analysis")
+    print(f"  Runs: {n}, Factors: {n_factors}")
+    print(f"  Sigma (error std): {sigma:.4f}")
+    print(f"  Delta (min detectable effect): {delta:.4f}")
+    print(f"  Alpha (significance level): {alpha}")
+    print()
+
+    # For each factor, compute power
+    # Identify factor levels
+    factor_level_counts = {}
+    for f in cfg.factors:
+        factor_level_counts[f.name] = len(f.levels)
+
+    # Approximate df_error
+    df_model = sum(factor_level_counts[f.name] - 1 for f in cfg.factors)
+    df_error = max(1, n - 1 - df_model)
+
+    f_crit = f_dist.ppf(1 - alpha, 1, df_error)
+
+    print(f"{'Factor':<25} {'Levels':>7} {'df':>4} {'Lambda':>10} {'Power':>10}")
+    print("-" * 60)
+
+    for factor in cfg.factors:
+        df_factor = len(factor.levels) - 1
+        # Non-centrality parameter: lambda = n * delta^2 / (4 * sigma^2)
+        # For balanced designs with r replicates per level:
+        r = n // len(factor.levels)  # approx replicates per level
+        ncp = r * (delta ** 2) / (sigma ** 2) if sigma > 0 else 0.0
+
+        # Power = P(F > F_crit | H1 true) = 1 - CDF of non-central F
+        power = 1.0 - ncf.cdf(f_crit, df_factor, df_error, ncp)
+
+        print(f"{factor.name:<25} {len(factor.levels):>7} {df_factor:>4} {ncp:>10.3f} {power:>10.3f}")
+
+    print()
+    if any(1.0 - ncf.cdf(f_crit, 1, df_error, n // 2 * delta ** 2 / sigma ** 2) < 0.8 for f in cfg.factors):
+        print("  Note: Power < 0.80 for some factors. Consider adding more runs or blocks.")
+
+
 def _print_matrix(matrix, cfg=None):
     if cfg and cfg.metadata.get("name"):
         print(f"Plan      : {cfg.metadata['name']}")
@@ -424,6 +579,10 @@ def _print_matrix(matrix, cfg=None):
     if cfg and cfg.fixed_factors:
         ff_str = ", ".join(f"{k}={v}" for k, v in cfg.fixed_factors.items())
         print(f"Fixed     : {ff_str}")
+    if matrix.metadata.get("alias_structure"):
+        print(f"\nAlias Structure:")
+        for alias in matrix.metadata["alias_structure"]:
+            print(f"  {alias}")
     print()
 
     cols = ["run_id", "block_id"] + matrix.factor_names
@@ -444,6 +603,32 @@ def _print_report(report):
         print("-" * 62)
         for e in analysis.effects:
             print(f"{e.factor_name:<20} {e.main_effect:>10.4f} {e.std_error:>12.4f} {e.pct_contribution:>15.1f}%")
+
+        if analysis.anova_table:
+            anova = analysis.anova_table
+            print(f"\n=== ANOVA Table: {resp_name} ===")
+            print(f"{'Source':<25} {'DF':>4} {'SS':>12} {'MS':>12} {'F':>10} {'p-value':>10}")
+            print("-" * 77)
+            for row in anova.rows:
+                f_str = f"{row.f_value:.3f}" if row.f_value is not None else ""
+                p_str = f"{row.p_value:.4f}" if row.p_value is not None else ""
+                print(f"{row.source:<25} {row.df:>4} {row.ss:>12.4f} {row.ms:>12.4f} {f_str:>10} {p_str:>10}")
+            if anova.lack_of_fit_row:
+                lof = anova.lack_of_fit_row
+                f_str = f"{lof.f_value:.3f}" if lof.f_value is not None else ""
+                p_str = f"{lof.p_value:.4f}" if lof.p_value is not None else ""
+                print(f"{lof.source:<25} {lof.df:>4} {lof.ss:>12.4f} {lof.ms:>12.4f} {f_str:>10} {p_str:>10}")
+            if anova.pure_error_row:
+                pe = anova.pure_error_row
+                print(f"{pe.source:<25} {pe.df:>4} {pe.ss:>12.4f} {pe.ms:>12.4f}")
+            if anova.error_row:
+                err = anova.error_row
+                print(f"{err.source:<25} {err.df:>4} {err.ss:>12.4f} {err.ms:>12.4f}")
+            if anova.total_row:
+                tot = anova.total_row
+                print(f"{tot.source:<25} {tot.df:>4} {tot.ss:>12.4f} {tot.ms:>12.4f}")
+            if anova.error_method == "lenth":
+                print("  Note: Error estimated using Lenth's pseudo-standard-error (unreplicated design)")
 
         if analysis.interactions:
             print(f"\n=== Interaction Effects: {resp_name} ===")

@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>hit ratio</strong>, the most influential factors were cache policy (43.0%), cache size gb (38.1%), prefetch (17.7%). The best observed value was <strong>99.0</strong> (at ttl hours = 24, cache policy = lfu, cache size gb = 200).</p>
-<p>For <strong>origin bandwidth</strong>, the most influential factors were cache policy (36.7%), cache size gb (35.3%), prefetch (14.9%). The best observed value was <strong>0.98</strong> (at ttl hours = 24, cache policy = lfu, cache size gb = 200).</p>
+    <p>For <strong>hit ratio</strong>, the most influential factors were cache size gb (49.1%), ttl hours (21.8%), prefetch (20.9%). The best observed value was <strong>99.0</strong> (at ttl hours = 24, cache policy = lru, cache size gb = 200).</p>
+<p>For <strong>origin bandwidth</strong>, the most influential factors were cache size gb (44.9%), prefetch (25.0%), ttl hours (21.5%). The best observed value was <strong>0.98</strong> (at ttl hours = 24, cache policy = lru, cache size gb = 200).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -253,12 +252,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (hit_ratio (↑), origin_bandwidth (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/29_cdn_cache_optimization/config.json <span class="flag">--multi</span></div>
         </div>
@@ -266,7 +266,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -305,7 +305,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: hit_ratio</h3>
-    <p>Top factors: cache_policy (43.0%), cache_size_gb (38.1%), prefetch (17.7%).</p>
+    <p>Top factors: cache_size_gb (49.1%), ttl_hours (21.8%), prefetch (20.9%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -318,7 +318,7 @@
     </div>
 
     <h3>Response: origin_bandwidth</h3>
-    <p>Top factors: cache_policy (36.7%), cache_size_gb (35.3%), prefetch (14.9%).</p>
+    <p>Top factors: cache_size_gb (44.9%), prefetch (25.0%), ttl_hours (21.5%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -349,95 +349,259 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9545</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>hit_ratio</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>99.00 0.9545       99.00 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>origin_bandwidth</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>0.98 0.9545        0.98 Gbps</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>ttl_hours</code></td><td>1 h</td></tr>
+            <tr><td><code>cache_policy</code></td><td>lru</td></tr>
+            <tr><td><code>cache_size_gb</code></td><td>200 GB</td></tr>
+            <tr><td><code>prefetch</code></td><td>on</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #12</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>origin_bandwidth</code></td><td>0.98</td><td>0.98</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#14</td><td><strong>0.8538</strong></td><td style="font-size:.78rem;">ttl_hours=24,  cache_policy=lfu,  cache_size_gb=50,  prefetch=off</td></tr>
+            <tr><td>#5</td><td><strong>0.7953</strong></td><td style="font-size:.78rem;">ttl_hours=1,  cache_policy=lfu,  cache_size_gb=50,  prefetch=off</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>origin_bandwidth</code></td><td style="color:#dc2626;font-weight:600;">0.0428</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9545
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+hit_ratio                    1.0       0.9545       99.00 %   ↑
+origin_bandwidth             1.5       0.9545        0.98 Gbps   ↓
+
+Recommended settings:
+  ttl_hours = 1 h
+  cache_policy = lru
+  cache_size_gb = 200 GB
+  prefetch = on
+  (from observed run #12)
+
+Trade-off summary:
+  hit_ratio: 99.00 (best observed: 99.00, sacrifice: +0.00)
+  origin_bandwidth: 0.98 (best observed: 0.98, sacrifice: +0.00)
+
+Model quality:
+  hit_ratio: R² = 0.9234 (quadratic)
+  origin_bandwidth: R² = 0.0428 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #12 (D=0.9545): ttl_hours=1, cache_policy=lru, cache_size_gb=200, prefetch=on
+  2. Run #14 (D=0.8538): ttl_hours=24, cache_policy=lfu, cache_size_gb=50, prefetch=off
+  3. Run #5 (D=0.7953): ttl_hours=1, cache_policy=lfu, cache_size_gb=50, prefetch=off</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: hit_ratio ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-cache_policy            -5.4875       3.6502            43.0%
-cache_size_gb            4.8625       3.6502            38.1%
-prefetch                 2.2625       3.6502            17.7%
-ttl_hours               -0.1625       3.6502             1.3%
+cache_size_gb          -14.4125       3.6502            49.1%
+ttl_hours                6.4125       3.6502            21.8%
+prefetch                -6.1375       3.6502            20.9%
+cache_policy             2.4125       3.6502             8.2%
+
+=== ANOVA Table: hit_ratio ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+ttl_hours                    1     164.4806     164.4806      0.799     0.4122
+cache_policy                 1      23.2806      23.2806      0.113     0.7502
+cache_size_gb                1     830.8806     830.8806      4.038     0.1007
+prefetch                     1     150.6756     150.6756      0.732     0.4312
+ttl_hours*cache_policy       1     123.7656     123.7656      0.602     0.4731
+ttl_hours*cache_size_gb      1      34.5156      34.5156      0.168     0.6991
+ttl_hours*prefetch           1      23.7656      23.7656      0.116     0.7478
+cache_policy*cache_size_gb    1     124.8806     124.8806      0.607     0.4712
+cache_policy*prefetch        1     685.1306     685.1306      3.330     0.1276
+cache_size_gb*prefetch       1       7.7006       7.7006      0.037     0.8542
+Error                        5    1028.7381     205.7476
+Total                       15    3197.8144     213.1876
 
 === Interaction Effects: hit_ratio ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-cache_size_gb        prefetch                  19.0125            48.2%
-cache_policy         cache_size_gb            -11.0375            28.0%
-ttl_hours            prefetch                  -5.4125            13.7%
-ttl_hours            cache_size_gb             -2.6125             6.6%
-ttl_hours            cache_policy               1.2375             3.1%
-cache_policy         prefetch                  -0.1375             0.3%
+cache_policy         prefetch                 -13.0875            42.2%
+cache_policy         cache_size_gb              5.5875            18.0%
+ttl_hours            cache_policy               5.5625            17.9%
+ttl_hours            cache_size_gb              2.9375             9.5%
+ttl_hours            prefetch                  -2.4375             7.9%
+cache_size_gb        prefetch                   1.3875             4.5%
 
 === Summary Statistics: hit_ratio ===
 
 ttl_hours:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   8    70.3125    15.0951    55.8000    99.0000
-  24                  8    70.1500    15.1312    47.9000    89.6000
+  1                   8    67.0250    18.1055    47.9000    99.0000
+  24                  8    73.4375    10.2724    60.1000    86.4000
 
 cache_policy:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  lfu                 8    72.9750    16.7808    53.3000    99.0000
-  lru                 8    67.4875    12.5710    47.9000    89.6000
+  lfu                 8    69.0250    15.0920    53.3000    99.0000
+  lru                 8    71.4375    15.0245    47.9000    89.6000
 
 cache_size_gb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  200                 8    67.8000    12.2179    53.3000    89.6000
-  50                  8    72.6625    17.1477    47.9000    99.0000
+  200                 8    77.4375    16.0494    47.9000    99.0000
+  50                  8    63.0250     8.9750    53.3000    81.9000
 
 prefetch:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 8    69.1000    14.4148    47.9000    89.6000
-  on                  8    71.3625    15.6882    53.3000    99.0000
+  off                 8    73.3000    13.4597    53.3000    89.6000
+  on                  8    67.1625    15.9419    47.9000    99.0000
 
 === Main Effects: origin_bandwidth ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-cache_policy             2.1975       2.0502            36.7%
-cache_size_gb           -2.1125       2.0502            35.3%
-prefetch                -0.8950       2.0502            14.9%
-ttl_hours               -0.7875       2.0502            13.1%
+cache_size_gb            7.8000       2.0502            44.9%
+prefetch                 4.3400       2.0502            25.0%
+ttl_hours               -3.7350       2.0502            21.5%
+cache_policy            -1.4975       2.0502             8.6%
+
+=== ANOVA Table: origin_bandwidth ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+ttl_hours                    1      55.8009      55.8009      1.196     0.3241
+cache_policy                 1       8.9700       8.9700      0.192     0.6794
+cache_size_gb                1     243.3600     243.3600      5.215     0.0712
+prefetch                     1      75.3424      75.3424      1.614     0.2598
+ttl_hours*cache_policy       1      14.8996      14.8996      0.319     0.5965
+ttl_hours*cache_size_gb      1       9.2112       9.2112      0.197     0.6754
+ttl_hours*prefetch           1       2.2052       2.2052      0.047     0.8365
+cache_policy*cache_size_gb    1      33.4084      33.4084      0.716     0.4361
+cache_policy*prefetch        1     330.1489     330.1489      7.074     0.0449
+cache_size_gb*prefetch       1       2.0592       2.0592      0.044     0.8419
+Error                        5     233.3491      46.6698
+Total                       15    1008.7550      67.2503
 
 === Interaction Effects: origin_bandwidth ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-cache_size_gb        prefetch                 -11.6050            53.3%
-cache_policy         cache_size_gb              6.8075            31.3%
-ttl_hours            prefetch                   1.6800             7.7%
-ttl_hours            cache_policy              -0.8525             3.9%
-cache_policy         prefetch                   0.4650             2.1%
-ttl_hours            cache_size_gb              0.3475             1.6%
+cache_policy         prefetch                   9.0850            53.8%
+cache_policy         cache_size_gb             -2.8900            17.1%
+ttl_hours            cache_policy              -1.9300            11.4%
+ttl_hours            cache_size_gb             -1.5175             9.0%
+ttl_hours            prefetch                   0.7425             4.4%
+cache_size_gb        prefetch                  -0.7175             4.2%
 
 === Summary Statistics: origin_bandwidth ===
 
 ttl_hours:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   8    15.6325     7.7745     0.9800    23.3300
-  24                  8    14.8450     9.1275     2.5700    28.0800
+  1                   8    17.1062    10.2658     0.9800    28.0800
+  24                  8    13.3712     5.5453     4.3400    20.2500
 
 cache_policy:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  lfu                 8    14.1400     9.3339     0.9800    25.1900
-  lru                 8    16.3375     7.3638     2.5700    28.0800
+  lfu                 8    15.9875     7.7904     0.9800    25.1900
+  lru                 8    14.4900     9.0629     2.5700    28.0800
 
 cache_size_gb:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  200                 8    16.2950     7.4632     2.5700    25.1900
-  50                  8    14.1825     9.2660     0.9800    28.0800
+  200                 8    11.3387     9.0104     0.9800    28.0800
+  50                  8    19.1388     5.3061     8.8900    25.1900
 
 prefetch:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 8    15.6862     8.2966     2.5700    28.0800
-  on                  8    14.7912     8.6496     0.9800    25.1900</div></div>
+  off                 8    13.0687     7.9020     2.5700    25.1900
+  on                  8    17.4087     8.4204     0.9800    28.0800</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: hit_ratio ===
@@ -445,32 +609,32 @@ Direction: maximize
 
 Best observed run: #12
   ttl_hours = 24
-  cache_policy = lfu
+  cache_policy = lru
   cache_size_gb = 200
   prefetch = on
   Value: 99.0
 
-RSM Model (linear, R² = 0.6868, Adj R² = 0.5730):
+RSM Model (linear, R² = 0.2417, Adj R² = -0.0340):
   Coefficients:
     intercept                      +70.2313
-    ttl_hours                      +10.9063
-    cache_policy                   -3.3188
-    cache_size_gb                  -2.1938
-    prefetch                       -1.5812
+    ttl_hours                      +4.8312
+    cache_policy                   +1.2062
+    cache_size_gb                  +2.1813
+    prefetch                       +4.3313
 
-RSM Model (quadratic, R² = 0.7666, Adj R² = -2.5008):
+RSM Model (quadratic, R² = 0.6912, Adj R² = -3.6313):
   Coefficients:
     intercept                      +14.0462
-    ttl_hours                      +10.9062
-    cache_policy                   -3.3188
-    cache_size_gb                  -2.1938
-    prefetch                       -1.5812
-    ttl_hours*cache_policy         +0.5563
-    ttl_hours*cache_size_gb        +0.7562
-    ttl_hours*prefetch             +1.7688
-    cache_policy*cache_size_gb     -0.3688
-    cache_policy*prefetch          -3.3062
-    cache_size_gb*prefetch         -0.9312
+    ttl_hours                      +4.8313
+    cache_policy                   +1.2062
+    cache_size_gb                  +2.1812
+    prefetch                       +4.3312
+    ttl_hours*cache_policy         -0.5188
+    ttl_hours*cache_size_gb        +4.9312
+    ttl_hours*prefetch             -5.7938
+    cache_policy*cache_size_gb     +1.6562
+    cache_policy*prefetch          +1.2562
+    cache_size_gb*prefetch         +5.2313
     ttl_hours^2                    +14.0463
     cache_policy^2                 +14.0463
     cache_size_gb^2                +14.0463
@@ -478,95 +642,111 @@ RSM Model (quadratic, R² = 0.7666, Adj R² = -2.5008):
 
   Curvature analysis:
     cache_size_gb                  coef=+14.0463  convex (has a minimum)
-    cache_policy                   coef=+14.0463  convex (has a minimum)
     prefetch                       coef=+14.0463  convex (has a minimum)
+    cache_policy                   coef=+14.0463  convex (has a minimum)
     ttl_hours                      coef=+14.0463  convex (has a minimum)
 
   Notable interactions:
-    cache_policy*prefetch          coef=-3.3062  (antagonistic)
-    ttl_hours*prefetch             coef=+1.7688  (synergistic)
-    cache_size_gb*prefetch         coef=-0.9312  (antagonistic)
-    ttl_hours*cache_size_gb        coef=+0.7562  (synergistic)
-    ttl_hours*cache_policy         coef=+0.5563  (synergistic)
-    cache_policy*cache_size_gb     coef=-0.3688  (antagonistic)
+    ttl_hours*prefetch             coef=-5.7938  (antagonistic)
+    cache_size_gb*prefetch         coef=+5.2313  (synergistic)
+    ttl_hours*cache_size_gb        coef=+4.9312  (synergistic)
+    cache_policy*cache_size_gb     coef=+1.6562  (synergistic)
+    cache_policy*prefetch          coef=+1.2562  (synergistic)
+    ttl_hours*cache_policy         coef=-0.5188  (antagonistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
+    ttl_hours = 24
+    cache_policy = lru
+    cache_size_gb = 200
+    prefetch = on
+    Predicted value: 82.7813
+
+  Surface optimum (via L-BFGS-B, linear model):
     ttl_hours = 24
     cache_policy = lfu
-    cache_size_gb = 50
-    prefetch = off
-    Predicted value: 88.2313
+    cache_size_gb = 200
+    prefetch = on
+    Predicted value: 82.7813
 
-  Model quality: Moderate fit — use predictions directionally, not precisely.
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. ttl_hours  (effect: 21.8, contribution: 60.6%)
-  2. cache_policy  (effect: -6.6, contribution: 18.4%)
-  3. cache_size_gb  (effect: 4.4, contribution: 12.2%)
-  4. prefetch  (effect: -3.2, contribution: 8.8%)
+  1. ttl_hours  (effect: 9.7, contribution: 38.5%)
+  2. prefetch  (effect: 8.7, contribution: 34.5%)
+  3. cache_size_gb  (effect: -4.4, contribution: 17.4%)
+  4. cache_policy  (effect: 2.4, contribution: 9.6%)
 
 === Optimization: origin_bandwidth ===
 Direction: minimize
 
 Best observed run: #12
   ttl_hours = 24
-  cache_policy = lfu
+  cache_policy = lru
   cache_size_gb = 200
   prefetch = on
   Value: 0.98
 
-RSM Model (linear, R² = 0.7249, Adj R² = 0.6249):
+RSM Model (linear, R² = 0.2064, Adj R² = -0.0822):
   Coefficients:
     intercept                      +15.2388
-    ttl_hours                      -6.0375
-    cache_policy                   +2.3488
-    cache_size_gb                  +1.2387
-    prefetch                       +1.4838
+    ttl_hours                      -2.7188
+    cache_policy                   -0.4850
+    cache_size_gb                  -0.6500
+    prefetch                       -2.2275
 
-RSM Model (quadratic, R² = 0.7903, Adj R² = -2.1456):
+RSM Model (quadratic, R² = 0.7031, Adj R² = -3.4531):
   Coefficients:
-    intercept                      +3.0478
-    ttl_hours                      -6.0375
-    cache_policy                   +2.3488
-    cache_size_gb                  +1.2387
-    prefetch                       +1.4838
-    ttl_hours*cache_policy         -0.0150
-    ttl_hours*cache_size_gb        -1.1750
-    ttl_hours*prefetch             -0.6125
-    cache_policy*cache_size_gb     -0.2687
-    cache_policy*prefetch          +1.3612
-    cache_size_gb*prefetch         +0.6637
+    intercept                      +3.0477
+    ttl_hours                      -2.7187
+    cache_policy                   -0.4850
+    cache_size_gb                  -0.6500
+    prefetch                       -2.2275
+    ttl_hours*cache_policy         +0.7800
+    ttl_hours*cache_size_gb        -2.8000
+    ttl_hours*prefetch             +4.0275
+    cache_policy*cache_size_gb     -1.0912
+    cache_policy*prefetch          -1.1412
+    cache_size_gb*prefetch         -2.0387
     ttl_hours^2                    +3.0478
     cache_policy^2                 +3.0478
     cache_size_gb^2                +3.0478
     prefetch^2                     +3.0478
 
   Curvature analysis:
-    prefetch                       coef=+3.0478  convex (has a minimum)
     ttl_hours                      coef=+3.0478  convex (has a minimum)
     cache_policy                   coef=+3.0478  convex (has a minimum)
+    prefetch                       coef=+3.0478  convex (has a minimum)
     cache_size_gb                  coef=+3.0478  convex (has a minimum)
 
   Notable interactions:
-    cache_policy*prefetch          coef=+1.3612  (synergistic)
-    ttl_hours*cache_size_gb        coef=-1.1750  (antagonistic)
-    cache_size_gb*prefetch         coef=+0.6637  (synergistic)
-    ttl_hours*prefetch             coef=-0.6125  (antagonistic)
+    ttl_hours*prefetch             coef=+4.0275  (synergistic)
+    ttl_hours*cache_size_gb        coef=-2.8000  (antagonistic)
+    cache_size_gb*prefetch         coef=-2.0387  (antagonistic)
+    cache_policy*prefetch          coef=-1.1412  (antagonistic)
+    cache_policy*cache_size_gb     coef=-1.0912  (antagonistic)
+    ttl_hours*cache_policy         coef=+0.7800  (synergistic)
 
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     ttl_hours = 1
-    cache_policy = lru
+    cache_policy = lfu
+    cache_size_gb = 50
+    prefetch = off
+    Predicted value: 21.3200
+
+  Surface optimum (via L-BFGS-B, linear model):
+    ttl_hours = 24
+    cache_policy = lfu
     cache_size_gb = 200
     prefetch = on
-    Predicted value: 26.3475
+    Predicted value: 9.1575
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. ttl_hours  (effect: -12.1, contribution: 54.3%)
-  2. cache_policy  (effect: 4.7, contribution: 21.1%)
-  3. prefetch  (effect: 3.0, contribution: 13.4%)
-  4. cache_size_gb  (effect: -2.5, contribution: 11.2%)</div></div>
+  1. ttl_hours  (effect: -5.4, contribution: 44.7%)
+  2. prefetch  (effect: -4.5, contribution: 36.6%)
+  3. cache_size_gb  (effect: 1.3, contribution: 10.7%)
+  4. cache_policy  (effect: -1.0, contribution: 8.0%)</div></div>
   </section>
 
   <!-- Nav -->

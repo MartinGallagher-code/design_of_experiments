@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>revenue usd</strong>, the most influential factors were signs (51.9%), discount per hr pct (33.5%), price multiplier (14.5%). The best observed value was <strong>431.0</strong> (at price multiplier = 0.25, discount per hr pct = 7.5, signs = 6).</p>
-<p>For <strong>unsold pct</strong>, the most influential factors were discount per hr pct (52.3%), signs (28.3%), price multiplier (19.5%). The best observed value was <strong>12.0</strong> (at price multiplier = 0.4, discount per hr pct = 0, signs = 10).</p>
+    <p>For <strong>revenue usd</strong>, the most influential factors were price multiplier (52.6%), signs (32.4%), discount per hr pct (15.0%). The best observed value was <strong>431.0</strong> (at price multiplier = -0.0238613, discount per hr pct = 7.5, signs = 6).</p>
+<p>For <strong>unsold pct</strong>, the most influential factors were signs (43.9%), price multiplier (39.9%), discount per hr pct (16.2%). The best observed value was <strong>12.0</strong> (at price multiplier = 0.25, discount per hr pct = 7.5, signs = 6).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -250,12 +249,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (revenue_usd (↑), unsold_pct (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/250_garage_sale_pricing/config.json <span class="flag">--multi</span></div>
         </div>
@@ -263,7 +263,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -271,48 +271,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/250_garage_sale_pricing/config.json \
     <span class="flag">--output</span> use_cases/250_garage_sale_pricing/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Everyday Experiment? Use the Manual Workflow</h4>
-        <p>These experiments involve real-world logistics and physical processes that must be tested in practice. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/250_garage_sale_pricing/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/250_garage_sale_pricing/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/250_garage_sale_pricing/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/250_garage_sale_pricing/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/250_garage_sale_pricing/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/250_garage_sale_pricing/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/250_garage_sale_pricing/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -344,7 +302,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: revenue_usd</h3>
-    <p>Top factors: signs (51.9%), discount_per_hr_pct (33.5%), price_multiplier (14.5%).</p>
+    <p>Top factors: price_multiplier (52.6%), signs (32.4%), discount_per_hr_pct (15.0%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -357,7 +315,7 @@
     </div>
 
     <h3>Response: unsold_pct</h3>
-    <p>Top factors: discount_per_hr_pct (52.3%), signs (28.3%), price_multiplier (19.5%).</p>
+    <p>Top factors: signs (43.9%), price_multiplier (39.9%), discount_per_hr_pct (16.2%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -408,197 +366,348 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.8648</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>revenue_usd</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:89.61%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.8961</span>
+                </div>
+              </td>
+              <td>411.00 0.8961      411.00 USD</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>unsold_pct</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:81.99%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.8199</span>
+                </div>
+              </td>
+              <td>20.00 0.8199       20.00 %</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>price_multiplier</code></td><td>0.1 x_retail</td></tr>
+            <tr><td><code>discount_per_hr_pct</code></td><td>0 %/hr</td></tr>
+            <tr><td><code>signs</code></td><td>10 count</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #17</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>unsold_pct</code></td><td>20.00</td><td>12.00</td><td><span style="color:#dc2626;">+8.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#11</td><td><strong>0.7162</strong></td><td style="font-size:.78rem;">price_multiplier=0.4,  discount_per_hr_pct=15,  signs=10</td></tr>
+            <tr><td>#19</td><td><strong>0.7064</strong></td><td style="font-size:.78rem;">price_multiplier=0.4,  discount_per_hr_pct=0,  signs=2</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>unsold_pct</code></td><td style="color:#dc2626;font-weight:600;">0.0872</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.8648
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+revenue_usd                  1.5       0.8961      411.00 USD   ↑
+unsold_pct                   1.0       0.8199       20.00 %   ↓
+
+Recommended settings:
+  price_multiplier = 0.1 x_retail
+  discount_per_hr_pct = 0 %/hr
+  signs = 10 count
+  (from observed run #17)
+
+Trade-off summary:
+  revenue_usd: 411.00 (best observed: 431.00, sacrifice: +20.00)
+  unsold_pct: 20.00 (best observed: 12.00, sacrifice: +8.00)
+
+Model quality:
+  revenue_usd: R² = 0.1168 (linear)
+  unsold_pct: R² = 0.0872 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #17 (D=0.8648): price_multiplier=0.1, discount_per_hr_pct=0, signs=10
+  2. Run #11 (D=0.7162): price_multiplier=0.4, discount_per_hr_pct=15, signs=10
+  3. Run #19 (D=0.7064): price_multiplier=0.4, discount_per_hr_pct=0, signs=2</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_revenue_usd_price_multiplier_vs_discount_per_hr_pct.png
-  RSM surface: rsm_revenue_usd_price_multiplier_vs_signs.png
-  RSM surface: rsm_revenue_usd_discount_per_hr_pct_vs_signs.png
-  RSM surface: rsm_unsold_pct_price_multiplier_vs_discount_per_hr_pct.png
-  RSM surface: rsm_unsold_pct_price_multiplier_vs_signs.png
-  RSM surface: rsm_unsold_pct_discount_per_hr_pct_vs_signs.png
-
-=== Main Effects: revenue_usd ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: revenue_usd ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-signs                  220.4167      15.7455            51.9%
-discount_per_hr_pct    142.2500      15.7455            33.5%
-price_multiplier        61.7500      15.7455            14.5%
+price_multiplier       234.2500      15.7455            52.6%
+signs                  144.0833      15.7455            32.4%
+discount_per_hr_pct     67.0000      15.7455            15.0%
+
+=== ANOVA Table: revenue_usd ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+price_multiplier             4   47596.8561   11899.2140      2.304     0.1372
+discount_per_hr_pct          4   15055.7727    3763.9432      0.729     0.5943
+signs                        4   30533.3561    7633.3390      1.478     0.2870
+Lack of Fit                  2       0.0000       0.0000      0.000     1.0000
+Pure Error                   7   36150.0000    5164.2857
+Error                        9   21353.2879    5164.2857
+Total                       21  114539.2727    5454.2511
 
 === Summary Statistics: revenue_usd ===
 
 price_multiplier:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -0.0238613          1   360.0000     0.0000   360.0000   360.0000
-  0.1                 4   299.5000   102.3409   166.0000   411.0000
-  0.25               12   320.5833    75.6264   120.0000   431.0000
-  0.4                 4   298.2500    71.3740   237.0000   378.0000
-  0.523861            1   336.0000     0.0000   336.0000   336.0000
+  -0.0238613          1   263.0000     0.0000   263.0000   263.0000
+  0.1                 4   354.2500    18.9275   339.0000   378.0000
+  0.25               12   319.0833    70.9948   166.0000   431.0000
+  0.4                 4   326.2500    58.9484   239.0000   364.0000
+  0.523861            1   120.0000     0.0000   120.0000   120.0000
 
 discount_per_hr_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -6.19306            1   289.0000     0.0000   289.0000   289.0000
-  0                   4   288.7500   108.0320   166.0000   411.0000
-  15                  4   309.0000    60.2052   237.0000   378.0000
-  21.1931             1   431.0000     0.0000   431.0000   431.0000
-  7.5                12   318.5833    68.4018   120.0000   364.0000
+  -6.19306            1   336.0000     0.0000   336.0000   336.0000
+  0                   4   354.7500    18.0624   339.0000   378.0000
+  15                  4   325.7500    58.8975   239.0000   364.0000
+  21.1931             1   360.0000     0.0000   360.0000   360.0000
+  7.5                12   293.0000    89.4925   120.0000   431.0000
 
 signs:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -1.30297            1   338.0000     0.0000   338.0000   338.0000
-  10                  4   303.7500    94.0368   166.0000   378.0000
-  13.303              1   120.0000     0.0000   120.0000   120.0000
-  2                   4   294.0000    81.6252   237.0000   411.0000
-  6                  12   340.4167    42.0464   263.0000   431.0000
+  -1.30297            1   431.0000     0.0000   431.0000   431.0000
+  10                  4   324.5000    59.6909   239.0000   378.0000
+  13.303              1   338.0000     0.0000   338.0000   338.0000
+  2                   4   356.0000    11.4601   339.0000   364.0000
+  6                  12   286.9167    81.4209   120.0000   411.0000
 
 === Main Effects: unsold_pct ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-discount_per_hr_pct     19.2500       2.7502            52.3%
-signs                   10.4167       2.7502            28.3%
-price_multiplier         7.1667       2.7502            19.5%
+signs                   19.0000       2.7502            43.9%
+price_multiplier        17.2500       2.7502            39.9%
+discount_per_hr_pct      7.0000       2.7502            16.2%
+
+=== ANOVA Table: unsold_pct ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+price_multiplier             4     383.9470      95.9867      0.267     0.8917
+discount_per_hr_pct          4      60.6970      15.1742      0.042     0.9960
+signs                        4     222.9470      55.7367      0.155     0.9557
+Lack of Fit                  2     313.8977     156.9489      0.437     0.6623
+Pure Error                   7    2512.8750     358.9821
+Error                        9    2826.7727     358.9821
+Total                       21    3494.3636     166.3983
 
 === Summary Statistics: unsold_pct ===
 
 price_multiplier:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -0.0238613          1    32.0000     0.0000    32.0000    32.0000
-  0.1                 4    35.0000    17.4547    20.0000    57.0000
-  0.25               12    36.9167    13.1734    22.0000    66.0000
-  0.4                 4    29.7500    12.7115    12.0000    42.0000
-  0.523861            1    30.0000     0.0000    30.0000    30.0000
+  -0.0238613          1    22.0000     0.0000    22.0000    22.0000
+  0.1                 4    31.0000     2.1602    29.0000    34.0000
+  0.25               12    36.1667    15.8506    12.0000    66.0000
+  0.4                 4    39.2500    10.5317    31.0000    53.0000
+  0.523861            1    27.0000     0.0000    27.0000    27.0000
 
 discount_per_hr_pct:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -6.19306            1    46.0000     0.0000    46.0000    46.0000
-  0                   4    28.7500    10.0457    20.0000    42.0000
-  15                  4    36.0000    18.6726    12.0000    57.0000
-  21.1931             1    48.0000     0.0000    48.0000    48.0000
-  7.5                12    34.2500    12.3959    22.0000    66.0000
+  -6.19306            1    30.0000     0.0000    30.0000    30.0000
+  0                   4    37.0000    10.8012    30.0000    53.0000
+  15                  4    33.2500     5.9090    29.0000    42.0000
+  21.1931             1    32.0000     0.0000    32.0000    32.0000
+  7.5                12    35.0833    16.4563    12.0000    66.0000
 
 signs:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  -1.30297            1    29.0000     0.0000    29.0000    29.0000
-  10                  4    36.0000    14.8997    22.0000    57.0000
-  13.303              1    27.0000     0.0000    27.0000    27.0000
-  2                   4    28.7500    15.0859    12.0000    42.0000
-  6                  12    37.4167    12.8520    22.0000    66.0000
-
-Pareto chart (revenue_usd): use_cases/250_garage_sale_pricing/results/analysis/pareto_revenue_usd.png
-
-Pareto chart (unsold_pct): use_cases/250_garage_sale_pricing/results/analysis/pareto_unsold_pct.png
-Main effects (revenue_usd): use_cases/250_garage_sale_pricing/results/analysis/main_effects_revenue_usd.png
-Main effects (unsold_pct): use_cases/250_garage_sale_pricing/results/analysis/main_effects_unsold_pct.png</div></div>
+  -1.30297            1    48.0000     0.0000    48.0000    48.0000
+  10                  4    34.5000     5.1962    31.0000    42.0000
+  13.303              1    29.0000     0.0000    29.0000    29.0000
+  2                   4    35.7500    11.5289    29.0000    53.0000
+  6                  12    33.8333    15.9307    12.0000    66.0000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: revenue_usd ===
 Direction: maximize
 
 Best observed run: #2
-  price_multiplier = 0.25
+  price_multiplier = -0.0238613
   discount_per_hr_pct = 7.5
   signs = 6
   Value: 431.0
 
-RSM Model (linear, R² = 0.1609, Adj R² = 0.0210):
+RSM Model (linear, R² = 0.2536, Adj R² = 0.1292):
   Coefficients:
     intercept                      +315.1818
-    price_multiplier               +32.1139
-    discount_per_hr_pct            +0.4262
-    signs                          -14.9953
+    price_multiplier               -37.1083
+    discount_per_hr_pct            +21.6058
+    signs                          -11.6833
 
-RSM Model (quadratic, R² = 0.3543, Adj R² = -0.1300):
+RSM Model (quadratic, R² = 0.5757, Adj R² = 0.2575):
   Coefficients:
-    intercept                      +322.1161
-    price_multiplier               +32.1139
-    discount_per_hr_pct            +0.4262
-    signs                          -14.9953
-    price_multiplier*discount_per_hr_pct +14.8750
-    price_multiplier*signs         -38.3750
-    discount_per_hr_pct*signs      -8.3750
-    price_multiplier^2             -16.8671
-    discount_per_hr_pct^2          -2.4672
-    signs^2                        +8.9328
+    intercept                      +291.6686
+    price_multiplier               -37.1083
+    discount_per_hr_pct            +21.6058
+    signs                          -11.6834
+    price_multiplier*discount_per_hr_pct -1.3750
+    price_multiplier*signs         -50.1250
+    discount_per_hr_pct*signs      +15.6250
+    price_multiplier^2             +20.6566
+    discount_per_hr_pct^2          -3.4934
+    signs^2                        +18.1066
 
   Curvature analysis:
-    price_multiplier               coef=-16.8671  concave (has a maximum)
-    signs                          coef=+8.9328  convex (has a minimum)
-    discount_per_hr_pct            coef=-2.4672  concave (has a maximum)
+    price_multiplier               coef=+20.6566  convex (has a minimum)
+    signs                          coef=+18.1066  convex (has a minimum)
+    discount_per_hr_pct            coef=-3.4934  concave (has a maximum)
 
   Notable interactions:
-    price_multiplier*signs         coef=-38.3750  (antagonistic)
-    price_multiplier*discount_per_hr_pct coef=+14.8750  (synergistic)
-    discount_per_hr_pct*signs      coef=-8.3750  (antagonistic)
+    price_multiplier*signs         coef=-50.1250  (antagonistic)
+    discount_per_hr_pct*signs      coef=+15.6250  (synergistic)
+    price_multiplier*discount_per_hr_pct coef=-1.3750  (antagonistic)
 
-  Predicted optimum (from linear model):
-    price_multiplier = 0.523861
-    discount_per_hr_pct = 7.5
-    signs = 6
-    Predicted value: 373.8135
+  Predicted optimum (from quadratic model, at observed points):
+    price_multiplier = 0.1
+    discount_per_hr_pct = 15
+    signs = 10
+    Predicted value: 441.0941
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Surface optimum (via L-BFGS-B, quadratic model):
+    price_multiplier = 0.1
+    discount_per_hr_pct = 15
+    signs = 10
+    Predicted value: 441.0941
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. price_multiplier  (effect: 241.0, contribution: 55.6%)
-  2. discount_per_hr_pct  (effect: 117.2, contribution: 27.1%)
-  3. signs  (effect: 75.0, contribution: 17.3%)
+  1. price_multiplier  (effect: 142.0, contribution: 45.0%)
+  2. discount_per_hr_pct  (effect: 109.5, contribution: 34.7%)
+  3. signs  (effect: 63.8, contribution: 20.2%)
 
 === Optimization: unsold_pct ===
 Direction: minimize
 
 Best observed run: #21
-  price_multiplier = 0.4
-  discount_per_hr_pct = 0
-  signs = 10
+  price_multiplier = 0.25
+  discount_per_hr_pct = 7.5
+  signs = 6
   Value: 12.0
 
-RSM Model (linear, R² = 0.0382, Adj R² = -0.1221):
+RSM Model (linear, R² = 0.2707, Adj R² = 0.1492):
   Coefficients:
     intercept                      +34.7273
-    price_multiplier               -1.1829
-    discount_per_hr_pct            +2.3683
-    signs                          +1.4494
+    price_multiplier               -4.2035
+    discount_per_hr_pct            -3.0057
+    signs                          -6.1482
 
-RSM Model (quadratic, R² = 0.3934, Adj R² = -0.0616):
+RSM Model (quadratic, R² = 0.4732, Adj R² = 0.0781):
   Coefficients:
-    intercept                      +43.8720
-    price_multiplier               -1.1829
-    discount_per_hr_pct            +2.3683
-    signs                          +1.4494
-    price_multiplier*discount_per_hr_pct +0.3750
-    price_multiplier*signs         -2.6250
-    discount_per_hr_pct*signs      +2.3750
-    price_multiplier^2             -6.1224
-    discount_per_hr_pct^2          -3.8724
-    signs^2                        -3.7223
+    intercept                      +32.1220
+    price_multiplier               -4.2035
+    discount_per_hr_pct            -3.0057
+    signs                          -6.1482
+    price_multiplier*discount_per_hr_pct +2.5000
+    price_multiplier*signs         +6.0000
+    discount_per_hr_pct*signs      +0.7500
+    price_multiplier^2             +4.0026
+    discount_per_hr_pct^2          +0.8526
+    signs^2                        -0.9473
 
   Curvature analysis:
-    price_multiplier               coef=-6.1224  concave (has a maximum)
-    discount_per_hr_pct            coef=-3.8724  concave (has a maximum)
-    signs                          coef=-3.7223  concave (has a maximum)
+    price_multiplier               coef=+4.0026  convex (has a minimum)
+    signs                          coef=-0.9473  concave (has a maximum)
+    discount_per_hr_pct            coef=+0.8526  convex (has a minimum)
 
   Notable interactions:
-    price_multiplier*signs         coef=-2.6250  (antagonistic)
-    discount_per_hr_pct*signs      coef=+2.3750  (synergistic)
-    price_multiplier*discount_per_hr_pct coef=+0.3750  (synergistic)
+    price_multiplier*signs         coef=+6.0000  (synergistic)
+    price_multiplier*discount_per_hr_pct coef=+2.5000  (synergistic)
+    discount_per_hr_pct*signs      coef=+0.7500  (synergistic)
 
-  Predicted optimum (from quadratic model):
-    price_multiplier = 0.25
-    discount_per_hr_pct = 7.5
-    signs = 6
-    Predicted value: 43.8720
+  Predicted optimum (from linear model, at observed points):
+    price_multiplier = 0.1
+    discount_per_hr_pct = 0
+    signs = 2
+    Predicted value: 48.0847
+
+  Surface optimum (via L-BFGS-B, linear model):
+    price_multiplier = 0.4
+    discount_per_hr_pct = 15
+    signs = 10
+    Predicted value: 21.3699
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. price_multiplier  (effect: 17.7, contribution: 35.6%)
-  2. discount_per_hr_pct  (effect: 17.0, contribution: 34.2%)
-  3. signs  (effect: 15.0, contribution: 30.2%)</div></div>
+  1. signs  (effect: 23.0, contribution: 42.2%)
+  2. price_multiplier  (effect: 20.5, contribution: 37.6%)
+  3. discount_per_hr_pct  (effect: 11.0, contribution: 20.2%)</div></div>
   </section>
 
   <!-- Nav -->

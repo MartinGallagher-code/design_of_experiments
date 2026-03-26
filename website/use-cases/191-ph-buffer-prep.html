@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>buffer capacity</strong>, the most influential factors were acid base ratio (45.4%), concentration mm (38.3%), ionic strength mm (16.2%). The best observed value was <strong>21.5</strong> (at concentration mm = 100, acid base ratio = 1.25, ionic strength mm = 50).</p>
-<p>For <strong>temp sensitivity</strong>, the most influential factors were ionic strength mm (43.4%), concentration mm (30.3%), acid base ratio (26.3%). The best observed value was <strong>0.0025</strong> (at concentration mm = 55, acid base ratio = 0.5, ionic strength mm = 300).</p>
+    <p>For <strong>buffer capacity</strong>, the most influential factors were concentration mm (49.2%), ionic strength mm (28.4%), acid base ratio (22.4%). The best observed value was <strong>21.5</strong> (at concentration mm = 10, acid base ratio = 1.25, ionic strength mm = 300).</p>
+<p>For <strong>temp sensitivity</strong>, the most influential factors were acid base ratio (44.4%), ionic strength mm (37.1%), concentration mm (18.5%). The best observed value was <strong>0.0025</strong> (at concentration mm = 100, acid base ratio = 1.25, ionic strength mm = 300).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (buffer_capacity (↑), temp_sensitivity (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/191_ph_buffer_prep/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -264,48 +264,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/191_ph_buffer_prep/config.json \
     <span class="flag">--output</span> use_cases/191_ph_buffer_prep/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Laboratory Experiment? Use the Manual Workflow</h4>
-        <p>Laboratory experiments involve real chemical reactions, biological processes, and analytical instruments. Results must be measured from actual samples. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/191_ph_buffer_prep/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/191_ph_buffer_prep/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/191_ph_buffer_prep/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/191_ph_buffer_prep/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/191_ph_buffer_prep/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/191_ph_buffer_prep/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/191_ph_buffer_prep/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -337,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: buffer_capacity</h3>
-    <p>Top factors: acid_base_ratio (45.4%), concentration_mm (38.3%), ionic_strength_mm (16.2%).</p>
+    <p>Top factors: concentration_mm (49.2%), ionic_strength_mm (28.4%), acid_base_ratio (22.4%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -350,7 +308,7 @@
     </div>
 
     <h3>Response: temp_sensitivity</h3>
-    <p>Top factors: ionic_strength_mm (43.4%), concentration_mm (30.3%), acid_base_ratio (26.3%).</p>
+    <p>Top factors: acid_base_ratio (44.4%), ionic_strength_mm (37.1%), concentration_mm (18.5%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -401,179 +359,331 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.8298</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>buffer_capacity</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:89.59%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.8959</span>
+                </div>
+              </td>
+              <td>20.23 0.8959       20.23 mmol/L/pH</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>temp_sensitivity</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:73.97%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7397</span>
+                </div>
+              </td>
+              <td>0.00 0.7397        0.00 dpH/dC</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>concentration_mm</code></td><td>100 mM</td></tr>
+            <tr><td><code>acid_base_ratio</code></td><td>0.5 ratio</td></tr>
+            <tr><td><code>ionic_strength_mm</code></td><td>50 mM</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from RSM model prediction</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>temp_sensitivity</code></td><td>0.00</td><td>0.00</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#8</td><td><strong>0.6950</strong></td><td style="font-size:.78rem;">concentration_mm=100,  acid_base_ratio=1.25,  ionic_strength_mm=50</td></tr>
+            <tr><td>#5</td><td><strong>0.6388</strong></td><td style="font-size:.78rem;">concentration_mm=10,  acid_base_ratio=0.5,  ionic_strength_mm=175</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>temp_sensitivity</code></td><td style="color:#dc2626;font-weight:600;">0.1612</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.8298
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+buffer_capacity              1.5       0.8959       20.23 mmol/L/pH   ↑
+temp_sensitivity             1.0       0.7397        0.00 dpH/dC   ↓
+
+Recommended settings:
+  concentration_mm = 100 mM
+  acid_base_ratio = 0.5 ratio
+  ionic_strength_mm = 50 mM
+  (from RSM model prediction)
+
+Trade-off summary:
+  buffer_capacity: 20.23 (best observed: 21.50, sacrifice: +1.27)
+  temp_sensitivity: 0.00 (best observed: 0.00, sacrifice: +0.00)
+
+Model quality:
+  buffer_capacity: R² = 0.9766 (quadratic)
+  temp_sensitivity: R² = 0.1612 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #4 (D=0.7330): concentration_mm=10, acid_base_ratio=1.25, ionic_strength_mm=50
+  2. Run #8 (D=0.6950): concentration_mm=100, acid_base_ratio=1.25, ionic_strength_mm=50
+  3. Run #5 (D=0.6388): concentration_mm=10, acid_base_ratio=0.5, ionic_strength_mm=175</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_buffer_capacity_concentration_mm_vs_acid_base_ratio.png
-  RSM surface: rsm_buffer_capacity_concentration_mm_vs_ionic_strength_mm.png
-  RSM surface: rsm_buffer_capacity_acid_base_ratio_vs_ionic_strength_mm.png
-  RSM surface: rsm_temp_sensitivity_concentration_mm_vs_acid_base_ratio.png
-  RSM surface: rsm_temp_sensitivity_concentration_mm_vs_ionic_strength_mm.png
-  RSM surface: rsm_temp_sensitivity_acid_base_ratio_vs_ionic_strength_mm.png
-
-=== Main Effects: buffer_capacity ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: buffer_capacity ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-acid_base_ratio          8.1500       1.6507            45.4%
-concentration_mm         6.8750       1.6507            38.3%
-ionic_strength_mm        2.9143       1.6507            16.2%
+concentration_mm         6.8500       1.6507            49.2%
+ionic_strength_mm        3.9536       1.6507            28.4%
+acid_base_ratio          3.1250       1.6507            22.4%
+
+=== ANOVA Table: buffer_capacity ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+concentration_mm             2      96.9414      48.4707      0.571     0.5861
+acid_base_ratio              2      21.4839      10.7420      0.127     0.8828
+ionic_strength_mm            2      40.2782      20.1391      0.237     0.7940
+Lack of Fit                  6     243.8698      40.6450      0.479     0.7949
+Pure Error                   2     169.6267      84.8133
+Error                        8     413.4964      84.8133
+Total                       14     572.2000      40.8714
 
 === Summary Statistics: buffer_capacity ===
 
 concentration_mm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4    16.3250     4.9922    10.7000    21.5000
-  100                 4     9.4500     8.3867     1.8000    20.0000
-  55                  7    11.6286     5.5674     1.9000    16.7000
+  10                  4     8.4500     8.4081     1.8000    19.4000
+  100                 4    15.3000     3.3496    12.3000    20.0000
+  55                  7    12.7857     6.1848     3.7000    21.5000
 
 acid_base_ratio:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.5                 4     8.6500     6.8262     1.9000    15.3000
-  1.25                7    11.8143     6.4157     1.8000    21.5000
-  2                   4    16.8000     4.0620    11.1000    20.0000
+  0.5                 4    14.2000     6.6508     6.3000    20.0000
+  1.25                7    11.9143     7.0476     1.9000    21.5000
+  2                   4    11.0750     6.3248     1.8000    15.3000
 
 ionic_strength_mm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  175                 7    13.3143     6.1859     3.7000    20.0000
-  300                 4    12.4250     8.2718     1.8000    21.5000
-  50                  4    10.4000     6.2086     1.9000    16.7000
+  175                 7    13.6286     8.0162     1.8000    21.5000
+  300                 4     9.6750     6.6835     1.9000    15.3000
+  50                  4    12.6000     2.0298    10.7000    14.9000
 
 === Main Effects: temp_sensitivity ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-ionic_strength_mm        0.0026       0.0005            43.4%
-concentration_mm         0.0018       0.0005            30.3%
-acid_base_ratio          0.0016       0.0005            26.3%
+acid_base_ratio          0.0016       0.0005            44.4%
+ionic_strength_mm        0.0013       0.0005            37.1%
+concentration_mm         0.0007       0.0005            18.5%
+
+=== ANOVA Table: temp_sensitivity ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+concentration_mm             2       0.0000       0.0000      0.175     0.8425
+acid_base_ratio              2       0.0000       0.0000      0.883     0.4502
+ionic_strength_mm            2       0.0000       0.0000      0.700     0.5244
+Lack of Fit                  6       0.0000       0.0000      1.193     0.5226
+Pure Error                   2       0.0000       0.0000
+Error                        8       0.0000       0.0000
+Total                       14       0.0000       0.0000
 
 === Summary Statistics: temp_sensitivity ===
 
 concentration_mm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  10                  4     0.0066     0.0027     0.0027     0.0086
-  100                 4     0.0049     0.0015     0.0030     0.0066
-  55                  7     0.0048     0.0012     0.0025     0.0065
+  10                  4     0.0051     0.0030     0.0025     0.0086
+  100                 4     0.0057     0.0017     0.0046     0.0082
+  55                  7     0.0051     0.0013     0.0030     0.0068
 
 acid_base_ratio:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0.5                 4     0.0047     0.0026     0.0025     0.0082
-  1.25                7     0.0051     0.0014     0.0027     0.0068
-  2                   4     0.0062     0.0018     0.0046     0.0086
+  0.5                 4     0.0063     0.0017     0.0048     0.0086
+  1.25                7     0.0047     0.0022     0.0025     0.0082
+  2                   4     0.0053     0.0009     0.0046     0.0066
 
 ionic_strength_mm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  175                 7     0.0057     0.0020     0.0030     0.0086
-  300                 4     0.0062     0.0009     0.0049     0.0068
-  50                  4     0.0036     0.0012     0.0025     0.0046
-
-Pareto chart (buffer_capacity): use_cases/191_ph_buffer_prep/results/analysis/pareto_buffer_capacity.png
-
-Pareto chart (temp_sensitivity): use_cases/191_ph_buffer_prep/results/analysis/pareto_temp_sensitivity.png
-Main effects (buffer_capacity): use_cases/191_ph_buffer_prep/results/analysis/main_effects_buffer_capacity.png
-Main effects (temp_sensitivity): use_cases/191_ph_buffer_prep/results/analysis/main_effects_temp_sensitivity.png</div></div>
+  175                 7     0.0056     0.0018     0.0030     0.0086
+  300                 4     0.0043     0.0012     0.0025     0.0050
+  50                  4     0.0056     0.0023     0.0027     0.0082</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: buffer_capacity ===
 Direction: maximize
 
 Best observed run: #3
-  concentration_mm = 100
+  concentration_mm = 10
   acid_base_ratio = 1.25
-  ionic_strength_mm = 50
+  ionic_strength_mm = 300
   Value: 21.5
 
-RSM Model (linear, R² = 0.5263, Adj R² = 0.3971):
+RSM Model (linear, R² = 0.1541, Adj R² = -0.0766):
   Coefficients:
     intercept                      +12.3000
-    concentration_mm               +2.8500
-    acid_base_ratio                +0.3000
-    ionic_strength_mm              -5.4250
+    concentration_mm               -0.6875
+    acid_base_ratio                -2.9875
+    ionic_strength_mm              +1.2750
 
-RSM Model (quadratic, R² = 0.7927, Adj R² = 0.4195):
+RSM Model (quadratic, R² = 0.7433, Adj R² = 0.2813):
   Coefficients:
-    intercept                      +8.8667
-    concentration_mm               +2.8500
-    acid_base_ratio                +0.3000
-    ionic_strength_mm              -5.4250
-    concentration_mm*acid_base_ratio -0.0250
-    concentration_mm*ionic_strength_mm +1.0250
-    acid_base_ratio*ionic_strength_mm +2.3750
-    concentration_mm^2             +5.8292
-    acid_base_ratio^2              +0.3792
-    ionic_strength_mm^2            +0.2292
+    intercept                      +13.3667
+    concentration_mm               -0.6875
+    acid_base_ratio                -2.9875
+    ionic_strength_mm              +1.2750
+    concentration_mm*acid_base_ratio +3.2000
+    concentration_mm*ionic_strength_mm -6.0250
+    acid_base_ratio*ionic_strength_mm -0.9750
+    concentration_mm^2             -4.9583
+    acid_base_ratio^2              +3.4917
+    ionic_strength_mm^2            -0.5333
 
   Curvature analysis:
-    concentration_mm               coef=+5.8292  convex (has a minimum)
-    acid_base_ratio                coef=+0.3792  convex (has a minimum)
-    ionic_strength_mm              coef=+0.2292  convex (has a minimum)
+    concentration_mm               coef=-4.9583  concave (has a maximum)
+    acid_base_ratio                coef=+3.4917  convex (has a minimum)
+    ionic_strength_mm              coef=-0.5333  concave (has a maximum)
 
   Notable interactions:
-    acid_base_ratio*ionic_strength_mm coef=+2.3750  (synergistic)
-    concentration_mm*ionic_strength_mm coef=+1.0250  (synergistic)
+    concentration_mm*ionic_strength_mm coef=-6.0250  (antagonistic)
+    concentration_mm*acid_base_ratio coef=+3.2000  (synergistic)
+    acid_base_ratio*ionic_strength_mm coef=-0.9750  (antagonistic)
 
-  Predicted optimum (from quadratic model):
-    concentration_mm = 100
-    acid_base_ratio = 1.25
-    ionic_strength_mm = 50
-    Predicted value: 22.1750
+  Predicted optimum (from quadratic model, at observed points):
+    concentration_mm = 55
+    acid_base_ratio = 0.5
+    ionic_strength_mm = 300
+    Predicted value: 21.5625
+
+  Surface optimum (via L-BFGS-B, quadratic model):
+    concentration_mm = 10.0189
+    acid_base_ratio = 0.5
+    ionic_strength_mm = 300
+    Predicted value: 26.5167
 
   Model quality: Good fit — general trends are captured, some noise remains.
 
 Factor importance:
-  1. ionic_strength_mm  (effect: 10.9, contribution: 54.0%)
-  2. concentration_mm  (effect: 8.6, contribution: 43.0%)
-  3. acid_base_ratio  (effect: 0.6, contribution: 3.0%)
+  1. acid_base_ratio  (effect: 6.9, contribution: 45.0%)
+  2. concentration_mm  (effect: 5.9, contribution: 38.3%)
+  3. ionic_strength_mm  (effect: 2.6, contribution: 16.7%)
 
 === Optimization: temp_sensitivity ===
 Direction: minimize
 
 Best observed run: #13
-  concentration_mm = 55
-  acid_base_ratio = 0.5
+  concentration_mm = 100
+  acid_base_ratio = 1.25
   ionic_strength_mm = 300
   Value: 0.0025
 
-RSM Model (linear, R² = 0.3708, Adj R² = 0.1992):
+RSM Model (linear, R² = 0.3443, Adj R² = 0.1655):
   Coefficients:
     intercept                      +0.0053
-    concentration_mm               +0.0010
-    acid_base_ratio                +0.0007
-    ionic_strength_mm              -0.0007
+    concentration_mm               -0.0001
+    acid_base_ratio                -0.0014
+    ionic_strength_mm              -0.0001
 
-RSM Model (quadratic, R² = 0.8087, Adj R² = 0.4642):
+RSM Model (quadratic, R² = 0.5652, Adj R² = -0.2173):
   Coefficients:
-    intercept                      +0.0071
-    concentration_mm               +0.0010
-    acid_base_ratio                +0.0007
-    ionic_strength_mm              -0.0007
-    concentration_mm*acid_base_ratio +0.0003
-    concentration_mm*ionic_strength_mm -0.0005
-    acid_base_ratio*ionic_strength_mm +0.0003
-    concentration_mm^2             -0.0002
-    acid_base_ratio^2              -0.0016
-    ionic_strength_mm^2            -0.0016
+    intercept                      +0.0052
+    concentration_mm               -0.0001
+    acid_base_ratio                -0.0014
+    ionic_strength_mm              -0.0001
+    concentration_mm*acid_base_ratio -0.0003
+    concentration_mm*ionic_strength_mm -0.0006
+    acid_base_ratio*ionic_strength_mm -0.0014
+    concentration_mm^2             -0.0001
+    acid_base_ratio^2              +0.0001
+    ionic_strength_mm^2            +0.0000
 
   Curvature analysis:
-    acid_base_ratio                coef=-0.0016  negligible curvature
-    ionic_strength_mm              coef=-0.0016  negligible curvature
-    concentration_mm               coef=-0.0002  negligible curvature
+    acid_base_ratio                coef=+0.0001  negligible curvature
+    concentration_mm               coef=-0.0001  negligible curvature
+    ionic_strength_mm              coef=+0.0000  negligible curvature
 
-  Predicted optimum (from quadratic model):
-    concentration_mm = 100
-    acid_base_ratio = 1.25
+  Predicted optimum (from linear model, at observed points):
+    concentration_mm = 55
+    acid_base_ratio = 0.5
     ionic_strength_mm = 50
-    Predicted value: 0.0076
+    Predicted value: 0.0068
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Surface optimum (via L-BFGS-B, linear model):
+    concentration_mm = 100
+    acid_base_ratio = 2
+    ionic_strength_mm = 300
+    Predicted value: 0.0036
+
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. ionic_strength_mm  (effect: 0.0, contribution: 34.3%)
-  2. acid_base_ratio  (effect: 0.0, contribution: 34.3%)
-  3. concentration_mm  (effect: 0.0, contribution: 31.3%)</div></div>
+  1. acid_base_ratio  (effect: 0.0, contribution: 86.2%)
+  2. ionic_strength_mm  (effect: 0.0, contribution: 7.7%)
+  3. concentration_mm  (effect: 0.0, contribution: 6.2%)</div></div>
   </section>
 
   <!-- Nav -->

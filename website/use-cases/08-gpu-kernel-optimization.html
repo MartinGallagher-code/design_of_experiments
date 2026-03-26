@@ -57,8 +57,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>gflops</strong>, the most influential factors were unroll factor (44.9%), precision (26.8%), block size (23.0%). The best observed value was <strong>705.9</strong> (at block size = 128, shared mem = 16, unroll factor = 8).</p>
-<p>For <strong>occupancy</strong>, the most influential factors were precision (44.9%), block size (22.6%), unroll factor (21.5%). The best observed value was <strong>77.0</strong> (at block size = 512, shared mem = 16, unroll factor = 8).</p>
+    <p>For <strong>gflops</strong>, the most influential factors were precision (45.8%), unroll factor (41.9%), block size (9.7%). The best observed value was <strong>705.9</strong> (at block size = 128, shared mem = 16, unroll factor = 8).</p>
+<p>For <strong>occupancy</strong>, the most influential factors were block size (42.2%), shared mem (32.9%), precision (21.7%). The best observed value was <strong>77.0</strong> (at block size = 128, shared mem = 48, unroll factor = 2).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -66,6 +66,7 @@
     <li>Consider whether any fixed factors should be varied in a future study.</li>
   </ul>
   </section>
+
 
 
   <section class="uc-section">
@@ -96,6 +97,7 @@
       </div>
     </div>
   </section>
+
 
 
 
@@ -376,6 +378,137 @@ Factor importance:
   2. block_size  (effect: -10.0, contribution: 24.0%)
   3. precision  (effect: -9.5, contribution: 22.7%)
   4. unroll_factor  (effect: -9.0, contribution: 21.5%)</div></div>
+  </section>
+
+  
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.8485</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>gflops</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:75.41%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7541</span>
+                </div>
+              </td>
+              <td>593.50 0.7541      593.50 GFLOPS</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>occupancy</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>77.00 0.9545       77.00 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>block_size</code></td><td>512 threads</td></tr>
+            <tr><td><code>shared_mem</code></td><td>48 KB</td></tr>
+            <tr><td><code>unroll_factor</code></td><td>2</td></tr>
+            <tr><td><code>precision</code></td><td>fp32</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #10</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>occupancy</code></td><td>77.00</td><td>77.00</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#6</td><td><strong>0.7610</strong></td><td style="font-size:.78rem;">block_size=128,  shared_mem=16,  unroll_factor=2,  precision=fp64</td></tr>
+            <tr><td>#15</td><td><strong>0.7222</strong></td><td style="font-size:.78rem;">block_size=512,  shared_mem=48,  unroll_factor=8,  precision=fp64</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>occupancy</code></td><td style="color:#dc2626;font-weight:600;">0.4192</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.8485
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+gflops                       1.5       0.7541      593.50 GFLOPS   ↑
+occupancy                    1.5       0.9545       77.00 %   ↑
+
+Recommended settings:
+  block_size = 512 threads
+  shared_mem = 48 KB
+  unroll_factor = 2
+  precision = fp32
+  (from observed run #10)
+
+Trade-off summary:
+  gflops: 593.50 (best observed: 705.90, sacrifice: +112.40)
+  occupancy: 77.00 (best observed: 77.00, sacrifice: +0.00)
+
+Model quality:
+  gflops: R² = 0.2134 (linear)
+  occupancy: R² = 0.4192 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #10 (D=0.8485): block_size=512, shared_mem=48, unroll_factor=2, precision=fp32
+  2. Run #6 (D=0.7610): block_size=128, shared_mem=16, unroll_factor=2, precision=fp64
+  3. Run #15 (D=0.7222): block_size=512, shared_mem=48, unroll_factor=8, precision=fp64</div></div>
   </section>
 
   <div class="chapter-nav">

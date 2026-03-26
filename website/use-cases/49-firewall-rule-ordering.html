@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -51,8 +50,8 @@
 
     
     <h3>Key Findings</h3>
-    <p>For <strong>throughput mpps</strong>, the most influential factors were rule count (35.2%), rule ordering (24.3%), hashlimit burst (23.1%). The best observed value was <strong>4.53</strong> (at rule count = 5000, conntrack max = 65536, rule ordering = frequency).</p>
-<p>For <strong>latency us</strong>, the most influential factors were rule count (39.1%), rule ordering (20.9%), hashlimit burst (19.7%). The best observed value was <strong>0.4</strong> (at rule count = 5000, conntrack max = 65536, rule ordering = frequency).</p>
+    <p>For <strong>throughput mpps</strong>, the most influential factors were rule count (35.2%), hashlimit burst (26.9%), rule ordering (18.3%). The best observed value was <strong>4.53</strong> (at rule count = 5000, conntrack max = 1048576, rule ordering = sequential).</p>
+<p>For <strong>latency us</strong>, the most influential factors were rule count (37.2%), hashlimit burst (27.1%), rule ordering (16.3%). The best observed value was <strong>0.4</strong> (at rule count = 5000, conntrack max = 1048576, rule ordering = sequential).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -266,12 +265,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (throughput_mpps (↑), latency_us (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/49_firewall_rule_ordering/config.json <span class="flag">--multi</span></div>
         </div>
@@ -279,7 +279,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -318,7 +318,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: throughput_mpps</h3>
-    <p>Top factors: rule_count (35.2%), rule_ordering (24.3%), hashlimit_burst (23.1%).</p>
+    <p>Top factors: rule_count (35.2%), hashlimit_burst (26.9%), rule_ordering (18.3%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -331,7 +331,7 @@
     </div>
 
     <h3>Response: latency_us</h3>
-    <p>Top factors: rule_count (39.1%), rule_ordering (20.9%), hashlimit_burst (19.7%).</p>
+    <p>Top factors: rule_count (37.2%), hashlimit_burst (27.1%), rule_ordering (16.3%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -382,36 +382,200 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9906</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>throughput_mpps</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:98.42999999999999%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9843</span>
+                </div>
+              </td>
+              <td>4.65 0.9843        4.65 Mpps</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>latency_us</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:100.0%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>1.0000</span>
+                </div>
+              </td>
+              <td>-3.23 1.0000       -3.23 us</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>rule_count</code></td><td>4886 rules</td></tr>
+            <tr><td><code>conntrack_max</code></td><td>9.683e+05 entries</td></tr>
+            <tr><td><code>rule_ordering</code></td><td>sequential</td></tr>
+            <tr><td><code>hashlimit_burst</code></td><td>6.108 packets</td></tr>
+            <tr><td><code>nf_tables</code></td><td>nftables</td></tr>
+            <tr><td><code>batch_verdict</code></td><td>off</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from RSM model prediction</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>latency_us</code></td><td>-3.23</td><td>0.40</td><td><span style="color:#16a34a;">-3.63</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#3</td><td><strong>0.8021</strong></td><td style="font-size:.78rem;">rule_count=5000,  conntrack_max=1048576,  rule_ordering=sequential,  hashlimit_burst=100,  nf_tables=nftables,  batch_verdict=on</td></tr>
+            <tr><td>#7</td><td><strong>0.7012</strong></td><td style="font-size:.78rem;">rule_count=100,  conntrack_max=65536,  rule_ordering=sequential,  hashlimit_burst=5,  nf_tables=nftables,  batch_verdict=on</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>latency_us</code></td><td style="color:#16a34a;font-weight:600;">0.9691</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9906
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+throughput_mpps              1.5       0.9843        4.65 Mpps   ↑
+latency_us                   1.0       1.0000       -3.23 us   ↓
+
+Recommended settings:
+  rule_count = 4886 rules
+  conntrack_max = 9.683e+05 entries
+  rule_ordering = sequential
+  hashlimit_burst = 6.108 packets
+  nf_tables = nftables
+  batch_verdict = off
+  (from RSM model prediction)
+
+Trade-off summary:
+  throughput_mpps: 4.65 (best observed: 4.53, sacrifice: -0.12)
+  latency_us: -3.23 (best observed: 0.40, sacrifice: -3.63)
+
+Model quality:
+  throughput_mpps: R² = 0.9705 (linear)
+  latency_us: R² = 0.9691 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #5 (D=0.9545): rule_count=5000, conntrack_max=1048576, rule_ordering=sequential, hashlimit_burst=5, nf_tables=iptables, batch_verdict=off
+  2. Run #3 (D=0.8021): rule_count=5000, conntrack_max=1048576, rule_ordering=sequential, hashlimit_burst=100, nf_tables=nftables, batch_verdict=on
+  3. Run #7 (D=0.7012): rule_count=100, conntrack_max=65536, rule_ordering=sequential, hashlimit_burst=5, nf_tables=nftables, batch_verdict=on</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: throughput_mpps ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
 rule_count               1.5825       0.4322            35.2%
-rule_ordering            1.0925       0.4322            24.3%
-hashlimit_burst         -1.0375       0.4322            23.1%
-nf_tables                0.5075       0.4322            11.3%
-conntrack_max           -0.2225       0.4322             4.9%
-batch_verdict           -0.0525       0.4322             1.2%
+hashlimit_burst         -1.2075       0.4322            26.9%
+rule_ordering            0.8225       0.4322            18.3%
+conntrack_max           -0.4925       0.4322            11.0%
+nf_tables                0.3375       0.4322             7.5%
+batch_verdict            0.0475       0.4322             1.1%
+
+=== ANOVA Table: throughput_mpps ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+rule_count                   1       5.0086       5.0086      7.171     0.0316
+conntrack_max                1       0.4851       0.4851      0.695     0.4321
+rule_ordering                1       1.3530       1.3530      1.937     0.2066
+hashlimit_burst              1       2.9161       2.9161      4.175     0.0803
+nf_tables                    1       0.2278       0.2278      0.326     0.5858
+batch_verdict                1       0.0045       0.0045      0.006     0.9382
+rule_count*conntrack_max     1       1.3530       1.3530      1.937     0.2066
+rule_count*rule_ordering     1       0.4851       0.4851      0.695     0.4321
+rule_count*hashlimit_burst    1       0.2278       0.2278      0.326     0.5858
+rule_count*nf_tables         1       2.9161       2.9161      4.175     0.0803
+rule_count*batch_verdict     1       0.4656       0.4656      0.667     0.4411
+conntrack_max*rule_ordering    1       5.0086       5.0086      7.171     0.0316
+conntrack_max*hashlimit_burst    1       0.0045       0.0045      0.006     0.9382
+conntrack_max*nf_tables      1       0.4656       0.4656      0.667     0.4411
+conntrack_max*batch_verdict    1       2.9161       2.9161      4.175     0.0803
+rule_ordering*hashlimit_burst    1       0.4656       0.4656      0.667     0.4411
+rule_ordering*nf_tables      1       0.0045       0.0045      0.006     0.9382
+rule_ordering*batch_verdict    1       0.2278       0.2278      0.326     0.5858
+hashlimit_burst*nf_tables    1       5.0086       5.0086      7.171     0.0316
+hashlimit_burst*batch_verdict    1       0.4851       0.4851      0.695     0.4321
+nf_tables*batch_verdict      1       1.3530       1.3530      1.937     0.2066
+Error (Lenth PSE)            7       4.8889       0.6984
+Total                        7      10.4608       1.4944
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
 
 === Interaction Effects: throughput_mpps ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-conntrack_max        rule_ordering             -1.5825            15.6%
-hashlimit_burst      nf_tables                 -1.5825            15.6%
-rule_count           conntrack_max             -1.0925            10.8%
-nf_tables            batch_verdict              1.0925            10.8%
-rule_count           nf_tables                  1.0375            10.2%
-conntrack_max        batch_verdict             -1.0375            10.2%
-rule_count           hashlimit_burst           -0.5075             5.0%
-rule_ordering        batch_verdict              0.5075             5.0%
-rule_count           batch_verdict             -0.3825             3.8%
-conntrack_max        nf_tables                  0.3825             3.8%
-rule_ordering        hashlimit_burst            0.3825             3.8%
-rule_count           rule_ordering              0.2225             2.2%
-hashlimit_burst      batch_verdict             -0.2225             2.2%
-conntrack_max        hashlimit_burst           -0.0525             0.5%
-rule_ordering        nf_tables                 -0.0525             0.5%
+conntrack_max        rule_ordering             -1.5825            15.2%
+hashlimit_burst      nf_tables                 -1.5825            15.2%
+rule_count           nf_tables                  1.2075            11.6%
+conntrack_max        batch_verdict             -1.2075            11.6%
+rule_count           conntrack_max             -0.8225             7.9%
+nf_tables            batch_verdict              0.8225             7.9%
+rule_count           rule_ordering              0.4925             4.7%
+hashlimit_burst      batch_verdict             -0.4925             4.7%
+rule_count           batch_verdict             -0.4825             4.6%
+conntrack_max        nf_tables                  0.4825             4.6%
+rule_ordering        hashlimit_burst            0.4825             4.6%
+rule_count           hashlimit_burst           -0.3375             3.2%
+rule_ordering        batch_verdict              0.3375             3.2%
+conntrack_max        hashlimit_burst            0.0475             0.5%
+rule_ordering        nf_tables                  0.0475             0.5%
 
 === Summary Statistics: throughput_mpps ===
 
@@ -424,61 +588,89 @@ rule_count:
 conntrack_max:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1048576             4     2.6375     1.6474     0.8700     4.5300
-  65536               4     2.4150     0.8603     1.6700     3.6500
+  1048576             4     2.7725     1.5684     0.8700     4.5300
+  65536               4     2.2800     0.9302     1.6700     3.6500
 
 rule_ordering:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  frequency           4     1.9800     1.1803     0.8700     3.6500
-  sequential          4     3.0725     1.1393     2.0700     4.5300
+  frequency           4     2.1150     1.1731     0.8700     3.6500
+  sequential          4     2.9375     1.2883     1.7300     4.5300
 
 hashlimit_burst:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4     3.0450     1.2782     1.7300     4.5300
-  5                   4     2.0075     1.0657     0.8700     3.4200
+  100                 4     3.1300     1.1681     2.0700     4.5300
+  5                   4     1.9225     1.0725     0.8700     3.4200
 
 nf_tables:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  iptables            4     2.2725     0.8112     1.6700     3.4200
-  nftables            4     2.7800     1.6301     0.8700     4.5300
+  iptables            4     2.3575     0.7510     1.6700     3.4200
+  nftables            4     2.6950     1.6873     0.8700     4.5300
 
 batch_verdict:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4     2.5525     1.2738     0.8700     3.6500
-  on                  4     2.5000     1.3647     1.6700     4.5300
+  off                 4     2.5025     1.2924     0.8700     3.6500
+  on                  4     2.5500     1.3473     1.6700     4.5300
 
 === Main Effects: latency_us ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-rule_count             -15.4250       4.0069            39.1%
-rule_ordering           -8.2750       4.0069            20.9%
-hashlimit_burst          7.7750       4.0069            19.7%
-nf_tables               -6.6750       4.0069            16.9%
-batch_verdict            1.0750       4.0069             2.7%
-conntrack_max            0.2750       4.0069             0.7%
+rule_count             -15.4250       4.0069            37.2%
+hashlimit_burst         11.2250       4.0069            27.1%
+rule_ordering           -6.7750       4.0069            16.3%
+nf_tables               -3.2250       4.0069             7.8%
+batch_verdict            3.0250       4.0069             7.3%
+conntrack_max            1.7750       4.0069             4.3%
+
+=== ANOVA Table: latency_us ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+rule_count                   1     475.8613     475.8613     15.251     0.0059
+conntrack_max                1       6.3013       6.3013      0.202     0.6667
+rule_ordering                1      91.8013      91.8013      2.942     0.1300
+hashlimit_burst              1     252.0012     252.0012      8.076     0.0250
+nf_tables                    1      20.8012      20.8012      0.667     0.4411
+batch_verdict                1      18.3013      18.3013      0.587     0.4688
+rule_count*conntrack_max     1      91.8012      91.8012      2.942     0.1300
+rule_count*rule_ordering     1       6.3012       6.3012      0.202     0.6667
+rule_count*hashlimit_burst    1      20.8013      20.8013      0.667     0.4411
+rule_count*nf_tables         1     252.0013     252.0013      8.076     0.0250
+rule_count*batch_verdict     1      34.0312      34.0312      1.091     0.3310
+conntrack_max*rule_ordering    1     475.8613     475.8613     15.251     0.0059
+conntrack_max*hashlimit_burst    1      18.3013      18.3013      0.587     0.4688
+conntrack_max*nf_tables      1      34.0313      34.0313      1.091     0.3310
+conntrack_max*batch_verdict    1     252.0012     252.0012      8.076     0.0250
+rule_ordering*hashlimit_burst    1      34.0313      34.0313      1.091     0.3310
+rule_ordering*nf_tables      1      18.3012      18.3012      0.587     0.4688
+rule_ordering*batch_verdict    1      20.8012      20.8012      0.667     0.4411
+hashlimit_burst*nf_tables    1     475.8613     475.8613     15.251     0.0059
+hashlimit_burst*batch_verdict    1       6.3013       6.3013      0.202     0.6667
+nf_tables*batch_verdict      1      91.8012      91.8012      2.942     0.1300
+Error (Lenth PSE)            7     218.4131      31.2019
+Total                        7     899.0987     128.4427
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
 
 === Interaction Effects: latency_us ===
 Factor A             Factor B              Interaction   % Contribution
 ------------------------------------------------------------------------
-conntrack_max        rule_ordering             15.4250            15.9%
-hashlimit_burst      nf_tables                 15.4250            15.9%
-rule_count           conntrack_max              8.2750             8.5%
-nf_tables            batch_verdict             -8.2750             8.5%
-rule_count           nf_tables                 -7.7750             8.0%
-conntrack_max        batch_verdict              7.7750             8.0%
-rule_count           hashlimit_burst            6.6750             6.9%
-rule_ordering        batch_verdict             -6.6750             6.9%
-rule_count           batch_verdict              6.0750             6.2%
-conntrack_max        nf_tables                 -6.0750             6.2%
-rule_ordering        hashlimit_burst           -6.0750             6.2%
-conntrack_max        hashlimit_burst            1.0750             1.1%
-rule_ordering        nf_tables                  1.0750             1.1%
-rule_count           rule_ordering             -0.2750             0.3%
-hashlimit_burst      batch_verdict              0.2750             0.3%
+conntrack_max        rule_ordering             15.4250            16.2%
+hashlimit_burst      nf_tables                 15.4250            16.2%
+rule_count           nf_tables                -11.2250            11.8%
+conntrack_max        batch_verdict             11.2250            11.8%
+rule_count           conntrack_max              6.7750             7.1%
+nf_tables            batch_verdict             -6.7750             7.1%
+rule_count           batch_verdict              4.1250             4.3%
+conntrack_max        nf_tables                 -4.1250             4.3%
+rule_ordering        hashlimit_burst           -4.1250             4.3%
+rule_count           hashlimit_burst            3.2250             3.4%
+rule_ordering        batch_verdict             -3.2250             3.4%
+conntrack_max        hashlimit_burst            3.0250             3.2%
+rule_ordering        nf_tables                  3.0250             3.2%
+rule_count           rule_ordering             -1.7750             1.9%
+hashlimit_burst      batch_verdict              1.7750             1.9%
 
 === Summary Statistics: latency_us ===
 
@@ -491,32 +683,32 @@ rule_count:
 conntrack_max:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1048576             4    15.9000    14.2237     0.4000    30.8000
-  65536               4    16.1750     9.8659     1.8000    23.4000
+  1048576             4    15.1500    13.6735     0.4000    30.8000
+  65536               4    16.9250    10.5184     1.8000    24.7000
 
 rule_ordering:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  frequency           4    20.1750    12.6676     1.8000    30.8000
-  sequential          4    11.9000     9.6737     0.4000    21.7000
+  frequency           4    19.4250    12.3963     1.8000    30.8000
+  sequential          4    12.6500    10.7438     0.4000    24.7000
 
 hashlimit_burst:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  100                 4    12.1500    12.8308     0.4000    24.7000
-  5                   4    19.9250     9.7349     7.7000    30.8000
+  100                 4    10.4250    10.8997     0.4000    21.7000
+  5                   4    21.6500     9.8436     7.7000    30.8000
 
 nf_tables:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  iptables            4    19.3750     7.8797     7.7000    24.7000
-  nftables            4    12.7000    14.4190     0.4000    30.8000
+  iptables            4    17.6500     7.0354     7.7000    23.4000
+  nftables            4    14.4250    15.5971     0.4000    30.8000
 
 batch_verdict:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  off                 4    15.5000    13.1790     1.8000    30.8000
-  on                  4    16.5750    11.1912     0.4000    24.7000</div></div>
+  off                 4    14.5250    12.7031     1.8000    30.8000
+  on                  4    17.5500    11.4991     0.4000    24.7000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: throughput_mpps ===
@@ -524,82 +716,100 @@ Direction: maximize
 
 Best observed run: #5
   rule_count = 5000
-  conntrack_max = 65536
-  rule_ordering = frequency
-  hashlimit_burst = 5
-  nf_tables = iptables
+  conntrack_max = 1048576
+  rule_ordering = sequential
+  hashlimit_burst = 100
+  nf_tables = nftables
   batch_verdict = on
   Value: 4.53
 
-RSM Model (linear, R² = 0.9186, Adj R² = 0.4302):
+RSM Model (linear, R² = 0.9609, Adj R² = 0.7260):
   Coefficients:
     intercept                      +2.5263
-    rule_count                     +0.1963
-    conntrack_max                  -0.4537
-    rule_ordering                  -0.1238
-    hashlimit_burst                -0.8062
-    nf_tables                      -0.4463
-    batch_verdict                  +0.3038
+    rule_count                     +0.5187
+    conntrack_max                  +0.8912
+    rule_ordering                  +0.1538
+    hashlimit_burst                +0.2463
+    nf_tables                      +0.1088
+    batch_verdict                  +0.3112
 
-  Predicted optimum (from linear model):
-    rule_count = 5000
-    conntrack_max = 65536
-    rule_ordering = frequency
-    hashlimit_burst = 5
-    nf_tables = iptables
-    batch_verdict = on
-    Predicted value: 4.8563
-
-  Model quality: Excellent fit — surface predictions are reliable.
-
-Factor importance:
-  1. hashlimit_burst  (effect: 1.6, contribution: 34.6%)
-  2. conntrack_max  (effect: 0.9, contribution: 19.5%)
-  3. nf_tables  (effect: -0.9, contribution: 19.2%)
-  4. batch_verdict  (effect: 0.6, contribution: 13.0%)
-  5. rule_count  (effect: 0.4, contribution: 8.4%)
-  6. rule_ordering  (effect: -0.2, contribution: 5.3%)
-
-=== Optimization: latency_us ===
-Direction: minimize
-
-Best observed run: #5
-  rule_count = 5000
-  conntrack_max = 65536
-  rule_ordering = frequency
-  hashlimit_burst = 5
-  nf_tables = iptables
-  batch_verdict = on
-  Value: 0.4
-
-RSM Model (linear, R² = 0.8724, Adj R² = 0.1065):
-  Coefficients:
-    intercept                      +16.0375
-    rule_count                     -1.8625
-    conntrack_max                  +5.1875
-    rule_ordering                  -0.1125
-    hashlimit_burst                +7.3875
-    nf_tables                      +2.7375
-    batch_verdict                  -2.3625
-
-  Predicted optimum (from linear model):
+  Predicted optimum (from linear model, at observed points):
     rule_count = 5000
     conntrack_max = 1048576
     rule_ordering = sequential
     hashlimit_burst = 100
     nf_tables = nftables
     batch_verdict = on
-    Predicted value: 27.0125
+    Predicted value: 4.7562
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Surface optimum (via L-BFGS-B, linear model):
+    rule_count = 5000
+    conntrack_max = 1.04858e+06
+    rule_ordering = sequential
+    hashlimit_burst = 100
+    nf_tables = nftables
+    batch_verdict = on
+    Predicted value: 4.7562
+
+  Model quality: Excellent fit — surface predictions are reliable.
 
 Factor importance:
-  1. hashlimit_burst  (effect: -14.8, contribution: 37.6%)
-  2. conntrack_max  (effect: -10.4, contribution: 26.4%)
-  3. nf_tables  (effect: 5.5, contribution: 13.9%)
-  4. batch_verdict  (effect: -4.7, contribution: 12.0%)
-  5. rule_count  (effect: -3.7, contribution: 9.5%)
-  6. rule_ordering  (effect: -0.2, contribution: 0.6%)</div></div>
+  1. conntrack_max  (effect: -1.8, contribution: 40.0%)
+  2. rule_count  (effect: 1.0, contribution: 23.3%)
+  3. batch_verdict  (effect: 0.6, contribution: 14.0%)
+  4. hashlimit_burst  (effect: -0.5, contribution: 11.0%)
+  5. rule_ordering  (effect: 0.3, contribution: 6.9%)
+  6. nf_tables  (effect: 0.2, contribution: 4.9%)
+
+=== Optimization: latency_us ===
+Direction: minimize
+
+Best observed run: #5
+  rule_count = 5000
+  conntrack_max = 1048576
+  rule_ordering = sequential
+  hashlimit_burst = 100
+  nf_tables = nftables
+  batch_verdict = on
+  Value: 0.4
+
+RSM Model (linear, R² = 0.9493, Adj R² = 0.6450):
+  Coefficients:
+    intercept                      +16.0375
+    rule_count                     -3.8875
+    conntrack_max                  -9.1125
+    rule_ordering                  -1.9375
+    hashlimit_burst                -0.8875
+    nf_tables                      -0.2125
+    batch_verdict                  -1.9875
+
+  Predicted optimum (from linear model, at observed points):
+    rule_count = 100
+    conntrack_max = 65536
+    rule_ordering = sequential
+    hashlimit_burst = 100
+    nf_tables = iptables
+    batch_verdict = off
+    Predicted value: 28.4125
+
+  Surface optimum (via L-BFGS-B, linear model):
+    rule_count = 5000
+    conntrack_max = 1.04858e+06
+    rule_ordering = sequential
+    hashlimit_burst = 100
+    nf_tables = nftables
+    batch_verdict = on
+    Predicted value: -1.9875
+
+  Model quality: Excellent fit — surface predictions are reliable.
+
+Factor importance:
+  1. conntrack_max  (effect: 18.2, contribution: 50.6%)
+  2. rule_count  (effect: -7.8, contribution: 21.6%)
+  3. batch_verdict  (effect: -4.0, contribution: 11.0%)
+  4. rule_ordering  (effect: -3.9, contribution: 10.7%)
+  5. hashlimit_burst  (effect: 1.8, contribution: 4.9%)
+  6. nf_tables  (effect: -0.4, contribution: 1.2%)</div></div>
   </section>
 
   <!-- Nav -->

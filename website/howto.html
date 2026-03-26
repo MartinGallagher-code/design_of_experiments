@@ -69,11 +69,11 @@
         <tr><th>Package</th><th>Version</th><th>Purpose</th></tr>
       </thead>
       <tbody>
-        <tr><td><code>pyDOE3</code></td><td>&ge;1.0</td><td>PB, fractional, LHS, CCD, Box-Behnken designs</td></tr>
-        <tr><td><code>numpy</code></td><td>&ge;1.26</td><td>Array operations, RSM least-squares</td></tr>
+        <tr><td><code>pyDOE3</code></td><td>&ge;1.0</td><td>PB, fractional, LHS, CCD, Box-Behnken, Taguchi designs</td></tr>
+        <tr><td><code>numpy</code></td><td>&ge;1.26</td><td>Array operations, RSM, hat matrix, design evaluation</td></tr>
         <tr><td><code>pandas</code></td><td>&ge;2.0</td><td>Data manipulation</td></tr>
-        <tr><td><code>matplotlib</code></td><td>&ge;3.7</td><td>Pareto charts, effects plots</td></tr>
-        <tr><td><code>scipy</code></td><td>&ge;1.11</td><td>Confidence intervals (t-distribution)</td></tr>
+        <tr><td><code>matplotlib</code></td><td>&ge;3.7</td><td>Pareto, effects, diagnostic, normal/half-normal, RSM surface plots</td></tr>
+        <tr><td><code>scipy</code></td><td>&ge;1.11</td><td>ANOVA F-tests, confidence intervals, surface optimization, power analysis</td></tr>
         <tr><td><code>Jinja2</code></td><td>&ge;3.1</td><td>Runner script template rendering</td></tr>
       </tbody>
     </table>
@@ -144,9 +144,13 @@
               <tr><td>Test everything</td><td>Full Factorial</td><td>All combinations, all interactions</td></tr>
               <tr><td>Reduce runs (2-level)</td><td>Fractional Factorial</td><td>Half the runs, some aliasing</td></tr>
               <tr><td>Screen many factors</td><td>Plackett-Burman</td><td>N+1 runs for N factors</td></tr>
+              <tr><td>Modern screening</td><td>Definitive Screening</td><td>3-level, detects curvature, 2k+1 runs</td></tr>
+              <tr><td>Robust design (Taguchi)</td><td>Taguchi</td><td>Orthogonal arrays, S/N ratios</td></tr>
               <tr><td>Continuous space filling</td><td>Latin Hypercube</td><td>Even coverage, configurable N</td></tr>
               <tr><td>Find the optimum</td><td>Central Composite</td><td>Quadratic model, star points</td></tr>
               <tr><td>Avoid corner points</td><td>Box-Behnken</td><td>Safe RSM, no extreme combos</td></tr>
+              <tr><td>Custom run count</td><td>D-Optimal</td><td>Algorithmic design, max information per run</td></tr>
+              <tr><td>Formulation/blending</td><td>Mixture (Simplex)</td><td>Components that sum to 1</td></tr>
             </tbody>
           </table>
         </div>
@@ -184,7 +188,7 @@
     <table>
       <thead><tr><th>Field</th><th>Default</th><th>Description</th></tr></thead>
       <tbody>
-        <tr><td><code>operation</code></td><td><code>full_factorial</code></td><td>Design type (6 supported)</td></tr>
+        <tr><td><code>operation</code></td><td><code>full_factorial</code></td><td>Design type (11 supported &mdash; see table above)</td></tr>
         <tr><td><code>test_script</code></td><td>&mdash;</td><td>Path to test script</td></tr>
         <tr><td><code>block_count</code></td><td>1</td><td>Number of blocks (replicates)</td></tr>
         <tr><td><code>out_directory</code></td><td><code>results</code></td><td>Directory for per-run JSON results</td></tr>
@@ -199,6 +203,7 @@
       <li>Fractional factorial and Plackett-Burman require exactly 2 levels per factor</li>
       <li>Box-Behnken requires 3+ factors with 2 numeric levels each</li>
       <li>CCD requires 2 numeric levels per factor</li>
+      <li>Definitive Screening requires 3+ factors with 2 numeric levels each</li>
       <li>Factor names must be unique</li>
       <li>Response names must be unique</li>
     </ul>
@@ -219,6 +224,8 @@
       <button class="tab-btn" data-tab="tab-info">info</button>
       <button class="tab-btn" data-tab="tab-record">record</button>
       <button class="tab-btn" data-tab="tab-status">status</button>
+      <button class="tab-btn" data-tab="tab-power">power</button>
+      <button class="tab-btn" data-tab="tab-augment">augment</button>
       <button class="tab-btn" data-tab="tab-worksheet">export-worksheet</button>
     </div>
 
@@ -265,12 +272,17 @@
       </table>
       <h4 style="margin-top: 20px;">What It Computes</h4>
       <ul>
+        <li><strong>ANOVA table</strong> &mdash; Full analysis of variance with SS decomposition, F-tests, and p-values. Uses Lenth's pseudo-standard-error for unreplicated designs (same approach as R's FrF2 package). Includes lack-of-fit test when replicates are available. Significant terms (p &lt; 0.05) are highlighted.</li>
         <li><strong>Main effects</strong> &mdash; For 2-level factors: mean(high) &minus; mean(low). For 3+ levels: max(means) &minus; min(means).</li>
         <li><strong>Interaction effects</strong> &mdash; Two-factor interactions for all pairs of 2-level factors.</li>
         <li><strong>95% Confidence intervals</strong> &mdash; Using the t-distribution on effect estimates.</li>
         <li><strong>Summary statistics</strong> &mdash; Per-factor, per-level: count, mean, std, min, max.</li>
+        <li><strong>Model diagnostics</strong> &mdash; 2&times;2 diagnostic panel: residuals vs fitted values, normal probability plot of residuals, residuals vs run order, and predicted vs actual. Includes PRESS statistic and predicted R&sup2;.</li>
         <li><strong>Pareto chart</strong> &mdash; Ranked bar chart with cumulative contribution line.</li>
         <li><strong>Main effects plot</strong> &mdash; Grid of line plots showing mean response at each factor level.</li>
+        <li><strong>Normal probability plot</strong> &mdash; Effects plotted against normal quantiles; significant effects deviate from the reference line and are labeled.</li>
+        <li><strong>Half-normal plot</strong> &mdash; Absolute effects against half-normal quantiles for screening.</li>
+        <li><strong>Response surface plots</strong> &mdash; 3D surface plots for each pair of continuous factors.</li>
       </ul>
     </div>
 
@@ -278,7 +290,7 @@
       <h3>Get Optimization Recommendations</h3>
       <div class="code-block">
         <div class="code-header"><span>Usage</span></div>
-        <div class="code-body">python doe.py optimize <span class="flag">--config</span> FILE [<span class="flag">--results-dir</span> DIR] [<span class="flag">--response</span> NAME] [<span class="flag">--partial</span>] [<span class="flag">--multi</span>]</div>
+        <div class="code-body">python doe.py optimize <span class="flag">--config</span> FILE [<span class="flag">--results-dir</span> DIR] [<span class="flag">--response</span> NAME] [<span class="flag">--partial</span>] [<span class="flag">--multi</span>] [<span class="flag">--steepest</span>]</div>
       </div>
       <table>
         <thead><tr><th>Flag</th><th>Description</th></tr></thead>
@@ -288,9 +300,11 @@
           <tr><td><code>--response</code></td><td>Optimize for a single response (default: all responses)</td></tr>
           <tr><td><code>--partial</code></td><td>Use only completed runs for optimization</td></tr>
           <tr><td><code>--multi</code></td><td>Multi-objective optimization using Derringer-Suich desirability functions</td></tr>
+          <tr><td><code>--steepest</code></td><td>Show steepest ascent/descent pathway for sequential experimentation</td></tr>
         </tbody>
       </table>
-      <p style="margin-top: 16px;">The optimizer reports the best observed run, fits a linear RSM model, and ranks factors by importance. Use <code>--response</code> to focus on a specific metric.</p>
+      <p style="margin-top: 16px;">The optimizer reports the best observed run, fits linear and quadratic RSM models, finds the true surface optimum using L-BFGS-B optimization with multi-start, and ranks factors by importance. Use <code>--response</code> to focus on a specific metric.</p>
+      <p style="margin-top: 8px;">Use <code>--steepest</code> to generate a table of follow-up experiment points along the gradient direction (standard RSM Phase 1 methodology).</p>
 
       <h4 style="margin-top: 24px;">Multi-Objective Optimization</h4>
       <p>When your experiment has multiple responses that conflict (e.g., maximize yield AND minimize cost), use <code>--multi</code> to find the best compromise using <strong>Derringer-Suich desirability functions</strong>.</p>
@@ -347,8 +361,12 @@ Trade-off summary:
       <p style="margin-top: 16px;">Generates a self-contained HTML file with:</p>
       <ul>
         <li>Design summary (factors, levels, operation type)</li>
+        <li>ANOVA tables with F-tests, p-values, and significance highlighting</li>
         <li>Main effects and interaction tables for each response</li>
-        <li>Pareto charts and main effects plots (base64 embedded)</li>
+        <li>Pareto charts, main effects plots, and normal/half-normal probability plots (base64 embedded)</li>
+        <li>Model diagnostic panels (residuals vs fitted, normal probability, etc.)</li>
+        <li>3D response surface plots for continuous factor pairs</li>
+        <li>Optimization results with true surface optimum</li>
         <li>Full design matrix as an interactive table</li>
         <li>Collapsible sections for easy navigation</li>
       </ul>
@@ -368,7 +386,56 @@ Trade-off summary:
         <div class="code-header"><span>Usage</span></div>
         <div class="code-body">python doe.py info <span class="flag">--config</span> FILE</div>
       </div>
-      <p style="margin-top: 16px;">Prints the experiment plan summary without writing any files: operation type, number of factors, base runs, total runs with blocking, response definitions, and fixed factors. Use this to quickly verify your config before running anything.</p>
+      <p style="margin-top: 16px;">Prints the experiment plan summary without writing any files: operation type, number of factors, base runs, total runs with blocking, response definitions, fixed factors, alias structure (for fractional factorials), and design evaluation metrics (D-efficiency, A-efficiency, G-efficiency). Use this to quickly verify your config before running anything.</p>
+    </div>
+
+    <div id="tab-power" class="tab-panel">
+      <h3>Compute Statistical Power</h3>
+      <div class="code-block">
+        <div class="code-header"><span>Usage</span></div>
+        <div class="code-body">python doe.py power <span class="flag">--config</span> FILE [<span class="flag">--sigma</span> FLOAT] [<span class="flag">--delta</span> FLOAT] [<span class="flag">--alpha</span> FLOAT] [<span class="flag">--results-dir</span> DIR]</div>
+      </div>
+      <table>
+        <thead><tr><th>Flag</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--config</code></td><td><em>required</em></td><td>Path to JSON config file</td></tr>
+          <tr><td><code>--sigma</code></td><td>auto</td><td>Error standard deviation (estimated from results if omitted)</td></tr>
+          <tr><td><code>--delta</code></td><td>2&times;sigma</td><td>Minimum detectable effect size</td></tr>
+          <tr><td><code>--alpha</code></td><td>0.05</td><td>Significance level</td></tr>
+          <tr><td><code>--results-dir</code></td><td>from config</td><td>Override <code>out_directory</code> from config</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top: 16px;">Computes statistical power for detecting effects of a given size using the non-central F distribution. Power &lt; 0.80 indicates you may need more runs or blocks to reliably detect the specified effect size.</p>
+      <div class="callout info" style="margin-top:16px">
+        <span class="callout-icon">&#x2139;</span>
+        <div class="callout-body">
+          <h4>When to Use Power Analysis</h4>
+          <p>Run this <em>before</em> your experiment to check if your design has enough runs. If power is low, consider adding blocks (replicates) or switching to a design with more runs. If results already exist, sigma is estimated automatically from residuals.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="tab-augment" class="tab-panel">
+      <h3>Augment an Existing Design</h3>
+      <div class="code-block">
+        <div class="code-header"><span>Usage</span></div>
+        <div class="code-body">python doe.py augment <span class="flag">--config</span> FILE <span class="flag">--type</span> TYPE [<span class="flag">--output</span> FILE] [<span class="flag">--format</span> sh|py]</div>
+      </div>
+      <table>
+        <thead><tr><th>Flag</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--config</code></td><td><em>required</em></td><td>Path to JSON config file</td></tr>
+          <tr><td><code>--type</code></td><td><em>required</em></td><td>Augmentation type: <code>fold_over</code>, <code>star_points</code>, or <code>center_points</code></td></tr>
+          <tr><td><code>--output</code></td><td><code>run_experiments_augmented.sh</code></td><td>Output script path</td></tr>
+          <tr><td><code>--format</code></td><td><code>sh</code></td><td>Script format: <code>sh</code> or <code>py</code></td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top: 16px;">Extends an existing design with additional runs without re-running completed experiments:</p>
+      <ul>
+        <li><strong>fold_over</strong> &mdash; Mirrors all runs (swaps high/low levels) to de-alias confounded effects in fractional factorials.</li>
+        <li><strong>star_points</strong> &mdash; Adds axial (star) points for continuous factors, converting a factorial design into a CCD for response surface modeling.</li>
+        <li><strong>center_points</strong> &mdash; Adds 3 center-point replicates to detect curvature and estimate pure error.</li>
+      </ul>
     </div>
 
     <div id="tab-record" class="tab-panel">

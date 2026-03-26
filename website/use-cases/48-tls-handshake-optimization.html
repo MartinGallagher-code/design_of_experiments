@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>handshake ms</strong>, the most influential factors were ocsp stapling workers (47.4%), session timeout s (26.8%), session cache size (25.7%). The best observed value was <strong>32.0</strong> (at session cache size = 1000, session timeout s = 43230, ocsp stapling workers = 8).</p>
-<p>For <strong>resumption rate</strong>, the most influential factors were ocsp stapling workers (67.1%), session cache size (17.3%), session timeout s (15.5%). The best observed value was <strong>85.9</strong> (at session cache size = 50500, session timeout s = 43230, ocsp stapling workers = 4.5).</p>
+    <p>For <strong>handshake ms</strong>, the most influential factors were session timeout s (41.6%), ocsp stapling workers (30.3%), session cache size (28.1%). The best observed value was <strong>32.0</strong> (at session cache size = 100000, session timeout s = 60, ocsp stapling workers = 4.5).</p>
+<p>For <strong>resumption rate</strong>, the most influential factors were session timeout s (43.7%), session cache size (30.0%), ocsp stapling workers (26.3%). The best observed value was <strong>85.9</strong> (at session cache size = 50500, session timeout s = 43230, ocsp stapling workers = 4.5).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (handshake_ms (↓), resumption_rate (↑)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/48_tls_handshake_optimization/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -295,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: handshake_ms</h3>
-    <p>Top factors: ocsp_stapling_workers (47.4%), session_timeout_s (26.8%), session_cache_size (25.7%).</p>
+    <p>Top factors: session_timeout_s (41.6%), ocsp_stapling_workers (30.3%), session_cache_size (28.1%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -308,7 +308,7 @@
     </div>
 
     <h3>Response: resumption_rate</h3>
-    <p>Top factors: ocsp_stapling_workers (67.1%), session_cache_size (17.3%), session_timeout_s (15.5%).</p>
+    <p>Top factors: session_timeout_s (43.7%), session_cache_size (30.0%), ocsp_stapling_workers (26.3%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -359,119 +359,278 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9150</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>handshake_ms</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:85.86%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.8586</span>
+                </div>
+              </td>
+              <td>36.60 0.8586       36.60 ms</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>resumption_rate</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>85.90 0.9545       85.90 %</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>session_cache_size</code></td><td>50500 entries</td></tr>
+            <tr><td><code>session_timeout_s</code></td><td>86400 s</td></tr>
+            <tr><td><code>ocsp_stapling_workers</code></td><td>1 threads</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #10</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>resumption_rate</code></td><td>85.90</td><td>85.90</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#3</td><td><strong>0.8623</strong></td><td style="font-size:.78rem;">session_cache_size=1000,  session_timeout_s=43230,  ocsp_stapling_workers=8</td></tr>
+            <tr><td>#12</td><td><strong>0.7816</strong></td><td style="font-size:.78rem;">session_cache_size=50500,  session_timeout_s=43230,  ocsp_stapling_workers=4.5</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>resumption_rate</code></td><td style="color:#16a34a;font-weight:600;">0.8203</td><td>quadratic</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9150
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+handshake_ms                 1.0       0.8586       36.60 ms   ↓
+resumption_rate              1.5       0.9545       85.90 %   ↑
+
+Recommended settings:
+  session_cache_size = 50500 entries
+  session_timeout_s = 86400 s
+  ocsp_stapling_workers = 1 threads
+  (from observed run #10)
+
+Trade-off summary:
+  handshake_ms: 36.60 (best observed: 32.00, sacrifice: +4.60)
+  resumption_rate: 85.90 (best observed: 85.90, sacrifice: +0.00)
+
+Model quality:
+  handshake_ms: R² = 0.9513 (quadratic)
+  resumption_rate: R² = 0.8203 (quadratic)
+
+Top 3 observed runs by overall desirability:
+  1. Run #10 (D=0.9150): session_cache_size=50500, session_timeout_s=86400, ocsp_stapling_workers=1
+  2. Run #3 (D=0.8623): session_cache_size=1000, session_timeout_s=43230, ocsp_stapling_workers=8
+  3. Run #12 (D=0.7816): session_cache_size=50500, session_timeout_s=43230, ocsp_stapling_workers=4.5</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
     <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: handshake_ms ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-ocsp_stapling_workers     9.1643       3.1456            47.4%
-session_timeout_s        5.1857       3.1456            26.8%
-session_cache_size       4.9750       3.1456            25.7%
+session_timeout_s       10.0036       3.1456            41.6%
+ocsp_stapling_workers     7.2679       3.1456            30.3%
+session_cache_size       6.7536       3.1456            28.1%
+
+=== ANOVA Table: handshake_ms ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+session_cache_size           2     122.6800      61.3400      1.831     0.2215
+session_timeout_s            2     275.9675     137.9838      4.119     0.0589
+ocsp_stapling_workers        2     136.5747      68.2873      2.038     0.1926
+Lack of Fit                  6    1475.6404     245.9401      7.341     0.1247
+Pure Error                   2      67.0067      33.5033
+Error                        8    1542.6470      33.5033
+Total                       14    2077.8693     148.4192
 
 === Summary Statistics: handshake_ms ===
 
 session_cache_size:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1000                4    51.8750    16.7068    36.6000    75.6000
-  100000              4    46.9000     5.8901    43.5000    55.7000
-  50500               7    48.8286    13.4522    32.0000    65.7000
+  1000                4    50.2250    17.9039    35.0000    75.6000
+  100000              4    53.0250     9.7719    44.7000    65.7000
+  50500               7    46.2714    10.8557    32.0000    63.6000
 
 session_timeout_s:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  43230               7    46.9143    10.2159    35.0000    63.6000
-  60                  4    52.1000    10.9292    41.0000    65.7000
-  86400               4    50.0250    18.4435    32.0000    75.6000
+  43230               7    44.7714    14.5996    32.0000    75.6000
+  60                  4    51.1000     5.7827    43.7000    55.7000
+  86400               4    54.7750    11.8700    41.0000    65.7000
 
 ocsp_stapling_workers:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    45.9500     3.8906    41.0000    49.3000
-  4.5                 7    53.6143    13.5065    35.0000    75.6000
-  8                   4    44.4500    14.9342    32.0000    65.7000
+  1                   4    49.7500    12.5205    35.0000    63.6000
+  4.5                 7    46.2571    11.6062    32.0000    65.7000
+  8                   4    53.5250    14.8637    43.7000    75.6000
 
 === Main Effects: resumption_rate ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-ocsp_stapling_workers    19.3821       5.1048            67.1%
-session_cache_size       5.0071       5.1048            17.3%
-session_timeout_s        4.4857       5.1048            15.5%
+session_timeout_s       18.0357       5.1048            43.7%
+session_cache_size      12.3929       5.1048            30.0%
+ocsp_stapling_workers    10.8643       5.1048            26.3%
+
+=== ANOVA Table: resumption_rate ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+session_cache_size           2     480.0387     240.0193      1.138     0.3674
+session_timeout_s            2     851.8673     425.9336      2.019     0.1951
+ocsp_stapling_workers        2     369.8348     184.9174      0.877     0.4527
+Lack of Fit                  6    3348.6726     558.1121      2.645     0.2995
+Pure Error                   2     421.9400     210.9700
+Error                        8    3770.6126     210.9700
+Total                       14    5472.3533     390.8824
 
 === Summary Statistics: resumption_rate ===
 
 session_cache_size:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1000                4    47.6500    30.6447    13.2000    85.9000
-  100000              4    50.2000     7.1568    40.8000    57.0000
-  50500               7    52.6571    20.1511    27.2000    74.0000
+  1000                4    46.6250    26.7908    13.2000    69.7000
+  100000              4    44.2500    13.0743    27.2000    54.7000
+  50500               7    56.6429    19.6903    33.5000    85.9000
 
 session_timeout_s:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  43230               7    52.5857    19.5817    33.5000    85.9000
-  60                  4    48.1000    18.2594    27.2000    69.7000
-  86400               4    49.8750    26.5633    13.2000    74.0000
+  43230               7    57.9857    22.8928    13.2000    85.9000
+  60                  4    39.9500     6.5526    33.5000    48.7000
+  86400               4    48.5750    21.1913    27.2000    69.7000
 
 ocsp_stapling_workers:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4    56.1000    14.3404    36.8000    69.7000
-  4.5                 7    41.6429    17.2757    13.2000    66.8000
-  8                   4    61.0250    25.4784    27.2000    85.9000</div></div>
+  1                   4    47.1000    16.3481    33.5000    66.8000
+  4.5                 7    55.9143    21.7400    27.2000    85.9000
+  8                   4    45.0500    22.0980    13.2000    63.6000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: handshake_ms ===
 Direction: minimize
 
 Best observed run: #3
-  session_cache_size = 1000
-  session_timeout_s = 43230
-  ocsp_stapling_workers = 8
+  session_cache_size = 100000
+  session_timeout_s = 60
+  ocsp_stapling_workers = 4.5
   Value: 32.0
 
-RSM Model (linear, R² = 0.0636, Adj R² = -0.1918):
+RSM Model (linear, R² = 0.0731, Adj R² = -0.1797):
   Coefficients:
     intercept                      +49.1267
-    session_cache_size             +2.9375
-    session_timeout_s              +2.7625
-    ocsp_stapling_workers          -0.5000
+    session_cache_size             -0.9750
+    session_timeout_s              +3.5125
+    ocsp_stapling_workers          +2.3875
 
-RSM Model (quadratic, R² = 0.6125, Adj R² = -0.0850):
+RSM Model (quadratic, R² = 0.6062, Adj R² = -0.1027):
   Coefficients:
-    intercept                      +42.4333
-    session_cache_size             +2.9375
-    session_timeout_s              +2.7625
-    ocsp_stapling_workers          -0.5000
-    session_cache_size*session_timeout_s -1.1000
-    session_cache_size*ocsp_stapling_workers -0.1750
-    session_timeout_s*ocsp_stapling_workers -1.2250
-    session_cache_size^2           -8.4417
-    session_timeout_s^2            +11.3083
-    ocsp_stapling_workers^2        +9.6833
+    intercept                      +52.6667
+    session_cache_size             -0.9750
+    session_timeout_s              +3.5125
+    ocsp_stapling_workers          +2.3875
+    session_cache_size*session_timeout_s +2.2000
+    session_cache_size*ocsp_stapling_workers +3.2500
+    session_timeout_s*ocsp_stapling_workers +1.2750
+    session_cache_size^2           -14.8958
+    session_timeout_s^2            +2.2792
+    ocsp_stapling_workers^2        +5.9792
 
   Curvature analysis:
-    session_timeout_s              coef=+11.3083  convex (has a minimum)
-    ocsp_stapling_workers          coef=+9.6833  convex (has a minimum)
-    session_cache_size             coef=-8.4417  concave (has a maximum)
+    session_cache_size             coef=-14.8958  concave (has a maximum)
+    ocsp_stapling_workers          coef=+5.9792  convex (has a minimum)
+    session_timeout_s              coef=+2.2792  convex (has a minimum)
 
   Notable interactions:
-    session_timeout_s*ocsp_stapling_workers coef=-1.2250  (antagonistic)
-    session_cache_size*session_timeout_s coef=-1.1000  (antagonistic)
+    session_cache_size*ocsp_stapling_workers coef=+3.2500  (synergistic)
+    session_cache_size*session_timeout_s coef=+2.2000  (synergistic)
+    session_timeout_s*ocsp_stapling_workers coef=+1.2750  (synergistic)
 
-  Predicted optimum (from quadratic model):
+  Predicted optimum (from quadratic model, at observed points):
     session_cache_size = 50500
     session_timeout_s = 86400
-    ocsp_stapling_workers = 1
-    Predicted value: 67.9125
+    ocsp_stapling_workers = 8
+    Predicted value: 68.1000
+
+  Surface optimum (via L-BFGS-B, quadratic model):
+    session_cache_size = 100000
+    session_timeout_s = 60
+    ocsp_stapling_workers = 3.22317
+    Predicted value: 32.5668
 
   Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. session_timeout_s  (effect: 14.0, contribution: 38.0%)
-  2. session_cache_size  (effect: 12.9, contribution: 35.0%)
-  3. ocsp_stapling_workers  (effect: 10.0, contribution: 27.1%)
+  1. session_cache_size  (effect: 16.5, contribution: 50.3%)
+  2. ocsp_stapling_workers  (effect: 9.3, contribution: 28.3%)
+  3. session_timeout_s  (effect: 7.0, contribution: 21.4%)
 
 === Optimization: resumption_rate ===
 Direction: maximize
@@ -482,48 +641,54 @@ Best observed run: #10
   ocsp_stapling_workers = 4.5
   Value: 85.9
 
-RSM Model (linear, R² = 0.0857, Adj R² = -0.1636):
+RSM Model (linear, R² = 0.1441, Adj R² = -0.0893):
   Coefficients:
     intercept                      +50.6667
-    session_cache_size             -5.5000
-    session_timeout_s              -5.3000
-    ocsp_stapling_workers          +0.5500
+    session_cache_size             +5.4250
+    session_timeout_s              -7.9125
+    ocsp_stapling_workers          -2.5625
 
-RSM Model (quadratic, R² = 0.4312, Adj R² = -0.5926):
+RSM Model (quadratic, R² = 0.4524, Adj R² = -0.5332):
   Coefficients:
-    intercept                      +62.0667
-    session_cache_size             -5.5000
-    session_timeout_s              -5.3000
-    ocsp_stapling_workers          +0.5500
-    session_cache_size*session_timeout_s +2.3000
-    session_cache_size*ocsp_stapling_workers +2.4000
-    session_timeout_s*ocsp_stapling_workers +3.9500
-    session_cache_size^2           +6.2417
-    session_timeout_s^2            -19.1083
-    ocsp_stapling_workers^2        -8.5083
+    intercept                      +51.3000
+    session_cache_size             +5.4250
+    session_timeout_s              -7.9125
+    ocsp_stapling_workers          -2.5625
+    session_cache_size*session_timeout_s +1.0000
+    session_cache_size*ocsp_stapling_workers -7.6000
+    session_timeout_s*ocsp_stapling_workers +2.3750
+    session_cache_size^2           +14.0875
+    session_timeout_s^2            -3.0375
+    ocsp_stapling_workers^2        -12.2375
 
   Curvature analysis:
-    session_timeout_s              coef=-19.1083  concave (has a maximum)
-    ocsp_stapling_workers          coef=-8.5083  concave (has a maximum)
-    session_cache_size             coef=+6.2417  convex (has a minimum)
+    session_cache_size             coef=+14.0875  convex (has a minimum)
+    ocsp_stapling_workers          coef=-12.2375  concave (has a maximum)
+    session_timeout_s              coef=-3.0375  concave (has a maximum)
 
   Notable interactions:
-    session_timeout_s*ocsp_stapling_workers coef=+3.9500  (synergistic)
-    session_cache_size*ocsp_stapling_workers coef=+2.4000  (synergistic)
-    session_cache_size*session_timeout_s coef=+2.3000  (synergistic)
+    session_cache_size*ocsp_stapling_workers coef=-7.6000  (antagonistic)
+    session_timeout_s*ocsp_stapling_workers coef=+2.3750  (synergistic)
+    session_cache_size*session_timeout_s coef=+1.0000  (synergistic)
 
-  Predicted optimum (from linear model):
-    session_cache_size = 1000
+  Predicted optimum (from linear model, at observed points):
+    session_cache_size = 100000
     session_timeout_s = 60
     ocsp_stapling_workers = 4.5
-    Predicted value: 61.4667
+    Predicted value: 64.0042
+
+  Surface optimum (via L-BFGS-B, linear model):
+    session_cache_size = 100000
+    session_timeout_s = 60
+    ocsp_stapling_workers = 1
+    Predicted value: 66.5667
 
   Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. session_timeout_s  (effect: 24.2, contribution: 52.6%)
-  2. session_cache_size  (effect: 13.7, contribution: 29.7%)
-  3. ocsp_stapling_workers  (effect: 8.1, contribution: 17.7%)</div></div>
+  1. session_cache_size  (effect: 20.6, contribution: 39.6%)
+  2. session_timeout_s  (effect: 15.8, contribution: 30.4%)
+  3. ocsp_stapling_workers  (effect: 15.6, contribution: 30.0%)</div></div>
   </section>
 
   <!-- Nav -->

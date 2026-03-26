@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>stitch quality</strong>, the most influential factors were foot pressure (43.0%), upper tension (32.6%), stitch length mm (24.4%). The best observed value was <strong>7.3</strong> (at upper tension = 4.5, stitch length mm = 2.75, foot pressure = 3).</p>
-<p>For <strong>break rate</strong>, the most influential factors were foot pressure (45.3%), stitch length mm (37.6%), upper tension (17.1%). The best observed value was <strong>0.1</strong> (at upper tension = 7, stitch length mm = 2.75, foot pressure = 5).</p>
+    <p>For <strong>stitch quality</strong>, the most influential factors were stitch length mm (37.0%), upper tension (35.2%), foot pressure (27.8%). The best observed value was <strong>7.3</strong> (at upper tension = 4.5, stitch length mm = 4, foot pressure = 1).</p>
+<p>For <strong>break rate</strong>, the most influential factors were stitch length mm (48.9%), foot pressure (30.4%), upper tension (20.7%). The best observed value was <strong>0.1</strong> (at upper tension = 4.5, stitch length mm = 2.75, foot pressure = 3).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (stitch_quality (↑), break_rate (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/179_sewing_stitch_quality/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -264,48 +264,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/179_sewing_stitch_quality/config.json \
     <span class="flag">--output</span> use_cases/179_sewing_stitch_quality/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Textile Process? Use the Manual Workflow</h4>
-        <p>Textile experiments involve real fabrics, dyes, tension, and physical processes that require hands-on work and measurement. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/179_sewing_stitch_quality/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/179_sewing_stitch_quality/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/179_sewing_stitch_quality/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/179_sewing_stitch_quality/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/179_sewing_stitch_quality/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/179_sewing_stitch_quality/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/179_sewing_stitch_quality/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -337,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: stitch_quality</h3>
-    <p>Top factors: foot_pressure (43.0%), upper_tension (32.6%), stitch_length_mm (24.4%).</p>
+    <p>Top factors: stitch_length_mm (37.0%), upper_tension (35.2%), foot_pressure (27.8%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -350,7 +308,7 @@
     </div>
 
     <h3>Response: break_rate</h3>
-    <p>Top factors: foot_pressure (45.3%), stitch_length_mm (37.6%), upper_tension (17.1%).</p>
+    <p>Top factors: stitch_length_mm (48.9%), foot_pressure (30.4%), upper_tension (20.7%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -401,80 +359,219 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.8497</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>stitch_quality</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>7.30 0.9545        7.30 pts</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>break_rate</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:71.36%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7136</span>
+                </div>
+              </td>
+              <td>0.63 0.7136        0.63 per_m</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>upper_tension</code></td><td>4.5 dial</td></tr>
+            <tr><td><code>stitch_length_mm</code></td><td>1.5 mm</td></tr>
+            <tr><td><code>foot_pressure</code></td><td>1 level</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #12</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>break_rate</code></td><td>0.63</td><td>0.10</td><td><span style="color:#dc2626;">+0.53</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#6</td><td><strong>0.7978</strong></td><td style="font-size:.78rem;">upper_tension=2,  stitch_length_mm=2.75,  foot_pressure=1</td></tr>
+            <tr><td>#2</td><td><strong>0.7561</strong></td><td style="font-size:.78rem;">upper_tension=4.5,  stitch_length_mm=2.75,  foot_pressure=3</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>break_rate</code></td><td style="color:#ca8a04;font-weight:600;">0.7681</td><td>quadratic</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.8497
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+stitch_quality               1.5       0.9545        7.30 pts   ↑
+break_rate                   1.0       0.7136        0.63 per_m   ↓
+
+Recommended settings:
+  upper_tension = 4.5 dial
+  stitch_length_mm = 1.5 mm
+  foot_pressure = 1 level
+  (from observed run #12)
+
+Trade-off summary:
+  stitch_quality: 7.30 (best observed: 7.30, sacrifice: +0.00)
+  break_rate: 0.63 (best observed: 0.10, sacrifice: +0.53)
+
+Model quality:
+  stitch_quality: R² = 0.1639 (linear)
+  break_rate: R² = 0.7681 (quadratic)
+
+Top 3 observed runs by overall desirability:
+  1. Run #12 (D=0.8497): upper_tension=4.5, stitch_length_mm=1.5, foot_pressure=1
+  2. Run #6 (D=0.7978): upper_tension=2, stitch_length_mm=2.75, foot_pressure=1
+  3. Run #2 (D=0.7561): upper_tension=4.5, stitch_length_mm=2.75, foot_pressure=3</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_stitch_quality_upper_tension_vs_stitch_length_mm.png
-  RSM surface: rsm_stitch_quality_upper_tension_vs_foot_pressure.png
-  RSM surface: rsm_stitch_quality_stitch_length_mm_vs_foot_pressure.png
-  RSM surface: rsm_break_rate_upper_tension_vs_stitch_length_mm.png
-  RSM surface: rsm_break_rate_upper_tension_vs_foot_pressure.png
-  RSM surface: rsm_break_rate_stitch_length_mm_vs_foot_pressure.png
-
-=== Main Effects: stitch_quality ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: stitch_quality ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-foot_pressure            0.9250       0.1723            43.0%
-upper_tension            0.7000       0.1723            32.6%
-stitch_length_mm         0.5250       0.1723            24.4%
+stitch_length_mm         0.5000       0.1723            37.0%
+upper_tension            0.4750       0.1723            35.2%
+foot_pressure            0.3750       0.1723            27.8%
+
+=== ANOVA Table: stitch_quality ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+upper_tension                2       0.5927       0.2963      0.295     0.7520
+stitch_length_mm             2       0.5880       0.2940      0.293     0.7537
+foot_pressure                2       0.3098       0.1549      0.154     0.8594
+Lack of Fit                  6       2.7401       0.4567      0.455     0.8076
+Pure Error                   2       2.0067       1.0033
+Error                        8       4.7468       1.0033
+Total                       14       6.2373       0.4455
 
 === Summary Statistics: stitch_quality ===
 
 upper_tension:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  2                   4     6.5750     0.7500     5.6000     7.3000
-  4.5                 7     6.2857     0.6414     5.3000     6.9000
-  7                   4     5.8750     0.6021     5.3000     6.7000
+  2                   4     6.4000     0.5888     5.6000     7.0000
+  4.5                 7     6.3571     0.7871     5.3000     7.3000
+  7                   4     5.9250     0.5439     5.5000     6.7000
 
 stitch_length_mm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1.5                 4     6.5500     0.5066     5.9000     7.0000
-  2.75                7     6.2143     0.8133     5.3000     7.3000
-  4                   4     6.0250     0.5560     5.5000     6.6000
+  1.5                 4     6.5750     0.4717     5.9000     6.9000
+  2.75                7     6.1714     0.7296     5.3000     7.3000
+  4                   4     6.0750     0.7719     5.3000     7.0000
 
 foot_pressure:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4     6.7500     0.3873     6.4000     7.3000
-  3                   7     6.2143     0.6414     5.3000     7.0000
-  5                   4     5.8250     0.7274     5.3000     6.9000
+  1                   4     6.0250     0.7544     5.3000     6.9000
+  3                   7     6.3000     0.7348     5.3000     7.3000
+  5                   4     6.4000     0.5715     5.6000     6.9000
 
 === Main Effects: break_rate ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-foot_pressure            0.5039       0.1372            45.3%
-stitch_length_mm         0.4175       0.1372            37.6%
-upper_tension            0.1900       0.1372            17.1%
+stitch_length_mm         0.6946       0.1372            48.9%
+foot_pressure            0.4321       0.1372            30.4%
+upper_tension            0.2950       0.1372            20.7%
+
+=== ANOVA Table: break_rate ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+upper_tension                2       0.1741       0.0870      0.709     0.5207
+stitch_length_mm             2       1.2708       0.6354      5.174     0.0361
+foot_pressure                2       0.4978       0.2489      2.027     0.1940
+Lack of Fit                  6       1.7630       0.2938      2.393     0.3238
+Pure Error                   2       0.2456       0.1228
+Error                        8       2.0086       0.1228
+Total                       14       3.9513       0.2822
 
 === Summary Statistics: break_rate ===
 
 upper_tension:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  2                   4     0.6750     0.2288     0.5100     1.0100
-  4.5                 7     0.7343     0.6822     0.1000     2.1000
-  7                   4     0.8650     0.5551     0.3100     1.5300
+  2                   4     0.6075     0.3666     0.2500     1.1200
+  4.5                 7     0.7514     0.6582     0.1000     2.1000
+  7                   4     0.9025     0.5082     0.4600     1.5300
 
 stitch_length_mm:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1.5                 4     0.6125     0.3559     0.2500     1.1000
-  2.75                7     0.6757     0.6532     0.1000     2.1000
-  4                   4     1.0300     0.4410     0.4600     1.5300
+  1.5                 4     1.2275     0.6313     0.5900     2.1000
+  2.75                7     0.5329     0.2492     0.2500     1.0100
+  4                   4     0.6650     0.6090     0.1000     1.5300
 
 foot_pressure:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1                   4     0.6300     0.3636     0.2500     1.1200
-  3                   7     0.9814     0.6806     0.1000     2.1000
-  5                   4     0.4775     0.1242     0.3100     0.5900
-
-Pareto chart (stitch_quality): use_cases/179_sewing_stitch_quality/results/analysis/pareto_stitch_quality.png
-
-Pareto chart (break_rate): use_cases/179_sewing_stitch_quality/results/analysis/pareto_break_rate.png
-Main effects (stitch_quality): use_cases/179_sewing_stitch_quality/results/analysis/main_effects_stitch_quality.png
-Main effects (break_rate): use_cases/179_sewing_stitch_quality/results/analysis/main_effects_break_rate.png</div></div>
+  1                   4     0.4550     0.1466     0.2500     0.5900
+  3                   7     0.8871     0.4222     0.3100     1.5300
+  5                   4     0.8175     0.8793     0.1000     2.1000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: stitch_quality ===
@@ -482,97 +579,111 @@ Direction: maximize
 
 Best observed run: #12
   upper_tension = 4.5
-  stitch_length_mm = 2.75
-  foot_pressure = 3
+  stitch_length_mm = 4
+  foot_pressure = 1
   Value: 7.3
 
-RSM Model (linear, R² = 0.2938, Adj R² = 0.1012):
+RSM Model (linear, R² = 0.1695, Adj R² = -0.0569):
   Coefficients:
     intercept                      +6.2533
-    upper_tension                  +0.2000
-    stitch_length_mm               -0.1375
-    foot_pressure                  +0.4125
+    upper_tension                  +0.0625
+    stitch_length_mm               +0.1750
+    foot_pressure                  -0.3125
 
-RSM Model (quadratic, R² = 0.5039, Adj R² = -0.3890):
+RSM Model (quadratic, R² = 0.6354, Adj R² = -0.0209):
   Coefficients:
-    intercept                      +6.0667
-    upper_tension                  +0.2000
-    stitch_length_mm               -0.1375
-    foot_pressure                  +0.4125
-    upper_tension*stitch_length_mm +0.2250
-    upper_tension*foot_pressure    -0.1250
-    stitch_length_mm*foot_pressure -0.2500
-    upper_tension^2                +0.0167
-    stitch_length_mm^2             +0.4417
-    foot_pressure^2                -0.1083
+    intercept                      +6.2333
+    upper_tension                  +0.0625
+    stitch_length_mm               +0.1750
+    foot_pressure                  -0.3125
+    upper_tension*stitch_length_mm +0.3500
+    upper_tension*foot_pressure    -0.4750
+    stitch_length_mm*foot_pressure -0.4000
+    upper_tension^2                -0.2792
+    stitch_length_mm^2             -0.0542
+    foot_pressure^2                +0.3708
 
   Curvature analysis:
-    stitch_length_mm               coef=+0.4417  convex (has a minimum)
-    foot_pressure                  coef=-0.1083  concave (has a maximum)
-    upper_tension                  coef=+0.0167  negligible curvature
+    foot_pressure                  coef=+0.3708  convex (has a minimum)
+    upper_tension                  coef=-0.2792  concave (has a maximum)
+    stitch_length_mm               coef=-0.0542  negligible curvature
 
-  Predicted optimum (from linear model):
+  Notable interactions:
+    upper_tension*foot_pressure    coef=-0.4750  (antagonistic)
+    stitch_length_mm*foot_pressure coef=-0.4000  (antagonistic)
+    upper_tension*stitch_length_mm coef=+0.3500  (synergistic)
+
+  Predicted optimum (from quadratic model, at observed points):
+    upper_tension = 4.5
+    stitch_length_mm = 4
+    foot_pressure = 1
+    Predicted value: 7.4375
+
+  Surface optimum (via L-BFGS-B, quadratic model):
     upper_tension = 7
-    stitch_length_mm = 2.75
-    foot_pressure = 5
-    Predicted value: 6.8658
+    stitch_length_mm = 4
+    foot_pressure = 1
+    Predicted value: 8.0458
 
-  Model quality: Weak fit — consider adding center points or using a different design.
+  Model quality: Moderate fit — use predictions directionally, not precisely.
 
 Factor importance:
-  1. foot_pressure  (effect: 0.8, contribution: 45.6%)
-  2. stitch_length_mm  (effect: 0.6, contribution: 32.3%)
-  3. upper_tension  (effect: 0.4, contribution: 22.1%)
+  1. foot_pressure  (effect: 0.7, contribution: 49.7%)
+  2. upper_tension  (effect: 0.4, contribution: 25.6%)
+  3. stitch_length_mm  (effect: 0.4, contribution: 24.6%)
 
 === Optimization: break_rate ===
 Direction: minimize
 
 Best observed run: #15
-  upper_tension = 7
+  upper_tension = 4.5
   stitch_length_mm = 2.75
-  foot_pressure = 5
+  foot_pressure = 3
   Value: 0.1
 
-RSM Model (linear, R² = 0.0890, Adj R² = -0.1595):
+RSM Model (linear, R² = 0.1947, Adj R² = -0.0250):
   Coefficients:
     intercept                      +0.7533
-    upper_tension                  +0.0837
-    stitch_length_mm               +0.0738
-    foot_pressure                  -0.1775
+    upper_tension                  +0.2750
+    stitch_length_mm               +0.1050
+    foot_pressure                  +0.0975
 
-RSM Model (quadratic, R² = 0.6921, Adj R² = 0.1378):
+RSM Model (quadratic, R² = 0.5717, Adj R² = -0.1992):
   Coefficients:
-    intercept                      +0.8933
-    upper_tension                  +0.0838
-    stitch_length_mm               +0.0737
-    foot_pressure                  -0.1775
-    upper_tension*stitch_length_mm +0.5400
-    upper_tension*foot_pressure    -0.1425
-    stitch_length_mm*foot_pressure -0.0625
-    upper_tension^2                -0.1067
-    stitch_length_mm^2             +0.2833
-    foot_pressure^2                -0.4392
+    intercept                      +0.3067
+    upper_tension                  +0.2750
+    stitch_length_mm               +0.1050
+    foot_pressure                  +0.0975
+    upper_tension*stitch_length_mm +0.1650
+    upper_tension*foot_pressure    +0.1050
+    stitch_length_mm*foot_pressure -0.1000
+    upper_tension^2                +0.3692
+    stitch_length_mm^2             +0.4842
+    foot_pressure^2                -0.0158
 
   Curvature analysis:
-    foot_pressure                  coef=-0.4392  concave (has a maximum)
-    stitch_length_mm               coef=+0.2833  convex (has a minimum)
-    upper_tension                  coef=-0.1067  concave (has a maximum)
+    stitch_length_mm               coef=+0.4842  convex (has a minimum)
+    upper_tension                  coef=+0.3692  convex (has a minimum)
+    foot_pressure                  coef=-0.0158  negligible curvature
 
-  Notable interactions:
-    upper_tension*stitch_length_mm coef=+0.5400  (synergistic)
-
-  Predicted optimum (from quadratic model):
+  Predicted optimum (from linear model, at observed points):
     upper_tension = 7
     stitch_length_mm = 4
     foot_pressure = 3
-    Predicted value: 1.7675
+    Predicted value: 1.1333
 
-  Model quality: Moderate fit — use predictions directionally, not precisely.
+  Surface optimum (via L-BFGS-B, linear model):
+    upper_tension = 2
+    stitch_length_mm = 1.5
+    foot_pressure = 1
+    Predicted value: 0.2758
+
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. foot_pressure  (effect: 0.6, contribution: 52.2%)
-  2. stitch_length_mm  (effect: 0.4, contribution: 32.9%)
-  3. upper_tension  (effect: 0.2, contribution: 14.9%)</div></div>
+  1. upper_tension  (effect: 0.6, contribution: 44.6%)
+  2. stitch_length_mm  (effect: 0.6, contribution: 41.2%)
+  3. foot_pressure  (effect: 0.2, contribution: 14.2%)</div></div>
   </section>
 
   <!-- Nav -->

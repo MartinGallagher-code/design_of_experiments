@@ -19,7 +19,6 @@
       <li><a href="../index.html">Home</a></li>
       <li><a href="../howto.html">Quick Start</a></li>
       <li><a href="index.html">Use Cases</a></li>
-      <li><a href="../ai-prompts.html">AI Prompts</a></li>
       <li><a href="../book.html" class="cta">Guide</a></li>
     </ul>
     <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
@@ -52,8 +51,8 @@
     <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
 
     <h3>Key Findings</h3>
-    <p>For <strong>clarity score</strong>, the most influential factors were degas min (47.1%), resin ratio (39.0%), ambient temp c (13.9%). The best observed value was <strong>8.3</strong> (at resin ratio = 2, ambient temp c = 28, degas min = 0).</p>
-<p>For <strong>bubble count</strong>, the most influential factors were resin ratio (35.7%), ambient temp c (33.4%), degas min (30.9%). The best observed value was <strong>4.6</strong> (at resin ratio = 2, ambient temp c = 28, degas min = 0).</p>
+    <p>For <strong>clarity score</strong>, the most influential factors were resin ratio (46.0%), degas min (41.8%), ambient temp c (12.1%). The best observed value was <strong>8.3</strong> (at resin ratio = 2.2, ambient temp c = 23, degas min = 15).</p>
+<p>For <strong>bubble count</strong>, the most influential factors were resin ratio (43.2%), degas min (39.8%), ambient temp c (17.0%). The best observed value was <strong>4.6</strong> (at resin ratio = 2.2, ambient temp c = 23, degas min = 15).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -243,12 +242,13 @@
         </div>
       </div>
     </div>
-    <div class="callout info" style="margin-top:12px;">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Multi-Objective Optimization</h4>
-        <p>This experiment has conflicting objectives (clarity_score (↑), bubble_count (↓)). Use <code>--multi</code> to find the best compromise using desirability functions:</p>
-        <div class="code-block" style="margin-top:8px">
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
           <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/143_epoxy_resin_art/config.json <span class="flag">--multi</span></div>
         </div>
@@ -256,7 +256,7 @@
     </div>
 
     <div class="uc-step">
-      <div class="uc-step-num">6</div>
+      <div class="uc-step-num">7</div>
       <div class="uc-step-body">
         <h3>Generate the HTML report</h3>
         <div class="code-block">
@@ -264,48 +264,6 @@
           <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/143_epoxy_resin_art/config.json \
     <span class="flag">--output</span> use_cases/143_epoxy_resin_art/results/report.html</div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Real-World Manual Workflow -->
-  <section class="uc-section">
-    <h2>Real-World Experiment Workflow</h2>
-    <div class="callout info">
-      <span class="callout-icon">&#x2139;</span>
-      <div class="callout-body">
-        <h4>Physical Product Test? Use the Manual Workflow</h4>
-        <p>These experiments involve real chemical reactions, material properties, and physical processes that require hands-on testing. The simulation script above is for demonstration. For your real experiments, use <code>record</code>, <code>status</code>, and <code>export-worksheet</code>.</p>
-      </div>
-    </div>
-
-    <div class="code-block">
-      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
-      <div class="code-body"><span class="comment"># 1. Print a worksheet for the lab / field / kitchen</span>
-<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/143_epoxy_resin_art/config.json \
-    <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
-
-<span class="comment"># 2. Check which runs to do next</span>
-<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/143_epoxy_resin_art/config.json
-
-<span class="comment"># 3. After each experiment, record the measurements</span>
-<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/143_epoxy_resin_art/config.json <span class="flag">--run</span> 1
-
-<span class="comment"># 4. Peek at partial results as you go</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/143_epoxy_resin_art/config.json <span class="flag">--partial</span>
-
-<span class="comment"># 5. Full analysis when all runs are complete</span>
-<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/143_epoxy_resin_art/config.json
-<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/143_epoxy_resin_art/config.json
-<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/143_epoxy_resin_art/config.json \
-    <span class="flag">--output</span> report.html</div>
-    </div>
-
-    <div class="callout success">
-      <span class="callout-icon">&#x2714;</span>
-      <div class="callout-body">
-        <h4>Works Without a Test Script</h4>
-        <p>The analysis pipeline doesn't care how results were produced. Record your measurements with <code>record</code>, and the full analysis, optimization, and reporting pipeline works identically. Use <code>--partial</code> to get early insights before all runs are complete.</p>
       </div>
     </div>
   </section>
@@ -337,7 +295,7 @@
     <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
 
     <h3>Response: clarity_score</h3>
-    <p>Top factors: degas_min (47.1%), resin_ratio (39.0%), ambient_temp_c (13.9%).</p>
+    <p>Top factors: resin_ratio (46.0%), degas_min (41.8%), ambient_temp_c (12.1%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -350,7 +308,7 @@
     </div>
 
     <h3>Response: bubble_count</h3>
-    <p>Top factors: resin_ratio (35.7%), ambient_temp_c (33.4%), degas_min (30.9%).</p>
+    <p>Top factors: resin_ratio (43.2%), degas_min (39.8%), ambient_temp_c (17.0%).</p>
     <div class="results-grid">
       <div>
         <p class="caption">Pareto Chart</p>
@@ -401,181 +359,334 @@
   </section>
 
 
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 1.0000</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>clarity_score</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:100.0%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>1.0000</span>
+                </div>
+              </td>
+              <td>8.68 1.0000        8.68 pts</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>bubble_count</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:100.0%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>1.0000</span>
+                </div>
+              </td>
+              <td>3.78 1.0000        3.78 per_cm2</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>resin_ratio</code></td><td>2.2 ratio</td></tr>
+            <tr><td><code>ambient_temp_c</code></td><td>25 C</td></tr>
+            <tr><td><code>degas_min</code></td><td>15 min</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from RSM model prediction</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>bubble_count</code></td><td>3.78</td><td>4.60</td><td><span style="color:#16a34a;">-0.82</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#5</td><td><strong>0.6896</strong></td><td style="font-size:.78rem;">resin_ratio=1.8,  ambient_temp_c=23,  degas_min=15</td></tr>
+            <tr><td>#3</td><td><strong>0.6812</strong></td><td style="font-size:.78rem;">resin_ratio=2,  ambient_temp_c=28,  degas_min=15</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>bubble_count</code></td><td style="color:#16a34a;font-weight:600;">0.8850</td><td>quadratic</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 1.0000
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+clarity_score                1.5       1.0000        8.68 pts   ↑
+bubble_count                 1.0       1.0000        3.78 per_cm2   ↓
+
+Recommended settings:
+  resin_ratio = 2.2 ratio
+  ambient_temp_c = 25 C
+  degas_min = 15 min
+  (from RSM model prediction)
+
+Trade-off summary:
+  clarity_score: 8.68 (best observed: 8.30, sacrifice: -0.38)
+  bubble_count: 3.78 (best observed: 4.60, sacrifice: -0.82)
+
+Model quality:
+  clarity_score: R² = 0.8947 (quadratic)
+  bubble_count: R² = 0.8850 (quadratic)
+
+Top 3 observed runs by overall desirability:
+  1. Run #12 (D=0.9545): resin_ratio=2.2, ambient_temp_c=23, degas_min=15
+  2. Run #5 (D=0.6896): resin_ratio=1.8, ambient_temp_c=23, degas_min=15
+  3. Run #3 (D=0.6812): resin_ratio=2, ambient_temp_c=28, degas_min=15</div></div>
+  </section>
+
+
   <section class="uc-section">
     <h3>Full Analysis Output</h3>
-    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">RSM surface: rsm_clarity_score_resin_ratio_vs_ambient_temp_c.png
-  RSM surface: rsm_clarity_score_resin_ratio_vs_degas_min.png
-  RSM surface: rsm_clarity_score_ambient_temp_c_vs_degas_min.png
-  RSM surface: rsm_bubble_count_resin_ratio_vs_ambient_temp_c.png
-  RSM surface: rsm_bubble_count_resin_ratio_vs_degas_min.png
-  RSM surface: rsm_bubble_count_ambient_temp_c_vs_degas_min.png
-
-=== Main Effects: clarity_score ===
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: clarity_score ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-degas_min                1.7786       0.3693            47.1%
-resin_ratio              1.4750       0.3693            39.0%
-ambient_temp_c           0.5250       0.3693            13.9%
+resin_ratio              1.4071       0.3693            46.0%
+degas_min                1.2786       0.3693            41.8%
+ambient_temp_c           0.3714       0.3693            12.1%
+
+=== ANOVA Table: clarity_score ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+resin_ratio                  2       6.1694       3.0847      2.319     0.1605
+ambient_temp_c               2       0.4822       0.2411      0.181     0.8375
+degas_min                    2       4.2397       2.1199      1.594     0.2614
+Lack of Fit                  6      15.0927       2.5155      1.891     0.3855
+Pure Error                   2       2.6600       1.3300
+Error                        8      17.7527       1.3300
+Total                       14      28.6440       2.0460
 
 === Summary Statistics: clarity_score ===
 
 resin_ratio:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1.8                 4     5.5500     1.8788     3.3000     7.1000
-  2                   7     6.4000     1.1533     4.8000     8.3000
-  2.2                 4     4.9250     1.1899     3.9000     6.6000
+  1.8                 4     5.0500     1.2342     3.9000     6.8000
+  2                   7     6.4571     0.8059     4.9000     7.1000
+  2.2                 4     5.3250     2.1608     3.3000     8.3000
 
 ambient_temp_c:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  18                  4     6.0500     2.0761     3.3000     8.3000
-  23                  7     5.7714     1.1968     4.3000     7.1000
-  28                  4     5.5250     1.4796     3.9000     7.1000
+  18                  4     5.6250     1.3401     4.3000     7.1000
+  23                  7     5.9714     1.7046     3.3000     8.3000
+  28                  4     5.6000     1.3342     3.9000     7.1000
 
 degas_min:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   4     5.9500     1.1902     4.3000     7.1000
-  15                  4     6.8500     1.4177     4.9000     8.3000
-  7.5                 7     5.0714     1.3009     3.3000     6.8000
+  0                   4     5.9000     1.7569     3.3000     7.1000
+  15                  4     6.5500     1.4978     4.8000     8.3000
+  7.5                 7     5.2714     1.1842     3.9000     7.1000
 
 === Main Effects: bubble_count ===
 Factor                   Effect    Std Error   % Contribution
 --------------------------------------------------------------
-resin_ratio              2.3571       0.6190            35.7%
-ambient_temp_c           2.2000       0.6190            33.4%
-degas_min                2.0393       0.6190            30.9%
+resin_ratio              2.5250       0.6190            43.2%
+degas_min                2.3250       0.6190            39.8%
+ambient_temp_c           0.9929       0.6190            17.0%
+
+=== ANOVA Table: bubble_count ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+resin_ratio                  2      16.2623       8.1312      1.213     0.3466
+ambient_temp_c               2       3.1902       1.5951      0.238     0.7936
+degas_min                    2      13.7623       6.8812      1.027     0.4010
+Lack of Fit                  6      33.8358       5.6393      0.841     0.6326
+Pure Error                   2      13.4067       6.7033
+Error                        8      47.2425       6.7033
+Total                       14      80.4573       5.7470
 
 === Summary Statistics: bubble_count ===
 
 resin_ratio:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  1.8                 4    10.1000     2.8320     7.5000    12.6000
-  2                   7     7.9429     1.6772     4.6000    10.0000
-  2.2                 4    10.3000     2.6090     6.5000    12.4000
+  1.8                 4    10.7250     2.1531     8.0000    12.5000
+  2                   7     8.2000     1.5556     6.5000    11.4000
+  2.2                 4     9.2250     3.4529     4.6000    12.6000
 
 ambient_temp_c:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  18                  4     8.0000     3.4186     4.6000    12.6000
-  23                  7     9.2000     1.5716     7.5000    11.4000
-  28                  4    10.2000     2.6369     7.4000    12.5000
+  18                  4     9.6500     2.4610     7.4000    12.5000
+  23                  7     8.6571     2.8213     4.6000    12.6000
+  28                  4     9.5000     1.9442     8.3000    12.4000
 
 degas_min:
   Level               N       Mean        Std        Min        Max
   ------------------------------------------------------------
-  0                   4     8.5250     1.6338     7.4000    10.9000
-  15                  4     8.0750     2.7921     4.6000    11.4000
-  7.5                 7    10.1143     2.4620     6.5000    12.6000
-
-Pareto chart (clarity_score): use_cases/143_epoxy_resin_art/results/analysis/pareto_clarity_score.png
-
-Pareto chart (bubble_count): use_cases/143_epoxy_resin_art/results/analysis/pareto_bubble_count.png
-Main effects (clarity_score): use_cases/143_epoxy_resin_art/results/analysis/main_effects_clarity_score.png
-Main effects (bubble_count): use_cases/143_epoxy_resin_art/results/analysis/main_effects_bubble_count.png</div></div>
+  0                   4     9.1250     2.3599     7.4000    12.6000
+  15                  4     7.6750     2.2559     4.6000    10.0000
+  7.5                 7    10.0000     2.4055     6.5000    12.5000</div></div>
 
     <h3>Optimization Recommendations</h3>
     <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: clarity_score ===
 Direction: maximize
 
 Best observed run: #12
-  resin_ratio = 2
-  ambient_temp_c = 28
-  degas_min = 0
+  resin_ratio = 2.2
+  ambient_temp_c = 23
+  degas_min = 15
   Value: 8.3
 
-RSM Model (linear, R² = 0.3214, Adj R² = 0.1363):
+RSM Model (linear, R² = 0.0680, Adj R² = -0.1862):
   Coefficients:
     intercept                      +5.7800
-    resin_ratio                    +0.9750
-    ambient_temp_c                 +0.2000
-    degas_min                      -0.4000
+    resin_ratio                    +0.2250
+    ambient_temp_c                 +0.4375
+    degas_min                      +0.0375
 
-RSM Model (quadratic, R² = 0.8146, Adj R² = 0.4808):
+RSM Model (quadratic, R² = 0.5137, Adj R² = -0.3616):
   Coefficients:
-    intercept                      +5.7667
-    resin_ratio                    +0.9750
-    ambient_temp_c                 +0.2000
-    degas_min                      -0.4000
-    resin_ratio*ambient_temp_c     -1.1500
-    resin_ratio*degas_min          +0.0500
-    ambient_temp_c*degas_min       -0.0000
-    resin_ratio^2                  -1.0583
-    ambient_temp_c^2               +0.0417
-    degas_min^2                    +1.0417
+    intercept                      +5.9667
+    resin_ratio                    +0.2250
+    ambient_temp_c                 +0.4375
+    degas_min                      +0.0375
+    resin_ratio*ambient_temp_c     +0.1250
+    resin_ratio*degas_min          +1.6250
+    ambient_temp_c*degas_min       -0.2500
+    resin_ratio^2                  -0.5333
+    ambient_temp_c^2               +0.3917
+    degas_min^2                    -0.2083
 
   Curvature analysis:
-    resin_ratio                    coef=-1.0583  concave (has a maximum)
-    degas_min                      coef=+1.0417  convex (has a minimum)
-    ambient_temp_c                 coef=+0.0417  negligible curvature
+    resin_ratio                    coef=-0.5333  concave (has a maximum)
+    ambient_temp_c                 coef=+0.3917  convex (has a minimum)
+    degas_min                      coef=-0.2083  concave (has a maximum)
 
   Notable interactions:
-    resin_ratio*ambient_temp_c     coef=-1.1500  (antagonistic)
+    resin_ratio*degas_min          coef=+1.6250  (synergistic)
 
-  Predicted optimum (from quadratic model):
-    resin_ratio = 2
+  Predicted optimum (from linear model, at observed points):
+    resin_ratio = 2.2
     ambient_temp_c = 28
-    degas_min = 0
-    Predicted value: 7.4500
+    degas_min = 7.5
+    Predicted value: 6.4425
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Surface optimum (via L-BFGS-B, linear model):
+    resin_ratio = 2.2
+    ambient_temp_c = 28
+    degas_min = 15
+    Predicted value: 6.4800
+
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. resin_ratio  (effect: 2.1, contribution: 52.4%)
-  2. degas_min  (effect: 1.5, contribution: 37.6%)
-  3. ambient_temp_c  (effect: 0.4, contribution: 9.9%)
+  1. ambient_temp_c  (effect: 0.9, contribution: 46.7%)
+  2. resin_ratio  (effect: 0.8, contribution: 40.8%)
+  3. degas_min  (effect: 0.2, contribution: 12.5%)
 
 === Optimization: bubble_count ===
 Direction: minimize
 
 Best observed run: #12
-  resin_ratio = 2
-  ambient_temp_c = 28
-  degas_min = 0
+  resin_ratio = 2.2
+  ambient_temp_c = 23
+  degas_min = 15
   Value: 4.6
 
-RSM Model (linear, R² = 0.1966, Adj R² = -0.0225):
+RSM Model (linear, R² = 0.0236, Adj R² = -0.2427):
   Coefficients:
     intercept                      +9.1467
-    resin_ratio                    -1.1625
-    ambient_temp_c                 +0.0750
-    degas_min                      +0.7875
+    resin_ratio                    -0.4250
+    ambient_temp_c                 -0.2375
+    degas_min                      -0.0125
 
-RSM Model (quadratic, R² = 0.7870, Adj R² = 0.4037):
+RSM Model (quadratic, R² = 0.5460, Adj R² = -0.2711):
   Coefficients:
-    intercept                      +9.0333
-    resin_ratio                    -1.1625
-    ambient_temp_c                 +0.0750
-    degas_min                      +0.7875
-    resin_ratio*ambient_temp_c     +1.0000
-    resin_ratio*degas_min          -0.1750
-    ambient_temp_c*degas_min       +0.1500
-    resin_ratio^2                  +2.3958
-    ambient_temp_c^2               +0.0708
-    degas_min^2                    -2.2542
+    intercept                      +8.4333
+    resin_ratio                    -0.4250
+    ambient_temp_c                 -0.2375
+    degas_min                      -0.0125
+    resin_ratio*ambient_temp_c     -0.3000
+    resin_ratio*degas_min          -2.9000
+    ambient_temp_c*degas_min       +1.1750
+    resin_ratio^2                  +0.4458
+    ambient_temp_c^2               +0.1708
+    degas_min^2                    +0.7208
 
   Curvature analysis:
-    resin_ratio                    coef=+2.3958  convex (has a minimum)
-    degas_min                      coef=-2.2542  concave (has a maximum)
-    ambient_temp_c                 coef=+0.0708  negligible curvature
+    degas_min                      coef=+0.7208  convex (has a minimum)
+    resin_ratio                    coef=+0.4458  convex (has a minimum)
+    ambient_temp_c                 coef=+0.1708  convex (has a minimum)
 
   Notable interactions:
-    resin_ratio*ambient_temp_c     coef=+1.0000  (synergistic)
+    resin_ratio*degas_min          coef=-2.9000  (antagonistic)
+    ambient_temp_c*degas_min       coef=+1.1750  (synergistic)
+    resin_ratio*ambient_temp_c     coef=-0.3000  (antagonistic)
 
-  Predicted optimum (from quadratic model):
+  Predicted optimum (from linear model, at observed points):
     resin_ratio = 1.8
     ambient_temp_c = 18
     degas_min = 7.5
-    Predicted value: 13.5875
+    Predicted value: 9.8092
 
-  Model quality: Good fit — general trends are captured, some noise remains.
+  Surface optimum (via L-BFGS-B, linear model):
+    resin_ratio = 2.2
+    ambient_temp_c = 28
+    degas_min = 15
+    Predicted value: 8.4717
+
+  Model quality: Weak fit — consider adding center points or using a different design.
 
 Factor importance:
-  1. resin_ratio  (effect: 3.7, contribution: 52.4%)
-  2. degas_min  (effect: 3.2, contribution: 45.4%)
-  3. ambient_temp_c  (effect: 0.2, contribution: 2.1%)</div></div>
+  1. resin_ratio  (effect: 0.8, contribution: 42.2%)
+  2. degas_min  (effect: 0.7, contribution: 34.2%)
+  3. ambient_temp_c  (effect: 0.5, contribution: 23.6%)</div></div>
   </section>
 
   <!-- Nav -->

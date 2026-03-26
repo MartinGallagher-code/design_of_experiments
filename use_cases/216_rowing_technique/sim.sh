@@ -32,9 +32,9 @@ BEGIN {
 
     sr = (SR - 28) / 6; dr = (DR - 2.25) / 0.75; df = (DF - 120) / 20;
     watts = 220 + 20*sr + 10*dr + 8*df - 8*sr*sr - 5*dr*dr - 3*df*df + 3*sr*dr;
-    split = 115 - 5*sr - 3*dr - 2*df + 2*sr*sr + 1*dr*dr + 0.5*df*df - 0.8*sr*dr;
-    if (watts < 100) watts = 100; if (split < 85) split = 85;
-    printf "{\"avg_watts\": %.0f, \"split_500m_sec\": %.0f}", watts + n1*5, split + n2*1;
+    sp = 115 - 5*sr - 3*dr - 2*df + 2*sr*sr + 1*dr*dr + 0.5*df*df - 0.8*sr*dr;
+    if (watts < 100) watts = 100; if (sp < 85) sp = 85;
+    printf "{\"avg_watts\": %.0f, \"split_500m_sec\": %.0f}", watts + n1*5, sp + n2*1;
 
 }')
 
