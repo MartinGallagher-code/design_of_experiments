@@ -12,6 +12,11 @@ DESIGN_LABELS = {
     "fractional_factorial": "Fractional Factorial Design",
     "plackett_burman": "Plackett-Burman Design",
     "latin_hypercube": "Latin Hypercube Design",
+    "definitive_screening": "Definitive Screening Design",
+    "taguchi": "Taguchi Orthogonal Array",
+    "d_optimal": "D-Optimal Design",
+    "mixture_simplex_lattice": "Simplex-Lattice Mixture Design",
+    "mixture_simplex_centroid": "Simplex-Centroid Mixture Design",
 }
 
 HERO_STYLES = {
@@ -46,70 +51,34 @@ HERO_STYLES = {
 }
 
 CATEGORIES = {
-    27: "cloud", 28: "cloud", 29: "cloud", 30: "cloud", 31: "cloud",
-    32: "cloud", 33: "cloud", 34: "cloud", 35: "cloud", 36: "cloud",
-    37: "data", 38: "data", 39: "data", 40: "data", 41: "data",
-    42: "data", 43: "data", 44: "data", 45: "data", 46: "data",
-    47: "networking", 48: "networking", 49: "networking", 50: "networking",
-    51: "networking", 52: "networking", 53: "networking", 54: "networking",
-    55: "networking", 56: "networking",
-    57: "security", 58: "security", 59: "security", 60: "security", 61: "security",
-    62: "security", 63: "security", 64: "security", 65: "security", 66: "security",
-    67: "iot", 68: "iot", 69: "iot", 70: "iot", 71: "iot",
-    72: "iot", 73: "iot", 74: "iot", 75: "iot", 76: "iot",
-    77: "devops", 78: "devops", 79: "devops", 80: "devops", 81: "devops",
-    82: "devops", 83: "devops", 84: "devops", 85: "devops", 86: "devops",
-    87: "food", 88: "food", 89: "food", 90: "food", 91: "food",
-    92: "food", 93: "food", 94: "food", 95: "food", 96: "food",
-    97: "agriculture", 98: "agriculture", 99: "agriculture", 100: "agriculture",
-    101: "agriculture", 102: "agriculture", 103: "agriculture", 104: "agriculture",
-    105: "agriculture", 106: "agriculture",
-    107: "health", 108: "health", 109: "health", 110: "health", 111: "health",
-    112: "health", 113: "health", 114: "health", 115: "health", 116: "health",
-    117: "automotive", 118: "automotive", 119: "automotive", 120: "automotive",
-    121: "automotive", 122: "automotive", 123: "automotive", 124: "automotive",
-    125: "automotive", 126: "automotive",
-    127: "environment", 128: "environment", 129: "environment", 130: "environment",
-    131: "environment", 132: "environment", 133: "environment", 134: "environment",
-    135: "environment", 136: "environment",
-    137: "home", 138: "home", 139: "home", 140: "home", 141: "home",
-    142: "home", 143: "home", 144: "home", 145: "home", 146: "home",
-    147: "photography", 148: "photography", 149: "photography", 150: "photography",
-    151: "photography", 152: "photography", 153: "photography", 154: "photography",
-    155: "photography", 156: "photography",
-    157: "music", 158: "music", 159: "music", 160: "music", 161: "music",
-    162: "music", 163: "music", 164: "music", 165: "music", 166: "music",
-    167: "petcare", 168: "petcare", 169: "petcare", 170: "petcare", 171: "petcare",
-    172: "petcare", 173: "petcare", 174: "petcare", 175: "petcare", 176: "petcare",
-    177: "textiles", 178: "textiles", 179: "textiles", 180: "textiles", 181: "textiles",
-    182: "textiles", 183: "textiles", 184: "textiles", 185: "textiles", 186: "textiles",
-    187: "chemistry", 188: "chemistry", 189: "chemistry", 190: "chemistry", 191: "chemistry",
-    192: "chemistry", 193: "chemistry", 194: "chemistry", 195: "chemistry", 196: "chemistry",
-    197: "general", 198: "general",
-    199: "woodworking", 200: "woodworking", 201: "woodworking", 202: "woodworking",
-    203: "woodworking", 204: "woodworking", 205: "woodworking", 206: "woodworking",
-    207: "woodworking", 208: "woodworking",
-    209: "sports", 210: "sports", 211: "sports", 212: "sports", 213: "sports",
-    214: "sports", 215: "sports", 216: "sports", 217: "sports", 218: "sports",
-    219: "cosmetics", 220: "cosmetics", 221: "cosmetics", 222: "cosmetics", 223: "cosmetics",
-    224: "cosmetics", 225: "cosmetics", 226: "cosmetics", 227: "cosmetics", 228: "cosmetics",
-    229: "geology", 230: "geology", 231: "geology", 232: "geology", 233: "geology",
-    234: "geology", 235: "geology", 236: "geology", 237: "geology", 238: "geology",
-    239: "brewing", 240: "brewing", 241: "brewing", 242: "brewing", 243: "brewing",
-    244: "brewing", 245: "brewing", 246: "brewing", 247: "brewing", 248: "brewing",
-    249: "general", 250: "general",
-    251: "marine", 252: "marine", 253: "marine", 254: "marine", 255: "marine",
-    256: "marine", 257: "marine", 258: "marine", 259: "marine", 260: "marine",
-    261: "aviation", 262: "aviation", 263: "aviation", 264: "aviation", 265: "aviation",
-    266: "aviation", 267: "aviation", 268: "aviation", 269: "aviation", 270: "aviation",
-    271: "electronics", 272: "electronics", 273: "electronics", 274: "electronics",
-    275: "electronics", 276: "electronics", 277: "electronics", 278: "electronics",
-    279: "electronics", 280: "electronics",
-    281: "painting", 282: "painting", 283: "painting", 284: "painting", 285: "painting",
-    286: "painting", 287: "painting", 288: "painting", 289: "painting", 290: "painting",
-    291: "veterinary", 292: "veterinary", 293: "veterinary", 294: "veterinary",
-    295: "veterinary", 296: "veterinary", 297: "veterinary", 298: "veterinary",
-    299: "veterinary", 300: "veterinary",
+    27: "cloud", 28: "cloud", 29: "cloud", 30: "cloud", 31: "cloud", 32: "cloud", 33: "cloud", 34: "cloud", 36: "cloud",
+    37: "data", 38: "data", 39: "data", 40: "data", 41: "data", 42: "data", 44: "data", 45: "data", 46: "data",
+    47: "networking", 48: "networking", 49: "networking", 50: "networking", 51: "networking", 52: "networking", 54: "networking", 55: "networking", 56: "networking",
+    57: "security", 58: "security", 59: "security", 60: "security", 61: "security", 62: "security", 63: "security", 64: "security", 65: "security",
+    67: "iot", 68: "iot", 69: "iot", 70: "iot", 71: "iot", 72: "iot", 73: "iot", 74: "iot", 75: "iot", 76: "iot",
+    77: "devops", 78: "devops", 79: "devops", 80: "devops", 81: "devops", 82: "devops", 83: "devops", 84: "devops", 86: "devops",
+    87: "food", 88: "food", 89: "food", 91: "food", 93: "food", 95: "food", 96: "food",
+    97: "agriculture", 98: "agriculture", 99: "agriculture", 100: "agriculture", 101: "agriculture", 102: "agriculture", 104: "agriculture", 105: "agriculture",
+    107: "health", 108: "health", 109: "health", 110: "health", 111: "health", 113: "health", 114: "health",
+    117: "automotive", 118: "automotive", 119: "automotive", 122: "automotive", 126: "automotive",
+    127: "environment", 128: "environment", 129: "environment", 132: "environment", 135: "environment",
+    137: "home", 138: "home", 139: "home", 140: "home", 141: "home", 144: "home", 146: "home",
+    147: "photography", 148: "photography", 149: "photography", 151: "photography", 153: "photography", 154: "photography", 155: "photography",
+    157: "music", 158: "music", 159: "music", 160: "music", 162: "music", 164: "music", 165: "music",
+    167: "petcare", 168: "petcare", 169: "petcare", 170: "petcare", 171: "petcare", 173: "petcare", 174: "petcare",
+    177: "textiles", 178: "textiles", 179: "textiles", 180: "textiles", 184: "textiles", 186: "textiles",
+    187: "chemistry", 188: "chemistry", 190: "chemistry", 194: "chemistry", 195: "chemistry",
+    197: "general", 198: "general", 249: "general", 250: "general",
+    199: "woodworking", 200: "woodworking", 201: "woodworking", 202: "woodworking", 204: "woodworking", 205: "woodworking", 208: "woodworking",
+    209: "sports", 210: "sports", 211: "sports", 212: "sports", 214: "sports", 218: "sports",
+    219: "cosmetics", 220: "cosmetics", 221: "cosmetics", 222: "cosmetics", 224: "cosmetics", 226: "cosmetics",
+    229: "geology", 230: "geology", 231: "geology", 232: "geology", 233: "geology", 234: "geology", 236: "geology",
+    239: "brewing", 240: "brewing", 241: "brewing", 242: "brewing", 246: "brewing",
+    251: "marine", 252: "marine", 253: "marine", 254: "marine", 256: "marine", 258: "marine",
+    261: "aviation", 262: "aviation", 263: "aviation", 267: "aviation", 269: "aviation", 270: "aviation",
+    271: "electronics", 272: "electronics", 274: "electronics", 275: "electronics", 277: "electronics", 278: "electronics", 280: "electronics",
+    281: "painting", 282: "painting", 283: "painting", 284: "painting", 288: "painting",
+    291: "veterinary", 292: "veterinary", 293: "veterinary", 294: "veterinary", 295: "veterinary", 297: "veterinary",
 }
 
 def slug_to_web(slug):
@@ -444,6 +413,48 @@ def parse_main_effects(text, response_name):
         return results
     return []
 
+def parse_anova(text, response_name):
+    """Extract ANOVA table from analyze output."""
+    pattern = rf"=== ANOVA Table: {re.escape(response_name)} ===(.*?)(?:=== |$)"
+    m = re.search(pattern, text, re.DOTALL)
+    if not m:
+        return []
+    lines = m.group(1).strip().split("\n")
+    rows = []
+    for line in lines:
+        if line.startswith("-") or line.startswith("  Note:"):
+            continue
+        parts = line.split()
+        if len(parts) >= 4:
+            # Source may be multi-word (e.g., "Error (Lenth PSE)")
+            # Try to parse from the right: p-value, F, MS, SS, DF, then source is the rest
+            try:
+                # Check if last columns are numeric
+                source = parts[0]
+                # Handle interaction terms like "A*B"
+                if len(parts) >= 6:
+                    rows.append({
+                        "source": parts[0],
+                        "df": parts[1],
+                        "ss": parts[2],
+                        "ms": parts[3],
+                        "f": parts[4] if len(parts) > 4 else "",
+                        "p": parts[5] if len(parts) > 5 else "",
+                    })
+                elif len(parts) >= 4:
+                    rows.append({
+                        "source": parts[0],
+                        "df": parts[1],
+                        "ss": parts[2],
+                        "ms": parts[3],
+                        "f": "",
+                        "p": "",
+                    })
+            except (ValueError, IndexError):
+                continue
+    return rows
+
+
 def parse_best_run(text, response_name):
     """Extract best observed run info from optimize output."""
     pattern = rf"=== Optimization: {re.escape(response_name)} ===.*?Best observed run: #(\d+)(.*?)(?:RSM Model|===|$)"
@@ -654,6 +665,9 @@ def build_page(num, uc_dir):
     pareto_imgs = [i for i in images if "pareto_" in i]
     main_effect_imgs = [i for i in images if "main_effects_" in i]
     rsm_imgs = [i for i in images if "rsm_" in i]
+    half_normal_imgs = [i for i in images if "half_normal_effects_" in i]
+    normal_imgs = [i for i in images if "normal_effects_" in i and "half_normal_effects_" not in i]
+    diagnostics_imgs = [i for i in images if "diagnostics_" in i]
 
     factor_rows = ""
     for f in factors:
@@ -700,8 +714,30 @@ def build_page(num, uc_dir):
         else:
             analysis_html += f'\n    <h3>Response: {escape(rname)}</h3>\n'
 
+        # ANOVA table
+        anova_rows = parse_anova(analyze_text, rname)
+        if anova_rows:
+            analysis_html += '    <h4>ANOVA</h4>\n'
+            analysis_html += '    <table style="font-size:.82rem;">\n'
+            analysis_html += '      <thead><tr><th>Source</th><th>DF</th><th>SS</th><th>MS</th><th>F</th><th>p-value</th></tr></thead>\n'
+            analysis_html += '      <tbody>\n'
+            for row in anova_rows:
+                p_val = row.get("p", "")
+                # Highlight significant terms
+                style = ""
+                try:
+                    if p_val and float(p_val) < 0.05:
+                        style = ' style="font-weight:600;color:var(--mint);"'
+                except ValueError:
+                    pass
+                analysis_html += f'        <tr{style}><td>{escape(row["source"])}</td><td>{row["df"]}</td><td>{row["ss"]}</td><td>{row["ms"]}</td><td>{row["f"]}</td><td>{p_val}</td></tr>\n'
+            analysis_html += '      </tbody>\n    </table>\n'
+
         pareto = [i for i in pareto_imgs if rname in i]
         me = [i for i in main_effect_imgs if rname in i]
+        normal = [i for i in normal_imgs if rname in i]
+        half_normal = [i for i in half_normal_imgs if rname in i]
+        diag = [i for i in diagnostics_imgs if rname in i]
 
         if pareto or me:
             analysis_html += '    <div class="results-grid">\n'
@@ -709,6 +745,20 @@ def build_page(num, uc_dir):
                 analysis_html += f'      <div>\n        <p class="caption">Pareto Chart</p>\n        <img src="../images/{img}" alt="Pareto chart for {escape(rname)}">\n      </div>\n'
             for img in me:
                 analysis_html += f'      <div>\n        <p class="caption">Main Effects Plot</p>\n        <img src="../images/{img}" alt="Main effects plot for {escape(rname)}">\n      </div>\n'
+            analysis_html += '    </div>\n'
+
+        if normal or half_normal:
+            analysis_html += '    <div class="results-grid">\n'
+            for img in normal:
+                analysis_html += f'      <div>\n        <p class="caption">Normal Probability Plot of Effects</p>\n        <img src="../images/{img}" alt="Normal probability plot for {escape(rname)}">\n      </div>\n'
+            for img in half_normal:
+                analysis_html += f'      <div>\n        <p class="caption">Half-Normal Plot of Effects</p>\n        <img src="../images/{img}" alt="Half-normal plot for {escape(rname)}">\n      </div>\n'
+            analysis_html += '    </div>\n'
+
+        if diag:
+            analysis_html += '    <div class="results-grid">\n'
+            for img in diag:
+                analysis_html += f'      <div>\n        <p class="caption">Model Diagnostics</p>\n        <img src="../images/{img}" alt="Model diagnostics for {escape(rname)}">\n      </div>\n'
             analysis_html += '    </div>\n'
 
     rsm_html = ""
@@ -1112,7 +1162,7 @@ def main():
         dirs = glob.glob(pattern)
         if dirs:
             build_page(num, dirs[0])
-    print(f"\n  274 HTML pages generated (27-300).")
+    print(f"\n  HTML pages generated (27-300, skipping removed use cases).")
 
     # Inject experimental matrix into existing pages for use cases 1-26
     print("\nInjecting experimental matrices into use cases 1-26...")

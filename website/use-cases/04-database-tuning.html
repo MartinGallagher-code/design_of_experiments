@@ -51,8 +51,8 @@
 
     
     <h3>Key Findings</h3>
-    <p>For <strong>throughput</strong>, the most influential factors were wal level (32.0%), effective cache (31.7%), checkpoint timeout (12.3%). The best observed value was <strong>6654.0</strong> (at shared buffers = 256, work mem = 4, max connections = 200).</p>
-<p>For <strong>p99 latency</strong>, the most influential factors were wal level (24.3%), effective cache (19.9%), max connections (19.5%). The best observed value was <strong>7.1</strong> (at shared buffers = 256, work mem = 64, max connections = 50).</p>
+    <p>For <strong>throughput</strong>, the most influential factors were max connections (29.9%), shared buffers (21.0%), effective cache (19.1%). The best observed value was <strong>6654.0</strong> (at shared buffers = 1024, work mem = 64, max connections = 200).</p>
+<p>For <strong>p99 latency</strong>, the most influential factors were wal level (31.9%), shared buffers (24.4%), work mem (19.6%). The best observed value was <strong>7.1</strong> (at shared buffers = 1024, work mem = 4, max connections = 50).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -62,6 +62,7 @@
     <li>The screening results can guide factor reduction &mdash; drop factors contributing less than 5% and re-run with a smaller, more focused design.</li>
   </ul>
   </section>
+
 
 
 
@@ -107,6 +108,7 @@
       </div>
     </div>
   </section>
+
 
 
 
@@ -593,6 +595,7 @@ Factor importance:
   </section>
 
   
+  
   <!-- Multi-Objective Optimization -->
   <section class="uc-section">
     <h2>Multi-Objective Optimization</h2>
@@ -648,10 +651,10 @@ Factor importance:
       <table>
         <thead><tr><th>Factor</th><th>Value</th></tr></thead>
         <tbody>
-            <tr><td><code>shared_buffers</code></td><td>256 MB</td></tr>
-            <tr><td><code>work_mem</code></td><td>4 MB</td></tr>
+            <tr><td><code>shared_buffers</code></td><td>1024 MB</td></tr>
+            <tr><td><code>work_mem</code></td><td>64 MB</td></tr>
             <tr><td><code>max_connections</code></td><td>200</td></tr>
-            <tr><td><code>effective_cache</code></td><td>4096 MB</td></tr>
+            <tr><td><code>effective_cache</code></td><td>512 MB</td></tr>
             <tr><td><code>wal_level</code></td><td>minimal</td></tr>
             <tr><td><code>checkpoint_timeout</code></td><td>60 sec</td></tr>
         </tbody>
@@ -675,8 +678,8 @@ Factor importance:
       <table>
         <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
         <tbody>
-            <tr><td>#14</td><td><strong>0.8514</strong></td><td style="font-size:.78rem;">shared_buffers=1024,  work_mem=64,  max_connections=200,  effective_cache=4096,  wal_level=replica,  checkpoint_timeout=900</td></tr>
-            <tr><td>#10</td><td><strong>0.8140</strong></td><td style="font-size:.78rem;">shared_buffers=256,  work_mem=64,  max_connections=50,  effective_cache=4096,  wal_level=minimal,  checkpoint_timeout=900</td></tr>
+            <tr><td>#14</td><td><strong>0.8514</strong></td><td style="font-size:.78rem;">shared_buffers=256,  work_mem=64,  max_connections=50,  effective_cache=512,  wal_level=replica,  checkpoint_timeout=60</td></tr>
+            <tr><td>#10</td><td><strong>0.8140</strong></td><td style="font-size:.78rem;">shared_buffers=1024,  work_mem=4,  max_connections=50,  effective_cache=4096,  wal_level=replica,  checkpoint_timeout=60</td></tr>
         </tbody>
       </table>
     </div>
@@ -686,7 +689,7 @@ Factor importance:
       <table>
         <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
         <tbody>
-            <tr><td><code>p99_latency</code></td><td style="color:#dc2626;font-weight:600;">0.2462</td><td>linear</td></tr>
+            <tr><td><code>p99_latency</code></td><td style="color:#dc2626;font-weight:600;">0.3147</td><td>linear</td></tr>
         </tbody>
       </table>
     </div>
@@ -705,10 +708,10 @@ throughput                   1.5       0.8200     6099.00 tps   ↑
 p99_latency                  1.0       0.9286        7.50 ms   ↓
 
 Recommended settings:
-  shared_buffers = 256 MB
-  work_mem = 4 MB
+  shared_buffers = 1024 MB
+  work_mem = 64 MB
   max_connections = 200
-  effective_cache = 4096 MB
+  effective_cache = 512 MB
   wal_level = minimal
   checkpoint_timeout = 60 sec
   (from observed run #6)
@@ -718,13 +721,13 @@ Trade-off summary:
   p99_latency: 7.50 (best observed: 7.10, sacrifice: +0.40)
 
 Model quality:
-  throughput: R² = 0.2409 (linear)
-  p99_latency: R² = 0.2462 (linear)
+  throughput: R² = 0.3944 (linear)
+  p99_latency: R² = 0.3147 (linear)
 
 Top 3 observed runs by overall desirability:
-  1. Run #6 (D=0.8618): shared_buffers=256, work_mem=4, max_connections=200, effective_cache=4096, wal_level=minimal, checkpoint_timeout=60
-  2. Run #14 (D=0.8514): shared_buffers=1024, work_mem=64, max_connections=200, effective_cache=4096, wal_level=replica, checkpoint_timeout=900
-  3. Run #10 (D=0.8140): shared_buffers=256, work_mem=64, max_connections=50, effective_cache=4096, wal_level=minimal, checkpoint_timeout=900</div></div>
+  1. Run #6 (D=0.8618): shared_buffers=1024, work_mem=64, max_connections=200, effective_cache=512, wal_level=minimal, checkpoint_timeout=60
+  2. Run #14 (D=0.8514): shared_buffers=256, work_mem=64, max_connections=50, effective_cache=512, wal_level=replica, checkpoint_timeout=60
+  3. Run #10 (D=0.8140): shared_buffers=1024, work_mem=4, max_connections=50, effective_cache=4096, wal_level=replica, checkpoint_timeout=60</div></div>
   </section>
 
   <div class="chapter-nav">
