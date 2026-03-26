@@ -43,6 +43,10 @@
   </div>
 </section>
 
+
+<!-- Table of Contents -->
+<nav class="uc-toc" id="uc-toc"><div class="uc-toc-inner" id="uc-toc-inner"></div></nav>
+
 <div class="container-narrow uc-content">
 
   <!-- Prose Summary -->
@@ -56,8 +60,8 @@
 
     
     <h3>Key Findings</h3>
-    <p>For <strong>allreduce latency</strong>, the most influential factors were binding (29.4%), algorithm (24.4%), ppn (21.8%). The best observed value was <strong>34.2</strong> (at msg size = 4096, algorithm = recursive_doubling, ppn = 16).</p>
-<p>For <strong>bandwidth</strong>, the most influential factors were msg size (25.6%), binding (24.0%), algorithm (17.0%). The best observed value was <strong>30.14</strong> (at msg size = 4096, algorithm = ring, ppn = 64).</p>
+    <p>For <strong>allreduce latency</strong>, the most influential factors were msg size (31.7%), ppn (29.9%), eager limit (26.5%). The best observed value was <strong>34.2</strong> (at msg size = 4096, algorithm = recursive_doubling, ppn = 16).</p>
+<p>For <strong>bandwidth</strong>, the most influential factors were msg size (27.2%), coll tuning (24.7%), ppn (18.7%). The best observed value was <strong>30.14</strong> (at msg size = 1048576, algorithm = recursive_doubling, ppn = 64).</p>
 
 
     <h3>Recommended Next Steps</h3>
@@ -67,6 +71,8 @@
     <li>The screening results can guide factor reduction &mdash; drop factors contributing less than 5% and re-run with a smaller, more focused design.</li>
   </ul>
   </section>
+
+
 
 
 
@@ -101,6 +107,8 @@
       </div>
     </div>
   </section>
+
+
 
 
 
@@ -450,6 +458,8 @@ Factor importance:
 
   
   
+  
+  
   <!-- Multi-Objective Optimization -->
   <section class="uc-section">
     <h2>Multi-Objective Optimization</h2>
@@ -505,10 +515,10 @@ Factor importance:
       <table>
         <thead><tr><th>Factor</th><th>Value</th></tr></thead>
         <tbody>
-            <tr><td><code>msg_size</code></td><td>4096 bytes</td></tr>
-            <tr><td><code>algorithm</code></td><td>ring</td></tr>
+            <tr><td><code>msg_size</code></td><td>1048576 bytes</td></tr>
+            <tr><td><code>algorithm</code></td><td>recursive_doubling</td></tr>
             <tr><td><code>ppn</code></td><td>64</td></tr>
-            <tr><td><code>eager_limit</code></td><td>262144 bytes</td></tr>
+            <tr><td><code>eager_limit</code></td><td>4096 bytes</td></tr>
             <tr><td><code>binding</code></td><td>core</td></tr>
             <tr><td><code>coll_tuning</code></td><td>on</td></tr>
         </tbody>
@@ -543,7 +553,7 @@ Factor importance:
       <table>
         <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
         <tbody>
-            <tr><td><code>bandwidth</code></td><td style="color:#dc2626;font-weight:600;">0.3919</td><td>linear</td></tr>
+            <tr><td><code>bandwidth</code></td><td style="color:#dc2626;font-weight:600;">0.3071</td><td>linear</td></tr>
         </tbody>
       </table>
     </div>
@@ -562,10 +572,10 @@ allreduce_latency            1.0       0.6288       56.58 us   ↓
 bandwidth                    1.5       0.9446       29.91 GB/s   ↑
 
 Recommended settings:
-  msg_size = 4096 bytes
-  algorithm = ring
+  msg_size = 1048576 bytes
+  algorithm = recursive_doubling
   ppn = 64
-  eager_limit = 262144 bytes
+  eager_limit = 4096 bytes
   binding = core
   coll_tuning = on
   (from observed run #6)
@@ -575,11 +585,11 @@ Trade-off summary:
   bandwidth: 29.91 (best observed: 30.14, sacrifice: +0.23)
 
 Model quality:
-  allreduce_latency: R² = 0.1118 (linear)
-  bandwidth: R² = 0.3919 (linear)
+  allreduce_latency: R² = 0.2755 (linear)
+  bandwidth: R² = 0.3071 (linear)
 
 Top 3 observed runs by overall desirability:
-  1. Run #6 (D=0.8027): msg_size=4096, algorithm=ring, ppn=64, eager_limit=262144, binding=core, coll_tuning=on
+  1. Run #6 (D=0.8027): msg_size=1048576, algorithm=recursive_doubling, ppn=64, eager_limit=4096, binding=core, coll_tuning=on
   2. Run #15 (D=0.8024): msg_size=4096, algorithm=recursive_doubling, ppn=16, eager_limit=4096, binding=socket, coll_tuning=on
   3. Run #16 (D=0.6033): msg_size=4096, algorithm=recursive_doubling, ppn=16, eager_limit=262144, binding=core, coll_tuning=off</div></div>
   </section>
@@ -594,5 +604,41 @@ Top 3 observed runs by overall desirability:
   <span>doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2026</span>
 </footer>
 <script src="../js/main.js"></script>
+
+<script>
+(function() {
+  var toc = document.getElementById('uc-toc-inner');
+  if (!toc) return;
+  var headings = document.querySelectorAll('.uc-section > h2, .uc-content > section > h2');
+  if (headings.length < 2) { document.getElementById('uc-toc').style.display = 'none'; return; }
+  headings.forEach(function(h, i) {
+    if (!h.id) h.id = 'sec-' + i;
+    var a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(null, '', '#' + h.id);
+    });
+    toc.appendChild(a);
+  });
+  var links = toc.querySelectorAll('a');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        links.forEach(function(a) { a.classList.remove('active'); });
+        var active = toc.querySelector('a[href="#' + entry.target.id + '"]');
+        if (active) {
+          active.classList.add('active');
+          active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      }
+    });
+  }, { rootMargin: '-80px 0px -70% 0px', threshold: 0 });
+  headings.forEach(function(h) { observer.observe(h); });
+  if (links.length) links[0].classList.add('active');
+})();
+</script>
 </body>
 </html>

@@ -1231,11 +1231,16 @@ def inject_matrix_into_existing(num, uc_dir):
     page = re.sub(r'<script>\n\(function\(\) \{\n  var toc = document\.getElementById.*?\n</script>', '', page, flags=re.DOTALL)
 
     # Insert TOC nav after hero section
-    if '</section>\n\n<div class="container-narrow uc-content">' in page:
-        page = page.replace(
-            '</section>\n\n<div class="container-narrow uc-content">',
-            f'</section>\n\n{toc_nav}\n\n<div class="container-narrow uc-content">',
+    if 'id="uc-toc"' not in page:
+        # Match the hero closing + content div with flexible whitespace
+        toc_inserted = re.sub(
+            r'(</section>\s*)\n(\s*<div class="container-narrow uc-content">)',
+            rf'\1\n{toc_nav}\n\n\2',
+            page,
+            count=1,
         )
+        if toc_inserted != page:
+            page = toc_inserted
 
     # Insert TOC script before </body>
     if '</body>' in page and 'var toc = document.getElementById' not in page:
