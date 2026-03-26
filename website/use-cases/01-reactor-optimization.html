@@ -261,6 +261,155 @@ Fixed     : reaction_time=60, stirring_speed=300</span></div>
     </div>
   </section>
 
+  <!-- Real-World Manual Workflow -->
+  <section class="uc-section">
+    <h2>Real-World Lab Workflow</h2>
+    <div class="callout info">
+      <span class="callout-icon">&#x2139;</span>
+      <div class="callout-body">
+        <h4>Physical Experiment? Use the Manual Workflow</h4>
+        <p>The automated workflow above uses a simulation script for demonstration. In a real chemistry lab, you'd physically run each reactor experiment and record the results. The DOE Helper Tool fully supports this with <code>record</code>, <code>status</code>, and <code>export-worksheet</code> commands.</p>
+      </div>
+    </div>
+
+    <p>Here's how a research chemist would actually run this experiment over several days in the lab:</p>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Design the experiment &amp; print a lab worksheet</h3>
+        <p>Generate the design and export a printable worksheet to take to the lab bench.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/01_reactor_optimization/config.json <span class="flag">--seed</span> 42
+
+<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/01_reactor_optimization/config.json \
+    <span class="flag">--format</span> csv <span class="flag">--output</span> reactor_worksheet.csv
+
+<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> use_cases/01_reactor_optimization/config.json \
+    <span class="flag">--format</span> markdown
+
+<span class="output"># Experiment Worksheet: Chemical Reactor Optimization
+Design: Box-Behnken | 15 runs | 3 factors | 3 responses
+
+| Run | temperature (&deg;C) | pressure (bar) | catalyst (g/L) | yield (%) | purity (%) | cost (USD) | Notes |
+| --- | ------------------- | -------------- | -------------- | --------- | ---------- | ---------- | ----- |
+| 1   | 200                 | 4              | 0.5            |           |            |            |       |
+| 2   | 150                 | 6              | 1.25           |           |            |            |       |
+| ... | ...                 | ...            | ...            |           |            |            |       |</span></div>
+        </div>
+        <p>Print the CSV and tape it into your lab notebook, or open it in Excel/Google Sheets. The empty response columns are where you'll record measurements.</p>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Check what to run next</h3>
+        <p>Before heading to the lab each day, check which runs are pending.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> use_cases/01_reactor_optimization/config.json
+
+<span class="output">Experiment: Chemical Reactor Optimization
+Design: box_behnken | 15 runs | 3 factors | 3 responses
+
+Progress: 3/15 complete  [####................ ]  20%
+
+Completed runs:
+  Run 1: temperature=200, pressure=4, catalyst=0.5
+  Run 2: temperature=150, pressure=6, catalyst=1.25
+  Run 3: temperature=200, pressure=6, catalyst=1.25
+
+Pending runs:
+  Run 4: temperature=175, pressure=2, catalyst=0.5
+  Run 5: temperature=150, pressure=4, catalyst=0.5
+  ...
+
+Next run to complete: Run 4
+  temperature = 175 &deg;C
+  pressure    = 2 bar
+  catalyst    = 0.5 g/L
+
+Record results with: python doe.py record --config &lt;config&gt; --run 4</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Run the experiment &amp; record results</h3>
+        <p>After completing a reactor run, enter the measured values. The tool validates input and saves to JSON.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/01_reactor_optimization/config.json <span class="flag">--run</span> 4
+
+<span class="output">Run 4 / 15 (Block 1)
+  temperature = 175 &deg;C
+  pressure    = 2 bar
+  catalyst    = 0.5 g/L</span>
+
+Enter value for <span class="string">'yield'</span> (%): <span class="number">62.4</span>
+Enter value for <span class="string">'purity'</span> (%): <span class="number">91.8</span>
+Enter value for <span class="string">'cost'</span> (USD): <span class="number">38.50</span>
+
+<span class="output">Saved &rarr; use_cases/01_reactor_optimization/results/run_4.json</span></div>
+        </div>
+        <p>You can also record all remaining runs in sequence:</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> use_cases/01_reactor_optimization/config.json <span class="flag">--run</span> all</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Peek at partial results mid-experiment</h3>
+        <p>Don't wait until all 15 runs are done. Use <code>--partial</code> to get early insights while the experiment is still in progress.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/01_reactor_optimization/config.json <span class="flag">--partial</span>
+
+<span class="output">Partial mode: analyzing 8/15 completed runs (missing: 9, 10, 11, 12, 13, 14, 15)
+
+=== Main Effects: yield ===
+Factor            Effect    % Contribution
+-------------------------------------------
+catalyst           12.4           45.2%
+temperature         9.8           35.7%
+pressure            5.2           19.0%</span></div>
+        </div>
+        <p>This early analysis already reveals that catalyst loading is the dominant factor for yield &mdash; valuable insight for planning the remaining runs.</p>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Complete analysis &amp; generate report</h3>
+        <p>Once all 15 runs are recorded, run the full analysis pipeline.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/01_reactor_optimization/config.json
+<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/01_reactor_optimization/config.json
+<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/01_reactor_optimization/config.json \
+    <span class="flag">--output</span> reactor_report.html</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="callout success">
+      <span class="callout-icon">&#x2714;</span>
+      <div class="callout-body">
+        <h4>Why This Workflow Works</h4>
+        <p>The analysis pipeline doesn't care <em>how</em> results were produced. Whether you ran a simulation, measured products from a real reactor, or collected data from a manufacturing line &mdash; as long as the response values end up in <code>run_N.json</code> files, the analysis, optimization, and reporting work identically. The <code>record</code> command handles the JSON creation so you never have to edit files manually.</p>
+      </div>
+    </div>
+  </section>
+
   <!-- Interpretation -->
   <section class="uc-section">
     <h2>Interpreting the Results</h2>

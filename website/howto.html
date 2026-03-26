@@ -215,6 +215,9 @@
       <button class="tab-btn" data-tab="tab-optimize">optimize</button>
       <button class="tab-btn" data-tab="tab-report">report</button>
       <button class="tab-btn" data-tab="tab-info">info</button>
+      <button class="tab-btn" data-tab="tab-record">record</button>
+      <button class="tab-btn" data-tab="tab-status">status</button>
+      <button class="tab-btn" data-tab="tab-worksheet">export-worksheet</button>
     </div>
 
     <div id="tab-generate" class="tab-panel active">
@@ -246,7 +249,7 @@
       <h3>Analyze Experiment Results</h3>
       <div class="code-block">
         <div class="code-header"><span>Usage</span></div>
-        <div class="code-body">python doe.py analyze <span class="flag">--config</span> FILE [<span class="flag">--results-dir</span> DIR] [<span class="flag">--no-plots</span>] [<span class="flag">--csv</span> DIR]</div>
+        <div class="code-body">python doe.py analyze <span class="flag">--config</span> FILE [<span class="flag">--results-dir</span> DIR] [<span class="flag">--no-plots</span>] [<span class="flag">--csv</span> DIR] [<span class="flag">--partial</span>]</div>
       </div>
       <table>
         <thead><tr><th>Flag</th><th>Description</th></tr></thead>
@@ -255,6 +258,7 @@
           <tr><td><code>--results-dir</code></td><td>Override <code>out_directory</code> from config</td></tr>
           <tr><td><code>--no-plots</code></td><td>Skip generating Pareto charts and effects plots (headless mode)</td></tr>
           <tr><td><code>--csv</code></td><td>Export main effects and summary stats to CSV files</td></tr>
+          <tr><td><code>--partial</code></td><td>Analyze only completed runs (skip missing result files)</td></tr>
         </tbody>
       </table>
       <h4 style="margin-top: 20px;">What It Computes</h4>
@@ -272,7 +276,7 @@
       <h3>Get Optimization Recommendations</h3>
       <div class="code-block">
         <div class="code-header"><span>Usage</span></div>
-        <div class="code-body">python doe.py optimize <span class="flag">--config</span> FILE [<span class="flag">--results-dir</span> DIR] [<span class="flag">--response</span> NAME]</div>
+        <div class="code-body">python doe.py optimize <span class="flag">--config</span> FILE [<span class="flag">--results-dir</span> DIR] [<span class="flag">--response</span> NAME] [<span class="flag">--partial</span>]</div>
       </div>
       <table>
         <thead><tr><th>Flag</th><th>Description</th></tr></thead>
@@ -280,6 +284,7 @@
           <tr><td><code>--config</code></td><td>Path to JSON config file (required)</td></tr>
           <tr><td><code>--results-dir</code></td><td>Override <code>out_directory</code> from config</td></tr>
           <tr><td><code>--response</code></td><td>Optimize for a single response (default: all responses)</td></tr>
+          <tr><td><code>--partial</code></td><td>Use only completed runs for optimization</td></tr>
         </tbody>
       </table>
       <p style="margin-top: 16px;">The optimizer reports the best observed run, fits a linear RSM model, and ranks factors by importance. Use <code>--response</code> to focus on a specific metric.</p>
@@ -289,7 +294,7 @@
       <h3>Generate an Interactive HTML Report</h3>
       <div class="code-block">
         <div class="code-header"><span>Usage</span></div>
-        <div class="code-body">python doe.py report <span class="flag">--config</span> FILE [<span class="flag">--results-dir</span> DIR] [<span class="flag">--output</span> FILE]</div>
+        <div class="code-body">python doe.py report <span class="flag">--config</span> FILE [<span class="flag">--results-dir</span> DIR] [<span class="flag">--output</span> FILE] [<span class="flag">--partial</span>]</div>
       </div>
       <p style="margin-top: 16px;">Generates a self-contained HTML file with:</p>
       <ul>
@@ -299,6 +304,7 @@
         <li>Full design matrix as an interactive table</li>
         <li>Collapsible sections for easy navigation</li>
       </ul>
+      <p style="margin-top:12px">Use <code>--partial</code> to generate reports from incomplete experiments. The report will note which runs are missing.</p>
       <div class="callout info" style="margin-top:16px">
         <span class="callout-icon">&#x2139;</span>
         <div class="callout-body">
@@ -315,6 +321,96 @@
         <div class="code-body">python doe.py info <span class="flag">--config</span> FILE</div>
       </div>
       <p style="margin-top: 16px;">Prints the experiment plan summary without writing any files: operation type, number of factors, base runs, total runs with blocking, response definitions, and fixed factors. Use this to quickly verify your config before running anything.</p>
+    </div>
+
+    <div id="tab-record" class="tab-panel">
+      <h3>Record Results Interactively</h3>
+      <div class="code-block">
+        <div class="code-header"><span>Usage</span></div>
+        <div class="code-body">python doe.py record <span class="flag">--config</span> FILE <span class="flag">--run</span> N|all [<span class="flag">--seed</span> N]</div>
+      </div>
+      <table>
+        <thead><tr><th>Flag</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--config</code></td><td><em>required</em></td><td>Path to JSON config file</td></tr>
+          <tr><td><code>--run</code></td><td><em>required</em></td><td>Run number to record, or <code>all</code> to enter all pending runs</td></tr>
+          <tr><td><code>--seed</code></td><td>42</td><td>Seed for consistent run ordering</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top: 16px;">For real-world experiments without a test script: the tool displays each run's factor settings, prompts for response values, validates numeric input, and saves the result as <code>run_N.json</code>. If results already exist, shows current values and asks before overwriting.</p>
+      <div class="code-block" style="margin-top:16px">
+        <div class="code-header"><span>Example session</span></div>
+        <div class="code-body"><span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> config.json <span class="flag">--run</span> 3
+
+<span class="comment">Run 3 / 8 (Block 1)</span>
+  temperature = 200 &deg;C
+  pressure    = 6 bar
+  catalyst    = B
+
+Enter value for <span class="string">'yield'</span> (%): <span class="number">87.3</span>
+Enter value for <span class="string">'cost'</span> (USD): <span class="number">42.10</span>
+Saved &rarr; results/run_3.json</div>
+      </div>
+    </div>
+
+    <div id="tab-status" class="tab-panel">
+      <h3>Check Experiment Progress</h3>
+      <div class="code-block">
+        <div class="code-header"><span>Usage</span></div>
+        <div class="code-body">python doe.py status <span class="flag">--config</span> FILE [<span class="flag">--seed</span> N]</div>
+      </div>
+      <table>
+        <thead><tr><th>Flag</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--config</code></td><td><em>required</em></td><td>Path to JSON config file</td></tr>
+          <tr><td><code>--seed</code></td><td>42</td><td>Seed for consistent run ordering</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top: 16px;">Shows a progress bar, lists completed and pending runs, and displays full factor details for the next run to complete. Especially useful for long-running real-world experiments.</p>
+      <div class="code-block" style="margin-top:16px">
+        <div class="code-header"><span>Example output</span></div>
+        <div class="code-body">Experiment: Chemical Reactor Optimization
+Design: box_behnken | 15 runs | 3 factors | 3 responses
+
+Progress: 9/15 complete  [############........]  60%
+
+Pending runs:
+  Run 10: temperature=200, pressure=6, catalyst=B
+  Run 11: temperature=150, pressure=4, catalyst=A
+  ...
+
+Next run to complete: Run 10
+  temperature = 200 &deg;C
+  pressure    = 6 bar
+  catalyst    = B
+
+Record results with: python doe.py record --config config.json --run 10</div>
+      </div>
+    </div>
+
+    <div id="tab-worksheet" class="tab-panel">
+      <h3>Export a Printable Worksheet</h3>
+      <div class="code-block">
+        <div class="code-header"><span>Usage</span></div>
+        <div class="code-body">python doe.py export-worksheet <span class="flag">--config</span> FILE [<span class="flag">--format</span> csv|markdown] [<span class="flag">--output</span> FILE]</div>
+      </div>
+      <table>
+        <thead><tr><th>Flag</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--config</code></td><td><em>required</em></td><td>Path to JSON config file</td></tr>
+          <tr><td><code>--format</code></td><td><code>csv</code></td><td>Output format: <code>csv</code> or <code>markdown</code></td></tr>
+          <tr><td><code>--output</code></td><td>stdout</td><td>Write to file instead of stdout</td></tr>
+          <tr><td><code>--seed</code></td><td>42</td><td>Seed for consistent run ordering</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top: 16px;">Generates a worksheet with all runs, factor values, and empty columns for response measurements and notes. Pre-fills response values for any runs that already have results. Perfect for printing and taking to the lab or field.</p>
+      <div class="callout success" style="margin-top:16px">
+        <span class="callout-icon">&#x2714;</span>
+        <div class="callout-body">
+          <h4>Pro Tip</h4>
+          <p>Use <code>--format markdown</code> for documentation or wikis, and <code>--format csv</code> for importing into Excel or Google Sheets.</p>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -382,6 +478,40 @@ result = {
 
 <span class="keyword">with</span> open(args.out, <span class="string">"w"</span>) <span class="keyword">as</span> f:
     json.dump(result, f)</div>
+      </div>
+    </div>
+
+    <h3 style="margin-top:32px">No Test Script? No Problem.</h3>
+    <p>For real-world experiments (lab work, physical tests, field measurements), you don't need a test script at all. Leave <code>test_script</code> empty or omit it, and use the manual workflow instead:</p>
+
+    <div class="code-block">
+      <div class="code-header"><span>Manual experiment workflow</span><button class="code-copy">Copy</button></div>
+      <div class="code-body"><span class="comment"># 1. Design your experiment</span>
+<span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> config.json <span class="flag">--seed</span> 42
+
+<span class="comment"># 2. Print a worksheet for the lab</span>
+<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> config.json <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
+
+<span class="comment"># 3. Check what to run next</span>
+<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> config.json
+
+<span class="comment"># 4. After each physical experiment, record the result</span>
+<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> config.json <span class="flag">--run</span> 1
+
+<span class="comment"># 5. Analyze as you go (partial results OK)</span>
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> config.json <span class="flag">--partial</span>
+
+<span class="comment"># 6. When all runs are done, get the full analysis</span>
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> config.json
+<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> config.json
+<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> config.json <span class="flag">--output</span> report.html</div>
+    </div>
+
+    <div class="callout info" style="margin-top:16px">
+      <span class="callout-icon">&#x2139;</span>
+      <div class="callout-body">
+        <h4>Works With Any Experiment</h4>
+        <p>The analysis pipeline doesn't care how results were produced. Whether you ran a simulation, measured something in a lab, or collected field data &mdash; as long as the response values end up in <code>run_N.json</code> files, everything works.</p>
       </div>
     </div>
   </div>
@@ -518,6 +648,82 @@ main_effects_cost.csv   summary_stats_cost.csv</div>
 <span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/01_reactor_optimization/config.json \
     <span class="flag">--output</span> results/report.html</div>
     </div>
+
+    <h3>Tutorial 3: Real-World Lab Experiment (Manual Entry)</h3>
+    <p>A hands-on walkthrough for running physical experiments without a test script. Uses the <code>record</code>, <code>status</code>, and <code>export-worksheet</code> commands to manage a manual workflow.</p>
+
+    <div class="code-block">
+      <div class="code-header"><span>Complete manual workflow</span><button class="code-copy">Copy</button></div>
+      <div class="code-body"><span class="comment"># Create a config with no test_script</span>
+<span class="prompt">$ </span>cat config.json
+{
+  "factors": [
+    {"name": "temperature", "levels": ["150", "200"], "type": "continuous", "unit": "&deg;C"},
+    {"name": "pressure", "levels": ["2", "6"], "type": "continuous", "unit": "bar"},
+    {"name": "catalyst", "levels": ["A", "B"], "type": "categorical"}
+  ],
+  "responses": [
+    {"name": "yield", "optimize": "maximize", "unit": "%"},
+    {"name": "cost", "optimize": "minimize", "unit": "USD"}
+  ],
+  "settings": {"operation": "full_factorial", "out_directory": "results"}
+}
+
+<span class="comment"># Preview the design</span>
+<span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> config.json
+
+<span class="comment"># Print worksheet for lab notebook</span>
+<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> config.json <span class="flag">--format</span> markdown
+
+<span class="comment"># Check progress</span>
+<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> config.json
+
+<span class="comment"># Record results after each experiment</span>
+<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> config.json <span class="flag">--run</span> 1
+<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> config.json <span class="flag">--run</span> 2
+
+<span class="comment"># Peek at partial results</span>
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> config.json <span class="flag">--partial</span>
+
+<span class="comment"># Record remaining runs and finalize</span>
+<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> config.json <span class="flag">--run</span> all
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> config.json
+<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> config.json <span class="flag">--output</span> report.html</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ AI PROMPTS ═══════════════ -->
+<section class="howto-section" id="ai-prompts">
+  <div class="container-narrow">
+    <h2><span class="step-badge">7</span> Using AI to Help Design Experiments</h2>
+    <p>Not sure how to set up your experiment? Use the <a href="ai-prompts.html">AI Prompts</a> page to generate experiment configurations with the help of an AI assistant like Claude or ChatGPT.</p>
+
+    <div class="callout info">
+      <span class="callout-icon">&#x2139;</span>
+      <div class="callout-body">
+        <h4>How It Works</h4>
+        <p>The AI Prompts page provides ready-to-use prompts that guide an AI assistant through the process of creating a DOE configuration file for your specific problem. Describe your experiment in plain English, and get a complete <code>config.json</code>, simulation script, and analysis workflow.</p>
+      </div>
+    </div>
+
+    <p>The prompts cover common scenarios:</p>
+    <ul>
+      <li><strong>Experiment Design</strong> &mdash; Generate a complete config.json from a natural-language description of your experiment</li>
+      <li><strong>Factor Selection</strong> &mdash; Get help choosing which factors to include and what levels to test</li>
+      <li><strong>Results Interpretation</strong> &mdash; Paste your analysis output and get a plain-English explanation of what the results mean</li>
+      <li><strong>Design Selection</strong> &mdash; Describe your constraints and get a recommendation for which design type to use</li>
+    </ul>
+
+    <div class="code-block" style="margin-top:16px">
+      <div class="code-header"><span>Example: asking AI to design your experiment</span></div>
+      <div class="code-body"><span class="comment">"I'm optimizing a PostgreSQL database. I want to test shared_buffers
+(256MB to 4GB), work_mem (4MB to 256MB), effective_cache_size (1GB to 8GB),
+and max_parallel_workers (2 to 8). I care about query throughput and
+p99 latency. Generate a DOE config.json for me."</span></div>
+    </div>
+
+    <p style="margin-top:16px"><a href="ai-prompts.html" style="font-weight:600;">Browse all AI prompts &rarr;</a></p>
   </div>
 </section>
 

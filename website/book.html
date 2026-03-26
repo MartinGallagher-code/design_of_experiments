@@ -417,6 +417,31 @@
 
       <p>This model is "linear" in the <em>parameters</em> (&beta;), not necessarily in the factors. Even quadratic terms like X<sup>2</sup> are linear in the coefficient &beta;<sub>ii</sub>.</p>
 
+      <h3>The Full Model for Three Factors</h3>
+
+      <p>For 3 factors (A, B, C) with interactions and quadratic terms, the complete model is:</p>
+
+      <div class="math">
+        Y = &beta;<sub>0</sub> + &beta;<sub>1</sub>x<sub>1</sub> + &beta;<sub>2</sub>x<sub>2</sub> + &beta;<sub>3</sub>x<sub>3</sub> + &beta;<sub>12</sub>x<sub>1</sub>x<sub>2</sub> + &beta;<sub>13</sub>x<sub>1</sub>x<sub>3</sub> + &beta;<sub>23</sub>x<sub>2</sub>x<sub>3</sub> + &beta;<sub>123</sub>x<sub>1</sub>x<sub>2</sub>x<sub>3</sub> + &epsilon;
+      </div>
+
+      <p>That's 8 terms (including the intercept) for 3 factors &mdash; exactly the number of runs in a 2<sup>3</sup> factorial. This isn't a coincidence: each run provides one equation, and the design is constructed so that the 8 equations are independent (orthogonal). When we add quadratic terms &beta;<sub>11</sub>x<sub>1</sub><sup>2</sup>, &beta;<sub>22</sub>x<sub>2</sub><sup>2</sup>, &beta;<sub>33</sub>x<sub>3</sub><sup>2</sup>, the model grows to 11 terms, requiring more than 8 runs &mdash; this is why response surface designs (CCD, Box-Behnken) need more runs than factorials.</p>
+
+      <div class="comparison-grid">
+        <div class="comparison-card" style="background: var(--ice); border: 1px solid #93c5fd;">
+          <h4 style="color: var(--deep-blue);">Linear model (factorial)</h4>
+          <p>1 + k + C(k,2) + ... terms</p>
+          <p>For k=3: <strong>8 terms, 8 runs</strong></p>
+          <p>Captures main effects + interactions</p>
+        </div>
+        <div class="comparison-card" style="background: var(--mint-light); border: 1px solid #6ee7b7;">
+          <h4 style="color: #166534;">Quadratic model (RSM)</h4>
+          <p>Linear + k quadratic terms</p>
+          <p>For k=3: <strong>10&ndash;11 terms, 15&ndash;20 runs</strong></p>
+          <p>Also captures curvature</p>
+        </div>
+      </div>
+
       <h2 id="coded-vars">Coded Variables</h2>
 
       <p>We convert natural factor values to coded values (-1, +1) using:</p>
@@ -430,6 +455,28 @@
       <div class="analogy">
         <h4>&#x1F4CF; Why Code?</h4>
         <p>Imagine comparing the "effect" of temperature (150 vs 200) to pressure (2 vs 6). In natural units, the numbers aren't comparable. In coded units, both range from -1 to +1, so an effect of 10 in temperature is directly comparable to an effect of 5 in pressure.</p>
+      </div>
+
+      <h3>Worked Example: Coding Factor Values</h3>
+
+      <p>Consider a temperature factor with levels 150&deg;C (low) and 200&deg;C (high):</p>
+
+      <table>
+        <thead><tr><th>Natural value</th><th>Calculation</th><th>Coded value</th></tr></thead>
+        <tbody>
+          <tr><td>150&deg;C</td><td>(150 - 175) / 25</td><td style="color:var(--coral);font-weight:600;">-1</td></tr>
+          <tr><td>175&deg;C</td><td>(175 - 175) / 25</td><td style="font-weight:600;">0</td></tr>
+          <tr><td>200&deg;C</td><td>(200 - 175) / 25</td><td style="color:var(--mint);font-weight:600;">+1</td></tr>
+          <tr><td>162.5&deg;C</td><td>(162.5 - 175) / 25</td><td>-0.5</td></tr>
+          <tr><td>212.5&deg;C</td><td>(212.5 - 175) / 25</td><td>+1.5 (star point)</td></tr>
+        </tbody>
+      </table>
+
+      <p>The center (X&#x0305;) is (150 + 200) / 2 = 175, and the half-range is (200 - 150) / 2 = 25. Star points in CCD designs produce coded values beyond &plusmn;1, which is how they sample outside the original range.</p>
+
+      <div class="keypoint-box">
+        <h4>Why Coding Matters for the DOE Helper Tool</h4>
+        <p>The RSM fitting in <code>doe optimize</code> automatically codes all continuous factors to [-1, +1] before fitting. This means the reported coefficients are directly comparable in magnitude &mdash; a coefficient of 10 for temperature is twice as important as a coefficient of 5 for pressure, regardless of their natural units. Categorical factors are coded as -1 (first level) and +1 (last level).</p>
       </div>
 
       <h2 id="estimating-effects">Estimating Effects</h2>
@@ -459,6 +506,11 @@
 
       <p>This is what the Pareto chart displays &mdash; a ranked bar chart of contributions with a cumulative line.</p>
 
+      <div class="analogy">
+        <h4>&#x1F4CA; Reading a Pareto Chart</h4>
+        <p>The DOE Helper Tool generates Pareto charts automatically. The left axis shows effect magnitude as bars (tallest first). The right axis shows a cumulative percentage line. Factors to the left of where the cumulative line reaches ~80% are the "vital few" &mdash; the factors that drive most of the variation. Factors to the right are the "trivial many" that can often be ignored or fixed at convenient levels.</p>
+      </div>
+
       <h2 id="confidence-intervals">Confidence Intervals</h2>
 
       <p>A 95% confidence interval on a main effect is:</p>
@@ -474,6 +526,24 @@
         <p>A statistically significant effect might be too small to matter in practice. Conversely, a practically important effect might not reach statistical significance with few observations. Always consider both.</p>
       </div>
 
+      <h3>What Affects the Width of Confidence Intervals?</h3>
+
+      <p>The confidence interval width depends on three things:</p>
+
+      <table>
+        <thead><tr><th>Factor</th><th>Effect on CI width</th><th>How to improve</th></tr></thead>
+        <tbody>
+          <tr><td>Number of runs (N)</td><td>More runs &rarr; narrower CIs</td><td>Add replicates via <code>block_count</code></td></tr>
+          <tr><td>Experimental noise (&sigma;)</td><td>Higher noise &rarr; wider CIs</td><td>Improve measurement precision, control nuisance variables</td></tr>
+          <tr><td>Confidence level</td><td>99% &rarr; wider than 95%</td><td>Accept 95% (standard practice)</td></tr>
+        </tbody>
+      </table>
+
+      <div class="analogy">
+        <h4>&#x1F50D; The Microscope Analogy</h4>
+        <p>Think of confidence intervals as the resolution of a microscope. More replicates give you a higher-power lens &mdash; you can see smaller effects. With too few runs, only the biggest effects stand out above the noise floor. This is why the screening-to-optimization pipeline works: use PB to find the big effects, then use RSM with more runs per factor to precisely measure them.</p>
+      </div>
+
       <h2 id="orthogonality">Orthogonality and Balance</h2>
 
       <p>A design is <strong>orthogonal</strong> when the columns of the design matrix are uncorrelated. This means each effect estimate is independent of every other &mdash; changing one factor's range or removing one effect from the model doesn't change the other estimates.</p>
@@ -486,6 +556,39 @@
       </div>
 
       <p>Full factorial and Plackett-Burman designs are both orthogonal and balanced. This is what makes them statistically powerful &mdash; every run contributes useful information to every effect estimate.</p>
+
+      <h3>Visualizing Orthogonality</h3>
+
+      <p>In an orthogonal design, knowing the level of one factor tells you nothing about the level of any other factor. Here's the contrast:</p>
+
+      <div class="comparison-grid">
+        <div class="comparison-card bad">
+          <h4 style="color: #991b1b;">Not orthogonal</h4>
+          <p>When A is high, B is always high. The effects of A and B are confounded &mdash; you can't tell which one caused the change.</p>
+          <table style="font-size:.8rem; margin-top:8px;">
+            <thead><tr><th>Run</th><th>A</th><th>B</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>-1</td><td>-1</td></tr>
+              <tr><td>2</td><td>+1</td><td>+1</td></tr>
+              <tr><td>3</td><td>-1</td><td>-1</td></tr>
+              <tr><td>4</td><td>+1</td><td>+1</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="comparison-card good">
+          <h4 style="color: #166534;">Orthogonal</h4>
+          <p>A and B vary independently. Each effect is estimated without contamination from the other.</p>
+          <table style="font-size:.8rem; margin-top:8px;">
+            <thead><tr><th>Run</th><th>A</th><th>B</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>-1</td><td>-1</td></tr>
+              <tr><td>2</td><td>+1</td><td>-1</td></tr>
+              <tr><td>3</td><td>-1</td><td>+1</td></tr>
+              <tr><td>4</td><td>+1</td><td>+1</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       <h2 id="degrees-of-freedom">Degrees of Freedom</h2>
 
@@ -500,6 +603,30 @@
 
       <p>Without replicates, you must assume higher-order interactions are zero and "pool" their degrees of freedom to estimate error. This is why center-point replicates are valuable &mdash; they provide pure-error degrees of freedom without increasing the factorial portion of the design.</p>
 
+      <h3>Worked Example: Degree of Freedom Budget</h3>
+
+      <p>For a 2<sup>4</sup> factorial (16 runs) with 2 replicates (32 total runs):</p>
+
+      <table>
+        <thead><tr><th>Source</th><th>df</th><th>What it estimates</th></tr></thead>
+        <tbody>
+          <tr><td>Mean</td><td>1</td><td>Overall average</td></tr>
+          <tr><td>Main effects (A, B, C, D)</td><td>4</td><td>Individual factor contributions</td></tr>
+          <tr><td>2-factor interactions (AB, AC, ...)</td><td>6</td><td>Pairwise synergies/antagonisms</td></tr>
+          <tr><td>3-factor interactions (ABC, ...)</td><td>4</td><td>Usually negligible (pooled to error)</td></tr>
+          <tr><td>4-factor interaction (ABCD)</td><td>1</td><td>Usually negligible (pooled to error)</td></tr>
+          <tr><td>Pure error (from replication)</td><td>16</td><td>Experimental noise</td></tr>
+          <tr><td><strong>Total</strong></td><td><strong>32</strong></td><td></td></tr>
+        </tbody>
+      </table>
+
+      <p>The 16 error degrees of freedom come from the replicate: each of the 16 factorial points has 2 observations, giving 16 &times; (2-1) = 16 df for pure error. Without replication (single replicate), you'd need to assume higher-order interactions are negligible and pool their df to estimate error.</p>
+
+      <div class="danger-box">
+        <h4>The Unreplicated Factorial Dilemma</h4>
+        <p>With no replicates, there's no independent error estimate. You must either (a) assume high-order interactions are zero and use their degrees of freedom for error, (b) use the normal probability plot to visually separate real effects from noise, or (c) add center-point replicates. The DOE Helper Tool supports option (a) automatically and option (c) via blocking.</p>
+      </div>
+
       <h2 id="normal-plot">The Normal Probability Plot</h2>
 
       <p>When you have no replicates (and therefore no independent error estimate), a <strong>normal probability plot</strong> of effects helps identify which effects are real. Negligible effects cluster along a straight line (they are just noise). Effects that deviate from the line are likely real.</p>
@@ -509,6 +636,26 @@
         <p><strong>Points on the line:</strong> Noise &mdash; these effects are indistinguishable from random error.<br>
         <strong>Points far from the line:</strong> Real effects &mdash; the further from the line, the more confident you can be.<br>
         This technique was developed by Cuthbert Daniel (1959) and remains one of the most useful diagnostic tools in DOE.</p>
+      </div>
+
+      <h2 id="statistical-power">Statistical Power and Sample Size</h2>
+
+      <p>Power is the probability that your experiment will detect a real effect of a given size. Low power means you might run an experiment and conclude "nothing matters" when, in fact, something does &mdash; you just didn't have enough data to see it.</p>
+
+      <table>
+        <thead><tr><th>Power</th><th>Meaning</th><th>Runs needed (typical)</th></tr></thead>
+        <tbody>
+          <tr><td>50%</td><td>Coin flip &mdash; might miss real effects</td><td>Unreplicated factorial</td></tr>
+          <tr><td>80%</td><td>Standard target &mdash; acceptable for most work</td><td>2 replicates</td></tr>
+          <tr><td>90%</td><td>High confidence &mdash; for critical decisions</td><td>3&ndash;4 replicates</td></tr>
+        </tbody>
+      </table>
+
+      <p>The key insight: <strong>power depends on the signal-to-noise ratio</strong>. If your factor ranges produce large effects relative to experimental noise, even a small design has high power. If the effects are subtle, you need more replicates. This is why factor range selection (Chapter 1) is so important &mdash; wider ranges amplify the signal.</p>
+
+      <div class="keypoint-box">
+        <h4>Practical Rule of Thumb</h4>
+        <p>You can detect an effect that is at least 2&ndash;3 times the standard deviation of your experimental noise. If a previous study or pilot run suggests &sigma; = 5, then you can reliably detect effects of 10&ndash;15 or larger. Effects smaller than that will need more replicates or reduced noise to be detected.</p>
       </div>
     </section>
 
@@ -554,6 +701,29 @@
 
       <p>Growth is exponential. This is manageable for 2&ndash;5 factors, but becomes impractical beyond that &mdash; which motivates fractional and screening designs.</p>
 
+      <h3>Understanding Exponential Growth</h3>
+
+      <p>The run count grows faster than most people intuit. Here's a comparison of run count vs. information gained:</p>
+
+      <table>
+        <thead><tr><th>Factors (k)</th><th>Runs (2<sup>k</sup>)</th><th>Main effects</th><th>2-factor interactions</th><th>Total effects estimated</th></tr></thead>
+        <tbody>
+          <tr><td>2</td><td>4</td><td>2</td><td>1</td><td>3</td></tr>
+          <tr><td>3</td><td>8</td><td>3</td><td>3</td><td>7</td></tr>
+          <tr><td>4</td><td>16</td><td>4</td><td>6</td><td>15</td></tr>
+          <tr><td>5</td><td>32</td><td>5</td><td>10</td><td>26</td></tr>
+          <tr><td>6</td><td>64</td><td>6</td><td>15</td><td>57</td></tr>
+          <tr><td>7</td><td>128</td><td>7</td><td>21</td><td>120</td></tr>
+        </tbody>
+      </table>
+
+      <p>At k=5, only 15 of the 31 estimable effects are main effects or two-factor interactions &mdash; the rest are higher-order interactions that are usually negligible. This is the fundamental insight that motivates fractional designs: you're paying for information you probably don't need.</p>
+
+      <div class="analogy">
+        <h4>&#x1F4B0; The Budget Analogy</h4>
+        <p>Think of each experimental run as spending money. A full factorial spends evenly across all possible effects, including three-way, four-way, and higher interactions. That's like buying comprehensive insurance on a car, house, boat, and spaceship when you only own a car. Fractional designs spend the same budget more wisely by focusing on the effects most likely to matter.</p>
+      </div>
+
       <h2 id="design-matrix">The Design Matrix</h2>
 
       <p>A 2<sup>3</sup> full factorial design matrix:</p>
@@ -576,6 +746,26 @@
 
       <p>Every column is balanced: equal numbers of -1 and +1. Every pair of columns is orthogonal. This ensures unbiased, independent estimates of all effects.</p>
 
+      <h3>How to Read a Design Matrix</h3>
+
+      <p>Each row is one experiment. Each column is one factor. The values -1 and +1 represent the low and high levels of that factor. To compute any interaction column, multiply the corresponding factor columns element-by-element:</p>
+
+      <table>
+        <thead><tr><th>Run</th><th>A</th><th>B</th><th>AB</th><th>C</th><th>AC</th><th>BC</th><th>ABC</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td style="color:var(--coral);">-1</td><td style="color:var(--coral);">-1</td><td style="color:var(--mint);">+1</td><td style="color:var(--coral);">-1</td><td style="color:var(--mint);">+1</td><td style="color:var(--mint);">+1</td><td style="color:var(--coral);">-1</td></tr>
+          <tr><td>2</td><td style="color:var(--mint);">+1</td><td style="color:var(--coral);">-1</td><td style="color:var(--coral);">-1</td><td style="color:var(--coral);">-1</td><td style="color:var(--coral);">-1</td><td style="color:var(--mint);">+1</td><td style="color:var(--mint);">+1</td></tr>
+          <tr><td>3</td><td style="color:var(--coral);">-1</td><td style="color:var(--mint);">+1</td><td style="color:var(--coral);">-1</td><td style="color:var(--coral);">-1</td><td style="color:var(--mint);">+1</td><td style="color:var(--coral);">-1</td><td style="color:var(--mint);">+1</td></tr>
+          <tr><td>4</td><td style="color:var(--mint);">+1</td><td style="color:var(--mint);">+1</td><td style="color:var(--mint);">+1</td><td style="color:var(--coral);">-1</td><td style="color:var(--coral);">-1</td><td style="color:var(--coral);">-1</td><td style="color:var(--coral);">-1</td></tr>
+          <tr><td>5</td><td style="color:var(--coral);">-1</td><td style="color:var(--coral);">-1</td><td style="color:var(--mint);">+1</td><td style="color:var(--mint);">+1</td><td style="color:var(--coral);">-1</td><td style="color:var(--coral);">-1</td><td style="color:var(--mint);">+1</td></tr>
+          <tr><td>6</td><td style="color:var(--mint);">+1</td><td style="color:var(--coral);">-1</td><td style="color:var(--coral);">-1</td><td style="color:var(--mint);">+1</td><td style="color:var(--mint);">+1</td><td style="color:var(--coral);">-1</td><td style="color:var(--coral);">-1</td></tr>
+          <tr><td>7</td><td style="color:var(--coral);">-1</td><td style="color:var(--mint);">+1</td><td style="color:var(--coral);">-1</td><td style="color:var(--mint);">+1</td><td style="color:var(--coral);">-1</td><td style="color:var(--mint);">+1</td><td style="color:var(--coral);">-1</td></tr>
+          <tr><td>8</td><td style="color:var(--mint);">+1</td><td style="color:var(--mint);">+1</td><td style="color:var(--mint);">+1</td><td style="color:var(--mint);">+1</td><td style="color:var(--mint);">+1</td><td style="color:var(--mint);">+1</td><td style="color:var(--mint);">+1</td></tr>
+        </tbody>
+      </table>
+
+      <p>Notice that <em>every</em> column (including interaction columns) is balanced (four +1s and four -1s) and orthogonal to every other column. This is the mathematical foundation that makes effect estimation unbiased. The DOE Helper Tool constructs and displays this matrix with <code>doe info</code> and <code>doe generate --dry-run</code>.</p>
+
       <h2 id="when-full-factorial">When to Use Full Factorials</h2>
 
       <div class="keypoint-box">
@@ -584,6 +774,14 @@
         &bull; You need to estimate <em>all</em> interactions, not just main effects<br>
         &bull; Each run is cheap (fast simulations, automated tests)<br>
         &bull; You want zero ambiguity about which effects are real</p>
+      </div>
+
+      <div class="danger-box">
+        <h4>When to Avoid Full Factorials</h4>
+        <p>&bull; More than 5 factors (run count explodes: 64+ runs)<br>
+        &bull; Runs are expensive or time-consuming<br>
+        &bull; You're still in the screening phase and don't know which factors matter<br>
+        &bull; You need more than 2 levels per factor (consider general factorial or RSM instead)</p>
       </div>
 
       <h2 id="seal-strength">Worked Example: Packaging Seal Strength</h2>
@@ -611,6 +809,29 @@
 
       <p>Temperature is the dominant factor, increasing seal strength by ~12.85 N on average. The tool computes all effects, confidence intervals, and creates the Pareto chart automatically.</p>
 
+      <h3>Complete Effect Analysis</h3>
+
+      <p>Let's compute all effects from the seal strength data:</p>
+
+      <table>
+        <thead><tr><th>Effect</th><th>Calculation</th><th>Value</th><th>% Contribution</th></tr></thead>
+        <tbody>
+          <tr><td><strong>A (Temperature)</strong></td><td>(27.1+32.4+29.5+34.2)/4 - (15.3+18.6+17.8+20.1)/4</td><td><strong>12.85 N</strong></td><td>69.3%</td></tr>
+          <tr><td><strong>B (Pressure)</strong></td><td>(18.6+32.4+20.1+34.2)/4 - (15.3+27.1+17.8+29.5)/4</td><td><strong>3.65 N</strong></td><td>19.7%</td></tr>
+          <tr><td><strong>C (Dwell Time)</strong></td><td>(17.8+29.5+20.1+34.2)/4 - (15.3+27.1+18.6+32.4)/4</td><td><strong>2.05 N</strong></td><td>11.1%</td></tr>
+          <tr><td>AB</td><td>&frac12;[(32.4-18.6+34.2-20.1) - (27.1-15.3+29.5-17.8)]</td><td>0.65 N</td><td>&mdash;</td></tr>
+          <tr><td>AC</td><td>&frac12;[(29.5-27.1+34.2-32.4) - (17.8-15.3+20.1-18.6)]</td><td>0.15 N</td><td>&mdash;</td></tr>
+          <tr><td>BC</td><td>&frac12;[(20.1-18.6+34.2-32.4) - (17.8-15.3+29.5-27.1)]</td><td>0.15 N</td><td>&mdash;</td></tr>
+        </tbody>
+      </table>
+
+      <p><strong>Interpretation:</strong> Temperature (A) dominates at 69.3% contribution. Pressure (B) contributes 19.7%, and Dwell Time (C) accounts for 11.1%. All interaction effects are near zero &mdash; the factors act independently. The Pareto chart would show a steep drop after A, confirming that temperature is the primary lever for improving seal strength.</p>
+
+      <div class="keypoint-box">
+        <h4>The 80/20 Rule in Action</h4>
+        <p>In this example, one factor (A) accounts for ~70% of the total effect. This is typical in practice &mdash; most processes are dominated by one or two key factors. The power of factorial designs is that they reveal this unambiguously, including any interactions, in a single set of experiments.</p>
+      </div>
+
       <h2 id="center-points">Adding Center Points</h2>
 
       <p>A 2<sup>k</sup> factorial only tests the extremes. What if the response curves between the extremes? Adding <strong>center points</strong> &mdash; runs at the midpoint of all factor ranges &mdash; lets you detect curvature without fitting a full quadratic model.</p>
@@ -621,6 +842,22 @@
         <h4>Center Points Serve Two Purposes</h4>
         <p><strong>1. Curvature detection:</strong> Compare the center-point mean to the factorial mean. A statistically significant difference signals nonlinearity.<br>
         <strong>2. Pure error estimation:</strong> Replicated center points provide degrees of freedom for error, even in unreplicated factorials. Three to five center replicates are typically sufficient.</p>
+      </div>
+
+      <h3>Detecting Curvature with Center Points</h3>
+
+      <p>Continuing the seal strength example: suppose we add 3 center-point replicates at Temperature=175&deg;C, Pressure=4 bar, Dwell Time=7.5 sec. The results are: 28.1, 27.4, 28.8 N.</p>
+
+      <div class="math">
+        Center mean = (28.1 + 27.4 + 28.8) / 3 = <strong>28.10 N</strong><br>
+        Factorial mean = (15.3 + 27.1 + 18.6 + 32.4 + 17.8 + 29.5 + 20.1 + 34.2) / 8 = <strong>24.38 N</strong>
+      </div>
+
+      <p>The center mean (28.10) is higher than the factorial mean (24.38), suggesting <strong>positive curvature</strong> &mdash; the response surface bows upward in the middle. The difference (3.72 N) is large enough to warrant investigating a quadratic model using CCD or Box-Behnken.</p>
+
+      <div class="warning-box">
+        <h4>Center Points Only Detect Curvature &mdash; They Don't Model It</h4>
+        <p>Center points tell you <em>whether</em> curvature exists, but not <em>which factor</em> is curved. To fit individual quadratic terms (x<sub>1</sub><sup>2</sup>, x<sub>2</sub><sup>2</sup>, etc.), you need a response surface design with at least 3 distinct levels per factor.</p>
       </div>
 
       <h2 id="blocking">Blocking a Factorial Design</h2>
@@ -634,6 +871,39 @@
         <p>Always confound the highest-order interaction with blocks. This sacrifices the least valuable information. Never confound a main effect or a two-factor interaction you care about with the block variable.</p>
       </div>
 
+      <h3>Worked Example: Blocking a 2<sup>3</sup> Design</h3>
+
+      <p>We split the 2<sup>3</sup> seal strength design into 2 blocks. The generator is ABC (the three-factor interaction). Runs where A&times;B&times;C = -1 go in Block 1 (day 1); runs where A&times;B&times;C = +1 go in Block 2 (day 2):</p>
+
+      <div class="comparison-grid">
+        <div class="comparison-card" style="background: var(--ice); border: 1px solid #93c5fd;">
+          <h4 style="color: var(--deep-blue);">Block 1 (A&times;B&times;C = -1)</h4>
+          <table style="font-size:.8rem; margin-top:8px;">
+            <thead><tr><th>Run</th><th>A</th><th>B</th><th>C</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>-1</td><td>-1</td><td>-1</td></tr>
+              <tr><td>4</td><td>+1</td><td>+1</td><td>-1</td></tr>
+              <tr><td>6</td><td>+1</td><td>-1</td><td>+1</td></tr>
+              <tr><td>7</td><td>-1</td><td>+1</td><td>+1</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="comparison-card" style="background: var(--mint-light); border: 1px solid #6ee7b7;">
+          <h4 style="color: #166534;">Block 2 (A&times;B&times;C = +1)</h4>
+          <table style="font-size:.8rem; margin-top:8px;">
+            <thead><tr><th>Run</th><th>A</th><th>B</th><th>C</th></tr></thead>
+            <tbody>
+              <tr><td>2</td><td>+1</td><td>-1</td><td>-1</td></tr>
+              <tr><td>3</td><td>-1</td><td>+1</td><td>-1</td></tr>
+              <tr><td>5</td><td>-1</td><td>-1</td><td>+1</td></tr>
+              <tr><td>8</td><td>+1</td><td>+1</td><td>+1</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <p>Each block is balanced: within each block, every factor has an equal number of -1 and +1 values. This means all main effects (A, B, C) and two-factor interactions (AB, AC, BC) are estimable. Only the ABC interaction is confounded with the block effect &mdash; which is usually an acceptable trade-off.</p>
+
       <h2 id="replicated-factorials">Replicated Factorials</h2>
 
       <p>Running the entire factorial more than once gives you a direct estimate of experimental error and increases the precision of all effect estimates. With n replicates of a 2<sup>k</sup> design, the standard error of each effect is:</p>
@@ -643,6 +913,41 @@
       </div>
 
       <p>where s is the pooled standard deviation. Doubling the replicates reduces the standard error by a factor of &radic;2 &mdash; you get about 41% more precision for twice the runs. This is diminishing returns, so most practitioners use 2&ndash;3 replicates rather than many.</p>
+
+      <h2 id="factorial-practical">Practical Guidance: Running a Full Factorial</h2>
+
+      <p>Here's how a full factorial experiment typically proceeds with the DOE Helper Tool:</p>
+
+      <div class="code-block">
+        <div class="code-header"><span>Full factorial workflow</span></div>
+        <div class="code-body"><span class="comment"># 1. Configure the experiment</span>
+<span class="prompt">$ </span>cat config.json
+{
+  "factors": [
+    {"name": "seal_temp", "levels": ["150", "200"], "type": "continuous", "unit": "&deg;C"},
+    {"name": "pressure", "levels": ["2", "6"], "type": "continuous", "unit": "bar"},
+    {"name": "dwell_time", "levels": ["5", "10"], "type": "continuous", "unit": "sec"}
+  ],
+  "responses": [{"name": "seal_strength", "optimize": "maximize", "unit": "N"}],
+  "settings": {"operation": "full_factorial", "block_count": 2}
+}
+
+<span class="comment"># 2. Preview: 8 base runs &times; 2 blocks = 16 total runs</span>
+<span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> config.json
+
+<span class="comment"># 3. Generate and run</span>
+<span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> config.json <span class="flag">--seed</span> 42
+<span class="prompt">$ </span>bash run_experiments.sh
+
+<span class="comment"># 4. Analyze</span>
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> config.json
+<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> config.json</div>
+      </div>
+
+      <div class="keypoint-box">
+        <h4>When to Stop</h4>
+        <p>If the analysis reveals that one or two factors dominate (together accounting for 80%+ of the variation), and the interaction effects are small, you've found the vital few. Fix the unimportant factors at convenient levels and either declare victory or move to a response surface design to find the precise optimum of the important factors.</p>
+      </div>
     </section>
 
     <hr style="border: none; border-top: 2px solid var(--slate-200); margin: 48px 0;">
@@ -657,6 +962,13 @@
       <h2 id="exponential-growth">The Problem of Exponential Growth</h2>
 
       <p>Full factorial runs grow as 2<sup>k</sup>. For 7 factors, that's 128 runs. For 10, it's 1,024. This is often impractical.</p>
+
+      <p>But here's the saving insight: in most real systems, high-order interactions (three-factor and above) are negligible. The <strong>effect sparsity principle</strong> tells us that only a few effects &mdash; typically main effects and some two-factor interactions &mdash; drive the majority of the variation. A fractional factorial sacrifices information about high-order interactions (which are probably zero anyway) to dramatically reduce the run count.</p>
+
+      <div class="analogy">
+        <h4>&#x2702; The Compression Analogy</h4>
+        <p>A full factorial is like a raw, uncompressed image &mdash; it captures every pixel of information, including redundant detail you'll never notice. A fractional factorial is like JPEG compression: it discards the least important information (high-order interactions) while preserving the features that matter (main effects and key interactions). The "resolution" of the design tells you how aggressively you've compressed.</p>
+      </div>
 
       <h2 id="2kp-design">The 2<sup>k-p</sup> Design</h2>
 
@@ -698,6 +1010,32 @@
         <p>Fractional factorials save runs but lose information. In a Resolution III design, if factor A appears important, it might actually be the AB interaction that matters. Follow-up experiments (foldover) can resolve these ambiguities.</p>
       </div>
 
+      <h3>Resolution in Practice</h3>
+
+      <p>Here's what each resolution level means concretely:</p>
+
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0;">
+        <div style="background: var(--coral-light); border: 1px solid #fca5a5; border-radius: var(--radius); padding: 16px;">
+          <div style="font: 700 1.2rem var(--sans); color: #991b1b; margin-bottom: 8px;">III</div>
+          <p style="font-size: .82rem; color: #991b1b; margin: 0;">Main effects aliased with 2FIs. Suitable for screening only. Cannot separate A from BC.</p>
+        </div>
+        <div style="background: var(--amber-light); border: 1px solid #fbbf24; border-radius: var(--radius); padding: 16px;">
+          <div style="font: 700 1.2rem var(--sans); color: #92400e; margin-bottom: 8px;">IV</div>
+          <p style="font-size: .82rem; color: #92400e; margin: 0;">Main effects clear. 2FIs aliased with each other. Most practical choice &mdash; you know <em>which factors</em> matter but may not know <em>which pairs interact</em>.</p>
+        </div>
+        <div style="background: var(--mint-light); border: 1px solid #6ee7b7; border-radius: var(--radius); padding: 16px;">
+          <div style="font: 700 1.2rem var(--sans); color: #166534; margin-bottom: 8px;">V+</div>
+          <p style="font-size: .82rem; color: #166534; margin: 0;">Main effects and all 2FIs clear. Nearly as informative as a full factorial. Rarely needed for screening.</p>
+        </div>
+      </div>
+
+      <div class="keypoint-box">
+        <h4>The Minimum Acceptable Resolution</h4>
+        <p>For screening (finding which factors matter): Resolution III is sufficient.<br>
+        For characterization (understanding interactions): Resolution IV is the minimum.<br>
+        For definitive studies (estimating all 2FIs): Resolution V or higher.</p>
+      </div>
+
       <h2 id="generators">Generators and Defining Relations</h2>
 
       <p>A fractional factorial is constructed by writing k-p factors as a full factorial, then <strong>generating</strong> the remaining p factors as products of existing columns. For example, in a 2<sup>5-1</sup> design, we might set E = ABCD. This is the <strong>generator</strong>.</p>
@@ -710,6 +1048,21 @@
       </div>
 
       <p>In a Resolution V design like this, main effects are aliased only with four-factor interactions (negligible), and two-factor interactions are aliased with three-factor interactions (usually small). This is why Resolution V designs are nearly as good as full factorials.</p>
+
+      <h3>Multiple Generators and Word Length</h3>
+
+      <p>When p > 1 (quarter-fraction or smaller), you have multiple generators, and the defining relation contains multiple "words." For a 2<sup>7-2</sup> design with generators F = ABCD and G = ABDE:</p>
+
+      <div class="math">
+        Defining relation: I = ABCDF = ABDEG = CEFG
+      </div>
+
+      <p>The third word (CEFG) is the "generalized interaction" of the first two generators. The <strong>minimum word length</strong> in the defining relation determines the resolution. Here, the shortest word has 4 letters, so this is a Resolution IV design.</p>
+
+      <div class="warning-box">
+        <h4>Minimum Aberration</h4>
+        <p>Among all designs with the same resolution, the <strong>minimum aberration</strong> design has the fewest short words in its defining relation. This minimizes the number of low-order effects that are aliased together. The DOE Helper Tool uses minimum-aberration generators by default &mdash; the pyDOE3 library selects them automatically.</p>
+      </div>
 
       <h2 id="half-fraction-example">Worked Example: 2<sup>4-1</sup> Half-Fraction</h2>
 
@@ -731,6 +1084,30 @@
 
       <p>The alias structure: A+BCD, B+ACD, C+ABD, D+ABC, AB+CD, AC+BD, AD+BC. Main effects are clear of two-factor interactions (Resolution IV), but two-factor interactions are aliased in pairs (AB with CD, etc.).</p>
 
+      <h3>Interpreting Aliased Effects</h3>
+
+      <p>The alias pairs in our 2<sup>4-1</sup> Resolution IV design are:</p>
+
+      <table>
+        <thead><tr><th>Estimated effect</th><th>Actually measures</th><th>Practical impact</th></tr></thead>
+        <tbody>
+          <tr><td>A</td><td>A + BCD</td><td>Clean (BCD is negligible)</td></tr>
+          <tr><td>B</td><td>B + ACD</td><td>Clean (ACD is negligible)</td></tr>
+          <tr><td>C</td><td>C + ABD</td><td>Clean (ABD is negligible)</td></tr>
+          <tr><td>D</td><td>D + ABC</td><td>Clean (ABC is negligible)</td></tr>
+          <tr><td>AB</td><td>AB + CD</td><td>Ambiguous &mdash; could be either</td></tr>
+          <tr><td>AC</td><td>AC + BD</td><td>Ambiguous &mdash; could be either</td></tr>
+          <tr><td>AD</td><td>AD + BC</td><td>Ambiguous &mdash; could be either</td></tr>
+        </tbody>
+      </table>
+
+      <p>Main effects are clean because they're aliased only with three-factor interactions (which are almost always negligible). But if the "AB" effect looks large, you can't tell whether it's really AB, or really CD, or some combination of both. This is where subject-matter expertise comes in &mdash; does an interaction between A and B make physical sense?</p>
+
+      <div class="analogy">
+        <h4>&#x1F50A; The Cocktail Party Analogy</h4>
+        <p>Aliasing is like two people talking at the same time at a cocktail party. In Resolution IV, the loud speakers (main effects) are in separate rooms &mdash; you hear them clearly. But the quieter speakers (two-factor interactions) are paired up in the same room. You can hear that <em>someone</em> is talking, but can't always tell who. A foldover experiment is like asking one of them to step outside so you can hear the other clearly.</p>
+      </div>
+
       <h2 id="foldover">Foldover: Resolving Aliases</h2>
 
       <p>If a fractional factorial reveals ambiguous results (you can't tell if the effect comes from AB or CD), a <strong>foldover</strong> resolves the ambiguity. A foldover reverses the signs of one or more columns and runs the resulting design as a supplementary experiment.</p>
@@ -744,6 +1121,31 @@
         <h4>Single-Factor Foldover</h4>
         <p>Reversing just one column (say, factor A) de-aliases all effects involving A. This is more efficient when you suspect a specific factor is involved in the ambiguous interaction.</p>
       </div>
+
+      <h3>Worked Example: Full Foldover of a 2<sup>4-1</sup></h3>
+
+      <p>If our 2<sup>4-1</sup> analysis showed a large "AB+CD" effect and we can't tell which pair is responsible, we run a full foldover (reverse all signs):</p>
+
+      <div class="comparison-grid">
+        <div class="comparison-card" style="background: var(--ice); border: 1px solid #93c5fd;">
+          <h4 style="color: var(--deep-blue);">Original (D = ABC)</h4>
+          <p style="font-size:.82rem;">Alias: AB + CD</p>
+          <p style="font-size:.82rem;">8 runs, Resolution IV</p>
+        </div>
+        <div class="comparison-card" style="background: var(--mint-light); border: 1px solid #6ee7b7;">
+          <h4 style="color: #166534;">Foldover (D = -ABC)</h4>
+          <p style="font-size:.82rem;">Alias: AB - CD</p>
+          <p style="font-size:.82rem;">8 additional runs, Resolution IV</p>
+        </div>
+      </div>
+
+      <p>Combining the two half-fractions:</p>
+      <div class="math">
+        AB = &frac12;[(AB+CD)<sub>original</sub> + (AB-CD)<sub>foldover</sub>]<br>
+        CD = &frac12;[(AB+CD)<sub>original</sub> - (AB-CD)<sub>foldover</sub>]
+      </div>
+
+      <p>The combined 16-run design is equivalent to a full 2<sup>4</sup> factorial. All aliases are resolved. The cost: you've doubled your runs from 8 to 16, but you only do this when the initial analysis reveals ambiguity worth resolving. In many cases, the initial 8-run fraction is sufficient.</p>
 
       <h2 id="choosing-fraction">Choosing the Right Fraction</h2>
 
@@ -760,6 +1162,45 @@
           <tr><td>12+</td><td>Plackett-Burman screening first</td><td>varies</td><td>III</td></tr>
         </tbody>
       </table>
+
+      <h2 id="fractional-workflow">Fractional Factorial Workflow</h2>
+
+      <p>A typical fractional factorial study follows this pattern:</p>
+
+      <ol>
+        <li><strong>Start with the right resolution.</strong> For initial screening, Resolution III or IV. For characterization, Resolution IV+.</li>
+        <li><strong>Run the fraction.</strong> Analyze main effects and aliased interaction estimates.</li>
+        <li><strong>Decide next steps:</strong>
+          <ul>
+            <li>If main effects are clear and no interactions look significant &rarr; <strong>done</strong>, proceed to optimization.</li>
+            <li>If some aliased interaction pairs look significant &rarr; <strong>foldover</strong> to resolve them.</li>
+            <li>If many factors are insignificant &rarr; <strong>drop them</strong> and run a full factorial or RSM on the survivors.</li>
+          </ul>
+        </li>
+      </ol>
+
+      <div class="code-block">
+        <div class="code-header"><span>Fractional factorial with the DOE Helper Tool</span></div>
+        <div class="code-body"><span class="comment"># Config: 5 factors, fractional factorial (2^(5-1) = 16 runs instead of 32)</span>
+<span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> config.json
+  Operation: fractional_factorial
+  Factors: 5 (all 2-level)
+  Base runs: 16 (Resolution V)
+
+<span class="comment"># Generate and run</span>
+<span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> config.json <span class="flag">--seed</span> 42
+<span class="prompt">$ </span>bash run_experiments.sh
+
+<span class="comment"># Analyze: main effects, interactions, Pareto chart</span>
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> config.json
+
+<span class="comment"># Result: factors A and C dominate. Move to CCD with just those two.</span></div>
+      </div>
+
+      <div class="keypoint-box">
+        <h4>The Power of Sequential Experimentation</h4>
+        <p>Don't try to learn everything in one experiment. Run a fraction, learn what you can, then decide what to do next. This iterative approach &mdash; called <strong>sequential experimentation</strong> &mdash; is more efficient than any single design, no matter how clever. Each round of experiments informs the design of the next round.</p>
+      </div>
     </section>
 
     <hr style="border: none; border-top: 2px solid var(--slate-200); margin: 48px 0;">
@@ -790,6 +1231,43 @@
         </div>
       </div>
 
+      <h3>How Plackett-Burman Works</h3>
+
+      <p>PB designs are constructed from special cyclic generator sequences. For N=12 runs, the first row of the design is a specific sequence of + and - signs. Each subsequent row is formed by shifting the previous row one position to the right (wrapping around). The last row is all minus signs.</p>
+
+      <p>The resulting design is orthogonal for main effects but has complex confounding patterns for interactions. Unlike fractional factorials, where aliases follow a clean algebraic structure, PB confounding is "partially confounded" &mdash; each two-factor interaction is spread across multiple main effect estimates.</p>
+
+      <div class="warning-box">
+        <h4>PB Confounding Is Messy</h4>
+        <p>In a fractional factorial, you know exactly which effects are aliased (e.g., AB is aliased with CD). In a Plackett-Burman design, each two-factor interaction contributes partially to <em>multiple</em> main effect columns. This means a large interaction could inflate the apparent effect of an unrelated factor. This is acceptable for screening (where you only need to identify candidates), but not for characterization.</p>
+      </div>
+
+      <h3>Example: 12-Run Plackett-Burman Matrix</h3>
+
+      <p>A PB-12 design for up to 11 factors. Here we use 7 real factors (A&ndash;G) and 4 dummy columns (d1&ndash;d4):</p>
+
+      <div style="overflow-x: auto;">
+      <table style="font-size: .78rem;">
+        <thead><tr><th>Run</th><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th><th style="color:var(--faint)">d1</th><th style="color:var(--faint)">d2</th><th style="color:var(--faint)">d3</th><th style="color:var(--faint)">d4</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>+</td><td>+</td><td>-</td><td>+</td><td>+</td><td>+</td><td>-</td><td style="color:var(--faint)">-</td><td style="color:var(--faint)">-</td><td style="color:var(--faint)">+</td><td style="color:var(--faint)">-</td></tr>
+          <tr><td>2</td><td>-</td><td>+</td><td>+</td><td>-</td><td>+</td><td>+</td><td>+</td><td style="color:var(--faint)">-</td><td style="color:var(--faint)">-</td><td style="color:var(--faint)">-</td><td style="color:var(--faint)">+</td></tr>
+          <tr><td>3</td><td>+</td><td>-</td><td>+</td><td>+</td><td>-</td><td>+</td><td>+</td><td style="color:var(--faint)">+</td><td style="color:var(--faint)">-</td><td style="color:var(--faint)">-</td><td style="color:var(--faint)">-</td></tr>
+          <tr><td>4</td><td>-</td><td>+</td><td>-</td><td>+</td><td>+</td><td>-</td><td>+</td><td style="color:var(--faint)">+</td><td style="color:var(--faint)">+</td><td style="color:var(--faint)">-</td><td style="color:var(--faint)">-</td></tr>
+          <tr><td>5</td><td>-</td><td>-</td><td>+</td><td>-</td><td>+</td><td>+</td><td>-</td><td style="color:var(--faint)">+</td><td style="color:var(--faint)">+</td><td style="color:var(--faint)">+</td><td style="color:var(--faint)">-</td></tr>
+          <tr><td>6</td><td>-</td><td>-</td><td>-</td><td>+</td><td>-</td><td>+</td><td>+</td><td style="color:var(--faint)">-</td><td style="color:var(--faint)">+</td><td style="color:var(--faint)">+</td><td style="color:var(--faint)">+</td></tr>
+          <tr><td>7</td><td>+</td><td>-</td><td>-</td><td>-</td><td>+</td><td>-</td><td>+</td><td style="color:var(--faint)">+</td><td style="color:var(--faint)">-</td><td style="color:var(--faint)">+</td><td style="color:var(--faint)">+</td></tr>
+          <tr><td>8</td><td>+</td><td>+</td><td>-</td><td>-</td><td>-</td><td>+</td><td>-</td><td style="color:var(--faint)">+</td><td style="color:var(--faint)">+</td><td style="color:var(--faint)">-</td><td style="color:var(--faint)">+</td></tr>
+          <tr><td>9</td><td>+</td><td>+</td><td>+</td><td>-</td><td>-</td><td>-</td><td>+</td><td style="color:var(--faint)">-</td><td style="color:var(--faint)">+</td><td style="color:var(--faint)">+</td><td style="color:var(--faint)">-</td></tr>
+          <tr><td>10</td><td>-</td><td>+</td><td>+</td><td>+</td><td>-</td><td>-</td><td>-</td><td style="color:var(--faint)">+</td><td style="color:var(--faint)">-</td><td style="color:var(--faint)">+</td><td style="color:var(--faint)">+</td></tr>
+          <tr><td>11</td><td>+</td><td>-</td><td>+</td><td>+</td><td>+</td><td>-</td><td>-</td><td style="color:var(--faint)">-</td><td style="color:var(--faint)">+</td><td style="color:var(--faint)">-</td><td style="color:var(--faint)">+</td></tr>
+          <tr><td>12</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td style="color:var(--faint)">-</td><td style="color:var(--faint)">-</td><td style="color:var(--faint)">-</td><td style="color:var(--faint)">-</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>The grey columns (d1&ndash;d4) are dummy factors. Their estimated effects measure only noise, providing a reference for judging which real factors are significant.</p>
+
       <h2 id="screening-pipeline">The Screening-to-Optimization Pipeline</h2>
 
       <div class="keypoint-box">
@@ -802,6 +1280,38 @@
       <div class="danger-box">
         <h4>Limitations</h4>
         <p>Plackett-Burman cannot estimate interaction effects. If you suspect strong interactions, use a fractional factorial (Resolution IV+) instead. Also, PB requires exactly 2 levels per factor.</p>
+      </div>
+
+      <h3>The Three-Stage Pipeline in Detail</h3>
+
+      <div style="display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 8px; align-items: center; margin: 20px 0;">
+        <div style="background: var(--coral-light); border: 1px solid #fca5a5; border-radius: var(--radius); padding: 16px; text-align: center;">
+          <div style="font: 700 .9rem var(--sans); color: #991b1b; margin-bottom: 6px;">Stage 1: Screen</div>
+          <div style="font-size: .78rem; color: #991b1b;">Plackett-Burman</div>
+          <div style="font-size: .78rem; color: #b91c1c; margin-top: 4px;">7+ factors &rarr; 8&ndash;12 runs</div>
+          <div style="font-size: .75rem; color: #991b1b; margin-top: 6px;">Find the vital few</div>
+        </div>
+        <div style="font-size: 1.5rem; color: var(--faint);">&rarr;</div>
+        <div style="background: var(--amber-light); border: 1px solid #fbbf24; border-radius: var(--radius); padding: 16px; text-align: center;">
+          <div style="font: 700 .9rem var(--sans); color: #92400e; margin-bottom: 6px;">Stage 2: Characterize</div>
+          <div style="font-size: .78rem; color: #92400e;">Factorial or RSM</div>
+          <div style="font-size: .78rem; color: #b45309; margin-top: 4px;">2&ndash;3 factors &rarr; 15&ndash;20 runs</div>
+          <div style="font-size: .75rem; color: #92400e; margin-top: 6px;">Model the response surface</div>
+        </div>
+        <div style="font-size: 1.5rem; color: var(--faint);">&rarr;</div>
+        <div style="background: var(--mint-light); border: 1px solid #6ee7b7; border-radius: var(--radius); padding: 16px; text-align: center;">
+          <div style="font: 700 .9rem var(--sans); color: #166534; margin-bottom: 6px;">Stage 3: Confirm</div>
+          <div style="font-size: .78rem; color: #166534;">Verification runs</div>
+          <div style="font-size: .78rem; color: #047857; margin-top: 4px;">1 setting &rarr; 3&ndash;5 runs</div>
+          <div style="font-size: .75rem; color: #166534; margin-top: 6px;">Validate the optimum</div>
+        </div>
+      </div>
+
+      <p><strong>Total cost:</strong> ~25&ndash;35 runs to go from "I have 7+ factors and no idea which matter" to "I have a validated optimum setting." Compare this to a full 2<sup>7</sup> factorial alone (128 runs) or grid search (thousands of runs).</p>
+
+      <div class="analogy">
+        <h4>&#x1F3AF; The Funnel Analogy</h4>
+        <p>Screening is like casting a wide net. You start with many candidates and quickly eliminate the irrelevant ones. Characterization narrows the focus to the survivors. Confirmation is the final check. Each stage is cheaper than the last because you're studying fewer factors at higher resolution. This funnel-shaped approach is the most efficient way to optimize any process.</p>
       </div>
 
       <h2 id="hpc-example">Worked Example: HPC Cluster Screening</h2>
@@ -825,6 +1335,35 @@
         </div>
       </div>
 
+      <h3>Interpreting the Screening Results</h3>
+
+      <p>The analysis output from the HPC screening might look like this:</p>
+
+      <div class="code-block">
+        <div class="code-header"><span>doe analyze output</span></div>
+        <div class="code-body">=== Main Effects: throughput_jobs_hr ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+mpi_ranks_per_node        45.2         3.1            42.8%
+network_buffer_size       30.8         3.1            29.2%
+io_scheduler               8.4         3.1             8.0%
+file_striping_count        7.1         3.1             6.7%
+openmp_threads             5.9         3.1             5.6%
+memory_policy              4.2         3.1             4.0%
+checkpoint_interval        3.9         3.1             3.7%</div>
+      </div>
+
+      <p>The first two factors (MPI ranks and network buffer) together account for 72% of the variation. The remaining five factors each contribute less than 10%. Using the dummy-factor approach, suppose the average dummy effect is 3.0. Only MPI ranks (45.2) and network buffer (30.8) clearly exceed the 2&times; threshold (6.0), confirming them as the active factors.</p>
+
+      <div class="keypoint-box">
+        <h4>The Decision Point</h4>
+        <p>After screening, you face a choice:<br>
+        &bull; <strong>Drop the 5 inactive factors</strong> and run a full factorial or CCD on MPI ranks + network buffer (as few as 9&ndash;13 runs).<br>
+        &bull; <strong>Keep io_scheduler</strong> (borderline at 8.0%) as a third factor in the follow-up (15&ndash;20 runs).<br>
+        &bull; <strong>Fix all 5 inactive factors</strong> at their cheaper/simpler levels (e.g., default memory policy, shortest checkpoint interval).<br>
+        The screening data gives you the information to make this decision rationally.</p>
+      </div>
+
       <h2 id="dummy-factors">Dummy Factors and Error Estimation</h2>
 
       <p>If your Plackett-Burman design has more columns than real factors, the leftover columns become <strong>dummy factors</strong> &mdash; factors that don't correspond to any real variable. Their estimated effects should be zero (they're just noise), so they provide an estimate of experimental error.</p>
@@ -833,6 +1372,19 @@
         <h4>Using Dummy Factors</h4>
         <p>In a 12-run PB design with 7 real factors, you have 4 dummy columns. The effects of these dummies estimate the noise floor. Any real factor whose effect exceeds 2&ndash;3 times the average dummy effect is likely significant. This is a practical alternative to formal hypothesis testing when you have no replicates.</p>
       </div>
+
+      <h3>Practical Rules for Dummy Factor Analysis</h3>
+
+      <table>
+        <thead><tr><th>Criterion</th><th>Rule</th><th>Rationale</th></tr></thead>
+        <tbody>
+          <tr><td>Definitely active</td><td>|Effect| &gt; 3 &times; avg dummy effect</td><td>Very unlikely to be noise</td></tr>
+          <tr><td>Possibly active</td><td>2&ndash;3 &times; avg dummy effect</td><td>Worth investigating in follow-up</td></tr>
+          <tr><td>Inactive</td><td>|Effect| &lt; 2 &times; avg dummy effect</td><td>Consistent with noise</td></tr>
+        </tbody>
+      </table>
+
+      <p>If you have no dummy columns (e.g., a PB-8 with exactly 7 real factors), use the normal probability plot instead. The tool generates Pareto charts that visually separate the large effects from the noise floor &mdash; the steep initial bars are the active factors, and the remaining short bars are noise.</p>
 
       <h2 id="definitive-screening">Definitive Screening Designs</h2>
 
@@ -849,6 +1401,54 @@
       <div class="warning-box">
         <h4>When to Choose DSDs Over PB</h4>
         <p>Use DSDs when all factors are continuous and you suspect curvature may be important. Use Plackett-Burman when you have categorical factors, when minimizing runs is critical, or when you're confident that a linear model is sufficient for screening purposes.</p>
+      </div>
+
+      <h2 id="screening-comparison">Comparing Screening Designs</h2>
+
+      <table>
+        <thead><tr><th>Design</th><th>Runs (for 7 factors)</th><th>Main effects</th><th>Quadratic</th><th>Interactions</th><th>Factor types</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Plackett-Burman</strong></td><td>8</td><td>Yes</td><td>No</td><td>Confounded</td><td>Any (2-level)</td></tr>
+          <tr><td><strong>Fractional Factorial (Res III)</strong></td><td>8</td><td>Yes (aliased w/ 2FI)</td><td>No</td><td>Aliased</td><td>Any (2-level)</td></tr>
+          <tr><td><strong>Fractional Factorial (Res IV)</strong></td><td>16</td><td>Yes (clear)</td><td>No</td><td>Aliased in pairs</td><td>Any (2-level)</td></tr>
+          <tr><td><strong>Definitive Screening</strong></td><td>15</td><td>Yes</td><td>Yes</td><td>Some</td><td>Continuous only</td></tr>
+        </tbody>
+      </table>
+
+      <div class="keypoint-box">
+        <h4>Quick Decision Guide</h4>
+        <p>&bull; <strong>Many factors, all 2-level, budget-constrained:</strong> Plackett-Burman<br>
+        &bull; <strong>Need clean main effects with known alias structure:</strong> Fractional factorial<br>
+        &bull; <strong>All continuous factors, suspect curvature:</strong> Definitive Screening Design<br>
+        &bull; <strong>Fewer than 5 factors, each run is cheap:</strong> Skip screening, go straight to full factorial or RSM</p>
+      </div>
+
+      <h2 id="screening-workflow">Screening Workflow with DOE Helper</h2>
+
+      <div class="code-block">
+        <div class="code-header"><span>Complete screening workflow</span></div>
+        <div class="code-body"><span class="comment"># Config: 7 factors, Plackett-Burman (8 runs)</span>
+<span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> screening_config.json
+  Operation: plackett_burman
+  Factors: 7 (2-level each)
+  Base runs: 8
+
+<span class="comment"># Generate, run, analyze</span>
+<span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> screening_config.json <span class="flag">--seed</span> 42
+<span class="prompt">$ </span>bash run_experiments.sh
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> screening_config.json
+
+<span class="comment"># Result: factors A and C are active. Create a new config for optimization.</span>
+<span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> optimization_config.json
+  Operation: central_composite
+  Factors: 2 (continuous)
+  Base runs: 13
+
+<span class="comment"># Run the optimization study</span>
+<span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> optimization_config.json <span class="flag">--seed</span> 42
+<span class="prompt">$ </span>bash run_experiments.sh
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> optimization_config.json
+<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> optimization_config.json</div>
       </div>
     </section>
 
@@ -1805,6 +2405,50 @@
         <p>A model is a simplification of reality. No matter how good the R&sup2;, always confirm with real data before committing to production settings. Three confirmation runs is a reasonable minimum. If the stakes are high (production database, safety-critical system), run five or more.</p>
       </div>
 
+      <h2 id="manual-experiments">Managing Real-World Experiments</h2>
+
+      <p>Not all experiments are automated scripts. Physical experiments &mdash; lab tests, field measurements, manufacturing trials &mdash; require a different workflow. The DOE tool provides three commands specifically for this:</p>
+
+      <div class="keypoint-box">
+        <h4>The Manual Experiment Toolkit</h4>
+        <p><code>export-worksheet</code> generates a printable run sheet (CSV or Markdown) with all factor settings and blank columns for recording responses. <code>status</code> shows a progress bar and tells you which run to do next. <code>record</code> lets you enter results interactively with validation. Together, they replace the test script in the automated workflow.</p>
+      </div>
+
+      <p>A typical real-world experiment proceeds in stages, often over days or weeks:</p>
+
+      <ol>
+        <li><strong>Before the first run:</strong> Generate the design, then export a worksheet. Print it or open it in a spreadsheet.</li>
+        <li><strong>During the experiment:</strong> After each run, enter results with <code>record</code>. Use <code>status</code> to see what's left.</li>
+        <li><strong>Mid-experiment analysis:</strong> Use <code>analyze --partial</code> to get early insights. This is especially valuable for expensive experiments &mdash; if one factor clearly dominates after half the runs, you can make informed decisions about how to proceed.</li>
+        <li><strong>After completion:</strong> Run the full analysis, optimization, and report pipeline.</li>
+      </ol>
+
+      <div class="code-block" style="margin-top:16px">
+        <div class="code-header"><span>Complete manual workflow</span></div>
+        <div class="code-body"><span class="comment"># Print a worksheet for the lab</span>
+<span class="prompt">$ </span>python doe.py export-worksheet <span class="flag">--config</span> config.json <span class="flag">--format</span> csv <span class="flag">--output</span> runs.csv
+
+<span class="comment"># After each experiment, record the result</span>
+<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> config.json <span class="flag">--run</span> 1
+<span class="prompt">$ </span>python doe.py record <span class="flag">--config</span> config.json <span class="flag">--run</span> 2
+
+<span class="comment"># Check progress</span>
+<span class="prompt">$ </span>python doe.py status <span class="flag">--config</span> config.json
+
+<span class="comment"># Peek at partial results</span>
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> config.json <span class="flag">--partial</span>
+
+<span class="comment"># When all runs are done</span>
+<span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> config.json
+<span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> config.json
+<span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> config.json <span class="flag">--output</span> report.html</div>
+      </div>
+
+      <div class="warning-box" style="margin-top:16px">
+        <h4>Partial Analysis Caveat</h4>
+        <p>Partial results give directional insights but not definitive conclusions. Effect estimates from incomplete designs may be biased, especially if the missing runs are not randomly distributed. Always confirm findings with the complete dataset.</p>
+      </div>
+
       <h2 id="analysis-workflow">Putting It All Together: The Analysis Workflow</h2>
 
       <p>Here is the recommended sequence for analyzing any DOE result:</p>
@@ -2367,7 +3011,9 @@ Temperature = 187°C,  Catalyst = 3.7%
         <div class="accordion-item">
           <div class="accordion-header">"Some runs failed" <span class="arrow">&#9660;</span></div>
           <div class="accordion-body">
-            <p>The generated runner scripts handle failures gracefully &mdash; they track failed runs and continue. After fixing the issue, re-run only the missing runs (the skip logic detects existing result files). The analysis handles missing data by computing statistics only over available runs.</p>
+            <p>The generated runner scripts handle failures gracefully &mdash; they track failed runs and continue. After fixing the issue, re-run only the missing runs (the skip logic detects existing result files). Use <code>--partial</code> with analyze, optimize, or report to work with incomplete data:</p>
+            <div class="code-block" style="margin-top:12px"><div class="code-header"><span>Terminal</span></div><div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> config.json <span class="flag">--partial</span>
+<span class="comment"># Partial mode: analyzing 5/8 completed runs (missing: 3, 6, 7)</span></div></div>
           </div>
         </div>
         <div class="accordion-item">
@@ -2386,6 +3032,19 @@ Temperature = 187°C,  Catalyst = 3.7%
           <div class="accordion-header">"I have categorical and continuous factors mixed together" <span class="arrow">&#9660;</span></div>
           <div class="accordion-body">
             <p>This is common (e.g., algorithm type + buffer size). Use a full or fractional factorial design where categorical factors appear as coded levels. The tool handles mixed factor types &mdash; just set <code>type: "categorical"</code> or <code>type: "continuous"</code> in the config. Note: CCD and Box-Behnken require continuous factors, so you may need to run separate RSM studies for each level of the categorical factor.</p>
+          </div>
+        </div>
+        <div class="accordion-item">
+          <div class="accordion-header">"I don't have a test script &mdash; my experiments are physical/manual" <span class="arrow">&#9660;</span></div>
+          <div class="accordion-body">
+            <p>The tool fully supports manual experiments. Leave <code>test_script</code> empty in your config and use the manual workflow:</p>
+            <ol>
+              <li><strong>Export a worksheet:</strong> <code>python doe.py export-worksheet --config config.json --format csv --output worksheet.csv</code></li>
+              <li><strong>Check progress:</strong> <code>python doe.py status --config config.json</code></li>
+              <li><strong>Record results:</strong> <code>python doe.py record --config config.json --run 1</code></li>
+              <li><strong>Analyze incrementally:</strong> <code>python doe.py analyze --config config.json --partial</code></li>
+            </ol>
+            <p>The analysis pipeline doesn't care how results were produced &mdash; only that <code>run_N.json</code> files exist with the right response keys.</p>
           </div>
         </div>
         <div class="accordion-item">
@@ -2422,8 +3081,8 @@ Temperature = 187°C,  Catalyst = 3.7%
         <li><strong>List candidate factors.</strong> Brainstorm with domain experts. Include factors you're <em>not sure</em> about &mdash; screening will sort them out.</li>
         <li><strong>Set factor levels.</strong> Choose bold but feasible ranges. The levels should be far enough apart that real effects are detectable.</li>
         <li><strong>Choose the design.</strong> Many factors? Screen first (PB). Few factors? Go straight to factorial or CCD.</li>
-        <li><strong>Randomize and run.</strong> Follow the generated run order. Record everything, including conditions you didn't plan to vary.</li>
-        <li><strong>Analyze.</strong> Compute effects, check residuals, identify the vital few factors.</li>
+        <li><strong>Randomize and run.</strong> Follow the generated run order. For automated experiments, use the generated runner script. For manual experiments, use <code>export-worksheet</code> to print a run sheet, <code>status</code> to track progress, and <code>record</code> to enter results. Record everything, including conditions you didn't plan to vary.</li>
+        <li><strong>Analyze.</strong> Use <code>--partial</code> to get early insights while experiments are still running. Compute effects, check residuals, identify the vital few factors.</li>
         <li><strong>Follow up.</strong> If screening, run a factorial or RSM on the important factors. If optimizing, run confirmation experiments.</li>
         <li><strong>Confirm and implement.</strong> Validate the optimum with independent runs. Then deploy.</li>
       </ol>
