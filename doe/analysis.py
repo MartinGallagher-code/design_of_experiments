@@ -11,11 +11,12 @@ def analyze(
     results_dir: str | None = None,
     no_plots: bool = False,
     pareto_threshold: float = 80,
+    partial: bool = False,
 ) -> AnalysisReport:
     results_dir = results_dir or cfg.out_directory or "results"
     processed_dir = cfg.processed_directory or results_dir
 
-    all_data = _load_all_results(matrix.runs, results_dir)
+    all_data = _load_all_results(matrix.runs, results_dir, partial=partial)
 
     results_by_response: dict[str, ResponseAnalysis] = {}
     pareto_chart_paths: dict[str, str] = {}
@@ -91,8 +92,14 @@ def analyze(
     )
 
 
-def _load_all_results(runs: list[ExperimentRun], results_dir: str) -> dict[int, dict]:
-    """Load all run_{N}.json files. Raises if any file is missing."""
+def _load_all_results(runs: list[ExperimentRun], results_dir: str, partial: bool = False) -> dict[int, dict]:
+    """Load all run_{N}.json files.
+
+    When *partial* is False (default), raises FileNotFoundError if any file
+    is missing.  When *partial* is True, missing files are skipped with a
+    warning and only existing results are returned.  An error is still raised
+    if **no** result files exist at all.
+    """
     result_data: dict[int, dict] = {}
     missing: list[int] = []
 
@@ -104,7 +111,20 @@ def _load_all_results(runs: list[ExperimentRun], results_dir: str) -> dict[int, 
         with open(path) as f:
             result_data[run.run_id] = json.load(f)
 
-    if missing:
+    if missing and partial:
+        n_completed = len(result_data)
+        n_total = len(runs)
+        missing_str = ", ".join(str(m) for m in missing)
+        print(
+            f"Partial mode: analyzing {n_completed}/{n_total} completed runs "
+            f"(missing: {missing_str})"
+        )
+        if n_completed == 0:
+            raise FileNotFoundError(
+                f"No result files found in: {results_dir}. "
+                f"Cannot perform partial analysis with zero results."
+            )
+    elif missing:
         raise FileNotFoundError(
             f"Missing result files for run IDs: {missing}. "
             f"Expected in: {results_dir}"

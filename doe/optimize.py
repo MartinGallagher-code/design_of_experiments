@@ -10,6 +10,7 @@ def recommend(
     cfg: DOEConfig,
     results_dir: str | None = None,
     response_name: str | None = None,
+    partial: bool = False,
 ) -> None:
     """Print optimization recommendations based on DOE results.
 
@@ -19,7 +20,7 @@ def recommend(
     3. Factor importance ranking
     """
     results_dir = results_dir or cfg.out_directory or "results"
-    all_data = _load_all_results(matrix.runs, results_dir)
+    all_data = _load_all_results(matrix.runs, results_dir, partial=partial)
 
     target_responses = cfg.responses
     if response_name:

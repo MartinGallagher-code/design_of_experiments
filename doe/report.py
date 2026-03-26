@@ -18,6 +18,7 @@ def generate_report(
     cfg: DOEConfig,
     results_dir: str | None = None,
     output_path: str = "report.html",
+    partial: bool = False,
 ) -> str:
     """Run analysis and generate a self-contained HTML report.
 
@@ -32,6 +33,8 @@ def generate_report(
         ``cfg.out_directory`` or ``"results"`` when *None*.
     output_path : str
         Path for the generated HTML file.
+    partial : bool
+        When True, skip missing result files and analyze only completed runs.
 
     Returns
     -------
@@ -39,7 +42,7 @@ def generate_report(
         The *output_path* that was written.
     """
     results_dir_resolved = results_dir or cfg.out_directory or "results"
-    report = analyze(matrix, cfg, results_dir=results_dir, no_plots=False)
+    report = analyze(matrix, cfg, results_dir=results_dir, no_plots=False, partial=partial)
 
     # --- Encode plot images as base64 data URIs ---
     pareto_images: dict[str, str] = {}
@@ -68,14 +71,14 @@ def generate_report(
                     rsm_images[resp.name].append((label, _encode_image(rsm_path)))
 
     # --- Run optimization analysis ---
-    optimization_data = _run_optimization(matrix, cfg, results_dir_resolved)
+    optimization_data = _run_optimization(matrix, cfg, results_dir_resolved, partial=partial)
 
     # --- Build HTML sections ---
     plan_name = html.escape(cfg.metadata.get("name", "Unnamed Experiment"))
     plan_desc = html.escape(cfg.metadata.get("description", ""))
     timestamp = html.escape(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
-    header_html = _build_header(plan_name, plan_desc, timestamp)
+    header_html = _build_header(plan_name, plan_desc, timestamp, partial=partial)
     design_summary_html = _build_design_summary(matrix, cfg)
     results_html = _build_results(report, pareto_images, effects_images, rsm_images)
     optimization_html = _build_optimization(optimization_data, cfg)
@@ -111,13 +114,18 @@ def _encode_image(path: str) -> str:
     return f"data:image/png;base64,{data}"
 
 
-def _build_header(name: str, description: str, timestamp: str) -> str:
+def _build_header(name: str, description: str, timestamp: str, partial: bool = False) -> str:
     desc_block = f'<p class="description">{description}</p>' if description else ""
+    partial_block = (
+        '  <p style="color: #b8860b; font-weight: bold; margin-top: 8px;">'
+        'Note: This is a partial analysis based on incomplete experiment data.</p>\n'
+    ) if partial else ""
     return (
         f'<header>\n'
         f'  <h1>{name}</h1>\n'
         f'  {desc_block}\n'
         f'  <p class="timestamp">Generated: {timestamp}</p>\n'
+        f'{partial_block}'
         f'</header>\n'
     )
 
@@ -165,9 +173,9 @@ def _build_design_summary(matrix: DesignMatrix, cfg: DOEConfig) -> str:
     )
 
 
-def _run_optimization(matrix, cfg, results_dir):
+def _run_optimization(matrix, cfg, results_dir, partial=False):
     """Run optimization analysis and return structured data."""
-    all_data = _load_all_results(matrix.runs, results_dir)
+    all_data = _load_all_results(matrix.runs, results_dir, partial=partial)
     results = []
 
     for resp in cfg.responses:
