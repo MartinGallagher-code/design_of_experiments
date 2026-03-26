@@ -1034,6 +1034,41 @@ def build_page(num, uc_dir):
   <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
 </footer>
 <script src="../js/main.js"></script>
+<script>
+(function() {{
+  var toc = document.getElementById('uc-toc-inner');
+  if (!toc) return;
+  var headings = document.querySelectorAll('.uc-section > h2, .uc-content > section > h2');
+  if (headings.length < 2) {{ document.getElementById('uc-toc').style.display = 'none'; return; }}
+  headings.forEach(function(h, i) {{
+    if (!h.id) h.id = 'sec-' + i;
+    var a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    a.addEventListener('click', function(e) {{
+      e.preventDefault();
+      h.scrollIntoView({{ behavior: 'smooth', block: 'start' }});
+      history.replaceState(null, '', '#' + h.id);
+    }});
+    toc.appendChild(a);
+  }});
+  var links = toc.querySelectorAll('a');
+  var observer = new IntersectionObserver(function(entries) {{
+    entries.forEach(function(entry) {{
+      if (entry.isIntersecting) {{
+        links.forEach(function(a) {{ a.classList.remove('active'); }});
+        var active = toc.querySelector('a[href="#' + entry.target.id + '"]');
+        if (active) {{
+          active.classList.add('active');
+          active.scrollIntoView({{ behavior: 'smooth', inline: 'center', block: 'nearest' }});
+        }}
+      }}
+    }});
+  }}, {{ rootMargin: '-80px 0px -70% 0px', threshold: 0 }});
+  headings.forEach(function(h) {{ observer.observe(h); }});
+  if (links.length) links[0].classList.add('active');
+}})();
+</script>
 </body>
 </html>'''
 
@@ -1152,6 +1187,59 @@ def inject_matrix_into_existing(num, uc_dir):
                 '<footer',
                 f'{multi_html}\n<footer',
             )
+
+    # Inject TOC nav if not already present
+    toc_nav = '<!-- Table of Contents -->\n<nav class="uc-toc" id="uc-toc"><div class="uc-toc-inner" id="uc-toc-inner"></div></nav>'
+    toc_script = """<script>
+(function() {
+  var toc = document.getElementById('uc-toc-inner');
+  if (!toc) return;
+  var headings = document.querySelectorAll('.uc-section > h2, .uc-content > section > h2');
+  if (headings.length < 2) { document.getElementById('uc-toc').style.display = 'none'; return; }
+  headings.forEach(function(h, i) {
+    if (!h.id) h.id = 'sec-' + i;
+    var a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(null, '', '#' + h.id);
+    });
+    toc.appendChild(a);
+  });
+  var links = toc.querySelectorAll('a');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        links.forEach(function(a) { a.classList.remove('active'); });
+        var active = toc.querySelector('a[href="#' + entry.target.id + '"]');
+        if (active) {
+          active.classList.add('active');
+          active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      }
+    });
+  }, { rootMargin: '-80px 0px -70% 0px', threshold: 0 });
+  headings.forEach(function(h) { observer.observe(h); });
+  if (links.length) links[0].classList.add('active');
+})();
+</script>"""
+
+    # Remove old TOC if present
+    page = re.sub(r'\n<!-- Table of Contents -->\n<nav class="uc-toc"[^>]*>.*?</nav>\n', '\n', page, flags=re.DOTALL)
+    page = re.sub(r'<script>\n\(function\(\) \{\n  var toc = document\.getElementById.*?\n</script>', '', page, flags=re.DOTALL)
+
+    # Insert TOC nav after hero section
+    if '</section>\n\n<div class="container-narrow uc-content">' in page:
+        page = page.replace(
+            '</section>\n\n<div class="container-narrow uc-content">',
+            f'</section>\n\n{toc_nav}\n\n<div class="container-narrow uc-content">',
+        )
+
+    # Insert TOC script before </body>
+    if '</body>' in page and 'var toc = document.getElementById' not in page:
+        page = page.replace('</body>', f'{toc_script}\n</body>')
 
     with open(html_path, "w") as f:
         f.write(page)
