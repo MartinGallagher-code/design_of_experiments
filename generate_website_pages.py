@@ -100,7 +100,7 @@ def get_analysis_output(num, config_path=None):
     if config_path:
         try:
             result = subprocess.run(
-                ["python", "doe.py", "analyze", "--config", config_path, "--no-plots"],
+                ["doe", "analyze", "--config", config_path, "--no-plots"],
                 capture_output=True, text=True, timeout=60,
             )
             return result.stdout
@@ -116,7 +116,7 @@ def get_optimize_output(num, config_path=None):
     if config_path:
         try:
             result = subprocess.run(
-                ["python", "doe.py", "optimize", "--config", config_path],
+                ["doe", "optimize", "--config", config_path],
                 capture_output=True, text=True, timeout=60,
             )
             return result.stdout
@@ -135,7 +135,7 @@ def get_multi_optimize_output(num, config_path=None, n_responses=1):
     if config_path:
         try:
             result = subprocess.run(
-                ["python", "doe.py", "optimize", "--config", config_path, "--multi"],
+                ["doe", "optimize", "--config", config_path, "--multi"],
                 capture_output=True, text=True, timeout=60,
             )
             # Cache for reuse
