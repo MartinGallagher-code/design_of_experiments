@@ -776,11 +776,7 @@ RSM Model (linear, R² = 0.91):
 ### Installation
 
 ```bash
-# Install dependencies
-pip install -r requirements.txt
-
-# Or install as a package (creates the 'doe' command)
-pip install -e .
+pip install doehelper
 ```
 
 ### Step-by-Step Workflow

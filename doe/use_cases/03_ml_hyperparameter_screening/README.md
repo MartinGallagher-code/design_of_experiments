@@ -44,14 +44,13 @@ You are training a deep learning model and need to screen 5 hyperparameters to f
 ### Prerequisites
 
 ```bash
-cd /workspaces/design_of_experiments
-pip install -r requirements.txt
+pip install doehelper
 ```
 
 ### Step 1: Preview the design
 
 ```bash
-doe info --config use_cases/03_ml_hyperparameter_screening/config.json
+doe info --config config.json
 ```
 
 Output:
@@ -71,16 +70,16 @@ Notice the run count is 16 instead of 32 — the fractional factorial has halved
 ### Step 2: Generate the runner script with a seed
 
 ```bash
-doe generate --config use_cases/03_ml_hyperparameter_screening/config.json \
-    --output use_cases/03_ml_hyperparameter_screening/results/run.sh --seed 7
+doe generate --config config.json \
+    --output results/run.sh --seed 7
 ```
 
-Open `use_cases/03_ml_hyperparameter_screening/results/run.sh` to see how `positional` argument style passes factors as ordered values (no `--flag` names) to the test script.
+Open `results/run.sh` to see how `positional` argument style passes factors as ordered values (no `--flag` names) to the test script.
 
 ### Step 3: Execute the experiments
 
 ```bash
-bash use_cases/03_ml_hyperparameter_screening/results/run.sh
+bash results/run.sh
 ```
 
 Each simulated training run produces accuracy and training_time results.
@@ -88,7 +87,7 @@ Each simulated training run produces accuracy and training_time results.
 ### Step 4: Analyze results
 
 ```bash
-doe analyze --config use_cases/03_ml_hyperparameter_screening/config.json
+doe analyze --config config.json
 ```
 
 The analysis shows main effects for both responses:
@@ -100,7 +99,7 @@ Look for factors that matter for accuracy but don't hurt training time — those
 ### Step 5: Optimize for a specific response
 
 ```bash
-doe optimize --config use_cases/03_ml_hyperparameter_screening/config.json
+doe optimize --config config.json
 ```
 
 Reports best observed settings and factor importance for both accuracy and training time.
@@ -108,8 +107,8 @@ Reports best observed settings and factor importance for both accuracy and train
 ### Step 6: Generate the report
 
 ```bash
-doe report --config use_cases/03_ml_hyperparameter_screening/config.json \
-    --output use_cases/03_ml_hyperparameter_screening/results/report.html
+doe report --config config.json \
+    --output results/report.html
 ```
 
 ## Features Exercised
@@ -127,7 +126,7 @@ doe report --config use_cases/03_ml_hyperparameter_screening/config.json \
 
 ## Files
 
-- Config: `use_cases/03_ml_hyperparameter_screening/config.json`
-- Simulator: `use_cases/03_ml_hyperparameter_screening/sim.sh`
-- Results: `use_cases/03_ml_hyperparameter_screening/results/`
-- Report: `use_cases/03_ml_hyperparameter_screening/results/report.html`
+- Config: `config.json`
+- Simulator: `sim.sh`
+- Results: `results/`
+- Report: `results/report.html`

@@ -43,14 +43,13 @@ You are developing a new composite material and need to explore a large, continu
 ### Prerequisites
 
 ```bash
-cd /workspaces/design_of_experiments
-pip install -r requirements.txt
+pip install doehelper
 ```
 
 ### Step 1: Preview the design
 
 ```bash
-doe info --config use_cases/05_material_formulation/config.json
+doe info --config config.json
 ```
 
 Output:
@@ -70,8 +69,8 @@ Notice: 20 runs (from `lhs_samples: 20`) instead of the default 10. The continuo
 ### Step 2: Generate with a seed for reproducibility
 
 ```bash
-doe generate --config use_cases/05_material_formulation/config.json \
-    --output use_cases/05_material_formulation/results/run.sh --seed 99
+doe generate --config config.json \
+    --output results/run.sh --seed 99
 ```
 
 The seed controls numpy's random state for LHS generation, ensuring you get the exact same sample points every time.
@@ -79,14 +78,14 @@ The seed controls numpy's random state for LHS generation, ensuring you get the 
 ### Step 3: Execute the experiments
 
 ```bash
-bash use_cases/05_material_formulation/results/run.sh
+bash results/run.sh
 ```
 
 ### Step 4: Analyze with `--results-dir` override
 
 ```bash
-doe analyze --config use_cases/05_material_formulation/config.json \
-    --results-dir use_cases/05_material_formulation/results
+doe analyze --config config.json \
+    --results-dir results
 ```
 
 The `--results-dir` flag overrides the `out_directory` from the config file. This is useful when:
@@ -97,7 +96,7 @@ The `--results-dir` flag overrides the `out_directory` from the config file. Thi
 ### Step 5: Optimize
 
 ```bash
-doe optimize --config use_cases/05_material_formulation/config.json
+doe optimize --config config.json
 ```
 
 With 20 LHS samples, the optimizer has a richer dataset to find the best observed point and fit an RSM model. Look for:
@@ -107,8 +106,8 @@ With 20 LHS samples, the optimizer has a richer dataset to find the best observe
 ### Step 6: Generate report
 
 ```bash
-doe report --config use_cases/05_material_formulation/config.json \
-    --output use_cases/05_material_formulation/results/report.html
+doe report --config config.json \
+    --output results/report.html
 ```
 
 ## Interpreting the Results
@@ -145,7 +144,7 @@ The ordinal factor `particle_size` is binned into its 3 levels (fine, medium, co
 
 ## Files
 
-- Config: `use_cases/05_material_formulation/config.json`
-- Simulator: `use_cases/05_material_formulation/sim.sh`
-- Results: `use_cases/05_material_formulation/results/`
-- Report: `use_cases/05_material_formulation/results/report.html`
+- Config: `config.json`
+- Simulator: `sim.sh`
+- Results: `results/`
+- Report: `results/report.html`

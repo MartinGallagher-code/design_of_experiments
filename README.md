@@ -1,8 +1,15 @@
 # Design of Experiments (DOE) Helper Tool
 
+[![CI](https://github.com/MartinGallagher-code/design_of_experiments/actions/workflows/ci.yml/badge.svg)](https://github.com/MartinGallagher-code/design_of_experiments/actions/workflows/ci.yml)
+[![PyPI](https://img.shields.io/pypi/v/doehelper)](https://pypi.org/project/doehelper/)
+[![Python](https://img.shields.io/pypi/pyversions/doehelper)](https://pypi.org/project/doehelper/)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
 Created and developed by **Martin J. Gallagher**.
 
 A Python CLI tool that automates the creation and analysis of experimental designs. It generates reproducible design matrices, creates executable runner scripts, and analyzes results using classical DOE techniques including ANOVA, response surface modeling, and multi-objective optimization.
+
+The project includes **221 worked use cases** spanning HPC, cloud infrastructure, networking, food science, agriculture, manufacturing, sports, and many more domains — each with a full configuration, simulated results, and analysis walkthrough. Browse them on the [project website](https://martingallagher-code.github.io/design_of_experiments/).
 
 ## Features
 
@@ -27,17 +34,14 @@ A Python CLI tool that automates the creation and analysis of experimental desig
 ## Installation
 
 ```bash
-# Clone the repository
-git clone <repo-url>
+pip install doehelper
+```
+
+For development:
+
+```bash
+git clone https://github.com/MartinGallagher-code/design_of_experiments.git
 cd design_of_experiments
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Or install as a package
-pip install -e .
-
-# For development (includes pytest)
 pip install -e ".[dev]"
 ```
 
@@ -378,8 +382,8 @@ Power < 0.80 indicates you may need more runs or blocks to reliably detect the s
 
 ```
 design_of_experiments/
-├── doe.py                  # Thin CLI wrapper
 ├── doe/
+│   ├── __init__.py         # Package version
 │   ├── cli.py              # CLI entry point (argparse, subcommands)
 │   ├── models.py           # Dataclasses (Factor, DOEConfig, DesignMatrix, AnovaTable, etc.)
 │   ├── config.py           # JSON config loading and validation
@@ -392,12 +396,15 @@ design_of_experiments/
 ├── templates/
 │   ├── runner_sh.j2        # Bash runner template (with error recovery)
 │   └── runner_py.j2        # Python runner template (with error recovery)
-├── tests/                  # Test suite (93 tests, pytest)
+├── tests/                  # Test suite (pytest)
 ├── examples/
 │   ├── example_config.json
 │   └── sysbench_config.json
+├── website/                # Project website with 221 use case walkthroughs
+├── pyproject.toml          # Package metadata and build config
 └── .github/workflows/
-    └── ci.yml              # CI pipeline (Python 3.10/3.11/3.12)
+    ├── ci.yml              # CI pipeline (Python 3.10/3.11/3.12)
+    └── publish.yml         # PyPI publish on release
 ```
 
 ## Development

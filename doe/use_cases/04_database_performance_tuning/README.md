@@ -45,14 +45,13 @@ You are tuning a PostgreSQL database for an OLTP workload. There are 6 configura
 ### Prerequisites
 
 ```bash
-cd /workspaces/design_of_experiments
-pip install -r requirements.txt
+pip install doehelper
 ```
 
 ### Step 1: Preview the design
 
 ```bash
-doe info --config use_cases/04_database_performance_tuning/config.json
+doe info --config config.json
 ```
 
 Output:
@@ -72,20 +71,20 @@ Notice: 8 base runs × 2 blocks = 16 total runs. Each block is an independent re
 ### Step 2: Generate the runner script
 
 ```bash
-doe generate --config use_cases/04_database_performance_tuning/config.json \
-    --output use_cases/04_database_performance_tuning/results/run.sh --seed 42
+doe generate --config config.json \
+    --output results/run.sh --seed 42
 ```
 
 ### Step 3: Execute the experiments
 
 ```bash
-bash use_cases/04_database_performance_tuning/results/run.sh
+bash results/run.sh
 ```
 
 ### Step 4: Analyze without plots (headless mode)
 
 ```bash
-doe analyze --config use_cases/04_database_performance_tuning/config.json --no-plots
+doe analyze --config config.json --no-plots
 ```
 
 The `--no-plots` flag skips Pareto charts and main effects plots — useful in CI pipelines, SSH sessions, or environments without a display. You still get the full text-based analysis with effects, interactions, and summary statistics.
@@ -93,11 +92,11 @@ The `--no-plots` flag skips Pareto charts and main effects plots — useful in C
 ### Step 5: Export results to CSV
 
 ```bash
-doe analyze --config use_cases/04_database_performance_tuning/config.json \
-    --csv use_cases/04_database_performance_tuning/results/csv
+doe analyze --config config.json \
+    --csv results/csv
 ```
 
-This creates CSV files in `use_cases/04_database_performance_tuning/results/csv/`:
+This creates CSV files in `results/csv/`:
 - `main_effects_throughput.csv` — Factor, effect, std error, contribution, CI bounds
 - `main_effects_p99_latency.csv` — Same for latency
 - `summary_stats_throughput.csv` — Per-factor, per-level statistics
@@ -108,14 +107,14 @@ Import these into R, pandas, or Excel for custom analysis.
 ### Step 6: Optimize
 
 ```bash
-doe optimize --config use_cases/04_database_performance_tuning/config.json
+doe optimize --config config.json
 ```
 
 ### Step 7: Generate report
 
 ```bash
-doe report --config use_cases/04_database_performance_tuning/config.json \
-    --output use_cases/04_database_performance_tuning/results/report.html
+doe report --config config.json \
+    --output results/report.html
 ```
 
 ## Interpreting the Results
@@ -154,8 +153,8 @@ Plackett-Burman reveals the "vital few" parameters. Typical PostgreSQL findings:
 
 ## Files
 
-- Config: `use_cases/04_database_performance_tuning/config.json`
-- Simulator: `use_cases/04_database_performance_tuning/sim.sh`
-- Results: `use_cases/04_database_performance_tuning/results/`
-- CSV exports: `use_cases/04_database_performance_tuning/results/csv/`
-- Report: `use_cases/04_database_performance_tuning/results/report.html`
+- Config: `config.json`
+- Simulator: `sim.sh`
+- Results: `results/`
+- CSV exports: `results/csv/`
+- Report: `results/report.html`

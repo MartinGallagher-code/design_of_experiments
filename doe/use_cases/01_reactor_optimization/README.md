@@ -40,14 +40,13 @@ You are optimizing a batch chemical reactor. You can control three continuous pr
 ### Prerequisites
 
 ```bash
-cd /workspaces/design_of_experiments
-pip install -r requirements.txt
+pip install doehelper
 ```
 
 ### Step 1: Preview the design
 
 ```bash
-doe info --config use_cases/01_reactor_optimization/config.json
+doe info --config config.json
 ```
 
 Output:
@@ -67,14 +66,14 @@ Notice the Box-Behnken structure: each run has at most two factors at their extr
 ### Step 2: Generate the runner script
 
 ```bash
-doe generate --config use_cases/01_reactor_optimization/config.json \
-    --output use_cases/01_reactor_optimization/results/run.sh --seed 42
+doe generate --config config.json \
+    --output results/run.sh --seed 42
 ```
 
 ### Step 3: Execute the experiments
 
 ```bash
-bash use_cases/01_reactor_optimization/results/run.sh
+bash results/run.sh
 ```
 
 The simulated reactor produces realistic data: yield follows a quadratic model with temperature as the dominant factor, purity is driven by catalyst concentration, and cost increases with all factors.
@@ -82,7 +81,7 @@ The simulated reactor produces realistic data: yield follows a quadratic model w
 ### Step 4: Analyze results
 
 ```bash
-doe analyze --config use_cases/01_reactor_optimization/config.json
+doe analyze --config config.json
 ```
 
 Key findings from the analysis:
@@ -96,7 +95,7 @@ Key findings from the analysis:
 ### Step 5: Get optimization recommendations
 
 ```bash
-doe optimize --config use_cases/01_reactor_optimization/config.json
+doe optimize --config config.json
 ```
 
 The optimizer reports:
@@ -107,11 +106,11 @@ The optimizer reports:
 ### Step 6: Generate the HTML report
 
 ```bash
-doe report --config use_cases/01_reactor_optimization/config.json \
-    --output use_cases/01_reactor_optimization/results/report.html
+doe report --config config.json \
+    --output results/report.html
 ```
 
-Open `use_cases/01_reactor_optimization/results/report.html` in a browser. The report includes:
+Open `results/report.html` in a browser. The report includes:
 - Design summary with factor details
 - Main effects and interaction tables for each response
 - Pareto charts showing which factors matter most
@@ -121,8 +120,8 @@ Open `use_cases/01_reactor_optimization/results/report.html` in a browser. The r
 ### Step 7: Export to CSV (optional)
 
 ```bash
-doe analyze --config use_cases/01_reactor_optimization/config.json \
-    --csv use_cases/01_reactor_optimization/results/csv
+doe analyze --config config.json \
+    --csv results/csv
 ```
 
 Produces CSV files for further analysis in R, Excel, or pandas.
@@ -149,7 +148,7 @@ In a real investigation, you would:
 
 ## Files
 
-- Config: `use_cases/01_reactor_optimization/config.json`
-- Simulator: `use_cases/01_reactor_optimization/sim.sh`
-- Results: `use_cases/01_reactor_optimization/results/`
-- Report: `use_cases/01_reactor_optimization/results/report.html`
+- Config: `config.json`
+- Simulator: `sim.sh`
+- Results: `results/`
+- Report: `results/report.html`

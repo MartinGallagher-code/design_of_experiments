@@ -40,14 +40,13 @@ You are optimizing a web application's conversion rate by testing combinations o
 ### Prerequisites
 
 ```bash
-cd /workspaces/design_of_experiments
-pip install -r requirements.txt
+pip install doehelper
 ```
 
 ### Step 1: Preview the design with `--dry-run`
 
 ```bash
-doe generate --config use_cases/02_webapp_ab_testing/config.json --dry-run
+doe generate --config config.json --dry-run
 ```
 
 This prints the full design matrix (12 runs) without writing any files. Use this to verify the factor combinations look correct before committing to a run.
@@ -67,7 +66,7 @@ Fixed     : page=homepage, traffic_pct=10
 ### Step 2: View design info
 
 ```bash
-doe info --config use_cases/02_webapp_ab_testing/config.json
+doe info --config config.json
 ```
 
 Same summary plus the full design matrix table showing all 12 factor combinations.
@@ -75,16 +74,16 @@ Same summary plus the full design matrix table showing all 12 factor combination
 ### Step 3: Generate a Python-format runner script
 
 ```bash
-doe generate --config use_cases/02_webapp_ab_testing/config.json \
-    --output use_cases/02_webapp_ab_testing/results/run.py --format py --seed 123
+doe generate --config config.json \
+    --output results/run.py --format py --seed 123
 ```
 
-This generates a **Python** runner script (instead of the default bash). The `--seed 123` ensures reproducible run order. Open `use_cases/02_webapp_ab_testing/results/run.py` to see how the `env` argument style exports factors as uppercase environment variables (`FONT_SIZE`, `COLOR_SCHEME`, `LAYOUT`) before calling the test script.
+This generates a **Python** runner script (instead of the default bash). The `--seed 123` ensures reproducible run order. Open `results/run.py` to see how the `env` argument style exports factors as uppercase environment variables (`FONT_SIZE`, `COLOR_SCHEME`, `LAYOUT`) before calling the test script.
 
 ### Step 4: Execute the experiments
 
 ```bash
-python use_cases/02_webapp_ab_testing/results/run.py
+python results/run.py
 ```
 
 The simulator reads factors from environment variables and writes a JSON result for each of the 12 runs.
@@ -92,7 +91,7 @@ The simulator reads factors from environment variables and writes a JSON result 
 ### Step 5: Analyze results
 
 ```bash
-doe analyze --config use_cases/02_webapp_ab_testing/config.json
+doe analyze --config config.json
 ```
 
 Key findings:
@@ -104,7 +103,7 @@ Key findings:
 ### Step 6: Get optimization recommendations
 
 ```bash
-doe optimize --config use_cases/02_webapp_ab_testing/config.json
+doe optimize --config config.json
 ```
 
 Reports the best observed run and RSM model predictions for conversion rate.
@@ -112,11 +111,11 @@ Reports the best observed run and RSM model predictions for conversion rate.
 ### Step 7: Generate HTML report
 
 ```bash
-doe report --config use_cases/02_webapp_ab_testing/config.json \
-    --output use_cases/02_webapp_ab_testing/results/report.html
+doe report --config config.json \
+    --output results/report.html
 ```
 
-Open `use_cases/02_webapp_ab_testing/results/report.html` in a browser for the full interactive report.
+Open `results/report.html` in a browser for the full interactive report.
 
 ## Features Exercised
 
@@ -134,7 +133,7 @@ Open `use_cases/02_webapp_ab_testing/results/report.html` in a browser for the f
 
 ## Files
 
-- Config: `use_cases/02_webapp_ab_testing/config.json`
-- Simulator: `use_cases/02_webapp_ab_testing/sim.sh`
-- Results: `use_cases/02_webapp_ab_testing/results/`
-- Report: `use_cases/02_webapp_ab_testing/results/report.html`
+- Config: `config.json`
+- Simulator: `sim.sh`
+- Results: `results/`
+- Report: `results/report.html`
