@@ -3,410 +3,425 @@
 # Licensed under the GNU General Public License v3.0 or later.
 """Generate PowerPoint slides for the DOE Helper Training Course.
 
-Run: python generate_slides.py
-Produces: slides/ directory with 8 .pptx files (one per module).
+Design language matches doehelper.com:
+  - Indigo gradient hero backgrounds (#1e1b4b -> #6366f1)
+  - Purple accent (#5046e5)
+  - Light content slides with subtle purple tints
+  - Dark code blocks (#1a1a1a)
+  - Amber/orange for exercises, green for key-points
+  - Inter + Consolas typography
+
+Run:  python generate_slides.py
+Output: slides/ directory with 8 .pptx files.
 """
 
 import os
 from pptx import Presentation
-from pptx.util import Inches, Pt, Emu
+from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
 from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
 from pptx.enum.shapes import MSO_SHAPE
 
-SLIDE_WIDTH = Inches(13.333)
-SLIDE_HEIGHT = Inches(7.5)
+SLIDE_W = Inches(13.333)
+SLIDE_H = Inches(7.5)
 
-# Brand colours
-DARK_BG = RGBColor(0x1A, 0x1A, 0x2E)
-ACCENT_BLUE = RGBColor(0x00, 0x7B, 0xFF)
-ACCENT_GREEN = RGBColor(0x00, 0xC8, 0x53)
-WHITE = RGBColor(0xFF, 0xFF, 0xFF)
-LIGHT_GRAY = RGBColor(0xCC, 0xCC, 0xCC)
-DARK_TEXT = RGBColor(0x22, 0x22, 0x22)
-SECTION_BG = RGBColor(0xF5, 0xF7, 0xFA)
-CODE_BG = RGBColor(0x2D, 0x2D, 0x2D)
-ORANGE = RGBColor(0xFF, 0x8C, 0x00)
-RED = RGBColor(0xE0, 0x40, 0x40)
+# ── Website colour palette ─────────────────────────────────
+INDIGO_DEEP   = RGBColor(0x1E, 0x1B, 0x4B)   # hero gradient start
+INDIGO_MID    = RGBColor(0x31, 0x2E, 0x81)   # hero gradient mid
+INDIGO_BRIGHT = RGBColor(0x43, 0x38, 0xCA)   # hero gradient end
+VIOLET        = RGBColor(0x63, 0x66, 0xF1)   # lighter accent
+ACCENT        = RGBColor(0x50, 0x46, 0xE5)   # primary purple accent
+ACCENT_LIGHT  = RGBColor(0xEE, 0xF2, 0xFF)   # pale purple bg
+ACCENT_WASH   = RGBColor(0xF5, 0xF3, 0xFF)   # very pale purple
+
+WHITE         = RGBColor(0xFF, 0xFF, 0xFF)
+OFF_WHITE     = RGBColor(0xFA, 0xFA, 0xFA)   # --bg from site
+INK           = RGBColor(0x11, 0x11, 0x11)   # --ink
+FG            = RGBColor(0x33, 0x33, 0x33)   # --fg body text
+MUTED         = RGBColor(0x66, 0x66, 0x66)   # --muted
+FAINT         = RGBColor(0x99, 0x99, 0x99)   # --faint
+BORDER        = RGBColor(0xE5, 0xE5, 0xE5)   # --border
+
+TEAL          = RGBColor(0x0D, 0x94, 0x88)
+TEAL_LIGHT    = RGBColor(0xF0, 0xFD, 0xFA)
+GREEN         = RGBColor(0x16, 0xA3, 0x4A)
+GREEN_LIGHT   = RGBColor(0xF0, 0xFD, 0xF4)
+AMBER         = RGBColor(0xD9, 0x77, 0x06)
+AMBER_LIGHT   = RGBColor(0xFF, 0xFB, 0xEB)
+ROSE          = RGBColor(0xE1, 0x1D, 0x48)
+
+CODE_BG       = RGBColor(0x1A, 0x1A, 0x1A)   # website code block bg
+CODE_HEADER   = RGBColor(0x22, 0x22, 0x22)   # code header bg
+CODE_TEXT     = RGBColor(0xCC, 0xCC, 0xCC)   # code body text
+CODE_GREEN    = RGBColor(0x6E, 0xC8, 0x6E)   # prompt colour
+CODE_BLUE     = RGBColor(0x8B, 0x9C, 0xF7)   # flag colour
+CODE_AMBER    = RGBColor(0xE5, 0xA6, 0x4E)   # string colour
+
+FONT_BODY = "Inter"
+FONT_MONO = "Consolas"
 
 os.makedirs("slides", exist_ok=True)
 
 
+# ═══════════════════════════════════════════════════════════
+# Helper functions
+# ═══════════════════════════════════════════════════════════
+
 def new_prs():
     prs = Presentation()
-    prs.slide_width = SLIDE_WIDTH
-    prs.slide_height = SLIDE_HEIGHT
+    prs.slide_width = SLIDE_W
+    prs.slide_height = SLIDE_H
     return prs
 
 
-def add_bg(slide, color=DARK_BG):
-    bg = slide.background
-    fill = bg.fill
-    fill.solid()
-    fill.fore_color.rgb = color
+def _blank(prs):
+    return prs.slides.add_slide(prs.slide_layouts[6])
 
 
-def add_shape_bg(slide, color):
-    shape = slide.shapes.add_shape(
-        MSO_SHAPE.RECTANGLE, Inches(0), Inches(0), SLIDE_WIDTH, SLIDE_HEIGHT
-    )
-    shape.fill.solid()
-    shape.fill.fore_color.rgb = color
-    shape.line.fill.background()
-    # send to back
-    sp = shape._element
-    sp.getparent().remove(sp)
-    slide.shapes._spTree.insert(2, sp)
+def _fill_bg(slide, color):
+    slide.background.fill.solid()
+    slide.background.fill.fore_color.rgb = color
 
+
+def _rect(slide, x, y, w, h, fill, line=False):
+    s = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, x, y, w, h)
+    s.fill.solid()
+    s.fill.fore_color.rgb = fill
+    if not line:
+        s.line.fill.background()
+    return s
+
+
+def _rounded(slide, x, y, w, h, fill, line=False):
+    s = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, x, y, w, h)
+    s.fill.solid()
+    s.fill.fore_color.rgb = fill
+    if not line:
+        s.line.fill.background()
+    return s
+
+
+def _text(slide, x, y, w, h, text, size=20, color=FG, bold=False,
+          font=FONT_BODY, align=PP_ALIGN.LEFT, anchor=None):
+    tb = slide.shapes.add_textbox(x, y, w, h)
+    tf = tb.text_frame
+    tf.word_wrap = True
+    if anchor:
+        tf.vertical_anchor = anchor
+    p = tf.paragraphs[0]
+    p.text = text
+    p.font.size = Pt(size)
+    p.font.color.rgb = color
+    p.font.bold = bold
+    p.font.name = font
+    p.alignment = align
+    return tf
+
+
+def _copyright(slide):
+    _text(slide, Inches(0.8), Inches(7.0), Inches(11), Inches(0.4),
+          "\u00a9 2026 Martin J. Gallagher  |  GPL-3.0-or-later  |  doehelper.com",
+          size=10, color=FAINT, font=FONT_MONO)
+
+
+def _bullets(slide, x, y, w, h, items, size=19, color=FG, spacing=7):
+    """Render bullet list. Prefix '>> ' for sub-bullets."""
+    tb = slide.shapes.add_textbox(x, y, w, h)
+    tf = tb.text_frame
+    tf.word_wrap = True
+    for i, raw in enumerate(items):
+        p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+        indent = 0
+        text = raw
+        while text.startswith(">> "):
+            indent += 1
+            text = text[3:]
+        p.text = text
+        p.font.size = Pt(size - 2 * indent)
+        p.font.color.rgb = color if indent == 0 else MUTED
+        p.font.name = FONT_BODY
+        p.space_after = Pt(spacing)
+        p.level = indent
+    return tf
+
+
+def _slide_number(slide, num, total=None):
+    label = f"{num}" if total is None else f"{num}/{total}"
+    _text(slide, Inches(12.2), Inches(7.0), Inches(1), Inches(0.4),
+          label, size=10, color=FAINT, font=FONT_MONO, align=PP_ALIGN.RIGHT)
+
+
+# ═══════════════════════════════════════════════════════════
+# Slide templates (matching website design)
+# ═══════════════════════════════════════════════════════════
 
 def add_title_slide(prs, title, subtitle, module_num=None):
-    slide = prs.slides.add_slide(prs.slide_layouts[6])  # blank
-    add_bg(slide, DARK_BG)
+    """Dark indigo gradient hero — matches website hero section."""
+    slide = _blank(prs)
+    _fill_bg(slide, INDIGO_DEEP)
 
-    # Accent bar
-    bar = slide.shapes.add_shape(
-        MSO_SHAPE.RECTANGLE, Inches(0), Inches(0), Inches(0.15), SLIDE_HEIGHT
-    )
-    bar.fill.solid()
-    bar.fill.fore_color.rgb = ACCENT_BLUE
-    bar.line.fill.background()
+    # Layered indigo panels to simulate gradient
+    _rect(slide, Inches(0), Inches(0), Inches(6.5), SLIDE_H, INDIGO_DEEP)
+    _rect(slide, Inches(6.5), Inches(0), Inches(3.5), SLIDE_H, INDIGO_MID)
+    _rect(slide, Inches(10), Inches(0), Inches(3.333), SLIDE_H, INDIGO_BRIGHT)
 
+    # Subtle decorative accent bar (left edge, like website sidebar)
+    _rect(slide, Inches(0), Inches(0), Inches(0.08), SLIDE_H, VIOLET)
+
+    # Decorative circle blobs (mimic website decoration washes)
+    c1 = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(9), Inches(-1), Inches(5), Inches(5))
+    c1.fill.solid()
+    c1.fill.fore_color.rgb = VIOLET
+    c1.fill.fore_color.brightness = 0.3
+    c1.line.fill.background()
+
+    c2 = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(-1), Inches(4), Inches(4), Inches(4))
+    c2.fill.solid()
+    c2.fill.fore_color.rgb = ACCENT
+    c2.fill.fore_color.brightness = 0.4
+    c2.line.fill.background()
+
+    # Module badge (monospace uppercase — matches website section labels)
     if module_num is not None:
-        tb = slide.shapes.add_textbox(Inches(1), Inches(1.2), Inches(11), Inches(0.8))
-        tf = tb.text_frame
-        p = tf.paragraphs[0]
+        badge = _rounded(slide, Inches(1.0), Inches(1.5), Inches(2.6), Inches(0.48),
+                         INDIGO_MID)
+        btf = badge.text_frame
+        btf.vertical_anchor = MSO_ANCHOR.MIDDLE
+        btf.margin_left = Inches(0.15)
+        p = btf.paragraphs[0]
         p.text = f"MODULE {module_num}"
-        p.font.size = Pt(20)
-        p.font.color.rgb = ACCENT_BLUE
+        p.font.size = Pt(14)
+        p.font.color.rgb = RGBColor(0xC7, 0xD2, 0xFE)  # light indigo
         p.font.bold = True
-        p.font.name = "Calibri"
-
-    tb = slide.shapes.add_textbox(Inches(1), Inches(2.2), Inches(11), Inches(2))
-    tf = tb.text_frame
-    tf.word_wrap = True
-    p = tf.paragraphs[0]
-    p.text = title
-    p.font.size = Pt(44)
-    p.font.color.rgb = WHITE
-    p.font.bold = True
-    p.font.name = "Calibri"
-
-    tb2 = slide.shapes.add_textbox(Inches(1), Inches(4.5), Inches(10), Inches(1.5))
-    tf2 = tb2.text_frame
-    tf2.word_wrap = True
-    p2 = tf2.paragraphs[0]
-    p2.text = subtitle
-    p2.font.size = Pt(22)
-    p2.font.color.rgb = LIGHT_GRAY
-    p2.font.name = "Calibri"
-
-    # Copyright footer
-    tb3 = slide.shapes.add_textbox(Inches(1), Inches(6.7), Inches(11), Inches(0.5))
-    tf3 = tb3.text_frame
-    tf3.word_wrap = True
-    p3 = tf3.paragraphs[0]
-    p3.text = "Copyright \u00a9 2026 Martin J. Gallagher. Licensed under GPL-3.0-or-later."
-    p3.font.size = Pt(12)
-    p3.font.color.rgb = RGBColor(0x88, 0x88, 0x88)
-    p3.font.name = "Calibri"
-
-
-def add_content_slide(prs, title, bullets, title_color=DARK_TEXT, bg_color=WHITE):
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_bg(slide, bg_color)
-
-    # Top accent line
-    line = slide.shapes.add_shape(
-        MSO_SHAPE.RECTANGLE, Inches(0), Inches(0), SLIDE_WIDTH, Inches(0.06)
-    )
-    line.fill.solid()
-    line.fill.fore_color.rgb = ACCENT_BLUE
-    line.line.fill.background()
+        p.font.name = FONT_MONO
+        p.alignment = PP_ALIGN.LEFT
 
     # Title
-    tb = slide.shapes.add_textbox(Inches(0.8), Inches(0.4), Inches(11.5), Inches(0.9))
-    tf = tb.text_frame
-    tf.word_wrap = True
-    p = tf.paragraphs[0]
-    p.text = title
-    p.font.size = Pt(32)
-    p.font.color.rgb = title_color
-    p.font.bold = True
-    p.font.name = "Calibri"
+    _text(slide, Inches(1.0), Inches(2.5), Inches(10), Inches(2.2),
+          title, size=40, color=WHITE, bold=True)
 
-    # Bullets
-    tb2 = slide.shapes.add_textbox(Inches(1.0), Inches(1.6), Inches(11), Inches(5.2))
-    tf2 = tb2.text_frame
-    tf2.word_wrap = True
-    for i, bullet in enumerate(bullets):
-        if i == 0:
-            p = tf2.paragraphs[0]
-        else:
-            p = tf2.add_paragraph()
-        # Support indent levels via leading "  "
-        indent = 0
-        text = bullet
-        while text.startswith("  "):
-            indent += 1
-            text = text[2:]
-        p.text = text
-        p.font.size = Pt(22) if indent == 0 else Pt(19)
-        p.font.color.rgb = DARK_TEXT
-        p.font.name = "Calibri"
-        p.space_after = Pt(8)
-        p.level = indent
-        if indent == 0:
-            p.font.bold = False
+    # Subtitle
+    _text(slide, Inches(1.0), Inches(4.8), Inches(9.5), Inches(1.5),
+          subtitle, size=19, color=RGBColor(0xA5, 0xB4, 0xFC))
+
+    # Copyright
+    _text(slide, Inches(0.8), Inches(7.0), Inches(11), Inches(0.4),
+          "\u00a9 2026 Martin J. Gallagher  |  GPL-3.0-or-later  |  doehelper.com",
+          size=10, color=RGBColor(0x63, 0x66, 0xF1), font=FONT_MONO)
+
+
+def add_content_slide(prs, title, bullets_list, accent_bar=True):
+    """Light slide with purple accent top bar — matches website content pages."""
+    slide = _blank(prs)
+    _fill_bg(slide, OFF_WHITE)
+
+    if accent_bar:
+        _rect(slide, Inches(0), Inches(0), SLIDE_W, Inches(0.05), ACCENT)
+
+    # Left accent stripe (like website callout borders)
+    _rect(slide, Inches(0.6), Inches(0.45), Inches(0.04), Inches(0.55), ACCENT)
+
+    _text(slide, Inches(0.85), Inches(0.4), Inches(11), Inches(0.7),
+          title, size=28, color=INK, bold=True)
+
+    _bullets(slide, Inches(0.9), Inches(1.3), Inches(11.2), Inches(5.6),
+             bullets_list, size=19, color=FG, spacing=6)
+    _copyright(slide)
     return slide
 
 
 def add_code_slide(prs, title, code_text, note=""):
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_bg(slide, WHITE)
+    """Dark code block on light background — matches website code blocks."""
+    slide = _blank(prs)
+    _fill_bg(slide, OFF_WHITE)
 
-    line = slide.shapes.add_shape(
-        MSO_SHAPE.RECTANGLE, Inches(0), Inches(0), SLIDE_WIDTH, Inches(0.06)
-    )
-    line.fill.solid()
-    line.fill.fore_color.rgb = ACCENT_GREEN
-    line.line.fill.background()
+    # Green accent bar (like website success/teal callout)
+    _rect(slide, Inches(0), Inches(0), SLIDE_W, Inches(0.05), TEAL)
 
-    tb = slide.shapes.add_textbox(Inches(0.8), Inches(0.4), Inches(11.5), Inches(0.9))
-    tf = tb.text_frame
+    _text(slide, Inches(0.85), Inches(0.35), Inches(11), Inches(0.6),
+          title, size=26, color=INK, bold=True)
+
+    # Code container — matches website .code-block
+    code_y = Inches(1.15)
+    code_h = Inches(4.8) if not note else Inches(4.3)
+
+    # Header bar
+    _rect(slide, Inches(0.6), code_y, Inches(12), Inches(0.35), CODE_HEADER)
+    _text(slide, Inches(0.9), code_y, Inches(4), Inches(0.35),
+          "terminal", size=10, color=FAINT, font=FONT_MONO,
+          anchor=MSO_ANCHOR.MIDDLE)
+
+    # Code body
+    body = _rounded(slide, Inches(0.6), code_y + Inches(0.35),
+                    Inches(12), code_h, CODE_BG)
+    tf = body.text_frame
     tf.word_wrap = True
-    p = tf.paragraphs[0]
-    p.text = title
-    p.font.size = Pt(30)
-    p.font.color.rgb = DARK_TEXT
-    p.font.bold = True
-    p.font.name = "Calibri"
-
-    # Code box
-    code_box = slide.shapes.add_shape(
-        MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), Inches(1.5), Inches(11.5), Inches(4.5)
-    )
-    code_box.fill.solid()
-    code_box.fill.fore_color.rgb = CODE_BG
-    code_box.line.fill.background()
-
-    tf2 = code_box.text_frame
-    tf2.word_wrap = True
-    tf2.margin_left = Inches(0.3)
-    tf2.margin_top = Inches(0.3)
-    for i, line_text in enumerate(code_text.strip().split("\n")):
-        if i == 0:
-            p = tf2.paragraphs[0]
+    tf.margin_left = Inches(0.3)
+    tf.margin_top = Inches(0.2)
+    tf.margin_right = Inches(0.3)
+    lines = code_text.strip().split("\n")
+    for i, line in enumerate(lines):
+        p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+        p.text = line
+        # Colour prompt lines green, comments gray, rest default
+        if line.strip().startswith("$"):
+            p.font.color.rgb = CODE_GREEN
+        elif line.strip().startswith("#"):
+            p.font.color.rgb = RGBColor(0x55, 0x55, 0x55)
         else:
-            p = tf2.add_paragraph()
-        p.text = line_text
-        p.font.size = Pt(18)
-        p.font.color.rgb = RGBColor(0xD4, 0xD4, 0xD4)
-        p.font.name = "Consolas"
-        p.space_after = Pt(2)
+            p.font.color.rgb = CODE_TEXT
+        p.font.size = Pt(15)
+        p.font.name = FONT_MONO
+        p.space_after = Pt(1)
 
     if note:
-        tb3 = slide.shapes.add_textbox(Inches(0.8), Inches(6.3), Inches(11), Inches(0.8))
-        tf3 = tb3.text_frame
-        tf3.word_wrap = True
-        p3 = tf3.paragraphs[0]
-        p3.text = note
-        p3.font.size = Pt(16)
-        p3.font.color.rgb = RGBColor(0x66, 0x66, 0x66)
-        p3.font.italic = True
-        p3.font.name = "Calibri"
+        _text(slide, Inches(0.9), Inches(5.85), Inches(11), Inches(0.7),
+              note, size=14, color=MUTED, font=FONT_BODY)
+
+    _copyright(slide)
     return slide
 
 
-def add_two_col_slide(prs, title, left_items, right_items, left_title="", right_title=""):
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_bg(slide, WHITE)
+def add_two_col_slide(prs, title, left_items, right_items,
+                      left_title="", right_title=""):
+    """Two-column layout with card-style boxes — matches website comparison cards."""
+    slide = _blank(prs)
+    _fill_bg(slide, OFF_WHITE)
+    _rect(slide, Inches(0), Inches(0), SLIDE_W, Inches(0.05), ACCENT)
 
-    line = slide.shapes.add_shape(
-        MSO_SHAPE.RECTANGLE, Inches(0), Inches(0), SLIDE_WIDTH, Inches(0.06)
-    )
-    line.fill.solid()
-    line.fill.fore_color.rgb = ACCENT_BLUE
-    line.line.fill.background()
+    _rect(slide, Inches(0.6), Inches(0.45), Inches(0.04), Inches(0.55), ACCENT)
+    _text(slide, Inches(0.85), Inches(0.4), Inches(11), Inches(0.7),
+          title, size=28, color=INK, bold=True)
 
-    tb = slide.shapes.add_textbox(Inches(0.8), Inches(0.4), Inches(11.5), Inches(0.9))
-    tf = tb.text_frame
-    p = tf.paragraphs[0]
-    p.text = title
-    p.font.size = Pt(32)
-    p.font.color.rgb = DARK_TEXT
-    p.font.bold = True
-    p.font.name = "Calibri"
+    col_y = Inches(1.3)
+    card_h = Inches(5.4)
 
-    # Left column
+    # Left card (green tint — like website .comparison-card.good)
+    _rounded(slide, Inches(0.6), col_y, Inches(5.8), card_h, GREEN_LIGHT)
+    _rect(slide, Inches(0.6), col_y, Inches(0.04), card_h, GREEN)
+
     if left_title:
-        tb_lt = slide.shapes.add_textbox(Inches(0.8), Inches(1.4), Inches(5.5), Inches(0.5))
-        tf_lt = tb_lt.text_frame
-        p_lt = tf_lt.paragraphs[0]
-        p_lt.text = left_title
-        p_lt.font.size = Pt(22)
-        p_lt.font.color.rgb = ACCENT_BLUE
-        p_lt.font.bold = True
-        p_lt.font.name = "Calibri"
+        _text(slide, Inches(0.9), col_y + Inches(0.15), Inches(5.2), Inches(0.4),
+              left_title, size=16, color=GREEN, bold=True, font=FONT_MONO)
+    lt_y = col_y + (Inches(0.6) if left_title else Inches(0.15))
+    _bullets(slide, Inches(0.9), lt_y, Inches(5.2), Inches(4.5),
+             left_items, size=17, color=FG, spacing=5)
 
-    y_start = Inches(2.0) if left_title else Inches(1.6)
-    tb_l = slide.shapes.add_textbox(Inches(0.8), y_start, Inches(5.5), Inches(5))
-    tf_l = tb_l.text_frame
-    tf_l.word_wrap = True
-    for i, item in enumerate(left_items):
-        p = tf_l.paragraphs[0] if i == 0 else tf_l.add_paragraph()
-        p.text = item
-        p.font.size = Pt(20)
-        p.font.color.rgb = DARK_TEXT
-        p.font.name = "Calibri"
-        p.space_after = Pt(6)
+    # Right card (purple tint — like website .keypoint-box)
+    _rounded(slide, Inches(6.8), col_y, Inches(5.8), card_h, ACCENT_LIGHT)
+    _rect(slide, Inches(6.8), col_y, Inches(0.04), card_h, ACCENT)
 
-    # Right column
     if right_title:
-        tb_rt = slide.shapes.add_textbox(Inches(7), Inches(1.4), Inches(5.5), Inches(0.5))
-        tf_rt = tb_rt.text_frame
-        p_rt = tf_rt.paragraphs[0]
-        p_rt.text = right_title
-        p_rt.font.size = Pt(22)
-        p_rt.font.color.rgb = ACCENT_GREEN
-        p_rt.font.bold = True
-        p_rt.font.name = "Calibri"
+        _text(slide, Inches(7.1), col_y + Inches(0.15), Inches(5.2), Inches(0.4),
+              right_title, size=16, color=ACCENT, bold=True, font=FONT_MONO)
+    rt_y = col_y + (Inches(0.6) if right_title else Inches(0.15))
+    _bullets(slide, Inches(7.1), rt_y, Inches(5.2), Inches(4.5),
+             right_items, size=17, color=FG, spacing=5)
 
-    tb_r = slide.shapes.add_textbox(Inches(7), y_start, Inches(5.5), Inches(5))
-    tf_r = tb_r.text_frame
-    tf_r.word_wrap = True
-    for i, item in enumerate(right_items):
-        p = tf_r.paragraphs[0] if i == 0 else tf_r.add_paragraph()
-        p.text = item
-        p.font.size = Pt(20)
-        p.font.color.rgb = DARK_TEXT
-        p.font.name = "Calibri"
-        p.space_after = Pt(6)
+    _copyright(slide)
     return slide
 
 
 def add_exercise_slide(prs, title, instructions):
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_bg(slide, WHITE)
+    """Amber-tinted card — matches website .callout.warning style."""
+    slide = _blank(prs)
+    _fill_bg(slide, OFF_WHITE)
 
-    line = slide.shapes.add_shape(
-        MSO_SHAPE.RECTANGLE, Inches(0), Inches(0), SLIDE_WIDTH, Inches(0.06)
-    )
-    line.fill.solid()
-    line.fill.fore_color.rgb = ORANGE
-    line.line.fill.background()
+    # Amber accent bar
+    _rect(slide, Inches(0), Inches(0), SLIDE_W, Inches(0.05), AMBER)
 
-    # Exercise badge
-    badge = slide.shapes.add_shape(
-        MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), Inches(0.35), Inches(2.2), Inches(0.55)
-    )
-    badge.fill.solid()
-    badge.fill.fore_color.rgb = ORANGE
-    badge.line.fill.background()
+    # Badge (like website step-badge)
+    badge = _rounded(slide, Inches(0.6), Inches(0.3), Inches(2.4), Inches(0.5), AMBER)
     btf = badge.text_frame
-    btf.paragraphs[0].text = "HANDS-ON EXERCISE"
-    btf.paragraphs[0].font.size = Pt(14)
-    btf.paragraphs[0].font.color.rgb = WHITE
-    btf.paragraphs[0].font.bold = True
-    btf.paragraphs[0].font.name = "Calibri"
-    btf.paragraphs[0].alignment = PP_ALIGN.CENTER
     btf.vertical_anchor = MSO_ANCHOR.MIDDLE
-
-    tb = slide.shapes.add_textbox(Inches(3.3), Inches(0.35), Inches(9), Inches(0.8))
-    tf = tb.text_frame
-    p = tf.paragraphs[0]
-    p.text = title
-    p.font.size = Pt(30)
-    p.font.color.rgb = DARK_TEXT
+    p = btf.paragraphs[0]
+    p.text = "HANDS-ON EXERCISE"
+    p.font.size = Pt(13)
+    p.font.color.rgb = WHITE
     p.font.bold = True
-    p.font.name = "Calibri"
+    p.font.name = FONT_MONO
+    p.alignment = PP_ALIGN.CENTER
 
-    tb2 = slide.shapes.add_textbox(Inches(1.0), Inches(1.5), Inches(11), Inches(5.5))
-    tf2 = tb2.text_frame
-    tf2.word_wrap = True
-    for i, inst in enumerate(instructions):
-        p = tf2.paragraphs[0] if i == 0 else tf2.add_paragraph()
-        indent = 0
-        text = inst
-        while text.startswith("  "):
-            indent += 1
-            text = text[2:]
-        p.text = text
-        p.font.size = Pt(20) if indent == 0 else Pt(18)
-        p.font.color.rgb = DARK_TEXT
-        p.font.name = "Calibri"
-        p.space_after = Pt(6)
-        p.level = indent
+    _text(slide, Inches(3.3), Inches(0.3), Inches(9), Inches(0.6),
+          title, size=26, color=INK, bold=True)
+
+    # Instruction card with amber left border (callout style)
+    card = _rounded(slide, Inches(0.6), Inches(1.1), Inches(12), Inches(5.6),
+                    AMBER_LIGHT)
+    _rect(slide, Inches(0.6), Inches(1.1), Inches(0.04), Inches(5.6), AMBER)
+
+    _bullets(slide, Inches(0.9), Inches(1.25), Inches(11.4), Inches(5.3),
+             instructions, size=17, color=FG, spacing=5)
+
+    _copyright(slide)
     return slide
 
 
 def add_key_point_slide(prs, title, points):
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_bg(slide, DARK_BG)
+    """Dark indigo background with card rows — matches website keypoint boxes on dark."""
+    slide = _blank(prs)
+    _fill_bg(slide, INDIGO_DEEP)
 
-    tb = slide.shapes.add_textbox(Inches(0.8), Inches(0.5), Inches(11.5), Inches(1))
-    tf = tb.text_frame
-    p = tf.paragraphs[0]
-    p.text = title
-    p.font.size = Pt(34)
-    p.font.color.rgb = WHITE
-    p.font.bold = True
-    p.font.name = "Calibri"
+    # Simulated gradient panels
+    _rect(slide, Inches(4), Inches(0), Inches(5), SLIDE_H, INDIGO_MID)
+    _rect(slide, Inches(9), Inches(0), Inches(4.333), SLIDE_H, INDIGO_BRIGHT)
 
-    y = Inches(1.8)
+    _text(slide, Inches(0.8), Inches(0.4), Inches(11), Inches(0.7),
+          title, size=30, color=WHITE, bold=True)
+
+    y = Inches(1.4)
+    row_h = Inches(0.85)
+    gap = Inches(0.12)
     for point in points:
-        box = slide.shapes.add_shape(
-            MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.8), y, Inches(11.5), Inches(0.9)
-        )
-        box.fill.solid()
-        box.fill.fore_color.rgb = RGBColor(0x2A, 0x2A, 0x4A)
-        box.line.fill.background()
-        btf = box.text_frame
-        btf.margin_left = Inches(0.3)
-        btf.vertical_anchor = MSO_ANCHOR.MIDDLE
-        p = btf.paragraphs[0]
-        p.text = point
-        p.font.size = Pt(22)
-        p.font.color.rgb = WHITE
-        p.font.name = "Calibri"
-        y += Inches(1.05)
-    return slide
+        card = _rounded(slide, Inches(0.8), y, Inches(11.5), row_h,
+                        INDIGO_MID)
+        # Left accent dot (like website step badge)
+        dot = slide.shapes.add_shape(
+            MSO_SHAPE.OVAL, Inches(1.1), y + Inches(0.25), Inches(0.35), Inches(0.35))
+        dot.fill.solid()
+        dot.fill.fore_color.rgb = ACCENT
+        dot.line.fill.background()
+
+        _text(slide, Inches(1.7), y + Inches(0.05), Inches(10.3), row_h,
+              point, size=18, color=WHITE, anchor=MSO_ANCHOR.MIDDLE)
+        y += row_h + gap
+
+    _text(slide, Inches(0.8), Inches(7.0), Inches(11), Inches(0.4),
+          "\u00a9 2026 Martin J. Gallagher  |  GPL-3.0-or-later",
+          size=10, color=VIOLET, font=FONT_MONO)
 
 
 def add_section_divider(prs, section_title, section_desc=""):
-    slide = prs.slides.add_slide(prs.slide_layouts[6])
-    add_bg(slide, ACCENT_BLUE)
+    """Full-bleed indigo slide for section breaks — matches website hero."""
+    slide = _blank(prs)
+    _fill_bg(slide, INDIGO_MID)
 
-    tb = slide.shapes.add_textbox(Inches(1), Inches(2.5), Inches(11), Inches(2))
-    tf = tb.text_frame
-    tf.word_wrap = True
-    p = tf.paragraphs[0]
-    p.text = section_title
-    p.font.size = Pt(44)
-    p.font.color.rgb = WHITE
-    p.font.bold = True
-    p.font.name = "Calibri"
-    p.alignment = PP_ALIGN.CENTER
+    # Decorative ovals
+    c1 = slide.shapes.add_shape(MSO_SHAPE.OVAL, Inches(8), Inches(-2), Inches(6), Inches(6))
+    c1.fill.solid()
+    c1.fill.fore_color.rgb = INDIGO_BRIGHT
+    c1.fill.fore_color.brightness = 0.2
+    c1.line.fill.background()
+
+    _text(slide, Inches(1), Inches(2.5), Inches(11), Inches(2),
+          section_title, size=42, color=WHITE, bold=True, align=PP_ALIGN.CENTER)
 
     if section_desc:
-        tb2 = slide.shapes.add_textbox(Inches(2), Inches(4.8), Inches(9), Inches(1))
-        tf2 = tb2.text_frame
-        tf2.word_wrap = True
-        p2 = tf2.paragraphs[0]
-        p2.text = section_desc
-        p2.font.size = Pt(22)
-        p2.font.color.rgb = RGBColor(0xDD, 0xEE, 0xFF)
-        p2.font.name = "Calibri"
-        p2.alignment = PP_ALIGN.CENTER
+        _text(slide, Inches(2), Inches(4.6), Inches(9), Inches(1),
+              section_desc, size=20, color=RGBColor(0xC7, 0xD2, 0xFE),
+              align=PP_ALIGN.CENTER)
 
 
-# ============================================================
-# MODULE 1: Introduction to DOE
-# ============================================================
+# ═══════════════════════════════════════════════════════════
+# MODULE 1
+# ═══════════════════════════════════════════════════════════
+
 def build_module_1():
     prs = new_prs()
+
     add_title_slide(prs,
-        "Introduction to Design of Experiments",
-        "Why systematic experimentation beats trial-and-error\n\nDOE Helper Training Course",
+        "Introduction to\nDesign of Experiments",
+        "Why systematic experimentation beats trial-and-error\nDOE Helper Training Course",
         module_num=1)
 
     add_content_slide(prs, "What You Will Learn", [
@@ -420,9 +435,9 @@ def build_module_1():
 
     add_content_slide(prs, "What is Design of Experiments?", [
         "A systematic method for planning experiments",
-        "  Change multiple factors simultaneously",
-        "  Use statistical principles to extract maximum information",
-        "  Minimize the number of experimental runs needed",
+        ">> Change multiple factors simultaneously",
+        ">> Use statistical principles to extract maximum information",
+        ">> Minimise the number of experimental runs needed",
         "Pioneered by R.A. Fisher in the 1920s for agriculture",
         "Extended by Taguchi, Box, and others for industry",
         "Now applied to software, cloud, manufacturing, and beyond",
@@ -440,50 +455,50 @@ def build_module_1():
             "A web team ran 47 ad-hoc tests over 3 months",
             "Found: only 2 factors mattered",
             "A 2-factor full factorial needed just 4 runs",
-            "DOE could have saved 43 runs and 11 weeks",
+            "DOE saved 43 runs and 11 weeks",
         ],
-        left_title="The Problem",
-        right_title="Real-World Example"
+        left_title="THE PROBLEM",
+        right_title="REAL-WORLD EXAMPLE"
     )
 
     add_content_slide(prs, "The OVAT Trap", [
         "One-Variable-At-a-Time: change one factor, hold others constant",
         "Seems logical but has critical flaws:",
-        "  Misses interactions between factors entirely",
-        "  Requires more runs to learn the same amount",
-        "  Can converge on wrong optimum",
+        ">> Misses interactions between factors entirely",
+        ">> Requires more runs to learn the same amount",
+        ">> Can converge on the wrong optimum",
         "Example: tuning a web server",
-        "  OVAT: 3 factors x 3 levels = 9 runs, misses interactions",
-        "  Full factorial: 2^3 = 8 runs, captures all interactions",
+        ">> OVAT: 3 factors \u00d7 3 levels = 9 runs, misses interactions",
+        ">> Full factorial: 2\u00b3 = 8 runs, captures all interactions",
     ])
 
     add_content_slide(prs, "Core DOE Concepts", [
-        "Factor: a variable you control (e.g. temperature, cache size)",
-        "Level: specific value of a factor (e.g. low/high, 100/200/300)",
-        "Response: what you measure (e.g. throughput, yield, cost)",
-        "Main Effect: the impact of one factor on the response",
-        "Interaction: when the effect of one factor depends on another",
-        "Design Matrix: the table of all planned experimental runs",
-        "Randomisation: running experiments in random order to avoid bias",
+        "Factor \u2014 a variable you control (e.g. temperature, cache size)",
+        "Level \u2014 specific value of a factor (e.g. low/high, 100/200/300)",
+        "Response \u2014 what you measure (e.g. throughput, yield, cost)",
+        "Main Effect \u2014 the average impact of one factor on the response",
+        "Interaction \u2014 when the effect of one factor depends on another",
+        "Design Matrix \u2014 the table of all planned experimental runs",
+        "Randomisation \u2014 running in random order to avoid bias",
     ])
 
     add_content_slide(prs, "Effect Sparsity Principle", [
-        "In most systems, only a few factors have large effects",
+        "In most systems only a few factors have large effects",
         "Most interactions are negligible",
         "This is the \"Pareto of experimentation\"",
         "Screening designs exploit this: test many factors cheaply",
         "Then focus detailed experiments on the vital few",
-        "doe-helper supports this workflow: screen -> refine -> optimise",
+        "doe-helper supports this: screen \u2192 refine \u2192 optimise",
     ])
 
     add_content_slide(prs, "The DOE Workflow", [
-        "1. Define objectives: what do you want to learn or optimise?",
-        "2. Select factors and levels: what can you control?",
-        "3. Choose a design: how many runs can you afford?",
-        "4. Generate the design matrix and run experiments",
-        "5. Analyse results: which factors matter?",
-        "6. Interpret and act: confirm, refine, or optimise",
-        "doe-helper automates steps 3-6 and guides 1-2",
+        "1.  Define objectives \u2014 what do you want to learn or optimise?",
+        "2.  Select factors and levels \u2014 what can you control?",
+        "3.  Choose a design \u2014 how many runs can you afford?",
+        "4.  Generate the design matrix and run experiments",
+        "5.  Analyse results \u2014 which factors matter?",
+        "6.  Interpret and act \u2014 confirm, refine, or optimise",
+        "doe-helper automates steps 3\u20136 and guides 1\u20132",
     ])
 
     add_code_slide(prs, "Meet doe-helper", """
@@ -497,10 +512,10 @@ $ doe generate reactor/
   Runner script written to reactor/run.sh
 
 $ doe analyze reactor/
-  ANOVA table, Pareto chart, main-effects plots generated
+  ANOVA table, Pareto chart, main-effects plots
 
 $ doe optimize reactor/
-  Recommended settings: temperature=180, pressure=3.5
+  Recommended: temperature=180, pressure=3.5
 """, "doe-helper provides a complete CLI workflow from design to optimisation")
 
     add_key_point_slide(prs, "Key Takeaways", [
@@ -508,31 +523,34 @@ $ doe optimize reactor/
         "OVAT wastes runs and misses interactions",
         "Effect sparsity: most systems have only a few important factors",
         "doe-helper automates the entire DOE workflow via the CLI",
-        "The workflow: define -> design -> run -> analyse -> optimise",
+        "The workflow: define \u2192 design \u2192 run \u2192 analyse \u2192 optimise",
     ])
 
     add_exercise_slide(prs, "Exercise 1: Explore doe-helper", [
-        "1. Install doe-helper: pip install doehelper",
-        "2. Run: doe --help  and read the available commands",
-        "3. Run: doe init coffee_brewing --design full_factorial",
-        "4. Open coffee_brewing/config.json and examine the template",
-        "5. Discussion: identify the factors, levels, and responses",
+        "1. Install doe-helper:  pip install doehelper",
+        "2. Run:  doe --help   and read the available commands",
+        "3. Run:  doe init coffee_brewing --design full_factorial",
+        "4. Open  coffee_brewing/config.json  and examine the template",
+        "5. Identify the factors, levels, and responses",
         "",
-        "Bonus: Think of a problem in your own work where OVAT has been used.",
-        "How many factors and levels would a proper DOE need?",
+        "Bonus: Think of a problem in your own work where OVAT",
+        "has been used. How many factors and levels would a",
+        "proper DOE need?",
     ])
 
     prs.save("slides/Module_01_Introduction_to_DOE.pptx")
     print("  Module 1 saved")
 
 
-# ============================================================
-# MODULE 2: Getting Started with doe-helper
-# ============================================================
+# ═══════════════════════════════════════════════════════════
+# MODULE 2
+# ═══════════════════════════════════════════════════════════
+
 def build_module_2():
     prs = new_prs()
+
     add_title_slide(prs,
-        "Getting Started with doe-helper",
+        "Getting Started\nwith doe-helper",
         "Installation, configuration, and your first experiment",
         module_num=2)
 
@@ -556,19 +574,17 @@ $ doe --help
 $ doe --version
 doehelper 0.1.0
 
-# System requirements:
-#   Python 3.10+
-#   Works on Linux, macOS, Windows
-#   Dependencies: numpy, pandas, scipy, matplotlib, pyDOE3, Jinja2
+# Requirements: Python 3.10+
+# Works on Linux, macOS, Windows
+# Deps: numpy, pandas, scipy, matplotlib, pyDOE3, Jinja2
 """)
 
     add_code_slide(prs, "Creating Your First Experiment", """
 # Use a built-in template
 $ doe init my_experiment --design full_factorial
 
-# Or start from scratch: create config.json manually
-$ mkdir my_experiment
-$ cat > my_experiment/config.json << 'EOF'
+# Or create config.json manually
+$ mkdir my_experiment && cat > my_experiment/config.json << 'EOF'
 {
   "factors": {
     "temperature": {"low": 150, "high": 200, "units": "C"},
@@ -583,72 +599,66 @@ $ cat > my_experiment/config.json << 'EOF'
 EOF
 """)
 
-    add_content_slide(prs, "Factor Types", [
-        "Continuous: numeric range with low/high values",
-        "  Example: temperature (150-200), pressure (1.0-5.0)",
-        "Categorical: discrete named levels",
-        "  Example: material (\"steel\", \"aluminum\", \"titanium\")",
-        "Ordinal: ordered categories with inherent ranking",
-        "  Example: quality (\"low\", \"medium\", \"high\")",
-        "",
-        "Coded variables: factors are internally scaled to -1 / +1",
-        "  This ensures all effects are directly comparable",
-    ])
+    add_two_col_slide(prs, "Factor Types",
+        [
+            "Continuous: numeric range with low/high",
+            ">> temperature: 150\u2013200",
+            ">> pressure: 1.0\u20135.0",
+            "",
+            "Coded variables: factors are internally",
+            "scaled to \u22121 / +1 so all effects are",
+            "directly comparable",
+        ],
+        [
+            "Categorical: discrete named levels",
+            ">> material: steel, aluminum, titanium",
+            "",
+            "Ordinal: ordered categories",
+            ">> quality: low, medium, high",
+            "",
+            "Set \"type\" field in config.json",
+        ],
+        left_title="CONTINUOUS",
+        right_title="CATEGORICAL & ORDINAL"
+    )
 
     add_code_slide(prs, "Factor Configuration Examples", """
 "factors": {
-  "temperature": {
-    "low": 150, "high": 200, "units": "C"
-  },
-  "material": {
-    "type": "categorical",
-    "levels": ["steel", "aluminum", "titanium"]
-  },
-  "quality_grade": {
-    "type": "ordinal",
-    "levels": ["low", "medium", "high"]
-  }
+    "temperature": {
+        "low": 150, "high": 200, "units": "C"
+    },
+    "material": {
+        "type": "categorical",
+        "levels": ["steel", "aluminum", "titanium"]
+    },
+    "quality_grade": {
+        "type": "ordinal",
+        "levels": ["low", "medium", "high"]
+    }
 }
-""", "Continuous factors use low/high; categorical and ordinal use levels list")
+""", "Continuous factors use low/high; categorical and ordinal use a levels list")
 
     add_content_slide(prs, "Response Configuration", [
         "Each response has a name, units, and a target direction",
         "Target options:",
-        "  \"maximize\" - higher is better (yield, throughput)",
-        "  \"minimize\" - lower is better (cost, latency, defects)",
-        "  A specific numeric value - hit a target (pH = 7.0)",
+        ">> \"maximize\" \u2014 higher is better (yield, throughput)",
+        ">> \"minimize\" \u2014 lower is better (cost, latency, defects)",
+        ">> A specific number \u2014 hit a target (pH = 7.0)",
         "Multiple responses are supported for multi-objective optimisation",
-        "  doe-helper uses desirability functions to balance trade-offs",
+        ">> doe-helper uses desirability functions to balance trade-offs",
     ])
-
-    add_code_slide(prs, "Response Configuration Examples", """
-"responses": {
-  "yield": {
-    "units": "%",
-    "target": "maximize"
-  },
-  "cost": {
-    "units": "USD",
-    "target": "minimize"
-  },
-  "purity": {
-    "units": "%",
-    "target": 99.5
-  }
-}
-""")
 
     add_content_slide(prs, "Design Settings", [
-        "The \"design\" section controls how the experiment is structured:",
-        "  type: design type (full_factorial, ccd, box_behnken, etc.)",
-        "  randomize: true/false - randomise run order (default: true)",
-        "  replicates: number of times to repeat each run (default: 1)",
-        "  center_points: add center points for curvature detection",
-        "  blocks: number of blocks for blocking out nuisance variables",
-        "  resolution: for fractional factorials (III, IV, V)",
+        "The \"design\" section controls experiment structure:",
+        ">> type: design type (full_factorial, ccd, box_behnken, etc.)",
+        ">> randomize: true/false \u2014 randomise run order (default: true)",
+        ">> replicates: number of times to repeat each run",
+        ">> center_points: add center points for curvature detection",
+        ">> blocks: number of blocks for nuisance variables",
+        ">> resolution: for fractional factorials (III, IV, V)",
     ])
 
-    add_code_slide(prs, "Full config.json Example", """
+    add_code_slide(prs, "Complete config.json Example", """
 {
   "factors": {
     "temperature": {"low": 150, "high": 200, "units": "C"},
@@ -665,20 +675,20 @@ EOF
     "center_points": 3
   }
 }
-""", "This config produces a 2^3 = 8 runs + 3 center points = 11 total runs")
+""", "This config produces 2\u00b3 = 8 runs + 3 center points = 11 total runs")
 
     add_content_slide(prs, "Built-in Templates (doe init)", [
         "doe-helper includes 221 worked use-case templates",
         "Categories include:",
-        "  Cloud/DevOps: Kubernetes, CI/CD, database tuning",
-        "  Manufacturing: 3D printing, injection molding, chemical processes",
-        "  Food science: coffee brewing, bread baking, fermentation",
-        "  IoT/Electronics: sensor calibration, motor control",
-        "  Sports/Health: training programs, sleep optimisation",
+        ">> Cloud/DevOps: Kubernetes, CI/CD, database tuning",
+        ">> Manufacturing: 3D printing, injection molding, chemical processes",
+        ">> Food science: coffee brewing, bread baking, fermentation",
+        ">> IoT/Electronics: sensor calibration, motor control",
+        ">> Sports/Health: training programs, sleep optimisation",
         "Templates provide config.json + simulation scripts for practice",
     ])
 
-    add_code_slide(prs, "Using doe info", """
+    add_code_slide(prs, "Verifying with doe info", """
 $ doe info my_experiment/
 
 Design Summary
@@ -692,39 +702,40 @@ Design Evaluation
   D-efficiency:   100.0%
   A-efficiency:   100.0%
   G-efficiency:   100.0%
-""", "Use doe info to verify your design before running experiments")
+""", "Always run doe info to verify your design before running experiments")
 
     add_exercise_slide(prs, "Exercise 2: Build a Configuration", [
-        "Scenario: You're optimising a web application's performance.",
+        "Scenario: optimising a web application's performance.",
         "",
-        "1. Create a directory: mkdir webapp_perf",
+        "1. Create a directory:  mkdir webapp_perf",
         "2. Create config.json with these factors:",
-        "  cache_size: 64 to 512 (MB)",
-        "  thread_count: 4 to 32",
-        "  compression: categorical [\"none\", \"gzip\", \"brotli\"]",
-        "3. Add two responses:",
-        "  response_time_ms (minimize) and throughput_rps (maximize)",
-        "4. Set the design type to full_factorial",
-        "5. Run: doe info webapp_perf/  to verify your configuration",
-        "6. Run: doe generate webapp_perf/  to see the design matrix",
+        ">> cache_size: 64\u2013512 MB",
+        ">> thread_count: 4\u201332",
+        ">> compression: categorical [none, gzip, brotli]",
+        "3. Add responses: response_time_ms (min), throughput_rps (max)",
+        "4. Set design type to full_factorial",
+        "5. Run:  doe info webapp_perf/   to verify",
+        "6. Run:  doe generate webapp_perf/   to see the design matrix",
     ])
 
     prs.save("slides/Module_02_Getting_Started.pptx")
     print("  Module 2 saved")
 
 
-# ============================================================
-# MODULE 3: Full Factorial Designs
-# ============================================================
+# ═══════════════════════════════════════════════════════════
+# MODULE 3
+# ═══════════════════════════════════════════════════════════
+
 def build_module_3():
     prs = new_prs()
+
     add_title_slide(prs,
         "Full Factorial Designs",
         "Understanding and running complete two-level experiments",
         module_num=3)
 
     add_content_slide(prs, "Learning Objectives", [
-        "Understand full factorial (2^k) designs",
+        "Understand full factorial (2\u1d4f) designs",
         "Calculate the number of runs needed",
         "Interpret main effects and interactions",
         "Generate and run a full factorial with doe-helper",
@@ -734,46 +745,44 @@ def build_module_3():
 
     add_content_slide(prs, "What is a Full Factorial Design?", [
         "Tests every combination of factor levels",
-        "For k factors at 2 levels: 2^k runs",
-        "  2 factors: 4 runs",
-        "  3 factors: 8 runs",
-        "  4 factors: 16 runs",
-        "  5 factors: 32 runs",
+        "For k factors at 2 levels: 2\u1d4f runs",
+        ">> 2 factors: 4 runs   |   3 factors: 8 runs",
+        ">> 4 factors: 16 runs  |   5 factors: 32 runs",
         "Estimates ALL main effects and ALL interactions",
         "The \"gold standard\" of experimental designs",
-        "Practical limit: ~5-6 factors (32-64 runs)",
+        "Practical limit: \u22645\u20136 factors (32\u201364 runs)",
     ])
 
-    add_two_col_slide(prs, "2^2 Full Factorial Example",
+    add_two_col_slide(prs, "2\u00b2 Full Factorial Example",
         [
             "Factor A: Temperature (150, 200)",
             "Factor B: Pressure (1, 5)",
             "",
-            "Run 1: A=low,  B=low   -> 62%",
-            "Run 2: A=high, B=low   -> 74%",
-            "Run 3: A=low,  B=high  -> 68%",
-            "Run 4: A=high, B=high  -> 91%",
+            "Run 1: A=low,  B=low   \u2192 62%",
+            "Run 2: A=high, B=low   \u2192 74%",
+            "Run 3: A=low,  B=high  \u2192 68%",
+            "Run 4: A=high, B=high  \u2192 91%",
         ],
         [
-            "Main effect A = [(74+91)-(62+68)]/2",
-            "  = 17.5% (Temperature matters)",
+            "Main effect A:",
+            "  [(74+91)\u2212(62+68)] / 2 = 17.5%",
             "",
-            "Main effect B = [(68+91)-(62+74)]/2",
-            "  = 11.5% (Pressure matters)",
+            "Main effect B:",
+            "  [(68+91)\u2212(62+74)] / 2 = 11.5%",
             "",
-            "Interaction AB = [(62+91)-(74+68)]/2",
-            "  = 5.5% (Synergy!)",
+            "Interaction AB:",
+            "  [(62+91)\u2212(74+68)] / 2 = 5.5%",
         ],
-        left_title="Design Matrix & Results",
-        right_title="Effect Calculations"
+        left_title="DESIGN MATRIX & RESULTS",
+        right_title="EFFECT CALCULATIONS"
     )
 
     add_content_slide(prs, "Why Interactions Matter", [
         "An interaction means the effect of one factor depends on another",
         "OVAT cannot detect interactions at all",
         "Example: Temperature alone increases yield by 17.5%",
-        "  But at high pressure, temperature boost is even larger",
-        "  The combination is more powerful than either alone",
+        ">> But at high pressure, the temperature boost is even larger",
+        ">> The combination is more powerful than either alone",
         "Interactions can be antagonistic too (cancel each other out)",
         "Full factorials capture all of these relationships",
     ])
@@ -794,49 +803,38 @@ $ cat > seal_strength/config.json << 'EOF'
 }
 EOF
 
-# 2. Generate the design matrix
+# 2. Generate, run, analyse
 $ doe generate seal_strength/
-
-# 3. Run experiments and record results
 $ doe record seal_strength/
-
-# 4. Analyse
 $ doe analyze seal_strength/
 """)
 
     add_content_slide(prs, "Reading the ANOVA Table", [
         "ANOVA = Analysis of Variance",
-        "Key columns:",
-        "  Source: factor or interaction name",
-        "  SS: Sum of Squares (variability explained)",
-        "  DF: Degrees of Freedom",
-        "  MS: Mean Square (SS / DF)",
-        "  F-value: test statistic (higher = stronger effect)",
-        "  p-value: probability effect is due to chance",
+        "Source \u2014 factor or interaction name",
+        "SS \u2014 Sum of Squares (variability explained)",
+        "DF \u2014 Degrees of Freedom",
+        "MS \u2014 Mean Square (SS / DF)",
+        "F-value \u2014 test statistic (higher = stronger effect)",
+        "p-value \u2014 probability effect is due to chance",
         "Rule of thumb: p < 0.05 means the factor is significant",
     ])
 
-    add_content_slide(prs, "Reading the Pareto Chart", [
-        "Bar chart of absolute effect magnitudes, sorted largest to smallest",
-        "Dashed reference line shows significance threshold",
-        "Bars above the line are statistically significant effects",
-        "Quickly identifies the \"vital few\" factors",
-        "doe-helper generates this automatically with doe analyze",
-    ])
-
-    add_content_slide(prs, "Center Points", [
-        "Extra runs at the midpoint of all factors",
-        "Purpose: detect curvature (non-linear effects)",
-        "If center-point average differs from predicted linear value:",
-        "  The true relationship is curved",
-        "  You may need a response surface design",
-        "Cheap insurance: 3-5 center points cost little",
-        "doe-helper: set center_points in config.json",
+    add_content_slide(prs, "Pareto Chart & Center Points", [
+        "Pareto chart: bar chart of absolute effect magnitudes",
+        ">> Sorted largest to smallest",
+        ">> Dashed line shows significance threshold",
+        ">> Bars above the line are statistically significant",
+        ">> Quickly identifies the \"vital few\" factors",
+        "",
+        "Center points: extra runs at the midpoint of all factors",
+        ">> Detect curvature (non-linear effects)",
+        ">> Cheap insurance: 3\u20135 center points cost little",
     ])
 
     add_key_point_slide(prs, "Key Takeaways", [
         "Full factorial = every combination, captures all effects",
-        "2^k runs: practical for up to ~5-6 factors",
+        "2\u1d4f runs: practical for up to ~5\u20136 factors",
         "Interactions are why DOE beats OVAT",
         "Center points detect curvature cheaply",
         "doe-helper automates generation, recording, and analysis",
@@ -844,29 +842,30 @@ $ doe analyze seal_strength/
 
     add_exercise_slide(prs, "Exercise 3: Seal Strength Experiment", [
         "1. Create the seal_strength experiment from the slide",
-        "  mkdir seal_strength && create config.json as shown",
-        "2. Run: doe generate seal_strength/",
-        "3. Run: doe info seal_strength/  -- how many runs?",
-        "4. Use the simulation script:  bash seal_strength/run.sh",
-        "5. Run: doe analyze seal_strength/",
+        "2. Run:  doe generate seal_strength/",
+        "3. Run:  doe info seal_strength/  \u2014 how many runs?",
+        "4. Run the simulation:  bash seal_strength/run.sh",
+        "5. Run:  doe analyze seal_strength/",
         "6. Answer these questions:",
-        "  Which factor has the largest main effect?",
-        "  Are there any significant interactions?",
-        "  Is there evidence of curvature from center points?",
-        "7. Run: doe report seal_strength/  -- open the HTML report",
+        ">> Which factor has the largest main effect?",
+        ">> Are there significant interactions?",
+        ">> Is there evidence of curvature from center points?",
+        "7. Run:  doe report seal_strength/  and open the HTML report",
     ])
 
     prs.save("slides/Module_03_Full_Factorial.pptx")
     print("  Module 3 saved")
 
 
-# ============================================================
-# MODULE 4: Fractional Factorial & Screening
-# ============================================================
+# ═══════════════════════════════════════════════════════════
+# MODULE 4
+# ═══════════════════════════════════════════════════════════
+
 def build_module_4():
     prs = new_prs()
+
     add_title_slide(prs,
-        "Fractional Factorial & Screening Designs",
+        "Fractional Factorial &\nScreening Designs",
         "Testing many factors efficiently when resources are limited",
         module_num=4)
 
@@ -883,20 +882,20 @@ def build_module_4():
         "Full factorial with 7 factors = 128 runs",
         "With 10 factors = 1,024 runs",
         "With 15 factors = 32,768 runs!",
-        "In practice, many experiments start with 6-20 factors",
+        "In practice, experiments often start with 6\u201320 factors",
         "Effect sparsity says most factors won't matter",
         "Solution: run a fraction of the full factorial",
     ])
 
     add_content_slide(prs, "Fractional Factorial Designs", [
-        "Run 2^(k-p) instead of 2^k runs",
-        "  2^(7-4) = 8 runs instead of 128 for 7 factors",
-        "  2^(6-2) = 16 runs instead of 64 for 6 factors",
+        "Run 2\u1d4f\u207b\u1d56 instead of 2\u1d4f runs",
+        ">> 2\u2077\u207b\u2074 = 8 runs instead of 128 for 7 factors",
+        ">> 2\u2076\u207b\u00b2 = 16 runs instead of 64 for 6 factors",
         "Trade-off: some effects become aliased (confounded)",
-        "Resolution tells you what is confounded with what:",
-        "  Resolution III: main effects aliased with 2-factor interactions",
-        "  Resolution IV: main effects clear, 2FI aliased with each other",
-        "  Resolution V: main effects and 2FI all clear",
+        "Resolution tells you what is confounded:",
+        ">> Res III: main effects aliased with 2-factor interactions",
+        ">> Res IV: main effects clear, 2FI aliased with each other",
+        ">> Res V: main effects and 2FI all clear",
     ])
 
     add_code_slide(prs, "Fractional Factorial with doe-helper", """
@@ -916,103 +915,55 @@ def build_module_4():
   "design": {"type": "fractional_factorial"}
 }
 
-# doe-helper automatically selects the appropriate resolution
-$ doe generate screening_exp/
-$ doe info screening_exp/  # shows aliasing structure
+$ doe generate screening/
+$ doe info screening/       # shows aliasing structure
 """)
 
-    add_content_slide(prs, "Plackett-Burman Designs", [
-        "Resolution III screening designs",
-        "Run counts in multiples of 4: 12, 20, 24, 28, 36...",
-        "Screen up to N-1 factors in N runs",
-        "  12 runs -> up to 11 factors",
-        "  20 runs -> up to 19 factors",
-        "Very efficient for identifying the vital few factors",
-        "Main effects are confounded with 2-factor interactions",
-        "Use: initial screening when you have many candidate factors",
-    ])
-
-    add_code_slide(prs, "Plackett-Burman with doe-helper", """
-{
-  "factors": {
-    "cache_ttl":      {"low": 60,   "high": 3600,  "units": "sec"},
-    "max_connections": {"low": 10,   "high": 100},
-    "thread_pool":    {"low": 4,    "high": 64},
-    "buffer_size":    {"low": 1024, "high": 65536, "units": "bytes"},
-    "retry_count":    {"low": 0,    "high": 5},
-    "timeout":        {"low": 1,    "high": 30,    "units": "sec"},
-    "batch_size":     {"low": 10,   "high": 1000}
-  },
-  "responses": {
-    "latency_p99": {"units": "ms", "target": "minimize"}
-  },
-  "design": {"type": "plackett_burman"}
-}
-
-# Only 12 runs to screen 7 factors!
-$ doe generate api_screening/
-""")
-
-    add_content_slide(prs, "Definitive Screening Designs", [
-        "Modern alternative to Plackett-Burman (Jones & Nachtsheim, 2011)",
-        "Three-level designs: estimate some quadratic effects",
-        "2k+1 runs for k continuous factors",
-        "Advantages over Plackett-Burman:",
-        "  Main effects not aliased with two-factor interactions",
-        "  Can detect curvature without extra runs",
-        "  Supported for 3+ continuous factors",
-        "doe-helper: set \"type\": \"definitive_screening\"",
-    ])
-
-    add_content_slide(prs, "Choosing a Screening Design", [
-        "Plackett-Burman: maximum economy, many factors, need follow-up",
-        "Definitive Screening: slightly more runs, cleaner estimates",
-        "Fractional Factorial: when you need specific resolution",
-        "",
-        "Decision guide:",
-        "  > 6 factors, tight budget -> Plackett-Burman or DSD",
-        "  4-6 factors, moderate budget -> Fractional Factorial (Res IV+)",
-        "  <= 5 factors, can afford it -> Full Factorial",
-        "doe-helper handles the design selection automatically",
-    ])
-
-    add_two_col_slide(prs, "The Screening Workflow",
+    add_two_col_slide(prs, "Plackett-Burman vs. Definitive Screening",
         [
-            "Phase 1: Screen",
-            "  Run PB or DSD with all candidate factors",
-            "  Identify 3-5 significant factors",
-            "  Drop non-significant factors",
-            "",
-            "Phase 2: Characterise",
-            "  Full factorial on surviving factors",
-            "  Estimate all interactions",
-            "  Check for curvature",
+            "Plackett-Burman (PB)",
+            "Run counts: multiples of 4 (12, 20, 24\u2026)",
+            "Screen up to N\u22121 factors in N runs",
+            "Resolution III",
+            "Main effects aliased with 2FIs",
+            "No curvature detection",
+            "Best for: initial rough screening",
         ],
         [
-            "Phase 3: Optimise",
-            "  Response surface design (CCD, BBD)",
-            "  Model the response surface",
-            "  Find the optimum settings",
-            "",
-            "doe-helper supports all phases:",
-            "  doe generate -> doe analyze",
-            "  doe augment for fold-overs",
-            "  doe optimize for final settings",
+            "Definitive Screening (DSD)",
+            "2k+1 runs for k factors",
+            "Three-level design (low/mid/high)",
+            "Main effects NOT aliased with 2FIs",
+            "Can detect curvature",
+            "Modern best practice (Jones 2011)",
+            "Best for: cleaner screening",
         ],
-        left_title="Screen & Characterise",
-        right_title="Optimise"
+        left_title="PLACKETT-BURMAN",
+        right_title="DEFINITIVE SCREENING"
     )
 
+    add_content_slide(prs, "The Screening Workflow", [
+        "Phase 1: Screen",
+        ">> Run PB or DSD with all candidate factors",
+        ">> Identify 3\u20135 significant factors, drop the rest",
+        "Phase 2: Characterise",
+        ">> Full factorial on surviving factors",
+        ">> Estimate all interactions, check for curvature",
+        "Phase 3: Optimise",
+        ">> Response surface design (CCD, Box-Behnken)",
+        ">> doe optimize for final settings",
+    ])
+
     add_code_slide(prs, "Fold-Over with doe augment", """
-# After screening, if you need to de-alias effects:
+# After screening, de-alias confounded effects:
 $ doe augment api_screening/ --method fold-over
 
-# This mirrors the original design to break aliases
-# Doubles the run count but separates confounded effects
+# Mirrors the original design to break aliases
+# Doubles run count but separates confounded effects
 
 # Other augmentation methods:
 $ doe augment experiment/ --method center-points --count 5
-$ doe augment experiment/ --method star-points  # for CCD
+$ doe augment experiment/ --method star-points
 """, "doe augment extends an existing design without starting over")
 
     add_key_point_slide(prs, "Key Takeaways", [
@@ -1020,41 +971,42 @@ $ doe augment experiment/ --method star-points  # for CCD
         "Resolution tells you what's confounded with what",
         "Plackett-Burman: maximum screening efficiency",
         "Definitive Screening: modern, cleaner main-effect estimates",
-        "doe-helper automates design selection and fold-overs",
+        "doe augment extends designs with fold-overs and star points",
     ])
 
     add_exercise_slide(prs, "Exercise 4: Screening a Microservice", [
         "Scenario: 8 factors that might affect API latency.",
         "",
-        "1. Create config.json with 8 continuous factors of your choice",
-        "  (e.g. connection_pool, timeout, retries, batch_size, ...)",
+        "1. Create config.json with 8 continuous factors",
         "2. Set design type to \"plackett_burman\"",
-        "3. Run: doe generate microservice/",
-        "  How many runs does the design require?",
-        "4. Run: doe info microservice/",
-        "5. Compare: change design type to \"definitive_screening\"",
-        "  How many runs now? What's different?",
-        "6. Run the simulation and analyse results",
-        "7. Which factors appear significant? Plan a follow-up design.",
+        "3. Run:  doe generate microservice/",
+        ">> How many runs does the design require?",
+        "4. Compare: change to \"definitive_screening\"",
+        ">> How many runs now? What's different?",
+        "5. Run the simulation and analyse results",
+        "6. Which factors appear significant?",
+        "7. Plan a follow-up design with the significant factors",
     ])
 
     prs.save("slides/Module_04_Screening_Designs.pptx")
     print("  Module 4 saved")
 
 
-# ============================================================
-# MODULE 5: Response Surface Designs
-# ============================================================
+# ═══════════════════════════════════════════════════════════
+# MODULE 5
+# ═══════════════════════════════════════════════════════════
+
 def build_module_5():
     prs = new_prs()
+
     add_title_slide(prs,
-        "Response Surface Designs",
+        "Response Surface\nDesigns",
         "Modeling curved relationships and finding optimal settings",
         module_num=5)
 
     add_content_slide(prs, "Learning Objectives", [
         "Understand when you need response surface methodology (RSM)",
-        "Learn Central Composite Design (CCD) and Box-Behnken (BBD)",
+        "Learn Central Composite Design (CCD) and Box-Behnken",
         "Use Latin Hypercube Sampling for space-filling",
         "Generate RSM designs with doe-helper",
         "Interpret 3D surface plots and contour plots",
@@ -1062,34 +1014,42 @@ def build_module_5():
     ])
 
     add_content_slide(prs, "When to Move Beyond Screening", [
-        "Screening identified the vital few factors (typically 2-4)",
+        "Screening identified the vital few factors (typically 2\u20134)",
         "Center points showed evidence of curvature",
         "You need to find the optimum, not just know what matters",
-        "Response Surface Methodology (RSM) fits a quadratic model:",
-        "  y = b0 + b1*x1 + b2*x2 + b12*x1*x2 + b11*x1^2 + b22*x2^2",
+        "RSM fits a quadratic model:",
+        ">> y = b\u2080 + b\u2081x\u2081 + b\u2082x\u2082 + b\u2081\u2082x\u2081x\u2082 + b\u2081\u2081x\u2081\u00b2 + b\u2082\u2082x\u2082\u00b2",
         "This captures curves, ridges, saddle points, and optima",
     ])
 
-    add_content_slide(prs, "Central Composite Design (CCD)", [
-        "The most popular RSM design",
-        "Three components:",
-        "  Factorial points: 2^k corner points",
-        "  Star (axial) points: 2k points along each axis",
-        "  Center points: 3-6 replicates at the center",
-        "For 3 factors: 8 + 6 + 6 = 20 runs",
-        "Can be run sequentially: factorial first, then augment with star points",
-        "Star point distance (alpha) controls rotatability",
-    ])
-
-    add_content_slide(prs, "Box-Behnken Design", [
-        "Alternative to CCD -- fewer runs for 3+ factors",
-        "Does not include corner points (extreme combinations)",
-        "Good when extremes are costly or dangerous",
-        "For 3 factors: 15 runs (vs. 20 for CCD)",
-        "For 4 factors: 27 runs (vs. 30 for CCD)",
-        "Slightly less information than CCD but often sufficient",
-        "doe-helper: set \"type\": \"box_behnken\"",
-    ])
+    add_two_col_slide(prs, "CCD vs. Box-Behnken",
+        [
+            "Central Composite Design (CCD)",
+            "",
+            "Three components:",
+            "  \u2022 2\u1d4f factorial corner points",
+            "  \u2022 2k star (axial) points",
+            "  \u2022 3\u20136 center point replicates",
+            "",
+            "3 factors: 8+6+6 = 20 runs",
+            "Can be built sequentially",
+            "Includes extreme corners",
+        ],
+        [
+            "Box-Behnken Design (BBD)",
+            "",
+            "Does NOT include corner points",
+            "Good when extremes are costly",
+            "or dangerous",
+            "",
+            "3 factors: 15 runs (vs. 20 CCD)",
+            "4 factors: 27 runs (vs. 30 CCD)",
+            "Slightly less information than CCD",
+            "but often sufficient",
+        ],
+        left_title="CCD",
+        right_title="BOX-BEHNKEN"
+    )
 
     add_code_slide(prs, "CCD with doe-helper", """
 {
@@ -1102,40 +1062,28 @@ def build_module_5():
     "yield":  {"units": "%", "target": "maximize"},
     "purity": {"units": "%", "target": "maximize"}
   },
-  "design": {
-    "type": "ccd",
-    "center_points": 6
-  }
+  "design": {"type": "ccd", "center_points": 6}
 }
 
 $ doe generate reactor_rsm/
 $ doe info reactor_rsm/
-  Type: ccd | Runs: 20 | Factors: 3
+  Type: ccd  |  Runs: 20  |  Factors: 3
 """)
 
-    add_content_slide(prs, "Latin Hypercube Sampling (LHS)", [
-        "Space-filling design: samples spread evenly across the space",
-        "Not model-based -- does not assume a specific model form",
-        "Good for computer experiments and simulations",
-        "User specifies the number of runs",
-        "Each factor divided into N equal intervals, one sample per interval",
-        "Complements DOE when the response surface is unknown",
-        "doe-helper: set \"type\": \"latin_hypercube\", \"runs\": N",
-    ])
-
-    add_content_slide(prs, "Interpreting Surface Plots", [
-        "3D surface plots show response as a function of two factors",
-        "Contour plots show the same information as a 2D map",
-        "Look for:",
-        "  Peaks/valleys: where the optimum lies",
-        "  Ridges: elongated regions of near-optimal response",
-        "  Saddle points: optimum in one direction, pessimum in another",
-        "doe-helper generates these automatically in reports",
-        "  doe report experiment/ produces an interactive HTML report",
+    add_content_slide(prs, "Latin Hypercube Sampling & Design Selection", [
+        "LHS: space-filling design, not model-based",
+        ">> Samples spread evenly across the entire factor space",
+        ">> Good for computer experiments and simulations",
+        ">> doe-helper: \"type\": \"latin_hypercube\", \"runs\": N",
+        "",
+        "Design selection guide:",
+        ">> 2\u20133 factors, need optimum \u2192 CCD or Box-Behnken",
+        ">> Avoid extreme corners \u2192 Box-Behnken",
+        ">> Unknown model, simulation \u2192 Latin Hypercube",
+        ">> Constrained factor space \u2192 D-Optimal",
     ])
 
     add_code_slide(prs, "Optimization with doe-helper", """
-# After recording results and running analysis:
 $ doe optimize reactor_rsm/
 
 Optimization Results
@@ -1154,23 +1102,13 @@ Optimization Results
 """, "doe optimize uses scipy.optimize with multi-start for global search")
 
     add_content_slide(prs, "Steepest Ascent / Descent", [
-        "Sequential experimentation strategy",
-        "Start with a factorial/screening design near current settings",
-        "Fit a linear model to identify the steepest ascent direction",
-        "Run experiments along this path until response stops improving",
-        "Then run a new RSM design at the plateau",
+        "Sequential experimentation strategy:",
+        ">> Start with factorial near current operating settings",
+        ">> Fit a linear model to identify the steepest ascent direction",
+        ">> Run experiments along this path until response plateaus",
+        ">> Run a new RSM design at the plateau",
         "doe-helper computes the steepest ascent path automatically",
         "Efficient when you're far from the optimum",
-    ])
-
-    add_content_slide(prs, "Design Type Selection Guide", [
-        "2-3 factors, need optimum -> CCD or Box-Behnken",
-        "3-4 factors, avoid extremes -> Box-Behnken",
-        "Unknown model, computer sim -> Latin Hypercube",
-        "Augmenting a factorial -> add star points (doe augment)",
-        "Mixture problems -> Simplex-Lattice or Simplex-Centroid",
-        "Constrained factor space -> D-Optimal",
-        "doe-helper supports all 11 design types",
     ])
 
     add_key_point_slide(prs, "Key Takeaways", [
@@ -1178,34 +1116,35 @@ Optimization Results
         "CCD is the workhorse; Box-Behnken avoids extremes",
         "LHS for space-filling when the model is unknown",
         "doe optimize uses L-BFGS-B with multi-start",
-        "Use steepest ascent when far from the optimum",
+        "Steepest ascent helps when you're far from the optimum",
     ])
 
     add_exercise_slide(prs, "Exercise 5: Response Surface Optimisation", [
-        "1. Start from the reactor_optimization use case:",
-        "  doe init reactor_optimization --design ccd",
-        "2. Run: doe generate reactor_optimization/",
-        "3. Examine the design matrix: how many runs? What's the structure?",
-        "4. Run the simulation: bash reactor_optimization/run.sh",
-        "5. Run: doe analyze reactor_optimization/",
-        "  Look at the response surface plots",
-        "6. Run: doe optimize reactor_optimization/",
-        "  What are the recommended optimal settings?",
-        "7. Now try Box-Behnken: change type to \"box_behnken\" and repeat",
-        "  Compare the run count and optimal settings",
+        "1. Create a reactor experiment with 3 factors, type \"ccd\"",
+        "2. Run:  doe generate reactor_rsm/",
+        ">> How many runs? What's the structure?",
+        "3. Run the simulation:  bash reactor_rsm/run.sh",
+        "4. Run:  doe analyze reactor_rsm/",
+        ">> Look at the response surface plots",
+        "5. Run:  doe optimize reactor_rsm/",
+        ">> What are the recommended optimal settings?",
+        "6. Try Box-Behnken: change type, repeat",
+        ">> Compare run count and optimal settings",
     ])
 
     prs.save("slides/Module_05_Response_Surface.pptx")
     print("  Module 5 saved")
 
 
-# ============================================================
-# MODULE 6: Analysis & Interpretation
-# ============================================================
+# ═══════════════════════════════════════════════════════════
+# MODULE 6
+# ═══════════════════════════════════════════════════════════
+
 def build_module_6():
     prs = new_prs()
+
     add_title_slide(prs,
-        "Analysis and Interpretation",
+        "Analysis and\nInterpretation",
         "Turning experimental data into actionable insights",
         module_num=6)
 
@@ -1220,100 +1159,90 @@ def build_module_6():
 
     add_content_slide(prs, "The doe analyze Output", [
         "doe analyze produces a complete analysis package:",
-        "  ANOVA table with F-tests and p-values",
-        "  Effect estimates with confidence intervals",
-        "  Pareto chart of effect magnitudes",
-        "  Main effects plots",
-        "  Interaction plots",
-        "  Normal probability plot of effects",
-        "  Residual diagnostics (4-panel plot)",
-        "  Model summary (R-squared, adjusted R-squared)",
+        ">> ANOVA table with F-tests and p-values",
+        ">> Effect estimates with 95% confidence intervals",
+        ">> Pareto chart of effect magnitudes",
+        ">> Main effects plots and interaction plots",
+        ">> Normal probability plot of effects",
+        ">> Residual diagnostics (4-panel plot)",
+        ">> Model summary (R\u00b2, adjusted R\u00b2, predicted R\u00b2)",
     ])
 
     add_content_slide(prs, "ANOVA Table Deep Dive", [
-        "Source: name of the factor, interaction, or error term",
-        "Sum of Squares (SS): total variability explained by this source",
-        "  % Contribution = SS_source / SS_total x 100",
-        "Degrees of Freedom (DF): parameters used",
-        "Mean Square (MS): SS / DF",
-        "F-value: MS_source / MS_error (signal-to-noise ratio)",
-        "p-value: probability of seeing this F by chance",
-        "  p < 0.05: significant | p < 0.01: highly significant",
+        "SS (Sum of Squares) \u2014 total variability explained",
+        ">> % Contribution = SS_source / SS_total \u00d7 100",
+        "DF (Degrees of Freedom) \u2014 parameters used",
+        "MS (Mean Square) \u2014 SS / DF",
+        "F-value \u2014 MS_source / MS_error (signal-to-noise ratio)",
+        "p-value \u2014 probability of seeing this F by chance",
+        ">> p < 0.05: significant   |   p < 0.01: highly significant",
     ])
 
-    add_content_slide(prs, "Pareto Chart of Effects", [
-        "Horizontal bar chart, absolute effects sorted large to small",
-        "Dashed line = significance threshold",
-        "  For replicated designs: based on pooled error estimate",
-        "  For unreplicated: uses Lenth's pseudo-standard-error",
-        "Focus on bars that cross the threshold",
-        "The \"vital few\" factors are immediately obvious",
-        "doe-helper labels each bar with the factor/interaction name",
-    ])
-
-    add_content_slide(prs, "Main Effects and Interaction Plots", [
-        "Main Effects Plot:",
-        "  Shows average response at each level of each factor",
-        "  Steep slope = large effect; flat = no effect",
-        "  Quick visual scan of which factors matter",
-        "",
-        "Interaction Plot:",
-        "  Shows response for each combination of two factors",
-        "  Parallel lines = no interaction",
-        "  Non-parallel (crossing) lines = interaction present",
-    ])
+    add_two_col_slide(prs, "Main Effects & Interaction Plots",
+        [
+            "Main Effects Plot:",
+            "Shows average response at each level",
+            "Steep slope = large effect",
+            "Flat line = no effect",
+            "Quick visual scan of what matters",
+        ],
+        [
+            "Interaction Plot:",
+            "Response for each factor combination",
+            "Parallel lines = no interaction",
+            "Non-parallel / crossing = interaction",
+            "OVAT misses these completely",
+        ],
+        left_title="MAIN EFFECTS",
+        right_title="INTERACTIONS"
+    )
 
     add_content_slide(prs, "Normal Probability Plot of Effects", [
-        "Plots effect estimates against expected normal quantiles",
+        "Plots effect estimates vs. expected normal quantiles",
         "Inactive effects fall on a straight line through zero",
         "Active effects deviate from the line",
         "Particularly useful for unreplicated designs",
-        "  No error estimate available -> use this visual method",
+        ">> No error estimate available \u2192 use this visual method",
         "doe-helper generates both normal and half-normal plots",
     ])
 
-    add_content_slide(prs, "Residual Diagnostics", [
-        "Residuals = observed - predicted values",
-        "Four-panel diagnostic plot from doe analyze:",
-        "  1. Residuals vs. Fitted: check for patterns (should be random)",
-        "  2. Normal Q-Q plot: residuals should follow a normal distribution",
-        "  3. Residuals vs. Run order: check for time trends",
-        "  4. Residuals histogram: should be roughly bell-shaped",
-        "Patterns in residuals signal model problems:",
-        "  Funnel shape -> non-constant variance (transform response)",
-        "  Curve -> missing quadratic terms (need RSM)",
+    add_content_slide(prs, "Residual Diagnostics (4-Panel Plot)", [
+        "1. Residuals vs. Fitted \u2014 check for patterns (should be random)",
+        ">> Funnel shape \u2192 non-constant variance (transform response)",
+        ">> Curve \u2192 missing quadratic terms (need RSM)",
+        "2. Normal Q-Q \u2014 residuals should follow normal distribution",
+        "3. Residuals vs. Run Order \u2014 check for time trends",
+        "4. Residuals Histogram \u2014 should be roughly bell-shaped",
+        "Patterns in residuals signal model problems",
     ])
 
     add_content_slide(prs, "Model Adequacy Statistics", [
-        "R-squared: fraction of variability explained (0 to 1)",
-        "  R^2 > 0.9 is generally good",
-        "Adjusted R-squared: penalised for number of terms",
-        "  Should be close to R^2 (large gap = overfitting)",
-        "Predicted R-squared (PRESS-based): cross-validation metric",
-        "  Should agree with Adj R^2 within ~0.2",
-        "Lack-of-Fit test: is the model adequate?",
-        "  Significant LOF -> model is missing important terms",
+        "R\u00b2 \u2014 fraction of variability explained (R\u00b2 > 0.9 is good)",
+        "Adjusted R\u00b2 \u2014 penalised for number of terms",
+        ">> Should be close to R\u00b2 (big gap = overfitting)",
+        "Predicted R\u00b2 (PRESS) \u2014 cross-validation metric",
+        ">> Should agree with Adj R\u00b2 within ~0.2",
+        "Lack-of-Fit test \u2014 is the model adequate?",
+        ">> Significant LOF \u2192 model is missing important terms",
     ])
 
     add_code_slide(prs, "doe analyze in Practice", """
 $ doe analyze reactor_rsm/
 
 ANOVA Table
-  Source        SS       DF    MS       F       p-value   Sig
-  temperature   1240.5   1    1240.5   45.2    0.0001    ***
-  pressure       890.3   1     890.3   32.4    0.0005    ***
-  catalyst       45.2    1      45.2    1.6    0.2345
-  temp*press     320.1   1     320.1   11.7    0.0089    **
-  temp^2         156.7   1     156.7    5.7    0.0412    *
-  ...
+  Source        SS       DF    MS       F       p-value  Sig
+  temperature   1240.5   1    1240.5   45.2    0.0001   ***
+  pressure       890.3   1     890.3   32.4    0.0005   ***
+  catalyst        45.2   1      45.2    1.6    0.2345
+  temp*press     320.1   1     320.1   11.7    0.0089   **
+  temp^2         156.7   1     156.7    5.7    0.0412   *
 
 Model: R^2 = 0.967   Adj R^2 = 0.945   Pred R^2 = 0.912
 """)
 
     add_code_slide(prs, "Generating HTML Reports", """
 $ doe report reactor_rsm/
-
-Report generated: reactor_rsm/report.html
+  Report generated: reactor_rsm/report.html
 
 # The report includes:
 #   - Executive summary with key findings
@@ -1323,45 +1252,44 @@ Report generated: reactor_rsm/report.html
 #   - Residual diagnostics
 #   - Response surface plots (for RSM designs)
 #   - Optimal settings (if doe optimize was run)
-#   - Self-contained single HTML file -- easy to share
+#   - Self-contained single HTML file (easy to share)
 """)
 
     add_key_point_slide(prs, "Key Takeaways", [
         "doe analyze automates the entire analysis pipeline",
         "Pareto chart: quick visual ID of significant factors",
         "Always check residual plots for model adequacy",
-        "R^2, Adj-R^2, and Pred-R^2 should be close and high",
+        "R\u00b2, Adj-R\u00b2, and Pred-R\u00b2 should be close and high",
         "doe report creates shareable HTML reports with all results",
     ])
 
     add_exercise_slide(prs, "Exercise 6: Analyse and Interpret", [
-        "Use the reactor_optimization experiment from Exercise 5.",
+        "Use the reactor experiment from Exercise 5.",
         "",
-        "1. Run: doe analyze reactor_optimization/",
-        "2. Examine the ANOVA table:",
-        "  Which factors are significant at p < 0.05?",
-        "  What is the % contribution of each factor?",
-        "3. Look at the Pareto chart: do the results agree?",
-        "4. Check the residual diagnostics:",
-        "  Are there patterns in residuals vs. fitted values?",
-        "  Do residuals follow a normal distribution?",
-        "5. Run: doe report reactor_optimization/",
-        "  Open the HTML report and explore the interactive plots",
-        "6. Write a brief summary: What factors matter? Any interactions?",
+        "1. Run:  doe analyze reactor_rsm/",
+        "2. ANOVA: which factors are significant at p < 0.05?",
+        "3. Pareto chart: do the results agree with ANOVA?",
+        "4. Residual diagnostics:",
+        ">> Any patterns in residuals vs. fitted?",
+        ">> Do residuals follow a normal distribution?",
+        "5. Run:  doe report reactor_rsm/",
+        "6. Write a 3-sentence executive summary",
     ])
 
     prs.save("slides/Module_06_Analysis.pptx")
     print("  Module 6 saved")
 
 
-# ============================================================
-# MODULE 7: Multi-Response Optimisation & Advanced Topics
-# ============================================================
+# ═══════════════════════════════════════════════════════════
+# MODULE 7
+# ═══════════════════════════════════════════════════════════
+
 def build_module_7():
     prs = new_prs()
+
     add_title_slide(prs,
-        "Multi-Response Optimisation\nand Advanced Topics",
-        "Balancing competing objectives and extending your designs",
+        "Multi-Response Optimisation\n& Advanced Topics",
+        "Balancing competing objectives and extending designs",
         module_num=7)
 
     add_content_slide(prs, "Learning Objectives", [
@@ -1375,105 +1303,92 @@ def build_module_7():
 
     add_content_slide(prs, "Multi-Response Optimisation", [
         "Most real experiments have multiple responses",
-        "  Maximise yield AND minimise cost",
-        "  Minimise latency AND maximise throughput",
+        ">> Maximise yield AND minimise cost",
+        ">> Minimise latency AND maximise throughput",
         "Responses often conflict: improving one degrades another",
-        "Need a systematic way to balance trade-offs",
         "Derringer-Suich desirability function:",
-        "  Transform each response to a 0-1 desirability scale",
-        "  Overall desirability D = geometric mean of individual d_i",
+        ">> Transform each response to a 0\u20131 desirability scale",
+        ">> Overall D = geometric mean of individual d\u1d62",
+        ">> D = 1: perfect  |  D = 0: unacceptable",
     ])
 
-    add_code_slide(prs, "Multi-Response Config", """
+    add_code_slide(prs, "Multi-Response Config & Optimization", """
 {
-  "factors": {
-    "temperature": {"low": 150, "high": 200, "units": "C"},
-    "pressure":    {"low": 1.0, "high": 5.0, "units": "bar"},
-    "catalyst":    {"low": 0.5, "high": 1.5, "units": "g"}
-  },
   "responses": {
     "yield":  {"units": "%",   "target": "maximize"},
     "cost":   {"units": "USD", "target": "minimize"},
     "purity": {"units": "%",   "target": 99.5}
-  },
-  "design": {"type": "ccd"}
+  }
 }
 
 $ doe optimize reactor_multi/
-  Overall desirability: 0.87
+
+Optimization Results:
   yield=91.2%, cost=$42.30, purity=99.3%
+  Overall desirability: 0.87
 """, "doe optimize balances all responses via desirability functions")
 
     add_content_slide(prs, "Design Augmentation", [
         "Often you want to extend an existing design",
         "doe augment supports several strategies:",
-        "  Fold-over: mirror the design to break aliases",
-        "  Star points: add axial points for RSM",
-        "  Center points: add runs at the center",
+        ">> Fold-over: mirror design to break aliases",
+        ">> Star points: add axial points for RSM",
+        ">> Center points: add runs at the center",
         "Benefits:",
-        "  Leverages data you already have",
-        "  Sequentially builds up information",
-        "  No need to start over from scratch",
+        ">> Leverages data you already have",
+        ">> Sequentially builds up information",
+        ">> No need to start over from scratch",
     ])
 
-    add_content_slide(prs, "Blocking", [
-        "Blocks account for known nuisance variables",
-        "  Different batches of raw material",
-        "  Different days or operators",
-        "  Different machines",
-        "Block effects are estimated and removed from the analysis",
-        "doe-helper: set \"blocks\" in the design section",
-        "The design is constructed so blocks are orthogonal to treatments",
-    ])
+    add_two_col_slide(prs, "Taguchi & Mixture Designs",
+        [
+            "Taguchi Designs",
+            "Focus on robustness to noise",
+            "Inner array: controllable factors",
+            "Outer array: noise factors",
+            "S/N ratio as the response",
+            "doe-helper: \"type\": \"taguchi\"",
+        ],
+        [
+            "Mixture Experiments",
+            "Proportions must sum to 1",
+            "E.g. concrete, alloys, formulations",
+            "Simplex-Lattice: evenly spaced",
+            "Simplex-Centroid: vertices + center",
+            "doe-helper: \"type\": \"simplex_lattice\"",
+        ],
+        left_title="ROBUST DESIGN",
+        right_title="MIXTURES"
+    )
 
-    add_content_slide(prs, "Taguchi Designs", [
-        "Focus on robustness: find settings insensitive to noise",
-        "Inner array: controllable factors",
-        "Outer array: noise factors (things you can't control)",
-        "Signal-to-noise (S/N) ratio as the response",
-        "doe-helper: set \"type\": \"taguchi\"",
-        "Useful for manufacturing where environmental variation matters",
-    ])
-
-    add_content_slide(prs, "Mixture Experiments", [
-        "When factors are proportions that must sum to 1 (or 100%)",
-        "  Concrete: cement, water, aggregate, admixture",
-        "  Alloy: proportions of different metals",
-        "  Formulation: ingredients in a product",
-        "Standard designs don't work (can't vary independently)",
-        "doe-helper supports:",
-        "  Simplex-Lattice: evenly-spaced mixture points",
-        "  Simplex-Centroid: vertices, edge midpoints, center",
-    ])
-
-    add_content_slide(prs, "D-Optimal Designs", [
-        "Computer-generated designs for non-standard situations:",
-        "  Irregular factor space (constraints)",
-        "  Mix of continuous and categorical factors",
-        "  Limited run budget",
-        "Maximises the determinant of X'X (D-optimality)",
-        "Uses the Fedorov exchange algorithm",
-        "doe-helper: set \"type\": \"d_optimal\", \"runs\": N",
-        "Flexible but requires specifying the number of runs",
+    add_content_slide(prs, "Blocking & D-Optimal Designs", [
+        "Blocking accounts for known nuisance variables",
+        ">> Different batches, days, operators, machines",
+        ">> Block effects are estimated and removed from analysis",
+        ">> doe-helper: set \"blocks\" in the design section",
+        "",
+        "D-Optimal: computer-generated for non-standard situations",
+        ">> Irregular factor space, constraints",
+        ">> Mix of continuous and categorical factors",
+        ">> doe-helper: \"type\": \"d_optimal\", \"runs\": N",
     ])
 
     add_code_slide(prs, "Power Analysis with doe-helper", """
 $ doe power experiment/
 
 Power Analysis
-  Design:          full_factorial (2^3)
-  Runs:            8
-  Error estimate:  2.5 (from prior data or estimate)
+  Design:       full_factorial (2^3)
+  Runs:         8
+  Error est.:   2.5 (from prior data or estimate)
 
-  Detectable Effect Sizes (at 80% power, alpha=0.05):
-    Main effects:   3.2 units
-    2-factor int.:  3.2 units
+  Detectable Effect Sizes (80% power, alpha=0.05):
+    Main effects:    3.2 units
+    2-factor int.:   3.2 units
 
-# Or specify a target effect size:
 $ doe power experiment/ --effect-size 5.0
   Power: 0.95 for main effects
   Power: 0.95 for 2-factor interactions
-""", "Use power analysis to ensure your design can detect meaningful effects")
+""", "Power analysis ensures your design can detect meaningful effects")
 
     add_key_point_slide(prs, "Key Takeaways", [
         "Multi-response: desirability functions balance trade-offs",
@@ -1484,29 +1399,28 @@ $ doe power experiment/ --effect-size 5.0
     ])
 
     add_exercise_slide(prs, "Exercise 7: Multi-Response Optimisation", [
-        "1. Modify the reactor experiment to have 3 responses:",
-        "  yield (maximize), cost (minimize), purity (target: 99.5)",
-        "2. Run: doe generate reactor_multi/",
-        "3. Run the simulation and collect results",
-        "4. Run: doe analyze reactor_multi/",
-        "5. Run: doe optimize reactor_multi/",
-        "  What is the overall desirability score?",
-        "  How do the optimal settings differ from single-response?",
-        "6. Run: doe power reactor_multi/",
-        "  Is the design adequately powered for all responses?",
-        "7. Try: doe augment reactor_multi/ --method center-points --count 4",
-        "  How does this change the power analysis?",
+        "1. Add 3 responses to the reactor experiment:",
+        ">> yield (maximize), cost (minimize), purity (target: 99.5)",
+        "2. Run:  doe optimize reactor_multi/",
+        ">> What is the overall desirability score?",
+        ">> Which response is most compromised?",
+        "3. Run:  doe power reactor_multi/",
+        ">> Is the design adequately powered?",
+        "4. Try:  doe augment reactor_multi/ --method center-points --count 4",
+        ">> How does augmentation change the power analysis?",
     ])
 
     prs.save("slides/Module_07_Advanced_Topics.pptx")
     print("  Module 7 saved")
 
 
-# ============================================================
-# MODULE 8: Capstone Project
-# ============================================================
+# ═══════════════════════════════════════════════════════════
+# MODULE 8
+# ═══════════════════════════════════════════════════════════
+
 def build_module_8():
     prs = new_prs()
+
     add_title_slide(prs,
         "Capstone Project",
         "Apply the full DOE workflow to a real-world problem",
@@ -1516,94 +1430,115 @@ def build_module_8():
         "Apply everything you've learned in one complete project",
         "Choose from three scenario options or propose your own",
         "Complete the full DOE workflow:",
-        "  1. Problem definition and factor selection",
-        "  2. Screening design",
-        "  3. Follow-up design (factorial or RSM)",
-        "  4. Analysis and interpretation",
-        "  5. Optimisation",
-        "  6. Final report",
+        ">> 1. Problem definition and factor selection",
+        ">> 2. Screening design",
+        ">> 3. Follow-up design (factorial or RSM)",
+        ">> 4. Analysis and interpretation",
+        ">> 5. Optimisation",
+        ">> 6. Final report",
     ])
 
-    add_content_slide(prs, "Option A: Cloud Infrastructure Optimisation", [
-        "Scenario: optimise a Kubernetes-deployed microservice",
-        "10 candidate factors: CPU limit, memory limit, replicas,",
-        "  connection pool, thread count, cache TTL, batch size,",
-        "  retry limit, timeout, log level",
-        "3 responses: p99 latency (min), throughput (max), cost (min)",
-        "Budget: 40 total experimental runs",
-        "",
-        "Use doe-helper to design, simulate, analyse, and optimise.",
-    ])
+    add_two_col_slide(prs, "Option A: Cloud Infrastructure",
+        [
+            "Optimise a Kubernetes microservice",
+            "",
+            "10 candidate factors:",
+            "CPU limit, memory limit, replicas,",
+            "connection pool, thread count,",
+            "cache TTL, batch size, retry limit,",
+            "timeout, GC interval",
+        ],
+        [
+            "3 responses:",
+            "p99 latency (minimize)",
+            "throughput (maximize)",
+            "cost per hour (minimize)",
+            "",
+            "Budget: 40 total runs",
+            "across all phases",
+        ],
+        left_title="FACTORS",
+        right_title="OBJECTIVES"
+    )
 
-    add_content_slide(prs, "Option B: Manufacturing Process", [
-        "Scenario: optimise 3D printing parameters",
-        "8 candidate factors: layer height, print speed, nozzle temp,",
-        "  bed temp, infill %, infill pattern, retraction distance,",
-        "  cooling fan speed",
-        "3 responses: tensile strength (max), print time (min), surface quality (max)",
-        "Budget: 30 total experimental runs",
-        "",
-        "Use doe-helper to design, simulate, analyse, and optimise.",
-    ])
-
-    add_content_slide(prs, "Option C: Recipe Optimisation", [
-        "Scenario: optimise a bread baking recipe",
-        "7 candidate factors: flour protein %, water ratio, yeast amount,",
-        "  salt amount, kneading time, proof time, oven temperature",
-        "3 responses: loaf volume (max), crumb score (max), crust color (target: 4)",
-        "Budget: 25 total experimental runs",
-        "",
-        "Use doe-helper to design, simulate, analyse, and optimise.",
-    ])
+    add_two_col_slide(prs, "Option B: 3D Printing  |  Option C: Bread Baking",
+        [
+            "3D Printing",
+            "8 factors: layer height, speed,",
+            "nozzle temp, bed temp, infill %,",
+            "retraction, cooling, wall count",
+            "",
+            "3 responses: tensile strength (max),",
+            "print time (min), surface quality (max)",
+            "Budget: 30 runs",
+        ],
+        [
+            "Bread Baking",
+            "7 factors: flour protein %, hydration,",
+            "starter %, salt %, bulk ferment,",
+            "proof time, oven temperature",
+            "",
+            "3 responses: loaf volume (max),",
+            "crumb score (max), crust color (target: 4)",
+            "Budget: 25 runs",
+        ],
+        left_title="OPTION B",
+        right_title="OPTION C"
+    )
 
     add_content_slide(prs, "Capstone Requirements", [
-        "Phase 1: Screening (doe init, doe generate, doe analyze)",
-        "  Choose an appropriate screening design for all factors",
-        "  Identify the 3-4 most important factors",
-        "  Document your reasoning for dropping factors",
+        "Phase 1: Screening  (~30 min)",
+        ">> Choose PB or DSD for all candidate factors",
+        ">> Identify the 3\u20134 most important factors",
+        ">> Document reasoning for dropping factors",
         "",
-        "Phase 2: Characterisation & Optimisation",
-        "  Run a CCD or Box-Behnken on surviving factors",
-        "  Analyse with doe analyze, interpret the response surface",
-        "  Optimise with doe optimize",
+        "Phase 2: RSM & Optimisation  (~30 min)",
+        ">> Run CCD or Box-Behnken on surviving factors",
+        ">> Analyse with doe analyze, interpret the surface",
+        ">> Optimise with doe optimize",
     ])
 
     add_content_slide(prs, "Capstone Deliverables", [
-        "1. Completed config.json files for each phase",
-        "2. doe report HTML output for screening and RSM phases",
-        "3. Summary document (1-2 pages) covering:",
-        "  Problem statement and factor selection rationale",
-        "  Screening results and factor elimination decisions",
-        "  RSM analysis and optimal settings",
-        "  Practical recommendations",
+        "1. config.json files for screening and RSM phases",
+        "2. doe report HTML output for each phase",
+        "3. Summary document (1\u20132 pages):",
+        ">> Problem statement and factor selection rationale",
+        ">> Screening results and factor elimination decisions",
+        ">> RSM analysis and optimal settings",
+        ">> Practical recommendations",
         "4. Brief presentation (5 minutes) to the class",
     ])
 
-    add_content_slide(prs, "Capstone Workflow with doe-helper", [
-        "Step 1: doe init project/ --design plackett_burman",
-        "Step 2: doe generate project/ && bash project/run.sh",
-        "Step 3: doe analyze project/ -- identify significant factors",
-        "Step 4: Create new config with reduced factors, type=ccd",
-        "Step 5: doe generate project_rsm/ && bash project_rsm/run.sh",
-        "Step 6: doe analyze project_rsm/ -- response surface analysis",
-        "Step 7: doe optimize project_rsm/ -- find optimal settings",
-        "Step 8: doe report project_rsm/ -- generate final report",
-    ])
+    add_code_slide(prs, "Capstone Workflow with doe-helper", """
+# Phase 1: Screening
+$ doe init project/ --design plackett_burman
+$ doe generate project/ && bash project/run.sh
+$ doe analyze project/
+
+# Phase 2: RSM (with reduced factors)
+$ doe generate project_rsm/ && bash project_rsm/run.sh
+$ doe analyze project_rsm/
+
+# Phase 3: Optimise & Report
+$ doe optimize project_rsm/
+$ doe report project_rsm/
+""")
 
     add_exercise_slide(prs, "Capstone Project", [
-        "1. Choose Option A, B, C, or propose your own scenario",
-        "2. Complete the full workflow using doe-helper commands",
-        "3. Produce all deliverables listed on the previous slide",
-        "4. Prepare a 5-minute presentation covering:",
-        "  What you learned about the system",
-        "  Key factors and their effects",
-        "  Optimal settings and predicted performance",
-        "  What you would do next with more runs",
+        "1. Choose Option A, B, C, or propose your own",
+        "2. Complete the full workflow using doe-helper",
+        "3. Produce all deliverables from the previous slide",
+        "4. Prepare a 5-minute presentation:",
+        ">> What you learned about the system",
+        ">> Key factors and their effects",
+        ">> Optimal settings and predicted performance",
+        ">> What you would do next with more runs",
         "",
-        "Time allocation: 90 minutes for the project, 30 minutes for presentations",
+        "Time: 70 min project + 20 min presentations",
     ])
 
-    add_section_divider(prs, "Course Summary", "Congratulations on completing the DOE Helper Training Course!")
+    add_section_divider(prs, "Course Summary",
+        "Congratulations on completing the DOE Helper Training Course!")
 
     add_content_slide(prs, "What You've Learned", [
         "Module 1: Why DOE matters and the OVAT trap",
@@ -1617,30 +1552,31 @@ def build_module_8():
     ])
 
     add_content_slide(prs, "doe-helper Command Reference", [
-        "doe init         Create experiment from template",
-        "doe generate     Create design matrix and runner script",
-        "doe record       Interactively record experimental results",
-        "doe status       Show experiment progress",
-        "doe info         Display design summary and evaluation metrics",
-        "doe analyze      Run ANOVA, effects, diagnostics, plots",
-        "doe optimize     Find optimal factor settings",
-        "doe power        Compute statistical power",
-        "doe augment      Extend an existing design",
-        "doe report       Generate interactive HTML report",
-        "doe export-worksheet  Export design as CSV or markdown",
+        "doe init             Create experiment from template",
+        "doe generate         Create design matrix and runner script",
+        "doe record           Interactively record results",
+        "doe status           Show experiment progress",
+        "doe info             Display design summary and metrics",
+        "doe analyze          Run ANOVA, effects, diagnostics, plots",
+        "doe optimize         Find optimal factor settings",
+        "doe power            Compute statistical power",
+        "doe augment          Extend an existing design",
+        "doe report           Generate interactive HTML report",
     ])
 
     add_key_point_slide(prs, "Next Steps", [
         "Practice with the 221 built-in use cases",
         "Visit doehelper.com for documentation and examples",
         "Apply DOE to a real problem in your work",
-        "Start small: 2-3 factors, full factorial",
-        "Remember: a planned experiment beats trial-and-error every time",
+        "Start small: 2\u20133 factors, full factorial",
+        "A planned experiment beats trial-and-error every time",
     ])
 
     prs.save("slides/Module_08_Capstone.pptx")
     print("  Module 8 saved")
 
+
+# ═══════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     print("Generating DOE Helper Training Course slides...")
@@ -1652,4 +1588,4 @@ if __name__ == "__main__":
     build_module_6()
     build_module_7()
     build_module_8()
-    print("\nAll slides saved to training/slides/")
+    print("\nAll 8 modules saved to training/slides/")
