@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Copyright (C) 2026 Martin J. Gallagher, SageCor Solutions
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Run multi-objective optimization for all use cases and update HTML pages."""
 
 import subprocess

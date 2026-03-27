@@ -13,12 +13,23 @@ from doe.config import load_config
 from doe.design import generate_design
 
 
+def _print_version():
+    from doe import __version__
+    print(f"doe {__version__}")
+    print("Copyright (C) 2026 Martin J. Gallagher, SageCor Solutions")
+    print("License: GPL-3.0-or-later <https://www.gnu.org/licenses/gpl-3.0.html>")
+    raise SystemExit(0)
+
+
 def main():
     parser = argparse.ArgumentParser(
         prog="doe",
         description="Design of Experiments (DOE) helper tool",
     )
-    subparsers = parser.add_subparsers(dest="command", required=True)
+    parser.add_argument(
+        "--version", action="store_true", help="show version and exit",
+    )
+    subparsers = parser.add_subparsers(dest="command")
 
     # --- generate ---
     gen = subparsers.add_parser("generate", help="Generate experiment design and runner script")
@@ -103,6 +114,13 @@ def main():
     ew.add_argument("--seed", type=int, default=42, help="Random seed for run order (default: 42)")
 
     args = parser.parse_args()
+
+    if args.version:
+        _print_version()
+
+    if not args.command:
+        parser.print_help()
+        raise SystemExit(1)
 
     try:
         _dispatch(args)
