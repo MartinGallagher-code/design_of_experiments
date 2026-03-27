@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Landscape Photo Exposure &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #fef9c3, #fde047);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F4F7;</div>
+    <div class="uc-badge" style="background:rgba(202,138,4,.12);color:#ca8a04;">Box-Behnken Design</div>
+    <h1>Landscape Photo Exposure</h1>
+    <p class="uc-subtitle">Box-Behnken design to maximize dynamic range and minimize noise by tuning ISO, aperture, and shutter speed</p>
+  </div>
+</section>
+
+<!-- Table of Contents -->
+<nav class="uc-toc" id="uc-toc"><div class="uc-toc-inner" id="uc-toc-inner"></div></nav>
+
+<div class="container-narrow uc-content">
+
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>landscape photo exposure</strong>. Box-Behnken design to maximize dynamic range and minimize noise by tuning ISO, aperture, and shutter speed.</p>
+
+    <p>The design varies 3 factors: <strong>iso</strong> (ISO), ranging from 100 to 3200, <strong>aperture</strong> (f-stop), ranging from 2.8 to 16, and <strong>shutter speed ms</strong> (ms), ranging from 1 to 1000. The goal is to optimize 2 responses: dynamic range ev (EV) (maximize) and noise score (pts) (minimize). Fixed conditions held constant across all runs include lens mm = 24, white balance = daylight.</p>
+
+    <p>A Box-Behnken design was chosen because it efficiently fits quadratic models with 3 continuous factors while avoiding extreme corner combinations &mdash; requiring only 15 runs instead of the 8 needed for a full factorial at two levels.</p>
+
+    <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
+
+    <h3>Key Findings</h3>
+    <p>For <strong>dynamic range ev</strong>, the most influential factors were shutter speed ms (49.6%), iso (31.5%), aperture (18.9%). The best observed value was <strong>13.2</strong> (at iso = 1650, aperture = 9.4, shutter speed ms = 500.5).</p>
+<p>For <strong>noise score</strong>, the most influential factors were iso (54.9%), shutter speed ms (28.6%), aperture (16.6%). The best observed value was <strong>0.8</strong> (at iso = 1650, aperture = 2.8, shutter speed ms = 1000).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Run confirmation experiments at the predicted optimal settings to validate the model.</li>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+  </ul>
+  </section>
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>iso</code></td><td>100</td><td>3200</td><td>ISO</td></tr>
+            <tr><td><code>aperture</code></td><td>2.8</td><td>16</td><td>f-stop</td></tr>
+            <tr><td><code>shutter_speed_ms</code></td><td>1</td><td>1000</td><td>ms</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> lens_mm = 24, white_balance = daylight</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>dynamic_range_ev</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>EV</td></tr>
+            <tr><td><code>noise_score</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>pts</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/147_landscape_exposure/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Landscape Photo Exposure&quot;,
+    &quot;description&quot;: &quot;Box-Behnken design to maximize dynamic range and minimize noise by tuning ISO, aperture, and shutter speed&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;iso&quot;,
+      &quot;levels&quot;: [
+        &quot;100&quot;,
+        &quot;3200&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;ISO&quot;
+    },
+    {
+      &quot;name&quot;: &quot;aperture&quot;,
+      &quot;levels&quot;: [
+        &quot;2.8&quot;,
+        &quot;16&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;f-stop&quot;
+    },
+    {
+      &quot;name&quot;: &quot;shutter_speed_ms&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;1000&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;ms&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;lens_mm&quot;: &quot;24&quot;,
+    &quot;white_balance&quot;: &quot;daylight&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;dynamic_range_ev&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;EV&quot;
+    },
+    {
+      &quot;name&quot;: &quot;noise_score&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;pts&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;box_behnken&quot;,
+    &quot;test_script&quot;: &quot;use_cases/147_landscape_exposure/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Box-Behnken Design produces <strong>15 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>iso</code></th><th><code>aperture</code></th><th><code>shutter_speed_ms</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>1650</td><td>2.8</td><td>1</td></tr>
+        <tr><td>2</td><td>1650</td><td>9.4</td><td>500.5</td></tr>
+        <tr><td>3</td><td>3200</td><td>9.4</td><td>1000</td></tr>
+        <tr><td>4</td><td>3200</td><td>9.4</td><td>1</td></tr>
+        <tr><td>5</td><td>1650</td><td>9.4</td><td>500.5</td></tr>
+        <tr><td>6</td><td>1650</td><td>9.4</td><td>500.5</td></tr>
+        <tr><td>7</td><td>100</td><td>9.4</td><td>1000</td></tr>
+        <tr><td>8</td><td>3200</td><td>2.8</td><td>500.5</td></tr>
+        <tr><td>9</td><td>1650</td><td>2.8</td><td>1000</td></tr>
+        <tr><td>10</td><td>3200</td><td>16</td><td>500.5</td></tr>
+        <tr><td>11</td><td>100</td><td>9.4</td><td>1</td></tr>
+        <tr><td>12</td><td>1650</td><td>16</td><td>1000</td></tr>
+        <tr><td>13</td><td>100</td><td>2.8</td><td>500.5</td></tr>
+        <tr><td>14</td><td>100</td><td>16</td><td>500.5</td></tr>
+        <tr><td>15</td><td>1650</td><td>16</td><td>1</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe info <span class="flag">--config</span> use_cases/147_landscape_exposure/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe generate <span class="flag">--config</span> use_cases/147_landscape_exposure/config.json \
+    <span class="flag">--output</span> use_cases/147_landscape_exposure/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/147_landscape_exposure/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe analyze <span class="flag">--config</span> use_cases/147_landscape_exposure/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> use_cases/147_landscape_exposure/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> use_cases/147_landscape_exposure/config.json <span class="flag">--multi</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">7</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe report <span class="flag">--config</span> use_cases/147_landscape_exposure/config.json \
+    <span class="flag">--output</span> use_cases/147_landscape_exposure/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>box_behnken</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (dynamic_range_ev &#x2191;, noise_score &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>15</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: dynamic_range_ev</h3>
+    <p>Top factors: shutter_speed_ms (49.6%), iso (31.5%), aperture (18.9%).</p>
+    <h4>ANOVA</h4>
+    <table style="font-size:.82rem;">
+      <thead><tr><th>Source</th><th>DF</th><th>SS</th><th>MS</th><th>F</th><th>p-value</th></tr></thead>
+      <tbody>
+        <tr><td>Source</td><td>DF</td><td>SS</td><td>MS</td><td>F</td><td>p-value</td></tr>
+        <tr><td>iso</td><td>2</td><td>6.0873</td><td>3.0436</td><td>1.951</td><td>0.2041</td></tr>
+        <tr><td>aperture</td><td>2</td><td>1.2015</td><td>0.6008</td><td>0.385</td><td>0.6923</td></tr>
+        <tr><td>shutter_speed_ms</td><td>2</td><td>12.5490</td><td>6.2745</td><td>4.022</td><td>0.0618</td></tr>
+        <tr><td>Lack</td><td>of</td><td>Fit</td><td>6</td><td>32.7955</td><td>5.4659</td></tr>
+        <tr><td>Pure</td><td>Error</td><td>2</td><td>3.1200</td><td></td><td></td></tr>
+        <tr><td>Error</td><td>8</td><td>35.9155</td><td>1.5600</td><td></td><td></td></tr>
+        <tr><td>Total</td><td>14</td><td>55.7533</td><td>3.9824</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/147_pareto_dynamic_range_ev.png" alt="Pareto chart for dynamic_range_ev">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/147_main_effects_dynamic_range_ev.png" alt="Main effects plot for dynamic_range_ev">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Normal Probability Plot of Effects</p>
+        <img src="../images/147_normal_effects_dynamic_range_ev.png" alt="Normal probability plot for dynamic_range_ev">
+      </div>
+      <div>
+        <p class="caption">Half-Normal Plot of Effects</p>
+        <img src="../images/147_half_normal_effects_dynamic_range_ev.png" alt="Half-normal plot for dynamic_range_ev">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Model Diagnostics</p>
+        <img src="../images/147_diagnostics_dynamic_range_ev.png" alt="Model diagnostics for dynamic_range_ev">
+      </div>
+    </div>
+
+    <h3>Response: noise_score</h3>
+    <p>Top factors: iso (54.9%), shutter_speed_ms (28.6%), aperture (16.6%).</p>
+    <h4>ANOVA</h4>
+    <table style="font-size:.82rem;">
+      <thead><tr><th>Source</th><th>DF</th><th>SS</th><th>MS</th><th>F</th><th>p-value</th></tr></thead>
+      <tbody>
+        <tr><td>Source</td><td>DF</td><td>SS</td><td>MS</td><td>F</td><td>p-value</td></tr>
+        <tr><td>iso</td><td>2</td><td>17.5814</td><td>8.7907</td><td>1.525</td><td>0.2747</td></tr>
+        <tr><td>aperture</td><td>2</td><td>1.4374</td><td>0.7187</td><td>0.125</td><td>0.8844</td></tr>
+        <tr><td>shutter_speed_ms</td><td>2</td><td>6.1214</td><td>3.0607</td><td>0.531</td><td>0.6074</td></tr>
+        <tr><td>Lack</td><td>of</td><td>Fit</td><td>6</td><td>39.7292</td><td>6.6215</td></tr>
+        <tr><td>Pure</td><td>Error</td><td>2</td><td>11.5267</td><td></td><td></td></tr>
+        <tr><td>Error</td><td>8</td><td>51.2559</td><td>5.7633</td><td></td><td></td></tr>
+        <tr><td>Total</td><td>14</td><td>76.3960</td><td>5.4569</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/147_pareto_noise_score.png" alt="Pareto chart for noise_score">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/147_main_effects_noise_score.png" alt="Main effects plot for noise_score">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Normal Probability Plot of Effects</p>
+        <img src="../images/147_normal_effects_noise_score.png" alt="Normal probability plot for noise_score">
+      </div>
+      <div>
+        <p class="caption">Half-Normal Plot of Effects</p>
+        <img src="../images/147_half_normal_effects_noise_score.png" alt="Half-normal plot for noise_score">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Model Diagnostics</p>
+        <img src="../images/147_diagnostics_noise_score.png" alt="Model diagnostics for noise_score">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">dynamic range ev aperture vs shutter speed ms</p>
+      <img src="../images/147_rsm_dynamic_range_ev_aperture_vs_shutter_speed_ms.png" alt="RSM surface: dynamic range ev aperture vs shutter speed ms" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">dynamic range ev iso vs aperture</p>
+      <img src="../images/147_rsm_dynamic_range_ev_iso_vs_aperture.png" alt="RSM surface: dynamic range ev iso vs aperture" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">dynamic range ev iso vs shutter speed ms</p>
+      <img src="../images/147_rsm_dynamic_range_ev_iso_vs_shutter_speed_ms.png" alt="RSM surface: dynamic range ev iso vs shutter speed ms" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">noise score aperture vs shutter speed ms</p>
+      <img src="../images/147_rsm_noise_score_aperture_vs_shutter_speed_ms.png" alt="RSM surface: noise score aperture vs shutter speed ms" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">noise score iso vs aperture</p>
+      <img src="../images/147_rsm_noise_score_iso_vs_aperture.png" alt="RSM surface: noise score iso vs aperture" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">noise score iso vs shutter speed ms</p>
+      <img src="../images/147_rsm_noise_score_iso_vs_shutter_speed_ms.png" alt="RSM surface: noise score iso vs shutter speed ms" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9545</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>dynamic_range_ev</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>13.20 0.9545       13.20 EV</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>noise_score</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>0.80 0.9545        0.80 pts</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>iso</code></td><td>100 ISO</td></tr>
+            <tr><td><code>aperture</code></td><td>9.4 f-stop</td></tr>
+            <tr><td><code>shutter_speed_ms</code></td><td>1000 ms</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #14</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>noise_score</code></td><td>0.80</td><td>0.80</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#7</td><td><strong>0.9230</strong></td><td style="font-size:.78rem;">iso=3200,  aperture=9.4,  shutter_speed_ms=1</td></tr>
+            <tr><td>#11</td><td><strong>0.8007</strong></td><td style="font-size:.78rem;">iso=3200,  aperture=9.4,  shutter_speed_ms=1000</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>noise_score</code></td><td style="color:#dc2626;font-weight:600;">0.2742</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9545
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+dynamic_range_ev             1.5       0.9545       13.20 EV   ↑
+noise_score                  1.0       0.9545        0.80 pts   ↓
+
+Recommended settings:
+  iso = 100 ISO
+  aperture = 9.4 f-stop
+  shutter_speed_ms = 1000 ms
+  (from observed run #14)
+
+Trade-off summary:
+  dynamic_range_ev: 13.20 (best observed: 13.20, sacrifice: +0.00)
+  noise_score: 0.80 (best observed: 0.80, sacrifice: +0.00)
+
+Model quality:
+  dynamic_range_ev: R² = 0.7624 (quadratic)
+  noise_score: R² = 0.2742 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #14 (D=0.9545): iso=100, aperture=9.4, shutter_speed_ms=1000
+  2. Run #7 (D=0.9230): iso=3200, aperture=9.4, shutter_speed_ms=1
+  3. Run #11 (D=0.8007): iso=3200, aperture=9.4, shutter_speed_ms=1000</div></div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: dynamic_range_ev ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+shutter_speed_ms         2.0286       0.5153            49.6%
+iso                      1.2893       0.5153            31.5%
+aperture                 0.7750       0.5153            18.9%
+
+=== ANOVA Table: dynamic_range_ev ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+iso                          2       6.0873       3.0436      1.951     0.2041
+aperture                     2       1.2015       0.6008      0.385     0.6923
+shutter_speed_ms             2      12.5490       6.2745      4.022     0.0618
+Lack of Fit                  6      32.7955       5.4659      3.504     0.2386
+Pure Error                   2       3.1200       1.5600
+Error                        8      35.9155       1.5600
+Total                       14      55.7533       3.9824
+
+=== Summary Statistics: dynamic_range_ev ===
+
+iso:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4    10.9750     2.2500     7.9000    12.8000
+  1650                7     9.6857     1.9178     6.2000    11.7000
+  3200                4    10.9500     2.0339     8.3000    13.2000
+
+aperture:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  16                  4     9.9750     2.8987     6.2000    13.2000
+  2.8                 4    10.7500     1.6663     8.5000    12.5000
+  9.4                 7    10.3714     1.8715     7.9000    12.8000
+
+shutter_speed_ms:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4     9.7500     2.9738     6.2000    12.8000
+  1000                4     9.3000     1.5078     7.9000    11.2000
+  500.5               7    11.3286     1.2816     9.3000    13.2000
+
+=== Main Effects: noise_score ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+iso                      2.4821       0.6032            54.9%
+shutter_speed_ms         1.2929       0.6032            28.6%
+aperture                 0.7500       0.6032            16.6%
+
+=== ANOVA Table: noise_score ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+iso                          2      17.5814       8.7907      1.525     0.2747
+aperture                     2       1.4374       0.7187      0.125     0.8844
+shutter_speed_ms             2       6.1214       3.0607      0.531     0.6074
+Lack of Fit                  6      39.7292       6.6215      1.149     0.5343
+Pure Error                   2      11.5267       5.7633
+Error                        8      51.2559       5.7633
+Total                       14      76.3960       5.4569
+
+=== Summary Statistics: noise_score ===
+
+iso:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 4     2.9500     2.6338     0.8000     6.7000
+  1650                7     4.6571     2.3071     2.1000     7.3000
+  3200                4     2.1750     1.4221     0.8000     3.5000
+
+aperture:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  16                  4     3.3000     2.9200     0.8000     7.3000
+  2.8                 4     4.0500     2.1794     2.8000     7.3000
+  9.4                 7     3.3857     2.4197     0.8000     6.7000
+
+shutter_speed_ms:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4     4.1250     3.6682     0.8000     7.3000
+  1000                4     4.1500     1.7369     2.8000     6.7000
+  500.5               7     2.8571     1.8645     0.8000     6.6000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: dynamic_range_ev ===
+Direction: maximize
+
+Best observed run: #14
+  iso = 1650
+  aperture = 9.4
+  shutter_speed_ms = 500.5
+  Value: 13.2
+
+RSM Model (linear, R² = 0.2882, Adj R² = 0.0941):
+  Coefficients:
+    intercept                      +10.3667
+    iso                            +0.4625
+    aperture                       -1.3375
+    shutter_speed_ms               -0.0750
+
+RSM Model (quadratic, R² = 0.6666, Adj R² = 0.0664):
+  Coefficients:
+    intercept                      +11.5667
+    iso                            +0.4625
+    aperture                       -1.3375
+    shutter_speed_ms               -0.0750
+    iso*aperture                   -0.0500
+    iso*shutter_speed_ms           -0.6750
+    aperture*shutter_speed_ms      +0.5250
+    iso^2                          -1.7583
+    aperture^2                     -1.1583
+    shutter_speed_ms^2             +0.6667
+
+  Curvature analysis:
+    iso                            coef=-1.7583  concave (has a maximum)
+    aperture                       coef=-1.1583  concave (has a maximum)
+    shutter_speed_ms               coef=+0.6667  convex (has a minimum)
+
+  Notable interactions:
+    iso*shutter_speed_ms           coef=-0.6750  (antagonistic)
+    aperture*shutter_speed_ms      coef=+0.5250  (synergistic)
+
+  Predicted optimum (from linear model, at observed points):
+    iso = 3200
+    aperture = 2.8
+    shutter_speed_ms = 500.5
+    Predicted value: 12.1667
+
+  Surface optimum (via L-BFGS-B, linear model):
+    iso = 3200
+    aperture = 2.8
+    shutter_speed_ms = 1
+    Predicted value: 12.2417
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. aperture  (effect: 2.7, contribution: 46.0%)
+  2. iso  (effect: 2.2, contribution: 37.6%)
+  3. shutter_speed_ms  (effect: 0.9, contribution: 16.3%)
+
+=== Optimization: noise_score ===
+Direction: minimize
+
+Best observed run: #7
+  iso = 1650
+  aperture = 2.8
+  shutter_speed_ms = 1000
+  Value: 0.8
+
+RSM Model (linear, R² = 0.1338, Adj R² = -0.1024):
+  Coefficients:
+    intercept                      +3.5400
+    iso                            -0.1000
+    aperture                       +1.0375
+    shutter_speed_ms               +0.4375
+
+RSM Model (quadratic, R² = 0.7725, Adj R² = 0.3630):
+  Coefficients:
+    intercept                      +1.8667
+    iso                            -0.1000
+    aperture                       +1.0375
+    shutter_speed_ms               +0.4375
+    iso*aperture                   +0.8000
+    iso*shutter_speed_ms           +0.9500
+    aperture*shutter_speed_ms      -0.2750
+    iso^2                          +3.1292
+    aperture^2                     +0.8542
+    shutter_speed_ms^2             -0.8458
+
+  Curvature analysis:
+    iso                            coef=+3.1292  convex (has a minimum)
+    aperture                       coef=+0.8542  convex (has a minimum)
+    shutter_speed_ms               coef=-0.8458  concave (has a maximum)
+
+  Notable interactions:
+    iso*shutter_speed_ms           coef=+0.9500  (synergistic)
+    iso*aperture                   coef=+0.8000  (synergistic)
+
+  Predicted optimum (from quadratic model, at observed points):
+    iso = 3200
+    aperture = 16
+    shutter_speed_ms = 500.5
+    Predicted value: 7.5875
+
+  Surface optimum (via L-BFGS-B, quadratic model):
+    iso = 2088.53
+    aperture = 3.45483
+    shutter_speed_ms = 1
+    Predicted value: -0.1563
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. iso  (effect: 3.2, contribution: 47.0%)
+  2. aperture  (effect: 2.1, contribution: 30.2%)
+  3. shutter_speed_ms  (effect: 1.6, contribution: 22.8%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="146-3d-print-quality.html">&larr; Previous: 3D Print Quality Tuning</a>
+    <a href="148-studio-lighting.html">Next: Studio Portrait Lighting &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+<script>
+(function() {
+  var toc = document.getElementById('uc-toc-inner');
+  if (!toc) return;
+  var headings = document.querySelectorAll('.uc-section > h2, .uc-content > section > h2');
+  if (headings.length < 2) { document.getElementById('uc-toc').style.display = 'none'; return; }
+  headings.forEach(function(h, i) {
+    if (!h.id) h.id = 'sec-' + i;
+    var a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(null, '', '#' + h.id);
+    });
+    toc.appendChild(a);
+  });
+  var links = toc.querySelectorAll('a');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        links.forEach(function(a) { a.classList.remove('active'); });
+        var active = toc.querySelector('a[href="#' + entry.target.id + '"]');
+        if (active) {
+          active.classList.add('active');
+          active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      }
+    });
+  }, { rootMargin: '-80px 0px -70% 0px', threshold: 0 });
+  headings.forEach(function(h) { observer.observe(h); });
+  if (links.length) links[0].classList.add('active');
+})();
+</script>
+</body>
+</html>

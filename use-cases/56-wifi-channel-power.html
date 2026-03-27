@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WiFi Channel &amp; Power &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #ede9fe, #ddd6fe);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F310;</div>
+    <div class="uc-badge" style="background:rgba(124,58,237,.12);color:#7c3aed;">Fractional Factorial Design</div>
+    <h1>WiFi Channel &amp; Power</h1>
+    <p class="uc-subtitle">Fractional factorial of 5 WiFi AP parameters for throughput and coverage</p>
+  </div>
+</section>
+
+<!-- Table of Contents -->
+<nav class="uc-toc" id="uc-toc"><div class="uc-toc-inner" id="uc-toc-inner"></div></nav>
+
+<div class="container-narrow uc-content">
+
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>wifi channel &amp; power</strong>. Fractional factorial of 5 WiFi AP parameters for throughput and coverage.</p>
+
+    <p>The design varies 5 factors: <strong>channel width</strong> (MHz), ranging from 20 to 80, <strong>tx power</strong> (dBm), ranging from 10 to 23, <strong>guard interval</strong>, ranging from short to long, <strong>beamforming</strong>, ranging from off to on, and <strong>spatial streams</strong> (count), ranging from 1 to 4. The goal is to optimize 2 responses: throughput mbps (Mbps) (maximize) and coverage m (m) (maximize). Fixed conditions held constant across all runs include standard = wifi6, band = 5GHz.</p>
+
+    <p>A fractional factorial design reduces the number of runs from 32 to 8 by deliberately confounding higher-order interactions. This is ideal for screening &mdash; identifying which of the 5 factors matter most before investing in a full study.</p>
+
+    
+    <h3>Key Findings</h3>
+    <p>For <strong>throughput mbps</strong>, the most influential factors were channel width (55.0%), tx power (18.5%), beamforming (18.5%). The best observed value was <strong>949.0</strong> (at channel width = 20, tx power = 10, guard interval = long).</p>
+<p>For <strong>coverage m</strong>, the most influential factors were spatial streams (49.5%), guard interval (18.9%), beamforming (18.9%). The best observed value was <strong>34.0</strong> (at channel width = 20, tx power = 10, guard interval = long).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Follow up with a response surface design (CCD or Box-Behnken) on the top 3&ndash;4 factors to model curvature and find the true optimum.</li>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+    <li>The screening results can guide factor reduction &mdash; drop factors contributing less than 5% and re-run with a smaller, more focused design.</li>
+  </ul>
+  </section>
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>channel_width</code></td><td>20</td><td>80</td><td>MHz</td></tr>
+            <tr><td><code>tx_power</code></td><td>10</td><td>23</td><td>dBm</td></tr>
+            <tr><td><code>guard_interval</code></td><td>short</td><td>long</td><td></td></tr>
+            <tr><td><code>beamforming</code></td><td>off</td><td>on</td><td></td></tr>
+            <tr><td><code>spatial_streams</code></td><td>1</td><td>4</td><td>count</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> standard = wifi6, band = 5GHz</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>throughput_mbps</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>Mbps</td></tr>
+            <tr><td><code>coverage_m</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>m</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/56_wifi_channel_power/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;WiFi Channel &amp; Power&quot;,
+    &quot;description&quot;: &quot;Fractional factorial of 5 WiFi AP parameters for throughput and coverage&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;channel_width&quot;,
+      &quot;levels&quot;: [
+        &quot;20&quot;,
+        &quot;80&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;MHz&quot;
+    },
+    {
+      &quot;name&quot;: &quot;tx_power&quot;,
+      &quot;levels&quot;: [
+        &quot;10&quot;,
+        &quot;23&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;dBm&quot;
+    },
+    {
+      &quot;name&quot;: &quot;guard_interval&quot;,
+      &quot;levels&quot;: [
+        &quot;short&quot;,
+        &quot;long&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    },
+    {
+      &quot;name&quot;: &quot;beamforming&quot;,
+      &quot;levels&quot;: [
+        &quot;off&quot;,
+        &quot;on&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    },
+    {
+      &quot;name&quot;: &quot;spatial_streams&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;4&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;count&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;standard&quot;: &quot;wifi6&quot;,
+    &quot;band&quot;: &quot;5GHz&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;throughput_mbps&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;Mbps&quot;
+    },
+    {
+      &quot;name&quot;: &quot;coverage_m&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;m&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;fractional_factorial&quot;,
+    &quot;test_script&quot;: &quot;use_cases/56_wifi_channel_power/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Fractional Factorial Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>channel_width</code></th><th><code>tx_power</code></th><th><code>guard_interval</code></th><th><code>beamforming</code></th><th><code>spatial_streams</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>20</td><td>23</td><td>long</td><td>off</td><td>1</td></tr>
+        <tr><td>2</td><td>80</td><td>10</td><td>short</td><td>off</td><td>1</td></tr>
+        <tr><td>3</td><td>80</td><td>23</td><td>short</td><td>on</td><td>1</td></tr>
+        <tr><td>4</td><td>80</td><td>23</td><td>long</td><td>on</td><td>4</td></tr>
+        <tr><td>5</td><td>20</td><td>23</td><td>short</td><td>off</td><td>4</td></tr>
+        <tr><td>6</td><td>80</td><td>10</td><td>long</td><td>off</td><td>4</td></tr>
+        <tr><td>7</td><td>20</td><td>10</td><td>short</td><td>on</td><td>4</td></tr>
+        <tr><td>8</td><td>20</td><td>10</td><td>long</td><td>on</td><td>1</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe info <span class="flag">--config</span> use_cases/56_wifi_channel_power/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe generate <span class="flag">--config</span> use_cases/56_wifi_channel_power/config.json \
+    <span class="flag">--output</span> use_cases/56_wifi_channel_power/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/56_wifi_channel_power/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe analyze <span class="flag">--config</span> use_cases/56_wifi_channel_power/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> use_cases/56_wifi_channel_power/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> use_cases/56_wifi_channel_power/config.json <span class="flag">--multi</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">7</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe report <span class="flag">--config</span> use_cases/56_wifi_channel_power/config.json \
+    <span class="flag">--output</span> use_cases/56_wifi_channel_power/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>fractional_factorial</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (3), <code>categorical</code> (2)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (throughput_mbps &#x2191;, coverage_m &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>8</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: throughput_mbps</h3>
+    <p>Top factors: channel_width (55.0%), tx_power (18.5%), beamforming (18.5%).</p>
+    <h4>ANOVA</h4>
+    <table style="font-size:.82rem;">
+      <thead><tr><th>Source</th><th>DF</th><th>SS</th><th>MS</th><th>F</th><th>p-value</th></tr></thead>
+      <tbody>
+        <tr><td>Source</td><td>DF</td><td>SS</td><td>MS</td><td>F</td><td>p-value</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>channel_width</td><td>1</td><td>312445.1250</td><td>312445.1250</td><td>10.321</td><td>0.0237</td></tr>
+        <tr><td>tx_power</td><td>1</td><td>35511.1250</td><td>35511.1250</td><td>1.173</td><td>0.3282</td></tr>
+        <tr><td>guard_interval</td><td>1</td><td>4851.1250</td><td>4851.1250</td><td>0.160</td><td>0.7055</td></tr>
+        <tr><td>beamforming</td><td>1</td><td>35511.1250</td><td>35511.1250</td><td>1.173</td><td>0.3282</td></tr>
+        <tr><td>spatial_streams</td><td>1</td><td>136.1250</td><td>136.1250</td><td>0.004</td><td>0.9491</td></tr>
+        <tr><td>channel_width*tx_power</td><td>1</td><td>35511.1250</td><td>35511.1250</td><td>1.173</td><td>0.3282</td></tr>
+        <tr><td>channel_width*guard_interval</td><td>1</td><td>136.1250</td><td>136.1250</td><td>0.004</td><td>0.9491</td></tr>
+        <tr><td>channel_width*beamforming</td><td>1</td><td>35511.1250</td><td>35511.1250</td><td>1.173</td><td>0.3282</td></tr>
+        <tr><td>channel_width*spatial_streams</td><td>1</td><td>4851.1250</td><td>4851.1250</td><td>0.160</td><td>0.7055</td></tr>
+        <tr><td>tx_power*guard_interval</td><td>1</td><td>4186.1250</td><td>4186.1250</td><td>0.138</td><td>0.7252</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>tx_power*beamforming</td><td>1</td><td>312445.1250</td><td>312445.1250</td><td>10.321</td><td>0.0237</td></tr>
+        <tr><td>tx_power*spatial_streams</td><td>1</td><td>128271.1250</td><td>128271.1250</td><td>4.237</td><td>0.0946</td></tr>
+        <tr><td>guard_interval*beamforming</td><td>1</td><td>128271.1250</td><td>128271.1250</td><td>4.237</td><td>0.0946</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>guard_interval*spatial_streams</td><td>1</td><td>312445.1250</td><td>312445.1250</td><td>10.321</td><td>0.0237</td></tr>
+        <tr><td>beamforming*spatial_streams</td><td>1</td><td>4186.1250</td><td>4186.1250</td><td>0.138</td><td>0.7252</td></tr>
+        <tr><td>Error</td><td>(Lenth</td><td>PSE)</td><td>5</td><td>151358.4375</td><td>30271.6875</td></tr>
+        <tr><td>Total</td><td>7</td><td>520911.8750</td><td>74415.9821</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/56_pareto_throughput_mbps.png" alt="Pareto chart for throughput_mbps">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/56_main_effects_throughput_mbps.png" alt="Main effects plot for throughput_mbps">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Normal Probability Plot of Effects</p>
+        <img src="../images/56_normal_effects_throughput_mbps.png" alt="Normal probability plot for throughput_mbps">
+      </div>
+      <div>
+        <p class="caption">Half-Normal Plot of Effects</p>
+        <img src="../images/56_half_normal_effects_throughput_mbps.png" alt="Half-normal plot for throughput_mbps">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Model Diagnostics</p>
+        <img src="../images/56_diagnostics_throughput_mbps.png" alt="Model diagnostics for throughput_mbps">
+      </div>
+    </div>
+
+    <h3>Response: coverage_m</h3>
+    <p>Top factors: spatial_streams (49.5%), guard_interval (18.9%), beamforming (18.9%).</p>
+    <h4>ANOVA</h4>
+    <table style="font-size:.82rem;">
+      <thead><tr><th>Source</th><th>DF</th><th>SS</th><th>MS</th><th>F</th><th>p-value</th></tr></thead>
+      <tbody>
+        <tr><td>Source</td><td>DF</td><td>SS</td><td>MS</td><td>F</td><td>p-value</td></tr>
+        <tr><td>channel_width</td><td>1</td><td>1.1250</td><td>1.1250</td><td>0.050</td><td>0.8326</td></tr>
+        <tr><td>tx_power</td><td>1</td><td>15.1250</td><td>15.1250</td><td>0.667</td><td>0.4513</td></tr>
+        <tr><td>guard_interval</td><td>1</td><td>55.1250</td><td>55.1250</td><td>2.430</td><td>0.1798</td></tr>
+        <tr><td>beamforming</td><td>1</td><td>55.1250</td><td>55.1250</td><td>2.430</td><td>0.1798</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>spatial_streams</td><td>1</td><td>378.1250</td><td>378.1250</td><td>16.667</td><td>0.0095</td></tr>
+        <tr><td>channel_width*tx_power</td><td>1</td><td>55.1250</td><td>55.1250</td><td>2.430</td><td>0.1798</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>channel_width*guard_interval</td><td>1</td><td>378.1250</td><td>378.1250</td><td>16.667</td><td>0.0095</td></tr>
+        <tr><td>channel_width*beamforming</td><td>1</td><td>15.1250</td><td>15.1250</td><td>0.667</td><td>0.4513</td></tr>
+        <tr><td>channel_width*spatial_streams</td><td>1</td><td>55.1250</td><td>55.1250</td><td>2.430</td><td>0.1798</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>tx_power*guard_interval</td><td>1</td><td>190.1250</td><td>190.1250</td><td>8.380</td><td>0.0340</td></tr>
+        <tr><td>tx_power*beamforming</td><td>1</td><td>1.1250</td><td>1.1250</td><td>0.050</td><td>0.8326</td></tr>
+        <tr><td>tx_power*spatial_streams</td><td>1</td><td>15.1250</td><td>15.1250</td><td>0.667</td><td>0.4513</td></tr>
+        <tr><td>guard_interval*beamforming</td><td>1</td><td>15.1250</td><td>15.1250</td><td>0.667</td><td>0.4513</td></tr>
+        <tr><td>guard_interval*spatial_streams</td><td>1</td><td>1.1250</td><td>1.1250</td><td>0.050</td><td>0.8326</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>beamforming*spatial_streams</td><td>1</td><td>190.1250</td><td>190.1250</td><td>8.380</td><td>0.0340</td></tr>
+        <tr><td>Error</td><td>(Lenth</td><td>PSE)</td><td>5</td><td>113.4375</td><td>22.6875</td></tr>
+        <tr><td>Total</td><td>7</td><td>709.8750</td><td>101.4107</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/56_pareto_coverage_m.png" alt="Pareto chart for coverage_m">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/56_main_effects_coverage_m.png" alt="Main effects plot for coverage_m">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Normal Probability Plot of Effects</p>
+        <img src="../images/56_normal_effects_coverage_m.png" alt="Normal probability plot for coverage_m">
+      </div>
+      <div>
+        <p class="caption">Half-Normal Plot of Effects</p>
+        <img src="../images/56_half_normal_effects_coverage_m.png" alt="Half-normal plot for coverage_m">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Model Diagnostics</p>
+        <img src="../images/56_diagnostics_coverage_m.png" alt="Model diagnostics for coverage_m">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">coverage m channel width vs spatial streams</p>
+      <img src="../images/56_rsm_coverage_m_channel_width_vs_spatial_streams.png" alt="RSM surface: coverage m channel width vs spatial streams" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">coverage m channel width vs tx power</p>
+      <img src="../images/56_rsm_coverage_m_channel_width_vs_tx_power.png" alt="RSM surface: coverage m channel width vs tx power" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">coverage m tx power vs spatial streams</p>
+      <img src="../images/56_rsm_coverage_m_tx_power_vs_spatial_streams.png" alt="RSM surface: coverage m tx power vs spatial streams" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput mbps channel width vs spatial streams</p>
+      <img src="../images/56_rsm_throughput_mbps_channel_width_vs_spatial_streams.png" alt="RSM surface: throughput mbps channel width vs spatial streams" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput mbps channel width vs tx power</p>
+      <img src="../images/56_rsm_throughput_mbps_channel_width_vs_tx_power.png" alt="RSM surface: throughput mbps channel width vs tx power" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">throughput mbps tx power vs spatial streams</p>
+      <img src="../images/56_rsm_throughput_mbps_tx_power_vs_spatial_streams.png" alt="RSM surface: throughput mbps tx power vs spatial streams" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9545</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>throughput_mbps</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>949.00 0.9545      949.00 Mbps</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>coverage_m</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>34.00 0.9545       34.00 m</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>channel_width</code></td><td>80 MHz</td></tr>
+            <tr><td><code>tx_power</code></td><td>10 dBm</td></tr>
+            <tr><td><code>guard_interval</code></td><td>short</td></tr>
+            <tr><td><code>beamforming</code></td><td>off</td></tr>
+            <tr><td><code>spatial_streams</code></td><td>1 count</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #4</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>coverage_m</code></td><td>34.00</td><td>34.00</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#3</td><td><strong>0.6570</strong></td><td style="font-size:.78rem;">channel_width=20,  tx_power=10,  guard_interval=short,  beamforming=on,  spatial_streams=4</td></tr>
+            <tr><td>#5</td><td><strong>0.5428</strong></td><td style="font-size:.78rem;">channel_width=80,  tx_power=23,  guard_interval=short,  beamforming=on,  spatial_streams=1</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>coverage_m</code></td><td style="color:#16a34a;font-weight:600;">0.8165</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9545
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+throughput_mbps              1.5       0.9545      949.00 Mbps   ↑
+coverage_m                   1.0       0.9545       34.00 m   ↑
+
+Recommended settings:
+  channel_width = 80 MHz
+  tx_power = 10 dBm
+  guard_interval = short
+  beamforming = off
+  spatial_streams = 1 count
+  (from observed run #4)
+
+Trade-off summary:
+  throughput_mbps: 949.00 (best observed: 949.00, sacrifice: +0.00)
+  coverage_m: 34.00 (best observed: 34.00, sacrifice: +0.00)
+
+Model quality:
+  throughput_mbps: R² = 0.3246 (linear)
+  coverage_m: R² = 0.8165 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #4 (D=0.9545): channel_width=80, tx_power=10, guard_interval=short, beamforming=off, spatial_streams=1
+  2. Run #3 (D=0.6570): channel_width=20, tx_power=10, guard_interval=short, beamforming=on, spatial_streams=4
+  3. Run #5 (D=0.5428): channel_width=80, tx_power=23, guard_interval=short, beamforming=on, spatial_streams=1</div></div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: throughput_mbps ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+channel_width         -395.2500      96.4469            55.0%
+tx_power              -133.2500      96.4469            18.5%
+beamforming            133.2500      96.4469            18.5%
+guard_interval          49.2500      96.4469             6.8%
+spatial_streams          8.2500      96.4469             1.1%
+
+=== ANOVA Table: throughput_mbps ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+channel_width                1  312445.1250  312445.1250     10.321     0.0237
+tx_power                     1   35511.1250   35511.1250      1.173     0.3282
+guard_interval               1    4851.1250    4851.1250      0.160     0.7055
+beamforming                  1   35511.1250   35511.1250      1.173     0.3282
+spatial_streams              1     136.1250     136.1250      0.004     0.9491
+channel_width*tx_power       1   35511.1250   35511.1250      1.173     0.3282
+channel_width*guard_interval    1     136.1250     136.1250      0.004     0.9491
+channel_width*beamforming    1   35511.1250   35511.1250      1.173     0.3282
+channel_width*spatial_streams    1    4851.1250    4851.1250      0.160     0.7055
+tx_power*guard_interval      1    4186.1250    4186.1250      0.138     0.7252
+tx_power*beamforming         1  312445.1250  312445.1250     10.321     0.0237
+tx_power*spatial_streams     1  128271.1250  128271.1250      4.237     0.0946
+guard_interval*beamforming    1  128271.1250  128271.1250      4.237     0.0946
+guard_interval*spatial_streams    1  312445.1250  312445.1250     10.321     0.0237
+beamforming*spatial_streams    1    4186.1250    4186.1250      0.138     0.7252
+Error (Lenth PSE)            5  151358.4375   30271.6875
+Total                        7  520911.8750   74415.9821
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
+
+=== Interaction Effects: throughput_mbps ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+tx_power             beamforming             -395.2500            23.1%
+guard_interval       spatial_streams          395.2500            23.1%
+tx_power             spatial_streams         -253.2500            14.8%
+guard_interval       beamforming              253.2500            14.8%
+channel_width        tx_power                 133.2500             7.8%
+channel_width        beamforming             -133.2500             7.8%
+channel_width        spatial_streams          -49.2500             2.9%
+tx_power             guard_interval            45.7500             2.7%
+beamforming          spatial_streams          -45.7500             2.7%
+channel_width        guard_interval            -8.2500             0.5%
+
+=== Summary Statistics: throughput_mbps ===
+
+channel_width:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  20                  4   683.2500   197.8086   475.0000   949.0000
+  80                  4   288.0000   174.2431   118.0000   458.0000
+
+tx_power:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4   552.2500   340.4442   159.0000   949.0000
+  23                  4   419.0000   214.2382   118.0000   625.0000
+
+guard_interval:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  long                4   461.0000   255.7408   118.0000   684.0000
+  short               4   510.2500   326.5225   159.0000   949.0000
+
+beamforming:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4   419.0000   194.2301   159.0000   625.0000
+  on                  4   552.2500   352.2427   118.0000   949.0000
+
+spatial_streams:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4   481.5000   235.3416   159.0000   684.0000
+  4                   4   489.7500   343.8114   118.0000   949.0000
+
+=== Main Effects: coverage_m ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+spatial_streams         13.7500       3.5604            49.5%
+guard_interval          -5.2500       3.5604            18.9%
+beamforming             -5.2500       3.5604            18.9%
+tx_power                -2.7500       3.5604             9.9%
+channel_width           -0.7500       3.5604             2.7%
+
+=== ANOVA Table: coverage_m ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+channel_width                1       1.1250       1.1250      0.050     0.8326
+tx_power                     1      15.1250      15.1250      0.667     0.4513
+guard_interval               1      55.1250      55.1250      2.430     0.1798
+beamforming                  1      55.1250      55.1250      2.430     0.1798
+spatial_streams              1     378.1250     378.1250     16.667     0.0095
+channel_width*tx_power       1      55.1250      55.1250      2.430     0.1798
+channel_width*guard_interval    1     378.1250     378.1250     16.667     0.0095
+channel_width*beamforming    1      15.1250      15.1250      0.667     0.4513
+channel_width*spatial_streams    1      55.1250      55.1250      2.430     0.1798
+tx_power*guard_interval      1     190.1250     190.1250      8.380     0.0340
+tx_power*beamforming         1       1.1250       1.1250      0.050     0.8326
+tx_power*spatial_streams     1      15.1250      15.1250      0.667     0.4513
+guard_interval*beamforming    1      15.1250      15.1250      0.667     0.4513
+guard_interval*spatial_streams    1       1.1250       1.1250      0.050     0.8326
+beamforming*spatial_streams    1     190.1250     190.1250      8.380     0.0340
+Error (Lenth PSE)            5     113.4375      22.6875
+Total                        7     709.8750     101.4107
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
+
+=== Interaction Effects: coverage_m ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+channel_width        guard_interval           -13.7500            25.7%
+tx_power             guard_interval            -9.7500            18.2%
+beamforming          spatial_streams            9.7500            18.2%
+channel_width        tx_power                  -5.2500             9.8%
+channel_width        spatial_streams            5.2500             9.8%
+channel_width        beamforming               -2.7500             5.1%
+tx_power             spatial_streams           -2.7500             5.1%
+guard_interval       beamforming                2.7500             5.1%
+tx_power             beamforming               -0.7500             1.4%
+guard_interval       spatial_streams            0.7500             1.4%
+
+=== Summary Statistics: coverage_m ===
+
+channel_width:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  20                  4    24.7500     8.8459    13.0000    34.0000
+  80                  4    24.0000    12.5698     7.0000    34.0000
+
+tx_power:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4    25.7500    10.2103    13.0000    34.0000
+  23                  4    23.0000    11.2842     7.0000    33.0000
+
+guard_interval:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  long                4    27.0000     9.6954    13.0000    34.0000
+  short               4    21.7500    11.1467     7.0000    34.0000
+
+beamforming:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 4    27.0000     5.2915    22.0000    34.0000
+  on                  4    21.7500    13.7931     7.0000    34.0000
+
+spatial_streams:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   4    17.5000     9.3274     7.0000    28.0000
+  4                   4    31.2500     4.8563    24.0000    34.0000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: throughput_mbps ===
+Direction: maximize
+
+Best observed run: #4
+  channel_width = 20
+  tx_power = 10
+  guard_interval = long
+  beamforming = on
+  spatial_streams = 1
+  Value: 949.0
+
+RSM Model (linear, R² = 0.9225, Adj R² = 0.7288):
+  Coefficients:
+    intercept                      +485.6250
+    channel_width                  -126.6250
+    tx_power                       +22.8750
+    guard_interval                 -66.6250
+    beamforming                    +197.6250
+    spatial_streams                -4.1250
+
+  Predicted optimum (from linear model, at observed points):
+    channel_width = 20
+    tx_power = 10
+    guard_interval = long
+    beamforming = on
+    spatial_streams = 1
+    Predicted value: 857.7500
+
+  Surface optimum (via L-BFGS-B, linear model):
+    channel_width = 20
+    tx_power = 23
+    guard_interval = short
+    beamforming = on
+    spatial_streams = 1
+    Predicted value: 903.5000
+
+  Model quality: Excellent fit — surface predictions are reliable.
+
+Factor importance:
+  1. beamforming  (effect: 395.2, contribution: 47.3%)
+  2. channel_width  (effect: -253.2, contribution: 30.3%)
+  3. guard_interval  (effect: -133.2, contribution: 15.9%)
+  4. tx_power  (effect: 45.8, contribution: 5.5%)
+  5. spatial_streams  (effect: -8.2, contribution: 1.0%)
+
+=== Optimization: coverage_m ===
+Direction: maximize
+
+Best observed run: #4
+  channel_width = 20
+  tx_power = 10
+  guard_interval = long
+  beamforming = on
+  spatial_streams = 1
+  Value: 34.0
+
+RSM Model (linear, R² = 0.8447, Adj R² = 0.4564):
+  Coefficients:
+    intercept                      +24.3750
+    channel_width                  -1.3750
+    tx_power                       -4.8750
+    guard_interval                 -1.3750
+    beamforming                    +0.3750
+    spatial_streams                -6.8750
+
+  Predicted optimum (from linear model, at observed points):
+    channel_width = 20
+    tx_power = 10
+    guard_interval = long
+    beamforming = on
+    spatial_streams = 1
+    Predicted value: 39.2500
+
+  Surface optimum (via L-BFGS-B, linear model):
+    channel_width = 20
+    tx_power = 10
+    guard_interval = short
+    beamforming = on
+    spatial_streams = 1
+    Predicted value: 39.2500
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. spatial_streams  (effect: -13.8, contribution: 46.2%)
+  2. tx_power  (effect: -9.8, contribution: 32.8%)
+  3. channel_width  (effect: -2.8, contribution: 9.2%)
+  4. guard_interval  (effect: -2.8, contribution: 9.2%)
+  5. beamforming  (effect: 0.8, contribution: 2.5%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="55-network-buffer-sizing.html">&larr; Previous: Network Buffer Sizing</a>
+    <a href="57-waf-rule-threshold.html">Next: WAF Rule Threshold Tuning &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+<script>
+(function() {
+  var toc = document.getElementById('uc-toc-inner');
+  if (!toc) return;
+  var headings = document.querySelectorAll('.uc-section > h2, .uc-content > section > h2');
+  if (headings.length < 2) { document.getElementById('uc-toc').style.display = 'none'; return; }
+  headings.forEach(function(h, i) {
+    if (!h.id) h.id = 'sec-' + i;
+    var a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(null, '', '#' + h.id);
+    });
+    toc.appendChild(a);
+  });
+  var links = toc.querySelectorAll('a');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        links.forEach(function(a) { a.classList.remove('active'); });
+        var active = toc.querySelector('a[href="#' + entry.target.id + '"]');
+        if (active) {
+          active.classList.add('active');
+          active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      }
+    });
+  }, { rootMargin: '-80px 0px -70% 0px', threshold: 0 });
+  headings.forEach(function(h) { observer.observe(h); });
+  if (links.length) links[0].classList.add('active');
+})();
+</script>
+</body>
+</html>

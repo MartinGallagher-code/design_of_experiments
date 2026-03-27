@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Battery Management Charging &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #cffafe, #a5f3fc);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F4E1;</div>
+    <div class="uc-badge" style="background:rgba(8,145,178,.12);color:#0891b2;">Central Composite Design</div>
+    <h1>Battery Management Charging</h1>
+    <p class="uc-subtitle">Central Composite design to optimize charge current, CV threshold, and trickle cutoff for charge time and cycle life</p>
+  </div>
+</section>
+
+<!-- Table of Contents -->
+<nav class="uc-toc" id="uc-toc"><div class="uc-toc-inner" id="uc-toc-inner"></div></nav>
+
+<div class="container-narrow uc-content">
+
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>battery management charging</strong>. Central Composite design to optimize charge current, CV threshold, and trickle cutoff for charge time and cycle life.</p>
+
+    <p>The design varies 3 factors: <strong>charge current ma</strong> (mA), ranging from 500 to 3000, <strong>cv threshold mv</strong> (mV), ranging from 3400 to 3650, and <strong>trickle cutoff mv</strong> (mV), ranging from 2800 to 3000. The goal is to optimize 2 responses: charge time min (min) (minimize) and cycle life count (cycles) (maximize). Fixed conditions held constant across all runs include chemistry = lifepo4, cell count = 4s.</p>
+
+    <p>A Central Composite Design (CCD) was selected to fit a full quadratic response surface model, including curvature and interaction effects. With 3 factors this produces 22 runs including center points and axial (star) points that extend beyond the factorial range.</p>
+
+    <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
+
+    <h3>Key Findings</h3>
+    <p>For <strong>charge time min</strong>, the most influential factors were cv threshold mv (45.9%), trickle cutoff mv (33.3%), charge current ma (20.8%). The best observed value was <strong>52.0</strong> (at charge current ma = 1750, cv threshold mv = 3525, trickle cutoff mv = 3082.57).</p>
+<p>For <strong>cycle life count</strong>, the most influential factors were cv threshold mv (47.7%), trickle cutoff mv (32.2%), charge current ma (20.1%). The best observed value was <strong>3325.0</strong> (at charge current ma = 500, cv threshold mv = 3400, trickle cutoff mv = 3000).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Run confirmation experiments at the predicted optimal settings to validate the model.</li>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+  </ul>
+  </section>
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>charge_current_ma</code></td><td>500</td><td>3000</td><td>mA</td></tr>
+            <tr><td><code>cv_threshold_mv</code></td><td>3400</td><td>3650</td><td>mV</td></tr>
+            <tr><td><code>trickle_cutoff_mv</code></td><td>2800</td><td>3000</td><td>mV</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> chemistry = lifepo4, cell_count = 4s</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>charge_time_min</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>min</td></tr>
+            <tr><td><code>cycle_life_count</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>cycles</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/76_battery_management_charging/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Battery Management Charging&quot;,
+    &quot;description&quot;: &quot;Central Composite design to optimize charge current, CV threshold, and trickle cutoff for charge time and cycle life&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;charge_current_ma&quot;,
+      &quot;levels&quot;: [
+        &quot;500&quot;,
+        &quot;3000&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;mA&quot;
+    },
+    {
+      &quot;name&quot;: &quot;cv_threshold_mv&quot;,
+      &quot;levels&quot;: [
+        &quot;3400&quot;,
+        &quot;3650&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;mV&quot;
+    },
+    {
+      &quot;name&quot;: &quot;trickle_cutoff_mv&quot;,
+      &quot;levels&quot;: [
+        &quot;2800&quot;,
+        &quot;3000&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;mV&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;chemistry&quot;: &quot;lifepo4&quot;,
+    &quot;cell_count&quot;: &quot;4s&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;charge_time_min&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;min&quot;
+    },
+    {
+      &quot;name&quot;: &quot;cycle_life_count&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;cycles&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;central_composite&quot;,
+    &quot;test_script&quot;: &quot;use_cases/76_battery_management_charging/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Central Composite Design produces <strong>22 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>charge_current_ma</code></th><th><code>cv_threshold_mv</code></th><th><code>trickle_cutoff_mv</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>1750</td><td>3525</td><td>2900</td></tr>
+        <tr><td>2</td><td>3000</td><td>3400</td><td>3000</td></tr>
+        <tr><td>3</td><td>500</td><td>3650</td><td>2800</td></tr>
+        <tr><td>4</td><td>1750</td><td>3753.22</td><td>2900</td></tr>
+        <tr><td>5</td><td>1750</td><td>3525</td><td>2900</td></tr>
+        <tr><td>6</td><td>-532.177</td><td>3525</td><td>2900</td></tr>
+        <tr><td>7</td><td>1750</td><td>3525</td><td>2717.43</td></tr>
+        <tr><td>8</td><td>1750</td><td>3525</td><td>2900</td></tr>
+        <tr><td>9</td><td>3000</td><td>3650</td><td>2800</td></tr>
+        <tr><td>10</td><td>4032.18</td><td>3525</td><td>2900</td></tr>
+        <tr><td>11</td><td>1750</td><td>3525</td><td>2900</td></tr>
+        <tr><td>12</td><td>1750</td><td>3296.78</td><td>2900</td></tr>
+        <tr><td>13</td><td>1750</td><td>3525</td><td>2900</td></tr>
+        <tr><td>14</td><td>500</td><td>3400</td><td>3000</td></tr>
+        <tr><td>15</td><td>1750</td><td>3525</td><td>2900</td></tr>
+        <tr><td>16</td><td>3000</td><td>3400</td><td>2800</td></tr>
+        <tr><td>17</td><td>1750</td><td>3525</td><td>3082.57</td></tr>
+        <tr><td>18</td><td>3000</td><td>3650</td><td>3000</td></tr>
+        <tr><td>19</td><td>1750</td><td>3525</td><td>2900</td></tr>
+        <tr><td>20</td><td>500</td><td>3400</td><td>2800</td></tr>
+        <tr><td>21</td><td>500</td><td>3650</td><td>3000</td></tr>
+        <tr><td>22</td><td>1750</td><td>3525</td><td>2900</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe info <span class="flag">--config</span> use_cases/76_battery_management_charging/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe generate <span class="flag">--config</span> use_cases/76_battery_management_charging/config.json \
+    <span class="flag">--output</span> use_cases/76_battery_management_charging/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/76_battery_management_charging/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe analyze <span class="flag">--config</span> use_cases/76_battery_management_charging/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> use_cases/76_battery_management_charging/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> use_cases/76_battery_management_charging/config.json <span class="flag">--multi</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">7</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe report <span class="flag">--config</span> use_cases/76_battery_management_charging/config.json \
+    <span class="flag">--output</span> use_cases/76_battery_management_charging/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>central_composite</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (charge_time_min &#x2193;, cycle_life_count &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>22</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: charge_time_min</h3>
+    <p>Top factors: cv_threshold_mv (45.9%), trickle_cutoff_mv (33.3%), charge_current_ma (20.8%).</p>
+    <h4>ANOVA</h4>
+    <table style="font-size:.82rem;">
+      <thead><tr><th>Source</th><th>DF</th><th>SS</th><th>MS</th><th>F</th><th>p-value</th></tr></thead>
+      <tbody>
+        <tr><td>Source</td><td>DF</td><td>SS</td><td>MS</td><td>F</td><td>p-value</td></tr>
+        <tr><td>charge_current_ma</td><td>4</td><td>3402.2727</td><td>850.5682</td><td>0.807</td><td>0.5507</td></tr>
+        <tr><td>cv_threshold_mv</td><td>4</td><td>5396.6061</td><td>1349.1515</td><td>1.280</td><td>0.3467</td></tr>
+        <tr><td>trickle_cutoff_mv</td><td>4</td><td>3390.6061</td><td>847.6515</td><td>0.804</td><td>0.5522</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>Lack</td><td>of</td><td>Fit</td><td>2</td><td>0.0000</td><td>0.0000</td></tr>
+        <tr><td>Pure</td><td>Error</td><td>7</td><td>7375.8750</td><td></td><td></td></tr>
+        <tr><td>Error</td><td>9</td><td>4449.7879</td><td>1053.6964</td><td></td><td></td></tr>
+        <tr><td>Total</td><td>21</td><td>16639.2727</td><td>792.3463</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/76_pareto_charge_time_min.png" alt="Pareto chart for charge_time_min">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/76_main_effects_charge_time_min.png" alt="Main effects plot for charge_time_min">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Normal Probability Plot of Effects</p>
+        <img src="../images/76_normal_effects_charge_time_min.png" alt="Normal probability plot for charge_time_min">
+      </div>
+      <div>
+        <p class="caption">Half-Normal Plot of Effects</p>
+        <img src="../images/76_half_normal_effects_charge_time_min.png" alt="Half-normal plot for charge_time_min">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Model Diagnostics</p>
+        <img src="../images/76_diagnostics_charge_time_min.png" alt="Model diagnostics for charge_time_min">
+      </div>
+    </div>
+
+    <h3>Response: cycle_life_count</h3>
+    <p>Top factors: cv_threshold_mv (47.7%), trickle_cutoff_mv (32.2%), charge_current_ma (20.1%).</p>
+    <h4>ANOVA</h4>
+    <table style="font-size:.82rem;">
+      <thead><tr><th>Source</th><th>DF</th><th>SS</th><th>MS</th><th>F</th><th>p-value</th></tr></thead>
+      <tbody>
+        <tr><td>Source</td><td>DF</td><td>SS</td><td>MS</td><td>F</td><td>p-value</td></tr>
+        <tr><td>charge_current_ma</td><td>4</td><td>510833.2045</td><td>127708.3011</td><td>0.388</td><td>0.8125</td></tr>
+        <tr><td>cv_threshold_mv</td><td>4</td><td>741846.2879</td><td>185461.5720</td><td>0.563</td><td>0.6958</td></tr>
+        <tr><td>trickle_cutoff_mv</td><td>4</td><td>659639.0379</td><td>164909.7595</td><td>0.501</td><td>0.7366</td></tr>
+        <tr><td>Lack</td><td>of</td><td>Fit</td><td>2</td><td>578038.9242</td><td>289019.4621</td></tr>
+        <tr><td>Pure</td><td>Error</td><td>7</td><td>2306312.0000</td><td></td><td></td></tr>
+        <tr><td>Error</td><td>9</td><td>2884350.9242</td><td>329473.1429</td><td></td><td></td></tr>
+        <tr><td>Total</td><td>21</td><td>4796669.4545</td><td>228412.8312</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/76_pareto_cycle_life_count.png" alt="Pareto chart for cycle_life_count">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/76_main_effects_cycle_life_count.png" alt="Main effects plot for cycle_life_count">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Normal Probability Plot of Effects</p>
+        <img src="../images/76_normal_effects_cycle_life_count.png" alt="Normal probability plot for cycle_life_count">
+      </div>
+      <div>
+        <p class="caption">Half-Normal Plot of Effects</p>
+        <img src="../images/76_half_normal_effects_cycle_life_count.png" alt="Half-normal plot for cycle_life_count">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Model Diagnostics</p>
+        <img src="../images/76_diagnostics_cycle_life_count.png" alt="Model diagnostics for cycle_life_count">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">charge time min charge current ma vs cv threshold mv</p>
+      <img src="../images/76_rsm_charge_time_min_charge_current_ma_vs_cv_threshold_mv.png" alt="RSM surface: charge time min charge current ma vs cv threshold mv" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">charge time min charge current ma vs trickle cutoff mv</p>
+      <img src="../images/76_rsm_charge_time_min_charge_current_ma_vs_trickle_cutoff_mv.png" alt="RSM surface: charge time min charge current ma vs trickle cutoff mv" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">charge time min cv threshold mv vs trickle cutoff mv</p>
+      <img src="../images/76_rsm_charge_time_min_cv_threshold_mv_vs_trickle_cutoff_mv.png" alt="RSM surface: charge time min cv threshold mv vs trickle cutoff mv" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cycle life count charge current ma vs cv threshold mv</p>
+      <img src="../images/76_rsm_cycle_life_count_charge_current_ma_vs_cv_threshold_mv.png" alt="RSM surface: cycle life count charge current ma vs cv threshold mv" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cycle life count charge current ma vs trickle cutoff mv</p>
+      <img src="../images/76_rsm_cycle_life_count_charge_current_ma_vs_trickle_cutoff_mv.png" alt="RSM surface: cycle life count charge current ma vs trickle cutoff mv" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cycle life count cv threshold mv vs trickle cutoff mv</p>
+      <img src="../images/76_rsm_cycle_life_count_cv_threshold_mv_vs_trickle_cutoff_mv.png" alt="RSM surface: cycle life count cv threshold mv vs trickle cutoff mv" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.7498</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>charge_time_min</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:74.24%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7424</span>
+                </div>
+              </td>
+              <td>80.00 0.7424       80.00 min</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>cycle_life_count</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:75.48%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7548</span>
+                </div>
+              </td>
+              <td>2903.00 0.7548     2903.00 cycles</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>charge_current_ma</code></td><td>1750 mA</td></tr>
+            <tr><td><code>cv_threshold_mv</code></td><td>3525 mV</td></tr>
+            <tr><td><code>trickle_cutoff_mv</code></td><td>2900 mV</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #12</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>cycle_life_count</code></td><td>2903.00</td><td>3325.00</td><td><span style="color:#dc2626;">+422.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#2</td><td><strong>0.6142</strong></td><td style="font-size:.78rem;">charge_current_ma=1750,  cv_threshold_mv=3525,  trickle_cutoff_mv=2900</td></tr>
+            <tr><td>#20</td><td><strong>0.6028</strong></td><td style="font-size:.78rem;">charge_current_ma=500,  cv_threshold_mv=3650,  trickle_cutoff_mv=3000</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>cycle_life_count</code></td><td style="color:#dc2626;font-weight:600;">0.4698</td><td>quadratic</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.7498
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+charge_time_min              1.0       0.7424       80.00 min   ↓
+cycle_life_count             1.5       0.7548     2903.00 cycles   ↑
+
+Recommended settings:
+  charge_current_ma = 1750 mA
+  cv_threshold_mv = 3525 mV
+  trickle_cutoff_mv = 2900 mV
+  (from observed run #12)
+
+Trade-off summary:
+  charge_time_min: 80.00 (best observed: 52.00, sacrifice: +28.00)
+  cycle_life_count: 2903.00 (best observed: 3325.00, sacrifice: +422.00)
+
+Model quality:
+  charge_time_min: R² = 0.0607 (linear)
+  cycle_life_count: R² = 0.4698 (quadratic)
+
+Top 3 observed runs by overall desirability:
+  1. Run #12 (D=0.7498): charge_current_ma=1750, cv_threshold_mv=3525, trickle_cutoff_mv=2900
+  2. Run #2 (D=0.6142): charge_current_ma=1750, cv_threshold_mv=3525, trickle_cutoff_mv=2900
+  3. Run #20 (D=0.6028): charge_current_ma=500, cv_threshold_mv=3650, trickle_cutoff_mv=3000</div></div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: charge_time_min ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+cv_threshold_mv         74.0000       6.0013            45.9%
+trickle_cutoff_mv       53.7500       6.0013            33.3%
+charge_current_ma       33.5000       6.0013            20.8%
+
+=== ANOVA Table: charge_time_min ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+charge_current_ma            4    3402.2727     850.5682      0.807     0.5507
+cv_threshold_mv              4    5396.6061    1349.1515      1.280     0.3467
+trickle_cutoff_mv            4    3390.6061     847.6515      0.804     0.5522
+Lack of Fit                  2       0.0000       0.0000      0.000     1.0000
+Pure Error                   7    7375.8750    1053.6964
+Error                        9    4449.7879    1053.6964
+Total                       21   16639.2727     792.3463
+
+=== Summary Statistics: charge_time_min ===
+
+charge_current_ma:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -532.177            1    93.0000     0.0000    93.0000    93.0000
+  1750               12   106.2500    33.0072    52.0000   172.0000
+  3000                4    96.0000    16.7133    86.0000   121.0000
+  4032.18             1    95.0000     0.0000    95.0000    95.0000
+  500                 4    72.7500    11.7580    63.0000    88.0000
+
+cv_threshold_mv:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  3296.78             1   126.0000     0.0000   126.0000   126.0000
+  3400                4    82.2500    12.1758    64.0000    89.0000
+  3525               12   107.0833    28.5162    80.0000   172.0000
+  3650                4    86.5000    24.8529    63.0000   121.0000
+  3753.22             1    52.0000     0.0000    52.0000    52.0000
+
+trickle_cutoff_mv:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2717.43             1   135.0000     0.0000   135.0000   135.0000
+  2800                4    87.5000    24.5561    64.0000   121.0000
+  2900               12   103.4167    31.6126    52.0000   172.0000
+  3000                4    81.2500    12.2031    63.0000    88.0000
+  3082.57             1    87.0000     0.0000    87.0000    87.0000
+
+=== Main Effects: cycle_life_count ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+cv_threshold_mv        909.2500     101.8941            47.7%
+trickle_cutoff_mv      613.0000     101.8941            32.2%
+charge_current_ma      383.2500     101.8941            20.1%
+
+=== ANOVA Table: cycle_life_count ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+charge_current_ma            4  510833.2045  127708.3011      0.388     0.8125
+cv_threshold_mv              4  741846.2879  185461.5720      0.563     0.6958
+trickle_cutoff_mv            4  659639.0379  164909.7595      0.501     0.7366
+Lack of Fit                  2  578038.9242  289019.4621      0.877     0.4571
+Pure Error                   7 2306312.0000  329473.1429
+Error                        9 2884350.9242  329473.1429
+Total                       21 4796669.4545  228412.8312
+
+=== Summary Statistics: cycle_life_count ===
+
+charge_current_ma:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -532.177            1  2067.0000     0.0000  2067.0000  2067.0000
+  1750               12  2286.2500   532.8063  1677.0000  3325.0000
+  3000                4  2169.0000   486.7902  1916.0000  2899.0000
+  4032.18             1  1940.0000     0.0000  1940.0000  1940.0000
+  500                 4  1903.0000   388.2585  1404.0000  2342.0000
+
+cv_threshold_mv:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  3296.78             1  2937.0000     0.0000  2937.0000  2937.0000
+  3400                4  2044.2500   202.1458  1916.0000  2342.0000
+  3525               12  2196.8333   500.0661  1677.0000  3325.0000
+  3650                4  2027.7500   627.5632  1404.0000  2899.0000
+  3753.22             1  2143.0000     0.0000  2143.0000  2143.0000
+
+trickle_cutoff_mv:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2717.43             1  2290.0000     0.0000  2290.0000  2290.0000
+  2800                4  2140.2500   634.7589  1404.0000  2899.0000
+  2900               12  2289.5833   515.1641  1685.0000  3325.0000
+  3000                4  1931.7500    54.5856  1867.0000  1999.0000
+  3082.57             1  1677.0000     0.0000  1677.0000  1677.0000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: charge_time_min ===
+Direction: minimize
+
+Best observed run: #16
+  charge_current_ma = 1750
+  cv_threshold_mv = 3525
+  trickle_cutoff_mv = 3082.57
+  Value: 52.0
+
+RSM Model (linear, R² = 0.2139, Adj R² = 0.0828):
+  Coefficients:
+    intercept                      +97.1818
+    charge_current_ma              -3.7149
+    cv_threshold_mv                -14.8893
+    trickle_cutoff_mv              +2.6716
+
+RSM Model (quadratic, R² = 0.4743, Adj R² = 0.0799):
+  Coefficients:
+    intercept                      +102.1686
+    charge_current_ma              -3.7149
+    cv_threshold_mv                -14.8893
+    trickle_cutoff_mv              +2.6716
+    charge_current_ma*cv_threshold_mv +8.8750
+    charge_current_ma*trickle_cutoff_mv -3.6250
+    cv_threshold_mv*trickle_cutoff_mv -12.3750
+    charge_current_ma^2            -4.9933
+    cv_threshold_mv^2              +5.2065
+    trickle_cutoff_mv^2            -7.6935
+
+  Curvature analysis:
+    trickle_cutoff_mv              coef=-7.6935  concave (has a maximum)
+    cv_threshold_mv                coef=+5.2065  convex (has a minimum)
+    charge_current_ma              coef=-4.9933  concave (has a maximum)
+
+  Notable interactions:
+    cv_threshold_mv*trickle_cutoff_mv coef=-12.3750  (antagonistic)
+    charge_current_ma*cv_threshold_mv coef=+8.8750  (synergistic)
+    charge_current_ma*trickle_cutoff_mv coef=-3.6250  (antagonistic)
+
+  Predicted optimum (from linear model, at observed points):
+    charge_current_ma = 1750
+    cv_threshold_mv = 3296.78
+    trickle_cutoff_mv = 2900
+    Predicted value: 124.3662
+
+  Surface optimum (via L-BFGS-B, linear model):
+    charge_current_ma = 3000
+    cv_threshold_mv = 3650
+    trickle_cutoff_mv = 2800
+    Predicted value: 75.9059
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. trickle_cutoff_mv  (effect: 63.5, contribution: 40.6%)
+  2. charge_current_ma  (effect: 53.5, contribution: 34.2%)
+  3. cv_threshold_mv  (effect: 39.5, contribution: 25.2%)
+
+=== Optimization: cycle_life_count ===
+Direction: maximize
+
+Best observed run: #6
+  charge_current_ma = 500
+  cv_threshold_mv = 3400
+  trickle_cutoff_mv = 3000
+  Value: 3325.0
+
+RSM Model (linear, R² = 0.4709, Adj R² = 0.3828):
+  Coefficients:
+    intercept                      +2169.5454
+    charge_current_ma              +53.0346
+    cv_threshold_mv                -199.9617
+    trickle_cutoff_mv              +333.4973
+
+RSM Model (quadratic, R² = 0.6905, Adj R² = 0.4583):
+  Coefficients:
+    intercept                      +2141.0446
+    charge_current_ma              +53.0346
+    cv_threshold_mv                -199.9617
+    trickle_cutoff_mv              +333.4973
+    charge_current_ma*cv_threshold_mv +150.0000
+    charge_current_ma*trickle_cutoff_mv +22.7500
+    cv_threshold_mv*trickle_cutoff_mv -206.7500
+    charge_current_ma^2            -37.0491
+    cv_threshold_mv^2              +138.1472
+    trickle_cutoff_mv^2            -58.3493
+
+  Curvature analysis:
+    cv_threshold_mv                coef=+138.1472  convex (has a minimum)
+    trickle_cutoff_mv              coef=-58.3493  concave (has a maximum)
+    charge_current_ma              coef=-37.0491  concave (has a maximum)
+
+  Notable interactions:
+    cv_threshold_mv*trickle_cutoff_mv coef=-206.7500  (antagonistic)
+    charge_current_ma*cv_threshold_mv coef=+150.0000  (synergistic)
+    charge_current_ma*trickle_cutoff_mv coef=+22.7500  (synergistic)
+
+  Predicted optimum (from quadratic model, at observed points):
+    charge_current_ma = 500
+    cv_threshold_mv = 3400
+    trickle_cutoff_mv = 3000
+    Predicted value: 2998.2178
+
+  Surface optimum (via L-BFGS-B, quadratic model):
+    charge_current_ma = 500
+    cv_threshold_mv = 3400
+    trickle_cutoff_mv = 3000
+    Predicted value: 2998.2178
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
+
+Factor importance:
+  1. trickle_cutoff_mv  (effect: 1366.8, contribution: 45.6%)
+  2. cv_threshold_mv  (effect: 1017.0, contribution: 33.9%)
+  3. charge_current_ma  (effect: 613.5, contribution: 20.5%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="75-firmware-ota-strategy.html">&larr; Previous: Firmware OTA Strategy</a>
+    <a href="77-cicd-pipeline-parallelism.html">Next: CI/CD Pipeline Parallelism &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+<script>
+(function() {
+  var toc = document.getElementById('uc-toc-inner');
+  if (!toc) return;
+  var headings = document.querySelectorAll('.uc-section > h2, .uc-content > section > h2');
+  if (headings.length < 2) { document.getElementById('uc-toc').style.display = 'none'; return; }
+  headings.forEach(function(h, i) {
+    if (!h.id) h.id = 'sec-' + i;
+    var a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(null, '', '#' + h.id);
+    });
+    toc.appendChild(a);
+  });
+  var links = toc.querySelectorAll('a');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        links.forEach(function(a) { a.classList.remove('active'); });
+        var active = toc.querySelector('a[href="#' + entry.target.id + '"]');
+        if (active) {
+          active.classList.add('active');
+          active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      }
+    });
+  }, { rootMargin: '-80px 0px -70% 0px', threshold: 0 });
+  headings.forEach(function(h) { observer.observe(h); });
+  if (links.length) links[0].classList.add('active');
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EV Range Optimization &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #fed7aa, #fdba74);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F697;</div>
+    <div class="uc-badge" style="background:rgba(234,88,12,.12);color:#ea580c;">Full Factorial Design</div>
+    <h1>EV Range Optimization</h1>
+    <p class="uc-subtitle">Full factorial of driving speed, cabin temperature, regenerative braking level, and tire type to maximize range and minimize energy consumption</p>
+  </div>
+</section>
+
+<!-- Table of Contents -->
+<nav class="uc-toc" id="uc-toc"><div class="uc-toc-inner" id="uc-toc-inner"></div></nav>
+
+<div class="container-narrow uc-content">
+
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>ev range optimization</strong>. Full factorial of driving speed, cabin temperature, regenerative braking level, and tire type to maximize range and minimize energy consumption.</p>
+
+    <p>The design varies 4 factors: <strong>speed kph</strong> (kph), ranging from 60 to 120, <strong>cabin temp</strong> (C), ranging from 18 to 26, <strong>regen level</strong> (level), ranging from 1 to 3, and <strong>tire type</strong>, ranging from standard to low_rolling. The goal is to optimize 2 responses: range km (km) (maximize) and kwh per 100km (kWh/100km) (minimize). Fixed conditions held constant across all runs include battery kwh = 75, vehicle type = suv.</p>
+
+    <p>A full factorial design was used to explore all 16 possible combinations of the 4 factors at two levels. This guarantees that every main effect and interaction can be estimated independently, at the cost of a larger experiment (16 runs).</p>
+
+    <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
+
+    <h3>Key Findings</h3>
+    <p>For <strong>range km</strong>, the most influential factors were cabin temp (51.2%), regen level (25.4%), speed kph (12.4%). The best observed value was <strong>614.0</strong> (at speed kph = 120, cabin temp = 18, regen level = 3).</p>
+<p>For <strong>kwh per 100km</strong>, the most influential factors were cabin temp (68.1%), regen level (23.9%), speed kph (4.6%). The best observed value was <strong>12.3</strong> (at speed kph = 120, cabin temp = 18, regen level = 3).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+  </ul>
+  </section>
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>speed_kph</code></td><td>60</td><td>120</td><td>kph</td></tr>
+            <tr><td><code>cabin_temp</code></td><td>18</td><td>26</td><td>C</td></tr>
+            <tr><td><code>regen_level</code></td><td>1</td><td>3</td><td>level</td></tr>
+            <tr><td><code>tire_type</code></td><td>standard</td><td>low_rolling</td><td></td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> battery_kwh = 75, vehicle_type = suv</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>range_km</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>km</td></tr>
+            <tr><td><code>kwh_per_100km</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>kWh/100km</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/119_ev_range_optimization/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;EV Range Optimization&quot;,
+    &quot;description&quot;: &quot;Full factorial of driving speed, cabin temperature, regenerative braking level, and tire type to maximize range and minimize energy consumption&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;speed_kph&quot;,
+      &quot;levels&quot;: [
+        &quot;60&quot;,
+        &quot;120&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;kph&quot;
+    },
+    {
+      &quot;name&quot;: &quot;cabin_temp&quot;,
+      &quot;levels&quot;: [
+        &quot;18&quot;,
+        &quot;26&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;C&quot;
+    },
+    {
+      &quot;name&quot;: &quot;regen_level&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;3&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;level&quot;
+    },
+    {
+      &quot;name&quot;: &quot;tire_type&quot;,
+      &quot;levels&quot;: [
+        &quot;standard&quot;,
+        &quot;low_rolling&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;battery_kwh&quot;: &quot;75&quot;,
+    &quot;vehicle_type&quot;: &quot;suv&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;range_km&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;km&quot;
+    },
+    {
+      &quot;name&quot;: &quot;kwh_per_100km&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;kWh/100km&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;full_factorial&quot;,
+    &quot;test_script&quot;: &quot;use_cases/119_ev_range_optimization/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Full Factorial Design produces <strong>16 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>speed_kph</code></th><th><code>cabin_temp</code></th><th><code>regen_level</code></th><th><code>tire_type</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>60</td><td>26</td><td>3</td><td>low_rolling</td></tr>
+        <tr><td>2</td><td>120</td><td>18</td><td>1</td><td>low_rolling</td></tr>
+        <tr><td>3</td><td>60</td><td>26</td><td>1</td><td>low_rolling</td></tr>
+        <tr><td>4</td><td>60</td><td>26</td><td>3</td><td>standard</td></tr>
+        <tr><td>5</td><td>120</td><td>26</td><td>3</td><td>standard</td></tr>
+        <tr><td>6</td><td>120</td><td>18</td><td>3</td><td>standard</td></tr>
+        <tr><td>7</td><td>120</td><td>26</td><td>1</td><td>standard</td></tr>
+        <tr><td>8</td><td>120</td><td>18</td><td>1</td><td>standard</td></tr>
+        <tr><td>9</td><td>60</td><td>18</td><td>1</td><td>low_rolling</td></tr>
+        <tr><td>10</td><td>60</td><td>18</td><td>3</td><td>standard</td></tr>
+        <tr><td>11</td><td>120</td><td>26</td><td>1</td><td>low_rolling</td></tr>
+        <tr><td>12</td><td>120</td><td>26</td><td>3</td><td>low_rolling</td></tr>
+        <tr><td>13</td><td>60</td><td>26</td><td>1</td><td>standard</td></tr>
+        <tr><td>14</td><td>120</td><td>18</td><td>3</td><td>low_rolling</td></tr>
+        <tr><td>15</td><td>60</td><td>18</td><td>1</td><td>standard</td></tr>
+        <tr><td>16</td><td>60</td><td>18</td><td>3</td><td>low_rolling</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe info <span class="flag">--config</span> use_cases/119_ev_range_optimization/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe generate <span class="flag">--config</span> use_cases/119_ev_range_optimization/config.json \
+    <span class="flag">--output</span> use_cases/119_ev_range_optimization/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/119_ev_range_optimization/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe analyze <span class="flag">--config</span> use_cases/119_ev_range_optimization/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> use_cases/119_ev_range_optimization/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> use_cases/119_ev_range_optimization/config.json <span class="flag">--multi</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">7</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe report <span class="flag">--config</span> use_cases/119_ev_range_optimization/config.json \
+    <span class="flag">--output</span> use_cases/119_ev_range_optimization/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>full_factorial</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (3), <code>categorical</code> (1)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (range_km &#x2191;, kwh_per_100km &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>16</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: range_km</h3>
+    <p>Top factors: cabin_temp (51.2%), regen_level (25.4%), speed_kph (12.4%).</p>
+    <h4>ANOVA</h4>
+    <table style="font-size:.82rem;">
+      <thead><tr><th>Source</th><th>DF</th><th>SS</th><th>MS</th><th>F</th><th>p-value</th></tr></thead>
+      <tbody>
+        <tr><td>Source</td><td>DF</td><td>SS</td><td>MS</td><td>F</td><td>p-value</td></tr>
+        <tr><td>speed_kph</td><td>1</td><td>1482.2500</td><td>1482.2500</td><td>0.099</td><td>0.7654</td></tr>
+        <tr><td>cabin_temp</td><td>1</td><td>25281.0000</td><td>25281.0000</td><td>1.693</td><td>0.2499</td></tr>
+        <tr><td>regen_level</td><td>1</td><td>6241.0000</td><td>6241.0000</td><td>0.418</td><td>0.5464</td></tr>
+        <tr><td>tire_type</td><td>1</td><td>1156.0000</td><td>1156.0000</td><td>0.077</td><td>0.7920</td></tr>
+        <tr><td>speed_kph*cabin_temp</td><td>1</td><td>961.0000</td><td>961.0000</td><td>0.064</td><td>0.8098</td></tr>
+        <tr><td>speed_kph*regen_level</td><td>1</td><td>49.0000</td><td>49.0000</td><td>0.003</td><td>0.9565</td></tr>
+        <tr><td>speed_kph*tire_type</td><td>1</td><td>18769.0000</td><td>18769.0000</td><td>1.257</td><td>0.3131</td></tr>
+        <tr><td>cabin_temp*regen_level</td><td>1</td><td>10506.2500</td><td>10506.2500</td><td>0.704</td><td>0.4398</td></tr>
+        <tr><td>cabin_temp*tire_type</td><td>1</td><td>5256.2500</td><td>5256.2500</td><td>0.352</td><td>0.5788</td></tr>
+        <tr><td>regen_level*tire_type</td><td>1</td><td>2450.2500</td><td>2450.2500</td><td>0.164</td><td>0.7021</td></tr>
+        <tr><td>Error</td><td>5</td><td>74651.7500</td><td>14930.3500</td><td></td><td></td></tr>
+        <tr><td>Total</td><td>15</td><td>146803.7500</td><td>9786.9167</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/119_pareto_range_km.png" alt="Pareto chart for range_km">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/119_main_effects_range_km.png" alt="Main effects plot for range_km">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Normal Probability Plot of Effects</p>
+        <img src="../images/119_normal_effects_range_km.png" alt="Normal probability plot for range_km">
+      </div>
+      <div>
+        <p class="caption">Half-Normal Plot of Effects</p>
+        <img src="../images/119_half_normal_effects_range_km.png" alt="Half-normal plot for range_km">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Model Diagnostics</p>
+        <img src="../images/119_diagnostics_range_km.png" alt="Model diagnostics for range_km">
+      </div>
+    </div>
+
+    <h3>Response: kwh_per_100km</h3>
+    <p>Top factors: cabin_temp (68.1%), regen_level (23.9%), speed_kph (4.6%).</p>
+    <h4>ANOVA</h4>
+    <table style="font-size:.82rem;">
+      <thead><tr><th>Source</th><th>DF</th><th>SS</th><th>MS</th><th>F</th><th>p-value</th></tr></thead>
+      <tbody>
+        <tr><td>Source</td><td>DF</td><td>SS</td><td>MS</td><td>F</td><td>p-value</td></tr>
+        <tr><td>speed_kph</td><td>1</td><td>0.3306</td><td>0.3306</td><td>0.009</td><td>0.9279</td></tr>
+        <tr><td>cabin_temp</td><td>1</td><td>71.8256</td><td>71.8256</td><td>1.968</td><td>0.2196</td></tr>
+        <tr><td>regen_level</td><td>1</td><td>8.8506</td><td>8.8506</td><td>0.242</td><td>0.6433</td></tr>
+        <tr><td>tire_type</td><td>1</td><td>0.1806</td><td>0.1806</td><td>0.005</td><td>0.9466</td></tr>
+        <tr><td>speed_kph*cabin_temp</td><td>1</td><td>0.0006</td><td>0.0006</td><td>0.000</td><td>0.9969</td></tr>
+        <tr><td>speed_kph*regen_level</td><td>1</td><td>1.6256</td><td>1.6256</td><td>0.045</td><td>0.8412</td></tr>
+        <tr><td>speed_kph*tire_type</td><td>1</td><td>38.1306</td><td>38.1306</td><td>1.045</td><td>0.3536</td></tr>
+        <tr><td>cabin_temp*regen_level</td><td>1</td><td>18.7056</td><td>18.7056</td><td>0.512</td><td>0.5061</td></tr>
+        <tr><td>cabin_temp*tire_type</td><td>1</td><td>16.6056</td><td>16.6056</td><td>0.455</td><td>0.5299</td></tr>
+        <tr><td>regen_level*tire_type</td><td>1</td><td>6.8906</td><td>6.8906</td><td>0.189</td><td>0.6820</td></tr>
+        <tr><td>Error</td><td>5</td><td>182.4981</td><td>36.4996</td><td></td><td></td></tr>
+        <tr><td>Total</td><td>15</td><td>345.6444</td><td>23.0430</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/119_pareto_kwh_per_100km.png" alt="Pareto chart for kwh_per_100km">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/119_main_effects_kwh_per_100km.png" alt="Main effects plot for kwh_per_100km">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Normal Probability Plot of Effects</p>
+        <img src="../images/119_normal_effects_kwh_per_100km.png" alt="Normal probability plot for kwh_per_100km">
+      </div>
+      <div>
+        <p class="caption">Half-Normal Plot of Effects</p>
+        <img src="../images/119_half_normal_effects_kwh_per_100km.png" alt="Half-normal plot for kwh_per_100km">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Model Diagnostics</p>
+        <img src="../images/119_diagnostics_kwh_per_100km.png" alt="Model diagnostics for kwh_per_100km">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">kwh per 100km cabin temp vs regen level</p>
+      <img src="../images/119_rsm_kwh_per_100km_cabin_temp_vs_regen_level.png" alt="RSM surface: kwh per 100km cabin temp vs regen level" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">kwh per 100km speed kph vs cabin temp</p>
+      <img src="../images/119_rsm_kwh_per_100km_speed_kph_vs_cabin_temp.png" alt="RSM surface: kwh per 100km speed kph vs cabin temp" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">kwh per 100km speed kph vs regen level</p>
+      <img src="../images/119_rsm_kwh_per_100km_speed_kph_vs_regen_level.png" alt="RSM surface: kwh per 100km speed kph vs regen level" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">range km cabin temp vs regen level</p>
+      <img src="../images/119_rsm_range_km_cabin_temp_vs_regen_level.png" alt="RSM surface: range km cabin temp vs regen level" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">range km speed kph vs cabin temp</p>
+      <img src="../images/119_rsm_range_km_speed_kph_vs_cabin_temp.png" alt="RSM surface: range km speed kph vs cabin temp" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">range km speed kph vs regen level</p>
+      <img src="../images/119_rsm_range_km_speed_kph_vs_regen_level.png" alt="RSM surface: range km speed kph vs regen level" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9545</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>range_km</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>614.00 0.9545      614.00 km</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>kwh_per_100km</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>12.30 0.9545       12.30 kWh/100km</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>speed_kph</code></td><td>60 kph</td></tr>
+            <tr><td><code>cabin_temp</code></td><td>26 C</td></tr>
+            <tr><td><code>regen_level</code></td><td>1 level</td></tr>
+            <tr><td><code>tire_type</code></td><td>low_rolling</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #16</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>kwh_per_100km</code></td><td>12.30</td><td>12.30</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#1</td><td><strong>0.7615</strong></td><td style="font-size:.78rem;">speed_kph=60,  cabin_temp=18,  regen_level=1,  tire_type=standard</td></tr>
+            <tr><td>#9</td><td><strong>0.7380</strong></td><td style="font-size:.78rem;">speed_kph=120,  cabin_temp=18,  regen_level=3,  tire_type=standard</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>kwh_per_100km</code></td><td style="color:#dc2626;font-weight:600;">0.1828</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9545
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+range_km                     1.5       0.9545      614.00 km   ↑
+kwh_per_100km                1.0       0.9545       12.30 kWh/100km   ↓
+
+Recommended settings:
+  speed_kph = 60 kph
+  cabin_temp = 26 C
+  regen_level = 1 level
+  tire_type = low_rolling
+  (from observed run #16)
+
+Trade-off summary:
+  range_km: 614.00 (best observed: 614.00, sacrifice: +0.00)
+  kwh_per_100km: 12.30 (best observed: 12.30, sacrifice: +0.00)
+
+Model quality:
+  range_km: R² = 0.1863 (linear)
+  kwh_per_100km: R² = 0.1828 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #16 (D=0.9545): speed_kph=60, cabin_temp=26, regen_level=1, tire_type=low_rolling
+  2. Run #1 (D=0.7615): speed_kph=60, cabin_temp=18, regen_level=1, tire_type=standard
+  3. Run #9 (D=0.7380): speed_kph=120, cabin_temp=18, regen_level=3, tire_type=standard</div></div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: range_km ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+cabin_temp              79.5000      24.7322            51.2%
+regen_level             39.5000      24.7322            25.4%
+speed_kph              -19.2500      24.7322            12.4%
+tire_type               17.0000      24.7322            11.0%
+
+=== ANOVA Table: range_km ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+speed_kph                    1    1482.2500    1482.2500      0.099     0.7654
+cabin_temp                   1   25281.0000   25281.0000      1.693     0.2499
+regen_level                  1    6241.0000    6241.0000      0.418     0.5464
+tire_type                    1    1156.0000    1156.0000      0.077     0.7920
+speed_kph*cabin_temp         1     961.0000     961.0000      0.064     0.8098
+speed_kph*regen_level        1      49.0000      49.0000      0.003     0.9565
+speed_kph*tire_type          1   18769.0000   18769.0000      1.257     0.3131
+cabin_temp*regen_level       1   10506.2500   10506.2500      0.704     0.4398
+cabin_temp*tire_type         1    5256.2500    5256.2500      0.352     0.5788
+regen_level*tire_type        1    2450.2500    2450.2500      0.164     0.7021
+Error                        5   74651.7500   14930.3500
+Total                       15  146803.7500    9786.9167
+
+=== Interaction Effects: range_km ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+speed_kph            tire_type                -68.5000            34.3%
+cabin_temp           regen_level               51.2500            25.7%
+cabin_temp           tire_type                 36.2500            18.1%
+regen_level          tire_type                -24.7500            12.4%
+speed_kph            cabin_temp               -15.5000             7.8%
+speed_kph            regen_level               -3.5000             1.8%
+
+=== Summary Statistics: range_km ===
+
+speed_kph:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  120                 8   409.7500   122.8864   294.0000   614.0000
+  60                  8   390.5000    75.2273   269.0000   498.0000
+
+cabin_temp:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  18                  8   360.3750    92.6313   269.0000   511.0000
+  26                  8   439.8750    93.7008   304.0000   614.0000
+
+regen_level:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   8   380.3750    80.9831   269.0000   511.0000
+  3                   8   419.8750   116.2847   294.0000   614.0000
+
+tire_type:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  low_rolling         8   391.6250    86.7853   297.0000   520.0000
+  standard            8   408.6250   115.2177   269.0000   614.0000
+
+=== Main Effects: kwh_per_100km ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+cabin_temp              -4.2375       1.2001            68.1%
+regen_level             -1.4875       1.2001            23.9%
+speed_kph                0.2875       1.2001             4.6%
+tire_type               -0.2125       1.2001             3.4%
+
+=== ANOVA Table: kwh_per_100km ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+speed_kph                    1       0.3306       0.3306      0.009     0.9279
+cabin_temp                   1      71.8256      71.8256      1.968     0.2196
+regen_level                  1       8.8506       8.8506      0.242     0.6433
+tire_type                    1       0.1806       0.1806      0.005     0.9466
+speed_kph*cabin_temp         1       0.0006       0.0006      0.000     0.9969
+speed_kph*regen_level        1       1.6256       1.6256      0.045     0.8412
+speed_kph*tire_type          1      38.1306      38.1306      1.045     0.3536
+cabin_temp*regen_level       1      18.7056      18.7056      0.512     0.5061
+cabin_temp*tire_type         1      16.6056      16.6056      0.455     0.5299
+regen_level*tire_type        1       6.8906       6.8906      0.189     0.6820
+Error                        5     182.4981      36.4996
+Total                       15     345.6444      23.0430
+
+=== Interaction Effects: kwh_per_100km ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+speed_kph            tire_type                  3.0875            33.4%
+cabin_temp           regen_level               -2.1625            23.4%
+cabin_temp           tire_type                 -2.0375            22.0%
+regen_level          tire_type                  1.3125            14.2%
+speed_kph            regen_level               -0.6375             6.9%
+speed_kph            cabin_temp                 0.0125             0.1%
+
+=== Summary Statistics: kwh_per_100km ===
+
+speed_kph:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  120                 8    19.8750     5.5895    12.3000    26.4000
+  60                  8    20.1625     4.2530    15.4000    28.2000
+
+cabin_temp:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  18                  8    22.1375     4.8966    14.5000    28.2000
+  26                  8    17.9000     3.8910    12.3000    24.9000
+
+regen_level:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   8    20.7625     4.5318    14.5000    28.2000
+  3                   8    19.2750     5.2513    12.3000    26.4000
+
+tire_type:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  low_rolling         8    20.1250     4.2439    14.1000    25.0000
+  standard            8    19.9125     5.5983    12.3000    28.2000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: range_km ===
+Direction: maximize
+
+Best observed run: #16
+  speed_kph = 120
+  cabin_temp = 18
+  regen_level = 3
+  tire_type = standard
+  Value: 614.0
+
+RSM Model (linear, R² = 0.2156, Adj R² = -0.0696):
+  Coefficients:
+    intercept                      +400.1250
+    speed_kph                      +39.3750
+    cabin_temp                     -14.5000
+    regen_level                    -13.7500
+    tire_type                      +5.3750
+
+RSM Model (quadratic, R² = 0.4733, Adj R² = -6.9008):
+  Coefficients:
+    intercept                      +80.0250
+    speed_kph                      +39.3750
+    cabin_temp                     -14.5000
+    regen_level                    -13.7500
+    tire_type                      +5.3750
+    speed_kph*cabin_temp           -34.5000
+    speed_kph*regen_level          -3.5000
+    speed_kph*tire_type            -16.3750
+    cabin_temp*regen_level         +0.6250
+    cabin_temp*tire_type           +4.7500
+    regen_level*tire_type          +29.5000
+    speed_kph^2                    +80.0250
+    cabin_temp^2                   +80.0250
+    regen_level^2                  +80.0250
+    tire_type^2                    +80.0250
+
+  Curvature analysis:
+    tire_type                      coef=+80.0250  convex (has a minimum)
+    speed_kph                      coef=+80.0250  convex (has a minimum)
+    regen_level                    coef=+80.0250  convex (has a minimum)
+    cabin_temp                     coef=+80.0250  convex (has a minimum)
+
+  Notable interactions:
+    speed_kph*cabin_temp           coef=-34.5000  (antagonistic)
+    regen_level*tire_type          coef=+29.5000  (synergistic)
+    speed_kph*tire_type            coef=-16.3750  (antagonistic)
+    cabin_temp*tire_type           coef=+4.7500  (synergistic)
+    speed_kph*regen_level          coef=-3.5000  (antagonistic)
+    cabin_temp*regen_level         coef=+0.6250  (synergistic)
+
+  Predicted optimum (from linear model, at observed points):
+    speed_kph = 120
+    cabin_temp = 18
+    regen_level = 1
+    tire_type = standard
+    Predicted value: 473.1250
+
+  Surface optimum (via L-BFGS-B, linear model):
+    speed_kph = 120
+    cabin_temp = 18
+    regen_level = 1
+    tire_type = low_rolling
+    Predicted value: 473.1250
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. speed_kph  (effect: -78.8, contribution: 53.9%)
+  2. cabin_temp  (effect: -29.0, contribution: 19.9%)
+  3. regen_level  (effect: -27.5, contribution: 18.8%)
+  4. tire_type  (effect: 10.8, contribution: 7.4%)
+
+=== Optimization: kwh_per_100km ===
+Direction: minimize
+
+Best observed run: #16
+  speed_kph = 120
+  cabin_temp = 18
+  regen_level = 3
+  tire_type = standard
+  Value: 12.3
+
+RSM Model (linear, R² = 0.2392, Adj R² = -0.0375):
+  Coefficients:
+    intercept                      +20.0188
+    speed_kph                      -1.9312
+    cabin_temp                     +0.6313
+    regen_level                    +1.0187
+    tire_type                      +0.0187
+
+RSM Model (quadratic, R² = 0.4427, Adj R² = -7.3600):
+  Coefficients:
+    intercept                      +4.0038
+    speed_kph                      -1.9312
+    cabin_temp                     +0.6312
+    regen_level                    +1.0187
+    tire_type                      +0.0187
+    speed_kph*cabin_temp           +1.4812
+    speed_kph*regen_level          +0.2187
+    speed_kph*tire_type            +0.8937
+    cabin_temp*regen_level         -0.4187
+    cabin_temp*tire_type           -0.6688
+    regen_level*tire_type          -0.8562
+    speed_kph^2                    +4.0037
+    cabin_temp^2                   +4.0038
+    regen_level^2                  +4.0038
+    tire_type^2                    +4.0038
+
+  Curvature analysis:
+    cabin_temp                     coef=+4.0038  convex (has a minimum)
+    regen_level                    coef=+4.0038  convex (has a minimum)
+    tire_type                      coef=+4.0038  convex (has a minimum)
+    speed_kph                      coef=+4.0037  convex (has a minimum)
+
+  Notable interactions:
+    speed_kph*cabin_temp           coef=+1.4812  (synergistic)
+    speed_kph*tire_type            coef=+0.8937  (synergistic)
+    regen_level*tire_type          coef=-0.8562  (antagonistic)
+    cabin_temp*tire_type           coef=-0.6688  (antagonistic)
+    cabin_temp*regen_level         coef=-0.4187  (antagonistic)
+
+  Predicted optimum (from linear model, at observed points):
+    speed_kph = 60
+    cabin_temp = 26
+    regen_level = 3
+    tire_type = standard
+    Predicted value: 23.6188
+
+  Surface optimum (via L-BFGS-B, linear model):
+    speed_kph = 120
+    cabin_temp = 18
+    regen_level = 1
+    tire_type = standard
+    Predicted value: 16.4188
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. speed_kph  (effect: 3.9, contribution: 53.6%)
+  2. regen_level  (effect: 2.0, contribution: 28.3%)
+  3. cabin_temp  (effect: 1.3, contribution: 17.5%)
+  4. tire_type  (effect: 0.0, contribution: 0.5%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="118-engine-oil-change.html">&larr; Previous: Engine Oil Change Interval</a>
+    <a href="index.html">All Use Cases &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+<script>
+(function() {
+  var toc = document.getElementById('uc-toc-inner');
+  if (!toc) return;
+  var headings = document.querySelectorAll('.uc-section > h2, .uc-content > section > h2');
+  if (headings.length < 2) { document.getElementById('uc-toc').style.display = 'none'; return; }
+  headings.forEach(function(h, i) {
+    if (!h.id) h.id = 'sec-' + i;
+    var a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(null, '', '#' + h.id);
+    });
+    toc.appendChild(a);
+  });
+  var links = toc.querySelectorAll('a');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        links.forEach(function(a) { a.classList.remove('active'); });
+        var active = toc.querySelector('a[href="#' + entry.target.id + '"]');
+        if (active) {
+          active.classList.add('active');
+          active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      }
+    });
+  }, { rootMargin: '-80px 0px -70% 0px', threshold: 0 });
+  headings.forEach(function(h) { observer.observe(h); });
+  if (links.length) links[0].classList.add('active');
+})();
+</script>
+</body>
+</html>

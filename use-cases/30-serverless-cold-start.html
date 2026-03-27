@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Serverless Cold Start &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x2601;</div>
+    <div class="uc-badge" style="background:rgba(29,78,216,.12);color:#1d4ed8;">Plackett-Burman Design</div>
+    <h1>Serverless Cold Start</h1>
+    <p class="uc-subtitle">Plackett-Burman screening of 6 Lambda config knobs affecting cold start latency and cost</p>
+  </div>
+</section>
+
+<!-- Table of Contents -->
+<nav class="uc-toc" id="uc-toc"><div class="uc-toc-inner" id="uc-toc-inner"></div></nav>
+
+<div class="container-narrow uc-content">
+
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>serverless cold start</strong>. Plackett-Burman screening of 6 Lambda config knobs affecting cold start latency and cost.</p>
+
+    <p>The design varies 6 factors: <strong>memory mb</strong> (MB), ranging from 128 to 1024, <strong>runtime</strong>, ranging from python to go, <strong>package mb</strong> (MB), ranging from 5 to 50, <strong>vpc enabled</strong>, ranging from no to yes, <strong>layers count</strong> (count), ranging from 0 to 5, and <strong>provisioned</strong> (count), ranging from 0 to 10. The goal is to optimize 2 responses: cold start ms (ms) (minimize) and cost per million (USD) (minimize). Fixed conditions held constant across all runs include region = us-east-1, trigger = api-gateway.</p>
+
+    <p>A Plackett-Burman screening design was used to efficiently test 6 factors in only 8 runs. This design assumes interactions are negligible and focuses on identifying the most influential main effects.</p>
+
+    
+    <h3>Key Findings</h3>
+    <p>For <strong>cold start ms</strong>, the most influential factors were memory mb (34.8%), package mb (25.4%), vpc enabled (18.6%). The best observed value was <strong>-31.0</strong> (at memory mb = 1024, runtime = go, package mb = 50).</p>
+<p>For <strong>cost per million</strong>, the most influential factors were memory mb (48.2%), runtime (19.6%), package mb (11.9%). The best observed value was <strong>0.12</strong> (at memory mb = 128, runtime = go, package mb = 5).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Follow up with a response surface design (CCD or Box-Behnken) on the top 3&ndash;4 factors to model curvature and find the true optimum.</li>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+    <li>The screening results can guide factor reduction &mdash; drop factors contributing less than 5% and re-run with a smaller, more focused design.</li>
+  </ul>
+  </section>
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>memory_mb</code></td><td>128</td><td>1024</td><td>MB</td></tr>
+            <tr><td><code>runtime</code></td><td>python</td><td>go</td><td></td></tr>
+            <tr><td><code>package_mb</code></td><td>5</td><td>50</td><td>MB</td></tr>
+            <tr><td><code>vpc_enabled</code></td><td>no</td><td>yes</td><td></td></tr>
+            <tr><td><code>layers_count</code></td><td>0</td><td>5</td><td>count</td></tr>
+            <tr><td><code>provisioned</code></td><td>0</td><td>10</td><td>count</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> region = us-east-1, trigger = api-gateway</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>cold_start_ms</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>ms</td></tr>
+            <tr><td><code>cost_per_million</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>USD</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/30_serverless_cold_start/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Serverless Cold Start&quot;,
+    &quot;description&quot;: &quot;Plackett-Burman screening of 6 Lambda config knobs affecting cold start latency and cost&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;memory_mb&quot;,
+      &quot;levels&quot;: [
+        &quot;128&quot;,
+        &quot;1024&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;MB&quot;
+    },
+    {
+      &quot;name&quot;: &quot;runtime&quot;,
+      &quot;levels&quot;: [
+        &quot;python&quot;,
+        &quot;go&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    },
+    {
+      &quot;name&quot;: &quot;package_mb&quot;,
+      &quot;levels&quot;: [
+        &quot;5&quot;,
+        &quot;50&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;MB&quot;
+    },
+    {
+      &quot;name&quot;: &quot;vpc_enabled&quot;,
+      &quot;levels&quot;: [
+        &quot;no&quot;,
+        &quot;yes&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    },
+    {
+      &quot;name&quot;: &quot;layers_count&quot;,
+      &quot;levels&quot;: [
+        &quot;0&quot;,
+        &quot;5&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;count&quot;
+    },
+    {
+      &quot;name&quot;: &quot;provisioned&quot;,
+      &quot;levels&quot;: [
+        &quot;0&quot;,
+        &quot;10&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;count&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;region&quot;: &quot;us-east-1&quot;,
+    &quot;trigger&quot;: &quot;api-gateway&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;cold_start_ms&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;name&quot;: &quot;cost_per_million&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;USD&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;plackett_burman&quot;,
+    &quot;test_script&quot;: &quot;use_cases/30_serverless_cold_start/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Plackett-Burman Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>memory_mb</code></th><th><code>runtime</code></th><th><code>package_mb</code></th><th><code>vpc_enabled</code></th><th><code>layers_count</code></th><th><code>provisioned</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>1024</td><td>go</td><td>50</td><td>no</td><td>0</td><td>0</td></tr>
+        <tr><td>2</td><td>128</td><td>python</td><td>50</td><td>yes</td><td>0</td><td>0</td></tr>
+        <tr><td>3</td><td>128</td><td>go</td><td>5</td><td>yes</td><td>0</td><td>10</td></tr>
+        <tr><td>4</td><td>1024</td><td>go</td><td>50</td><td>yes</td><td>5</td><td>10</td></tr>
+        <tr><td>5</td><td>128</td><td>go</td><td>5</td><td>no</td><td>5</td><td>0</td></tr>
+        <tr><td>6</td><td>1024</td><td>python</td><td>5</td><td>yes</td><td>5</td><td>0</td></tr>
+        <tr><td>7</td><td>128</td><td>python</td><td>50</td><td>no</td><td>5</td><td>10</td></tr>
+        <tr><td>8</td><td>1024</td><td>python</td><td>5</td><td>no</td><td>0</td><td>10</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe info <span class="flag">--config</span> use_cases/30_serverless_cold_start/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe generate <span class="flag">--config</span> use_cases/30_serverless_cold_start/config.json \
+    <span class="flag">--output</span> use_cases/30_serverless_cold_start/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/30_serverless_cold_start/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe analyze <span class="flag">--config</span> use_cases/30_serverless_cold_start/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> use_cases/30_serverless_cold_start/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> use_cases/30_serverless_cold_start/config.json <span class="flag">--multi</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">7</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe report <span class="flag">--config</span> use_cases/30_serverless_cold_start/config.json \
+    <span class="flag">--output</span> use_cases/30_serverless_cold_start/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>plackett_burman</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (4), <code>categorical</code> (2)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (cold_start_ms &#x2193;, cost_per_million &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>8</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: cold_start_ms</h3>
+    <p>Top factors: memory_mb (34.8%), package_mb (25.4%), vpc_enabled (18.6%).</p>
+    <h4>ANOVA</h4>
+    <table style="font-size:.82rem;">
+      <thead><tr><th>Source</th><th>DF</th><th>SS</th><th>MS</th><th>F</th><th>p-value</th></tr></thead>
+      <tbody>
+        <tr><td>Source</td><td>DF</td><td>SS</td><td>MS</td><td>F</td><td>p-value</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>memory_mb</td><td>1</td><td>1095940.1250</td><td>1095940.1250</td><td>12.530</td><td>0.0095</td></tr>
+        <tr><td>runtime</td><td>1</td><td>148240.1250</td><td>148240.1250</td><td>1.695</td><td>0.2342</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>package_mb</td><td>1</td><td>583740.1250</td><td>583740.1250</td><td>6.674</td><td>0.0363</td></tr>
+        <tr><td>vpc_enabled</td><td>1</td><td>311655.1250</td><td>311655.1250</td><td>3.563</td><td>0.1010</td></tr>
+        <tr><td>layers_count</td><td>1</td><td>153.1250</td><td>153.1250</td><td>0.002</td><td>0.9678</td></tr>
+        <tr><td>provisioned</td><td>1</td><td>58311.1250</td><td>58311.1250</td><td>0.667</td><td>0.4411</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>memory_mb*runtime</td><td>1</td><td>583740.1250</td><td>583740.1250</td><td>6.674</td><td>0.0363</td></tr>
+        <tr><td>memory_mb*package_mb</td><td>1</td><td>148240.1250</td><td>148240.1250</td><td>1.695</td><td>0.2342</td></tr>
+        <tr><td>memory_mb*vpc_enabled</td><td>1</td><td>153.1250</td><td>153.1250</td><td>0.002</td><td>0.9678</td></tr>
+        <tr><td>memory_mb*layers_count</td><td>1</td><td>311655.1250</td><td>311655.1250</td><td>3.563</td><td>0.1010</td></tr>
+        <tr><td>memory_mb*provisioned</td><td>1</td><td>28920.1250</td><td>28920.1250</td><td>0.331</td><td>0.5833</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>runtime*package_mb</td><td>1</td><td>1095940.1250</td><td>1095940.1250</td><td>12.530</td><td>0.0095</td></tr>
+        <tr><td>runtime*vpc_enabled</td><td>1</td><td>58311.1250</td><td>58311.1250</td><td>0.667</td><td>0.4411</td></tr>
+        <tr><td>runtime*layers_count</td><td>1</td><td>28920.1250</td><td>28920.1250</td><td>0.331</td><td>0.5833</td></tr>
+        <tr><td>runtime*provisioned</td><td>1</td><td>311655.1250</td><td>311655.1250</td><td>3.563</td><td>0.1010</td></tr>
+        <tr><td>package_mb*vpc_enabled</td><td>1</td><td>28920.1250</td><td>28920.1250</td><td>0.331</td><td>0.5833</td></tr>
+        <tr><td>package_mb*layers_count</td><td>1</td><td>58311.1250</td><td>58311.1250</td><td>0.667</td><td>0.4411</td></tr>
+        <tr><td>package_mb*provisioned</td><td>1</td><td>153.1250</td><td>153.1250</td><td>0.002</td><td>0.9678</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>vpc_enabled*layers_count</td><td>1</td><td>1095940.1250</td><td>1095940.1250</td><td>12.530</td><td>0.0095</td></tr>
+        <tr><td>vpc_enabled*provisioned</td><td>1</td><td>148240.1250</td><td>148240.1250</td><td>1.695</td><td>0.2342</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>layers_count*provisioned</td><td>1</td><td>583740.1250</td><td>583740.1250</td><td>6.674</td><td>0.0363</td></tr>
+        <tr><td>Error</td><td>(Lenth</td><td>PSE)</td><td>7</td><td>612266.8125</td><td>87466.6875</td></tr>
+        <tr><td>Total</td><td>7</td><td>2226959.8750</td><td>318137.1250</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/30_pareto_cold_start_ms.png" alt="Pareto chart for cold_start_ms">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/30_main_effects_cold_start_ms.png" alt="Main effects plot for cold_start_ms">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Normal Probability Plot of Effects</p>
+        <img src="../images/30_normal_effects_cold_start_ms.png" alt="Normal probability plot for cold_start_ms">
+      </div>
+      <div>
+        <p class="caption">Half-Normal Plot of Effects</p>
+        <img src="../images/30_half_normal_effects_cold_start_ms.png" alt="Half-normal plot for cold_start_ms">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Model Diagnostics</p>
+        <img src="../images/30_diagnostics_cold_start_ms.png" alt="Model diagnostics for cold_start_ms">
+      </div>
+    </div>
+
+    <h3>Response: cost_per_million</h3>
+    <p>Top factors: memory_mb (48.2%), runtime (19.6%), package_mb (11.9%).</p>
+    <h4>ANOVA</h4>
+    <table style="font-size:.82rem;">
+      <thead><tr><th>Source</th><th>DF</th><th>SS</th><th>MS</th><th>F</th><th>p-value</th></tr></thead>
+      <tbody>
+        <tr><td>Source</td><td>DF</td><td>SS</td><td>MS</td><td>F</td><td>p-value</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>memory_mb</td><td>1</td><td>31.2050</td><td>31.2050</td><td>17.318</td><td>0.0042</td></tr>
+        <tr><td>runtime</td><td>1</td><td>5.1842</td><td>5.1842</td><td>2.877</td><td>0.1337</td></tr>
+        <tr><td>package_mb</td><td>1</td><td>1.9013</td><td>1.9013</td><td>1.055</td><td>0.3385</td></tr>
+        <tr><td>vpc_enabled</td><td>1</td><td>1.2168</td><td>1.2168</td><td>0.675</td><td>0.4383</td></tr>
+        <tr><td>layers_count</td><td>1</td><td>0.0220</td><td>0.0220</td><td>0.012</td><td>0.9150</td></tr>
+        <tr><td>provisioned</td><td>1</td><td>1.2012</td><td>1.2012</td><td>0.667</td><td>0.4411</td></tr>
+        <tr><td>memory_mb*runtime</td><td>1</td><td>1.9013</td><td>1.9013</td><td>1.055</td><td>0.3385</td></tr>
+        <tr><td>memory_mb*package_mb</td><td>1</td><td>5.1842</td><td>5.1842</td><td>2.877</td><td>0.1337</td></tr>
+        <tr><td>memory_mb*vpc_enabled</td><td>1</td><td>0.0220</td><td>0.0220</td><td>0.012</td><td>0.9150</td></tr>
+        <tr><td>memory_mb*layers_count</td><td>1</td><td>1.2168</td><td>1.2168</td><td>0.675</td><td>0.4383</td></tr>
+        <tr><td>memory_mb*provisioned</td><td>1</td><td>0.0722</td><td>0.0722</td><td>0.040</td><td>0.8470</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>runtime*package_mb</td><td>1</td><td>31.2050</td><td>31.2050</td><td>17.318</td><td>0.0042</td></tr>
+        <tr><td>runtime*vpc_enabled</td><td>1</td><td>1.2012</td><td>1.2012</td><td>0.667</td><td>0.4411</td></tr>
+        <tr><td>runtime*layers_count</td><td>1</td><td>0.0722</td><td>0.0722</td><td>0.040</td><td>0.8470</td></tr>
+        <tr><td>runtime*provisioned</td><td>1</td><td>1.2168</td><td>1.2168</td><td>0.675</td><td>0.4383</td></tr>
+        <tr><td>package_mb*vpc_enabled</td><td>1</td><td>0.0722</td><td>0.0722</td><td>0.040</td><td>0.8470</td></tr>
+        <tr><td>package_mb*layers_count</td><td>1</td><td>1.2012</td><td>1.2012</td><td>0.667</td><td>0.4411</td></tr>
+        <tr><td>package_mb*provisioned</td><td>1</td><td>0.0220</td><td>0.0220</td><td>0.012</td><td>0.9150</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>vpc_enabled*layers_count</td><td>1</td><td>31.2050</td><td>31.2050</td><td>17.318</td><td>0.0042</td></tr>
+        <tr><td>vpc_enabled*provisioned</td><td>1</td><td>5.1842</td><td>5.1842</td><td>2.877</td><td>0.1337</td></tr>
+        <tr><td>layers_count*provisioned</td><td>1</td><td>1.9013</td><td>1.9013</td><td>1.055</td><td>0.3385</td></tr>
+        <tr><td>Error</td><td>(Lenth</td><td>PSE)</td><td>7</td><td>12.6131</td><td>1.8019</td></tr>
+        <tr><td>Total</td><td>7</td><td>40.8028</td><td>5.8290</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/30_pareto_cost_per_million.png" alt="Pareto chart for cost_per_million">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/30_main_effects_cost_per_million.png" alt="Main effects plot for cost_per_million">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Normal Probability Plot of Effects</p>
+        <img src="../images/30_normal_effects_cost_per_million.png" alt="Normal probability plot for cost_per_million">
+      </div>
+      <div>
+        <p class="caption">Half-Normal Plot of Effects</p>
+        <img src="../images/30_half_normal_effects_cost_per_million.png" alt="Half-normal plot for cost_per_million">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Model Diagnostics</p>
+        <img src="../images/30_diagnostics_cost_per_million.png" alt="Model diagnostics for cost_per_million">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cold start ms layers count vs provisioned</p>
+      <img src="../images/30_rsm_cold_start_ms_layers_count_vs_provisioned.png" alt="RSM surface: cold start ms layers count vs provisioned" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cold start ms memory mb vs layers count</p>
+      <img src="../images/30_rsm_cold_start_ms_memory_mb_vs_layers_count.png" alt="RSM surface: cold start ms memory mb vs layers count" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cold start ms memory mb vs package mb</p>
+      <img src="../images/30_rsm_cold_start_ms_memory_mb_vs_package_mb.png" alt="RSM surface: cold start ms memory mb vs package mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cold start ms memory mb vs provisioned</p>
+      <img src="../images/30_rsm_cold_start_ms_memory_mb_vs_provisioned.png" alt="RSM surface: cold start ms memory mb vs provisioned" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cold start ms package mb vs layers count</p>
+      <img src="../images/30_rsm_cold_start_ms_package_mb_vs_layers_count.png" alt="RSM surface: cold start ms package mb vs layers count" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cold start ms package mb vs provisioned</p>
+      <img src="../images/30_rsm_cold_start_ms_package_mb_vs_provisioned.png" alt="RSM surface: cold start ms package mb vs provisioned" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cost per million layers count vs provisioned</p>
+      <img src="../images/30_rsm_cost_per_million_layers_count_vs_provisioned.png" alt="RSM surface: cost per million layers count vs provisioned" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cost per million memory mb vs layers count</p>
+      <img src="../images/30_rsm_cost_per_million_memory_mb_vs_layers_count.png" alt="RSM surface: cost per million memory mb vs layers count" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cost per million memory mb vs package mb</p>
+      <img src="../images/30_rsm_cost_per_million_memory_mb_vs_package_mb.png" alt="RSM surface: cost per million memory mb vs package mb" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cost per million memory mb vs provisioned</p>
+      <img src="../images/30_rsm_cost_per_million_memory_mb_vs_provisioned.png" alt="RSM surface: cost per million memory mb vs provisioned" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cost per million package mb vs layers count</p>
+      <img src="../images/30_rsm_cost_per_million_package_mb_vs_layers_count.png" alt="RSM surface: cost per million package mb vs layers count" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">cost per million package mb vs provisioned</p>
+      <img src="../images/30_rsm_cost_per_million_package_mb_vs_provisioned.png" alt="RSM surface: cost per million package mb vs provisioned" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.7862</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>cold_start_ms</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:78.36%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7836</span>
+                </div>
+              </td>
+              <td>316.06 0.7836      316.06 ms</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>cost_per_million</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:79.0%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7900</span>
+                </div>
+              </td>
+              <td>1.30 0.7900        1.30 USD</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>memory_mb</code></td><td>237.7 MB</td></tr>
+            <tr><td><code>runtime</code></td><td>go</td></tr>
+            <tr><td><code>package_mb</code></td><td>49.37 MB</td></tr>
+            <tr><td><code>vpc_enabled</code></td><td>no</td></tr>
+            <tr><td><code>layers_count</code></td><td>4.879 count</td></tr>
+            <tr><td><code>provisioned</code></td><td>5.733 count</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from RSM model prediction</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>cost_per_million</code></td><td>1.30</td><td>0.12</td><td><span style="color:#dc2626;">+1.18</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#5</td><td><strong>0.6133</strong></td><td style="font-size:.78rem;">memory_mb=1024,  runtime=go,  package_mb=50,  vpc_enabled=no,  layers_count=0,  provisioned=0</td></tr>
+            <tr><td>#8</td><td><strong>0.5792</strong></td><td style="font-size:.78rem;">memory_mb=128,  runtime=go,  package_mb=5,  vpc_enabled=no,  layers_count=5,  provisioned=0</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>cost_per_million</code></td><td style="color:#dc2626;font-weight:600;">0.4918</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.7862
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+cold_start_ms                1.5       0.7836      316.06 ms   ↓
+cost_per_million             1.0       0.7900        1.30 USD   ↓
+
+Recommended settings:
+  memory_mb = 237.7 MB
+  runtime = go
+  package_mb = 49.37 MB
+  vpc_enabled = no
+  layers_count = 4.879 count
+  provisioned = 5.733 count
+  (from RSM model prediction)
+
+Trade-off summary:
+  cold_start_ms: 316.06 (best observed: -31.00, sacrifice: +347.06)
+  cost_per_million: 1.30 (best observed: 0.12, sacrifice: +1.18)
+
+Model quality:
+  cold_start_ms: R² = 0.9813 (linear)
+  cost_per_million: R² = 0.4918 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #1 (D=0.7540): memory_mb=128, runtime=python, package_mb=50, vpc_enabled=no, layers_count=5, provisioned=10
+  2. Run #5 (D=0.6133): memory_mb=1024, runtime=go, package_mb=50, vpc_enabled=no, layers_count=0, provisioned=0
+  3. Run #8 (D=0.5792): memory_mb=128, runtime=go, package_mb=5, vpc_enabled=no, layers_count=5, provisioned=0</div></div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: cold_start_ms ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+memory_mb             -740.2500     199.4170            34.8%
+package_mb             540.2500     199.4170            25.4%
+vpc_enabled            394.7500     199.4170            18.6%
+runtime               -272.2500     199.4170            12.8%
+provisioned            170.7500     199.4170             8.0%
+layers_count             8.7500     199.4170             0.4%
+
+=== ANOVA Table: cold_start_ms ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+memory_mb                    1 1095940.1250 1095940.1250     12.530     0.0095
+runtime                      1  148240.1250  148240.1250      1.695     0.2342
+package_mb                   1  583740.1250  583740.1250      6.674     0.0363
+vpc_enabled                  1  311655.1250  311655.1250      3.563     0.1010
+layers_count                 1     153.1250     153.1250      0.002     0.9678
+provisioned                  1   58311.1250   58311.1250      0.667     0.4411
+memory_mb*runtime            1  583740.1250  583740.1250      6.674     0.0363
+memory_mb*package_mb         1  148240.1250  148240.1250      1.695     0.2342
+memory_mb*vpc_enabled        1     153.1250     153.1250      0.002     0.9678
+memory_mb*layers_count       1  311655.1250  311655.1250      3.563     0.1010
+memory_mb*provisioned        1   28920.1250   28920.1250      0.331     0.5833
+runtime*package_mb           1 1095940.1250 1095940.1250     12.530     0.0095
+runtime*vpc_enabled          1   58311.1250   58311.1250      0.667     0.4411
+runtime*layers_count         1   28920.1250   28920.1250      0.331     0.5833
+runtime*provisioned          1  311655.1250  311655.1250      3.563     0.1010
+package_mb*vpc_enabled       1   28920.1250   28920.1250      0.331     0.5833
+package_mb*layers_count      1   58311.1250   58311.1250      0.667     0.4411
+package_mb*provisioned       1     153.1250     153.1250      0.002     0.9678
+vpc_enabled*layers_count     1 1095940.1250 1095940.1250     12.530     0.0095
+vpc_enabled*provisioned      1  148240.1250  148240.1250      1.695     0.2342
+layers_count*provisioned     1  583740.1250  583740.1250      6.674     0.0363
+Error (Lenth PSE)            7  612266.8125   87466.6875
+Total                        7 2226959.8750  318137.1250
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
+
+=== Interaction Effects: cold_start_ms ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+runtime              package_mb              -740.2500            16.0%
+vpc_enabled          layers_count             740.2500            16.0%
+memory_mb            runtime                  540.2500            11.7%
+layers_count         provisioned              540.2500            11.7%
+memory_mb            layers_count            -394.7500             8.6%
+runtime              provisioned             -394.7500             8.6%
+memory_mb            package_mb              -272.2500             5.9%
+vpc_enabled          provisioned              272.2500             5.9%
+runtime              vpc_enabled             -170.7500             3.7%
+package_mb           layers_count             170.7500             3.7%
+memory_mb            provisioned              120.2500             2.6%
+runtime              layers_count             120.2500             2.6%
+package_mb           vpc_enabled             -120.2500             2.6%
+memory_mb            vpc_enabled               -8.7500             0.2%
+package_mb           provisioned                8.7500             0.2%
+
+=== Summary Statistics: cold_start_ms ===
+
+memory_mb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1024                4  1181.7500   524.5693   599.0000  1815.0000
+  128                 4   441.5000   319.1139   -31.0000   646.0000
+
+runtime:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  go                  4   947.7500   810.7410   -31.0000  1815.0000
+  python              4   675.5000   188.6946   528.0000   952.0000
+
+package_mb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  5                   4   541.5000   412.5098   -31.0000   952.0000
+  50                  4  1081.7500   614.4718   528.0000  1815.0000
+
+vpc_enabled:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  no                  4   614.2500   572.0299   -31.0000  1361.0000
+  yes                 4  1009.0000   557.8680   623.0000  1815.0000
+
+layers_count:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4   807.2500   369.6651   599.0000  1361.0000
+  5                   4   816.0000   778.2138   -31.0000  1815.0000
+
+provisioned:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4   726.2500   588.2060   -31.0000  1361.0000
+  10                  4   897.0000   613.9191   528.0000  1815.0000
+
+=== Main Effects: cost_per_million ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+memory_mb                3.9500       0.8536            48.2%
+runtime                 -1.6100       0.8536            19.6%
+package_mb               0.9750       0.8536            11.9%
+vpc_enabled              0.7800       0.8536             9.5%
+provisioned              0.7750       0.8536             9.5%
+layers_count             0.1050       0.8536             1.3%
+
+=== ANOVA Table: cost_per_million ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+memory_mb                    1      31.2050      31.2050     17.318     0.0042
+runtime                      1       5.1842       5.1842      2.877     0.1337
+package_mb                   1       1.9013       1.9013      1.055     0.3385
+vpc_enabled                  1       1.2168       1.2168      0.675     0.4383
+layers_count                 1       0.0220       0.0220      0.012     0.9150
+provisioned                  1       1.2012       1.2012      0.667     0.4411
+memory_mb*runtime            1       1.9013       1.9013      1.055     0.3385
+memory_mb*package_mb         1       5.1842       5.1842      2.877     0.1337
+memory_mb*vpc_enabled        1       0.0220       0.0220      0.012     0.9150
+memory_mb*layers_count       1       1.2168       1.2168      0.675     0.4383
+memory_mb*provisioned        1       0.0722       0.0722      0.040     0.8470
+runtime*package_mb           1      31.2050      31.2050     17.318     0.0042
+runtime*vpc_enabled          1       1.2012       1.2012      0.667     0.4411
+runtime*layers_count         1       0.0722       0.0722      0.040     0.8470
+runtime*provisioned          1       1.2168       1.2168      0.675     0.4383
+package_mb*vpc_enabled       1       0.0722       0.0722      0.040     0.8470
+package_mb*layers_count      1       1.2012       1.2012      0.667     0.4411
+package_mb*provisioned       1       0.0220       0.0220      0.012     0.9150
+vpc_enabled*layers_count     1      31.2050      31.2050     17.318     0.0042
+vpc_enabled*provisioned      1       5.1842       5.1842      2.877     0.1337
+layers_count*provisioned     1       1.9013       1.9013      1.055     0.3385
+Error (Lenth PSE)            7      12.6131       1.8019
+Total                        7      40.8028       5.8290
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
+
+=== Interaction Effects: cost_per_million ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+runtime              package_mb                 3.9500            23.3%
+vpc_enabled          layers_count              -3.9500            23.3%
+memory_mb            package_mb                -1.6100             9.5%
+vpc_enabled          provisioned                1.6100             9.5%
+memory_mb            runtime                    0.9750             5.7%
+layers_count         provisioned                0.9750             5.7%
+memory_mb            layers_count              -0.7800             4.6%
+runtime              provisioned               -0.7800             4.6%
+runtime              vpc_enabled               -0.7750             4.6%
+package_mb           layers_count               0.7750             4.6%
+memory_mb            provisioned                0.1900             1.1%
+runtime              layers_count               0.1900             1.1%
+package_mb           vpc_enabled               -0.1900             1.1%
+memory_mb            vpc_enabled               -0.1050             0.6%
+package_mb           provisioned                0.1050             0.6%
+
+=== Summary Statistics: cost_per_million ===
+
+memory_mb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1024                4     1.5625     1.6132     0.1200     3.5900
+  128                 4     5.5125     0.7725     5.0100     6.6500
+
+runtime:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  go                  4     4.3425     1.9387     2.1200     6.6500
+  python              4     2.7325     2.8485     0.1200     5.3400
+
+package_mb:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  5                   4     3.0500     3.2814     0.1200     6.6500
+  50                  4     4.0250     1.4830     2.1200     5.3400
+
+vpc_enabled:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  no                  4     3.1475     2.4831     0.1200     5.3400
+  yes                 4     3.9275     2.6513     0.4200     6.6500
+
+layers_count:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4     3.4850     2.9242     0.1200     6.6500
+  5                   4     3.5900     2.2456     0.4200     5.3400
+
+provisioned:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4     3.1500     2.2791     0.4200     5.0500
+  10                  4     3.9250     2.8295     0.1200     6.6500</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: cold_start_ms ===
+Direction: minimize
+
+Best observed run: #8
+  memory_mb = 1024
+  runtime = go
+  package_mb = 50
+  vpc_enabled = yes
+  layers_count = 5
+  provisioned = 10
+  Value: -31.0
+
+RSM Model (linear, R² = 0.8601, Adj R² = 0.0204):
+  Coefficients:
+    intercept                      +811.6250
+    memory_mb                      -287.8750
+    runtime                        +275.8750
+    package_mb                     +212.6250
+    vpc_enabled                    -161.8750
+    layers_count                   -54.3750
+    provisioned                    -77.8750
+
+  Predicted optimum (from linear model, at observed points):
+    memory_mb = 128
+    runtime = python
+    package_mb = 50
+    vpc_enabled = no
+    layers_count = 5
+    provisioned = 10
+    Predicted value: 1617.6250
+
+  Surface optimum (via L-BFGS-B, linear model):
+    memory_mb = 1024
+    runtime = python
+    package_mb = 5
+    vpc_enabled = yes
+    layers_count = 5
+    provisioned = 10
+    Predicted value: -258.8750
+
+  Model quality: Good fit — general trends are captured, some noise remains.
+
+Factor importance:
+  1. memory_mb  (effect: 575.8, contribution: 26.9%)
+  2. runtime  (effect: 551.8, contribution: 25.8%)
+  3. package_mb  (effect: 425.2, contribution: 19.9%)
+  4. vpc_enabled  (effect: -323.8, contribution: 15.1%)
+  5. provisioned  (effect: -155.8, contribution: 7.3%)
+  6. layers_count  (effect: -108.8, contribution: 5.1%)
+
+=== Optimization: cost_per_million ===
+Direction: minimize
+
+Best observed run: #1
+  memory_mb = 128
+  runtime = go
+  package_mb = 5
+  vpc_enabled = no
+  layers_count = 5
+  provisioned = 0
+  Value: 0.12
+
+RSM Model (linear, R² = 0.9702, Adj R² = 0.7912):
+  Coefficients:
+    intercept                      +3.5375
+    memory_mb                      +0.8175
+    runtime                        +0.8875
+    package_mb                     -0.7525
+    vpc_enabled                    +1.1700
+    layers_count                   +0.3050
+    provisioned                    +1.2100
+
+  Predicted optimum (from linear model, at observed points):
+    memory_mb = 1024
+    runtime = python
+    package_mb = 5
+    vpc_enabled = yes
+    layers_count = 5
+    provisioned = 0
+    Predicted value: 6.2600
+
+  Surface optimum (via L-BFGS-B, linear model):
+    memory_mb = 128
+    runtime = python
+    package_mb = 50
+    vpc_enabled = no
+    layers_count = 0
+    provisioned = 0
+    Predicted value: -1.6050
+
+  Model quality: Excellent fit — surface predictions are reliable.
+
+Factor importance:
+  1. provisioned  (effect: 2.4, contribution: 23.5%)
+  2. vpc_enabled  (effect: 2.3, contribution: 22.8%)
+  3. runtime  (effect: 1.8, contribution: 17.3%)
+  4. memory_mb  (effect: -1.6, contribution: 15.9%)
+  5. package_mb  (effect: -1.5, contribution: 14.6%)
+  6. layers_count  (effect: 0.6, contribution: 5.9%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="29-cdn-cache-optimization.html">&larr; Previous: CDN Cache Hit Optimization</a>
+    <a href="31-database-connection-pooling.html">Next: Database Connection Pooling &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+<script>
+(function() {
+  var toc = document.getElementById('uc-toc-inner');
+  if (!toc) return;
+  var headings = document.querySelectorAll('.uc-section > h2, .uc-content > section > h2');
+  if (headings.length < 2) { document.getElementById('uc-toc').style.display = 'none'; return; }
+  headings.forEach(function(h, i) {
+    if (!h.id) h.id = 'sec-' + i;
+    var a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(null, '', '#' + h.id);
+    });
+    toc.appendChild(a);
+  });
+  var links = toc.querySelectorAll('a');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        links.forEach(function(a) { a.classList.remove('active'); });
+        var active = toc.querySelector('a[href="#' + entry.target.id + '"]');
+        if (active) {
+          active.classList.add('active');
+          active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      }
+    });
+  }, { rootMargin: '-80px 0px -70% 0px', threshold: 0 });
+  headings.forEach(function(h) { observer.observe(h); });
+  if (links.length) links[0].classList.add('active');
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sandpaper Grit Progression &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #fef3c7, #fde68a);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1FA93;</div>
+    <div class="uc-badge" style="background:rgba(180,83,9,.12);color:#b45309;">Fractional Factorial Design</div>
+    <h1>Sandpaper Grit Progression</h1>
+    <p class="uc-subtitle">Fractional factorial screening of starting grit, grit steps, sanding pressure, passes per grit, and dust extraction for surface finish and time efficiency</p>
+  </div>
+</section>
+
+<!-- Table of Contents -->
+<nav class="uc-toc" id="uc-toc"><div class="uc-toc-inner" id="uc-toc-inner"></div></nav>
+
+<div class="container-narrow uc-content">
+
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>sandpaper grit progression</strong>. Fractional factorial screening of starting grit, grit steps, sanding pressure, passes per grit, and dust extraction for surface finish and time efficiency.</p>
+
+    <p>The design varies 5 factors: <strong>start grit</strong> (grit), ranging from 60 to 120, <strong>grit steps</strong> (steps), ranging from 2 to 5, <strong>pressure kg</strong> (kg), ranging from 0.5 to 3.0, <strong>passes</strong> (passes), ranging from 3 to 10, and <strong>dust extract</strong> (bool), ranging from 0 to 1. The goal is to optimize 2 responses: finish score (pts) (maximize) and time min (min) (minimize). Fixed conditions held constant across all runs include wood = walnut, final grit = 220.</p>
+
+    <p>A fractional factorial design reduces the number of runs from 32 to 8 by deliberately confounding higher-order interactions. This is ideal for screening &mdash; identifying which of the 5 factors matter most before investing in a full study.</p>
+
+    
+    <h3>Key Findings</h3>
+    <p>For <strong>finish score</strong>, the most influential factors were dust extract (43.5%), passes (22.4%), pressure kg (15.3%). The best observed value was <strong>7.6</strong> (at start grit = 60, grit steps = 2, pressure kg = 3.0).</p>
+<p>For <strong>time min</strong>, the most influential factors were grit steps (38.8%), dust extract (36.7%), pressure kg (16.3%). The best observed value was <strong>2.0</strong> (at start grit = 60, grit steps = 5, pressure kg = 0.5).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Follow up with a response surface design (CCD or Box-Behnken) on the top 3&ndash;4 factors to model curvature and find the true optimum.</li>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+    <li>The screening results can guide factor reduction &mdash; drop factors contributing less than 5% and re-run with a smaller, more focused design.</li>
+  </ul>
+  </section>
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>start_grit</code></td><td>60</td><td>120</td><td>grit</td></tr>
+            <tr><td><code>grit_steps</code></td><td>2</td><td>5</td><td>steps</td></tr>
+            <tr><td><code>pressure_kg</code></td><td>0.5</td><td>3.0</td><td>kg</td></tr>
+            <tr><td><code>passes</code></td><td>3</td><td>10</td><td>passes</td></tr>
+            <tr><td><code>dust_extract</code></td><td>0</td><td>1</td><td>bool</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> wood = walnut, final_grit = 220</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>finish_score</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>pts</td></tr>
+            <tr><td><code>time_min</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>min</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/205_sandpaper_progression/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Sandpaper Grit Progression&quot;,
+    &quot;description&quot;: &quot;Fractional factorial screening of starting grit, grit steps, sanding pressure, passes per grit, and dust extraction for surface finish and time efficiency&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;start_grit&quot;,
+      &quot;levels&quot;: [
+        &quot;60&quot;,
+        &quot;120&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;grit&quot;
+    },
+    {
+      &quot;name&quot;: &quot;grit_steps&quot;,
+      &quot;levels&quot;: [
+        &quot;2&quot;,
+        &quot;5&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;steps&quot;
+    },
+    {
+      &quot;name&quot;: &quot;pressure_kg&quot;,
+      &quot;levels&quot;: [
+        &quot;0.5&quot;,
+        &quot;3.0&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;kg&quot;
+    },
+    {
+      &quot;name&quot;: &quot;passes&quot;,
+      &quot;levels&quot;: [
+        &quot;3&quot;,
+        &quot;10&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;passes&quot;
+    },
+    {
+      &quot;name&quot;: &quot;dust_extract&quot;,
+      &quot;levels&quot;: [
+        &quot;0&quot;,
+        &quot;1&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;bool&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;wood&quot;: &quot;walnut&quot;,
+    &quot;final_grit&quot;: &quot;220&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;finish_score&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;pts&quot;
+    },
+    {
+      &quot;name&quot;: &quot;time_min&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;min&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;fractional_factorial&quot;,
+    &quot;test_script&quot;: &quot;use_cases/205_sandpaper_progression/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Fractional Factorial Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>start_grit</code></th><th><code>grit_steps</code></th><th><code>pressure_kg</code></th><th><code>passes</code></th><th><code>dust_extract</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>60</td><td>5</td><td>3.0</td><td>3</td><td>0</td></tr>
+        <tr><td>2</td><td>120</td><td>2</td><td>0.5</td><td>3</td><td>0</td></tr>
+        <tr><td>3</td><td>120</td><td>5</td><td>0.5</td><td>10</td><td>0</td></tr>
+        <tr><td>4</td><td>120</td><td>5</td><td>3.0</td><td>10</td><td>1</td></tr>
+        <tr><td>5</td><td>60</td><td>5</td><td>0.5</td><td>3</td><td>1</td></tr>
+        <tr><td>6</td><td>120</td><td>2</td><td>3.0</td><td>3</td><td>1</td></tr>
+        <tr><td>7</td><td>60</td><td>2</td><td>0.5</td><td>10</td><td>1</td></tr>
+        <tr><td>8</td><td>60</td><td>2</td><td>3.0</td><td>10</td><td>0</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe info <span class="flag">--config</span> use_cases/205_sandpaper_progression/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe generate <span class="flag">--config</span> use_cases/205_sandpaper_progression/config.json \
+    <span class="flag">--output</span> use_cases/205_sandpaper_progression/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/205_sandpaper_progression/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe analyze <span class="flag">--config</span> use_cases/205_sandpaper_progression/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> use_cases/205_sandpaper_progression/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> use_cases/205_sandpaper_progression/config.json <span class="flag">--multi</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">7</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe report <span class="flag">--config</span> use_cases/205_sandpaper_progression/config.json \
+    <span class="flag">--output</span> use_cases/205_sandpaper_progression/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>fractional_factorial</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 5)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (finish_score &#x2191;, time_min &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>8</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: finish_score</h3>
+    <p>Top factors: dust_extract (43.5%), passes (22.4%), pressure_kg (15.3%).</p>
+    <h4>ANOVA</h4>
+    <table style="font-size:.82rem;">
+      <thead><tr><th>Source</th><th>DF</th><th>SS</th><th>MS</th><th>F</th><th>p-value</th></tr></thead>
+      <tbody>
+        <tr><td>Source</td><td>DF</td><td>SS</td><td>MS</td><td>F</td><td>p-value</td></tr>
+        <tr><td>start_grit</td><td>1</td><td>0.2450</td><td>0.2450</td><td>0.193</td><td>0.6785</td></tr>
+        <tr><td>grit_steps</td><td>1</td><td>0.4050</td><td>0.4050</td><td>0.320</td><td>0.5963</td></tr>
+        <tr><td>pressure_kg</td><td>1</td><td>0.8450</td><td>0.8450</td><td>0.667</td><td>0.4513</td></tr>
+        <tr><td>passes</td><td>1</td><td>1.8050</td><td>1.8050</td><td>1.424</td><td>0.2863</td></tr>
+        <tr><td>dust_extract</td><td>1</td><td>6.8450</td><td>6.8450</td><td>5.400</td><td>0.0677</td></tr>
+        <tr><td>start_grit*grit_steps</td><td>1</td><td>1.8050</td><td>1.8050</td><td>1.424</td><td>0.2863</td></tr>
+        <tr><td>start_grit*pressure_kg</td><td>1</td><td>6.8450</td><td>6.8450</td><td>5.400</td><td>0.0677</td></tr>
+        <tr><td>start_grit*passes</td><td>1</td><td>0.4050</td><td>0.4050</td><td>0.320</td><td>0.5963</td></tr>
+        <tr><td>start_grit*dust_extract</td><td>1</td><td>0.8450</td><td>0.8450</td><td>0.667</td><td>0.4513</td></tr>
+        <tr><td>grit_steps*pressure_kg</td><td>1</td><td>3.1250</td><td>3.1250</td><td>2.465</td><td>0.1772</td></tr>
+        <tr><td>grit_steps*passes</td><td>1</td><td>0.2450</td><td>0.2450</td><td>0.193</td><td>0.6785</td></tr>
+        <tr><td>grit_steps*dust_extract</td><td>1</td><td>1.4450</td><td>1.4450</td><td>1.140</td><td>0.3345</td></tr>
+        <tr><td>pressure_kg*passes</td><td>1</td><td>1.4450</td><td>1.4450</td><td>1.140</td><td>0.3345</td></tr>
+        <tr><td>pressure_kg*dust_extract</td><td>1</td><td>0.2450</td><td>0.2450</td><td>0.193</td><td>0.6785</td></tr>
+        <tr><td>passes*dust_extract</td><td>1</td><td>3.1250</td><td>3.1250</td><td>2.465</td><td>0.1772</td></tr>
+        <tr><td>Error</td><td>(Lenth</td><td>PSE)</td><td>5</td><td>6.3375</td><td>1.2675</td></tr>
+        <tr><td>Total</td><td>7</td><td>14.7150</td><td>2.1021</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/205_pareto_finish_score.png" alt="Pareto chart for finish_score">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/205_main_effects_finish_score.png" alt="Main effects plot for finish_score">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Normal Probability Plot of Effects</p>
+        <img src="../images/205_normal_effects_finish_score.png" alt="Normal probability plot for finish_score">
+      </div>
+      <div>
+        <p class="caption">Half-Normal Plot of Effects</p>
+        <img src="../images/205_half_normal_effects_finish_score.png" alt="Half-normal plot for finish_score">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Model Diagnostics</p>
+        <img src="../images/205_diagnostics_finish_score.png" alt="Model diagnostics for finish_score">
+      </div>
+    </div>
+
+    <h3>Response: time_min</h3>
+    <p>Top factors: grit_steps (38.8%), dust_extract (36.7%), pressure_kg (16.3%).</p>
+    <h4>ANOVA</h4>
+    <table style="font-size:.82rem;">
+      <thead><tr><th>Source</th><th>DF</th><th>SS</th><th>MS</th><th>F</th><th>p-value</th></tr></thead>
+      <tbody>
+        <tr><td>Source</td><td>DF</td><td>SS</td><td>MS</td><td>F</td><td>p-value</td></tr>
+        <tr><td>start_grit</td><td>1</td><td>0.5000</td><td>0.5000</td><td>0.167</td><td>0.7000</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>grit_steps</td><td>1</td><td>180.5000</td><td>180.5000</td><td>60.167</td><td>0.0006</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>pressure_kg</td><td>1</td><td>32.0000</td><td>32.0000</td><td>10.667</td><td>0.0223</td></tr>
+        <tr><td>passes</td><td>1</td><td>4.5000</td><td>4.5000</td><td>1.500</td><td>0.2752</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>dust_extract</td><td>1</td><td>162.0000</td><td>162.0000</td><td>54.000</td><td>0.0007</td></tr>
+        <tr><td>start_grit*grit_steps</td><td>1</td><td>4.5000</td><td>4.5000</td><td>1.500</td><td>0.2752</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>start_grit*pressure_kg</td><td>1</td><td>162.0000</td><td>162.0000</td><td>54.000</td><td>0.0007</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>start_grit*passes</td><td>1</td><td>180.5000</td><td>180.5000</td><td>60.167</td><td>0.0006</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>start_grit*dust_extract</td><td>1</td><td>32.0000</td><td>32.0000</td><td>10.667</td><td>0.0223</td></tr>
+        <tr><td>grit_steps*pressure_kg</td><td>1</td><td>2.0000</td><td>2.0000</td><td>0.667</td><td>0.4513</td></tr>
+        <tr><td>grit_steps*passes</td><td>1</td><td>0.5000</td><td>0.5000</td><td>0.167</td><td>0.7000</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>grit_steps*dust_extract</td><td>1</td><td>128.0000</td><td>128.0000</td><td>42.667</td><td>0.0013</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>pressure_kg*passes</td><td>1</td><td>128.0000</td><td>128.0000</td><td>42.667</td><td>0.0013</td></tr>
+        <tr><td>pressure_kg*dust_extract</td><td>1</td><td>0.5000</td><td>0.5000</td><td>0.167</td><td>0.7000</td></tr>
+        <tr><td>passes*dust_extract</td><td>1</td><td>2.0000</td><td>2.0000</td><td>0.667</td><td>0.4513</td></tr>
+        <tr><td>Error</td><td>(Lenth</td><td>PSE)</td><td>5</td><td>15.0000</td><td>3.0000</td></tr>
+        <tr><td>Total</td><td>7</td><td>509.5000</td><td>72.7857</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/205_pareto_time_min.png" alt="Pareto chart for time_min">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/205_main_effects_time_min.png" alt="Main effects plot for time_min">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Normal Probability Plot of Effects</p>
+        <img src="../images/205_normal_effects_time_min.png" alt="Normal probability plot for time_min">
+      </div>
+      <div>
+        <p class="caption">Half-Normal Plot of Effects</p>
+        <img src="../images/205_half_normal_effects_time_min.png" alt="Half-normal plot for time_min">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Model Diagnostics</p>
+        <img src="../images/205_diagnostics_time_min.png" alt="Model diagnostics for time_min">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">finish score grit steps vs dust extract</p>
+      <img src="../images/205_rsm_finish_score_grit_steps_vs_dust_extract.png" alt="RSM surface: finish score grit steps vs dust extract" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">finish score grit steps vs passes</p>
+      <img src="../images/205_rsm_finish_score_grit_steps_vs_passes.png" alt="RSM surface: finish score grit steps vs passes" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">finish score grit steps vs pressure kg</p>
+      <img src="../images/205_rsm_finish_score_grit_steps_vs_pressure_kg.png" alt="RSM surface: finish score grit steps vs pressure kg" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">finish score passes vs dust extract</p>
+      <img src="../images/205_rsm_finish_score_passes_vs_dust_extract.png" alt="RSM surface: finish score passes vs dust extract" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">finish score pressure kg vs dust extract</p>
+      <img src="../images/205_rsm_finish_score_pressure_kg_vs_dust_extract.png" alt="RSM surface: finish score pressure kg vs dust extract" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">finish score pressure kg vs passes</p>
+      <img src="../images/205_rsm_finish_score_pressure_kg_vs_passes.png" alt="RSM surface: finish score pressure kg vs passes" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">finish score start grit vs dust extract</p>
+      <img src="../images/205_rsm_finish_score_start_grit_vs_dust_extract.png" alt="RSM surface: finish score start grit vs dust extract" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">finish score start grit vs grit steps</p>
+      <img src="../images/205_rsm_finish_score_start_grit_vs_grit_steps.png" alt="RSM surface: finish score start grit vs grit steps" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">finish score start grit vs passes</p>
+      <img src="../images/205_rsm_finish_score_start_grit_vs_passes.png" alt="RSM surface: finish score start grit vs passes" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">finish score start grit vs pressure kg</p>
+      <img src="../images/205_rsm_finish_score_start_grit_vs_pressure_kg.png" alt="RSM surface: finish score start grit vs pressure kg" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">time min grit steps vs dust extract</p>
+      <img src="../images/205_rsm_time_min_grit_steps_vs_dust_extract.png" alt="RSM surface: time min grit steps vs dust extract" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">time min grit steps vs passes</p>
+      <img src="../images/205_rsm_time_min_grit_steps_vs_passes.png" alt="RSM surface: time min grit steps vs passes" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">time min grit steps vs pressure kg</p>
+      <img src="../images/205_rsm_time_min_grit_steps_vs_pressure_kg.png" alt="RSM surface: time min grit steps vs pressure kg" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">time min passes vs dust extract</p>
+      <img src="../images/205_rsm_time_min_passes_vs_dust_extract.png" alt="RSM surface: time min passes vs dust extract" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">time min pressure kg vs dust extract</p>
+      <img src="../images/205_rsm_time_min_pressure_kg_vs_dust_extract.png" alt="RSM surface: time min pressure kg vs dust extract" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">time min pressure kg vs passes</p>
+      <img src="../images/205_rsm_time_min_pressure_kg_vs_passes.png" alt="RSM surface: time min pressure kg vs passes" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">time min start grit vs dust extract</p>
+      <img src="../images/205_rsm_time_min_start_grit_vs_dust_extract.png" alt="RSM surface: time min start grit vs dust extract" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">time min start grit vs grit steps</p>
+      <img src="../images/205_rsm_time_min_start_grit_vs_grit_steps.png" alt="RSM surface: time min start grit vs grit steps" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">time min start grit vs passes</p>
+      <img src="../images/205_rsm_time_min_start_grit_vs_passes.png" alt="RSM surface: time min start grit vs passes" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">time min start grit vs pressure kg</p>
+      <img src="../images/205_rsm_time_min_start_grit_vs_pressure_kg.png" alt="RSM surface: time min start grit vs pressure kg" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.7200</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>finish_score</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:75.44999999999999%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7545</span>
+                </div>
+              </td>
+              <td>6.59 0.7545        6.59 pts</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>time_min</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:67.11%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.6711</span>
+                </div>
+              </td>
+              <td>8.86 0.6711        8.86 min</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>start_grit</code></td><td>75.62 grit</td></tr>
+            <tr><td><code>grit_steps</code></td><td>5 steps</td></tr>
+            <tr><td><code>pressure_kg</code></td><td>2.822 kg</td></tr>
+            <tr><td><code>passes</code></td><td>9.972 passes</td></tr>
+            <tr><td><code>dust_extract</code></td><td>0.9599 bool</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from RSM model prediction</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>time_min</code></td><td>8.86</td><td>2.00</td><td><span style="color:#dc2626;">+6.86</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#1</td><td><strong>0.6490</strong></td><td style="font-size:.78rem;">start_grit=120,  grit_steps=5,  pressure_kg=0.5,  passes=10,  dust_extract=0</td></tr>
+            <tr><td>#7</td><td><strong>0.6476</strong></td><td style="font-size:.78rem;">start_grit=120,  grit_steps=5,  pressure_kg=3.0,  passes=10,  dust_extract=1</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>time_min</code></td><td style="color:#ca8a04;font-weight:600;">0.6104</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.7200
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+finish_score                 1.5       0.7545        6.59 pts   ↑
+time_min                     1.0       0.6711        8.86 min   ↓
+
+Recommended settings:
+  start_grit = 75.62 grit
+  grit_steps = 5 steps
+  pressure_kg = 2.822 kg
+  passes = 9.972 passes
+  dust_extract = 0.9599 bool
+  (from RSM model prediction)
+
+Trade-off summary:
+  finish_score: 6.59 (best observed: 7.60, sacrifice: +1.01)
+  time_min: 8.86 (best observed: 2.00, sacrifice: +6.86)
+
+Model quality:
+  finish_score: R² = 0.4563 (linear)
+  time_min: R² = 0.6104 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #5 (D=0.6805): start_grit=60, grit_steps=5, pressure_kg=3.0, passes=3, dust_extract=0
+  2. Run #1 (D=0.6490): start_grit=120, grit_steps=5, pressure_kg=0.5, passes=10, dust_extract=0
+  3. Run #7 (D=0.6476): start_grit=120, grit_steps=5, pressure_kg=3.0, passes=10, dust_extract=1</div></div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: finish_score ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+dust_extract            -1.8500       0.5126            43.5%
+passes                  -0.9500       0.5126            22.4%
+pressure_kg             -0.6500       0.5126            15.3%
+grit_steps              -0.4500       0.5126            10.6%
+start_grit              -0.3500       0.5126             8.2%
+
+=== ANOVA Table: finish_score ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+start_grit                   1       0.2450       0.2450      0.193     0.6785
+grit_steps                   1       0.4050       0.4050      0.320     0.5963
+pressure_kg                  1       0.8450       0.8450      0.667     0.4513
+passes                       1       1.8050       1.8050      1.424     0.2863
+dust_extract                 1       6.8450       6.8450      5.400     0.0677
+start_grit*grit_steps        1       1.8050       1.8050      1.424     0.2863
+start_grit*pressure_kg       1       6.8450       6.8450      5.400     0.0677
+start_grit*passes            1       0.4050       0.4050      0.320     0.5963
+start_grit*dust_extract      1       0.8450       0.8450      0.667     0.4513
+grit_steps*pressure_kg       1       3.1250       3.1250      2.465     0.1772
+grit_steps*passes            1       0.2450       0.2450      0.193     0.6785
+grit_steps*dust_extract      1       1.4450       1.4450      1.140     0.3345
+pressure_kg*passes           1       1.4450       1.4450      1.140     0.3345
+pressure_kg*dust_extract     1       0.2450       0.2450      0.193     0.6785
+passes*dust_extract          1       3.1250       3.1250      2.465     0.1772
+Error (Lenth PSE)            5       6.3375       1.2675
+Total                        7      14.7150       2.1021
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
+
+=== Interaction Effects: finish_score ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+start_grit           pressure_kg                1.8500            21.0%
+grit_steps           pressure_kg                1.2500            14.2%
+passes               dust_extract              -1.2500            14.2%
+start_grit           grit_steps                -0.9500            10.8%
+grit_steps           dust_extract               0.8500             9.7%
+pressure_kg          passes                    -0.8500             9.7%
+start_grit           dust_extract               0.6500             7.4%
+start_grit           passes                    -0.4500             5.1%
+grit_steps           passes                    -0.3500             4.0%
+pressure_kg          dust_extract               0.3500             4.0%
+
+=== Summary Statistics: finish_score ===
+
+start_grit:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  120                 4     5.5500     1.9070     3.0000     7.6000
+  60                  4     5.2000     1.0893     3.7000     6.3000
+
+grit_steps:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2                   4     5.6000     1.9374     3.0000     7.6000
+  5                   4     5.1500     1.0083     3.7000     6.0000
+
+pressure_kg:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.5                 4     5.7000     1.6062     3.7000     7.6000
+  3.0                 4     5.0500     1.4295     3.0000     6.3000
+
+passes:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4     5.8500     0.3697     5.5000     6.3000
+  3                   4     4.9000     2.0412     3.0000     7.6000
+
+dust_extract:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4     6.3000     0.9626     5.3000     7.6000
+  1                   4     4.4500     1.3026     3.0000     5.6000
+
+=== Main Effects: time_min ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+grit_steps              -9.5000       3.0163            38.8%
+dust_extract            -9.0000       3.0163            36.7%
+pressure_kg             -4.0000       3.0163            16.3%
+passes                  -1.5000       3.0163             6.1%
+start_grit              -0.5000       3.0163             2.0%
+
+=== ANOVA Table: time_min ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+start_grit                   1       0.5000       0.5000      0.167     0.7000
+grit_steps                   1     180.5000     180.5000     60.167     0.0006
+pressure_kg                  1      32.0000      32.0000     10.667     0.0223
+passes                       1       4.5000       4.5000      1.500     0.2752
+dust_extract                 1     162.0000     162.0000     54.000     0.0007
+start_grit*grit_steps        1       4.5000       4.5000      1.500     0.2752
+start_grit*pressure_kg       1     162.0000     162.0000     54.000     0.0007
+start_grit*passes            1     180.5000     180.5000     60.167     0.0006
+start_grit*dust_extract      1      32.0000      32.0000     10.667     0.0223
+grit_steps*pressure_kg       1       2.0000       2.0000      0.667     0.4513
+grit_steps*passes            1       0.5000       0.5000      0.167     0.7000
+grit_steps*dust_extract      1     128.0000     128.0000     42.667     0.0013
+pressure_kg*passes           1     128.0000     128.0000     42.667     0.0013
+pressure_kg*dust_extract     1       0.5000       0.5000      0.167     0.7000
+passes*dust_extract          1       2.0000       2.0000      0.667     0.4513
+Error (Lenth PSE)            5      15.0000       3.0000
+Total                        7     509.5000      72.7857
+  Note: Error estimated using Lenth&#x27;s pseudo-standard-error (unreplicated design)
+
+=== Interaction Effects: time_min ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+start_grit           passes                    -9.5000            22.1%
+start_grit           pressure_kg                9.0000            20.9%
+grit_steps           dust_extract               8.0000            18.6%
+pressure_kg          passes                    -8.0000            18.6%
+start_grit           dust_extract               4.0000             9.3%
+start_grit           grit_steps                -1.5000             3.5%
+grit_steps           pressure_kg               -1.0000             2.3%
+passes               dust_extract               1.0000             2.3%
+grit_steps           passes                    -0.5000             1.2%
+pressure_kg          dust_extract               0.5000             1.2%
+
+=== Summary Statistics: time_min ===
+
+start_grit:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  120                 4    10.0000     9.6954     3.0000    24.0000
+  60                  4     9.5000     8.6987     2.0000    22.0000
+
+grit_steps:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2                   4    14.5000     9.9833     4.0000    24.0000
+  5                   4     5.0000     3.1623     2.0000     9.0000
+
+pressure_kg:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0.5                 4    11.7500     8.2614     6.0000    24.0000
+  3.0                 4     7.7500     9.5350     2.0000    22.0000
+
+passes:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10                  4    10.5000     8.1035     3.0000    22.0000
+  3                   4     9.0000    10.1325     2.0000    24.0000
+
+dust_extract:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   4    14.2500    10.5317     2.0000    24.0000
+  1                   4     5.2500     2.2174     3.0000     8.0000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: finish_score ===
+Direction: maximize
+
+Best observed run: #4
+  start_grit = 60
+  grit_steps = 2
+  pressure_kg = 3.0
+  passes = 10
+  dust_extract = 0
+  Value: 7.6
+
+RSM Model (linear, R² = 0.5345, Adj R² = -0.6293):
+  Coefficients:
+    intercept                      +5.3750
+    start_grit                     -0.1750
+    grit_steps                     -0.1750
+    pressure_kg                    -0.2250
+    passes                         +0.8750
+    dust_extract                   -0.3250
+
+  Predicted optimum (from linear model, at observed points):
+    start_grit = 60
+    grit_steps = 2
+    pressure_kg = 3.0
+    passes = 10
+    dust_extract = 0
+    Predicted value: 6.7000
+
+  Surface optimum (via L-BFGS-B, linear model):
+    start_grit = 60
+    grit_steps = 2
+    pressure_kg = 0.5
+    passes = 10
+    dust_extract = 0
+    Predicted value: 7.1500
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
+
+Factor importance:
+  1. passes  (effect: -1.8, contribution: 49.3%)
+  2. dust_extract  (effect: -0.7, contribution: 18.3%)
+  3. pressure_kg  (effect: -0.4, contribution: 12.7%)
+  4. start_grit  (effect: 0.3, contribution: 9.9%)
+  5. grit_steps  (effect: -0.3, contribution: 9.9%)
+
+=== Optimization: time_min ===
+Direction: minimize
+
+Best observed run: #7
+  start_grit = 60
+  grit_steps = 5
+  pressure_kg = 0.5
+  passes = 3
+  dust_extract = 1
+  Value: 2.0
+
+RSM Model (linear, R² = 0.6811, Adj R² = -0.1163):
+  Coefficients:
+    intercept                      +9.7500
+    start_grit                     +1.0000
+    grit_steps                     -0.2500
+    pressure_kg                    +4.2500
+    passes                         +4.5000
+    dust_extract                   -2.0000
+
+  Predicted optimum (from linear model, at observed points):
+    start_grit = 60
+    grit_steps = 2
+    pressure_kg = 3.0
+    passes = 10
+    dust_extract = 0
+    Predicted value: 19.7500
+
+  Surface optimum (via L-BFGS-B, linear model):
+    start_grit = 60
+    grit_steps = 5
+    pressure_kg = 0.5
+    passes = 3
+    dust_extract = 1
+    Predicted value: -2.2500
+
+  Model quality: Moderate fit — use predictions directionally, not precisely.
+
+Factor importance:
+  1. passes  (effect: -9.0, contribution: 37.5%)
+  2. pressure_kg  (effect: 8.5, contribution: 35.4%)
+  3. dust_extract  (effect: -4.0, contribution: 16.7%)
+  4. start_grit  (effect: -2.0, contribution: 8.3%)
+  5. grit_steps  (effect: -0.5, contribution: 2.1%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="204-wood-bending.html">&larr; Previous: Steam Bending Parameters</a>
+    <a href="index.html">All Use Cases &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+<script>
+(function() {
+  var toc = document.getElementById('uc-toc-inner');
+  if (!toc) return;
+  var headings = document.querySelectorAll('.uc-section > h2, .uc-content > section > h2');
+  if (headings.length < 2) { document.getElementById('uc-toc').style.display = 'none'; return; }
+  headings.forEach(function(h, i) {
+    if (!h.id) h.id = 'sec-' + i;
+    var a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(null, '', '#' + h.id);
+    });
+    toc.appendChild(a);
+  });
+  var links = toc.querySelectorAll('a');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        links.forEach(function(a) { a.classList.remove('active'); });
+        var active = toc.querySelector('a[href="#' + entry.target.id + '"]');
+        if (active) {
+          active.classList.add('active');
+          active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      }
+    });
+  }, { rootMargin: '-80px 0px -70% 0px', threshold: 0 });
+  headings.forEach(function(h) { observer.observe(h); });
+  if (links.length) links[0].classList.add('active');
+})();
+</script>
+</body>
+</html>

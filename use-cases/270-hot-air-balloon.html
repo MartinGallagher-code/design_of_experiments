@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hot Air Balloon Flight Planning &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #e0f2fe, #bae6fd);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x2708;</div>
+    <div class="uc-badge" style="background:rgba(2,132,199,.12);color:#0284c7;">Box-Behnken Design</div>
+    <h1>Hot Air Balloon Flight Planning</h1>
+    <p class="uc-subtitle">Box-Behnken design to maximize flight duration and altitude ceiling by tuning burner output, envelope volume, and passenger count</p>
+  </div>
+</section>
+
+<!-- Table of Contents -->
+<nav class="uc-toc" id="uc-toc"><div class="uc-toc-inner" id="uc-toc-inner"></div></nav>
+
+<div class="container-narrow uc-content">
+
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>hot air balloon flight planning</strong>. Box-Behnken design to maximize flight duration and altitude ceiling by tuning burner output, envelope volume, and passenger count.</p>
+
+    <p>The design varies 3 factors: <strong>burner btu</strong> (BTU/hr), ranging from 6000000 to 12000000, <strong>envelope m3</strong> (m3), ranging from 2000 to 4000, and <strong>passengers</strong> (count), ranging from 2 to 8. The goal is to optimize 2 responses: flight hrs (hrs) (maximize) and ceiling m (m) (maximize). Fixed conditions held constant across all runs include fuel kg = 100, ambient temp = 15C.</p>
+
+    <p>A Box-Behnken design was chosen because it efficiently fits quadratic models with 3 continuous factors while avoiding extreme corner combinations &mdash; requiring only 15 runs instead of the 8 needed for a full factorial at two levels.</p>
+
+    <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
+
+    <h3>Key Findings</h3>
+    <p>For <strong>flight hrs</strong>, the most influential factors were passengers (42.0%), burner btu (32.9%), envelope m3 (25.1%). The best observed value was <strong>2.8</strong> (at burner btu = 6e+06, envelope m3 = 3000, passengers = 2).</p>
+<p>For <strong>ceiling m</strong>, the most influential factors were passengers (43.1%), burner btu (36.7%), envelope m3 (20.2%). The best observed value was <strong>729.0</strong> (at burner btu = 6e+06, envelope m3 = 3000, passengers = 2).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Run confirmation experiments at the predicted optimal settings to validate the model.</li>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+  </ul>
+  </section>
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>burner_btu</code></td><td>6000000</td><td>12000000</td><td>BTU/hr</td></tr>
+            <tr><td><code>envelope_m3</code></td><td>2000</td><td>4000</td><td>m3</td></tr>
+            <tr><td><code>passengers</code></td><td>2</td><td>8</td><td>count</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> fuel_kg = 100, ambient_temp = 15C</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>flight_hrs</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>hrs</td></tr>
+            <tr><td><code>ceiling_m</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>m</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/270_hot_air_balloon/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Hot Air Balloon Flight Planning&quot;,
+    &quot;description&quot;: &quot;Box-Behnken design to maximize flight duration and altitude ceiling by tuning burner output, envelope volume, and passenger count&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;burner_btu&quot;,
+      &quot;levels&quot;: [
+        &quot;6000000&quot;,
+        &quot;12000000&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;BTU/hr&quot;
+    },
+    {
+      &quot;name&quot;: &quot;envelope_m3&quot;,
+      &quot;levels&quot;: [
+        &quot;2000&quot;,
+        &quot;4000&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;m3&quot;
+    },
+    {
+      &quot;name&quot;: &quot;passengers&quot;,
+      &quot;levels&quot;: [
+        &quot;2&quot;,
+        &quot;8&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;count&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;fuel_kg&quot;: &quot;100&quot;,
+    &quot;ambient_temp&quot;: &quot;15C&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;flight_hrs&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;hrs&quot;
+    },
+    {
+      &quot;name&quot;: &quot;ceiling_m&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;m&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;box_behnken&quot;,
+    &quot;test_script&quot;: &quot;use_cases/270_hot_air_balloon/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Box-Behnken Design produces <strong>15 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>burner_btu</code></th><th><code>envelope_m3</code></th><th><code>passengers</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>9e+06</td><td>2000</td><td>2</td></tr>
+        <tr><td>2</td><td>9e+06</td><td>3000</td><td>5</td></tr>
+        <tr><td>3</td><td>1.2e+07</td><td>3000</td><td>8</td></tr>
+        <tr><td>4</td><td>1.2e+07</td><td>3000</td><td>2</td></tr>
+        <tr><td>5</td><td>9e+06</td><td>3000</td><td>5</td></tr>
+        <tr><td>6</td><td>9e+06</td><td>3000</td><td>5</td></tr>
+        <tr><td>7</td><td>6e+06</td><td>3000</td><td>8</td></tr>
+        <tr><td>8</td><td>1.2e+07</td><td>2000</td><td>5</td></tr>
+        <tr><td>9</td><td>9e+06</td><td>2000</td><td>8</td></tr>
+        <tr><td>10</td><td>1.2e+07</td><td>4000</td><td>5</td></tr>
+        <tr><td>11</td><td>6e+06</td><td>3000</td><td>2</td></tr>
+        <tr><td>12</td><td>9e+06</td><td>4000</td><td>8</td></tr>
+        <tr><td>13</td><td>6e+06</td><td>2000</td><td>5</td></tr>
+        <tr><td>14</td><td>6e+06</td><td>4000</td><td>5</td></tr>
+        <tr><td>15</td><td>9e+06</td><td>4000</td><td>2</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe info <span class="flag">--config</span> use_cases/270_hot_air_balloon/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe generate <span class="flag">--config</span> use_cases/270_hot_air_balloon/config.json \
+    <span class="flag">--output</span> use_cases/270_hot_air_balloon/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/270_hot_air_balloon/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe analyze <span class="flag">--config</span> use_cases/270_hot_air_balloon/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> use_cases/270_hot_air_balloon/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> use_cases/270_hot_air_balloon/config.json <span class="flag">--multi</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">7</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe report <span class="flag">--config</span> use_cases/270_hot_air_balloon/config.json \
+    <span class="flag">--output</span> use_cases/270_hot_air_balloon/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>box_behnken</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (flight_hrs &#x2191;, ceiling_m &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>15</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: flight_hrs</h3>
+    <p>Top factors: passengers (42.0%), burner_btu (32.9%), envelope_m3 (25.1%).</p>
+    <h4>ANOVA</h4>
+    <table style="font-size:.82rem;">
+      <thead><tr><th>Source</th><th>DF</th><th>SS</th><th>MS</th><th>F</th><th>p-value</th></tr></thead>
+      <tbody>
+        <tr><td>Source</td><td>DF</td><td>SS</td><td>MS</td><td>F</td><td>p-value</td></tr>
+        <tr><td>burner_btu</td><td>2</td><td>0.6298</td><td>0.3149</td><td>0.482</td><td>0.6344</td></tr>
+        <tr><td>envelope_m3</td><td>2</td><td>0.2973</td><td>0.1486</td><td>0.227</td><td>0.8015</td></tr>
+        <tr><td>passengers</td><td>2</td><td>0.7373</td><td>0.3686</td><td>0.564</td><td>0.5899</td></tr>
+        <tr><td>Lack</td><td>of</td><td>Fit</td><td>6</td><td>4.8024</td><td>0.8004</td></tr>
+        <tr><td>Pure</td><td>Error</td><td>2</td><td>1.3067</td><td></td><td></td></tr>
+        <tr><td>Error</td><td>8</td><td>6.1090</td><td>0.6533</td><td></td><td></td></tr>
+        <tr><td>Total</td><td>14</td><td>7.7733</td><td>0.5552</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/270_pareto_flight_hrs.png" alt="Pareto chart for flight_hrs">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/270_main_effects_flight_hrs.png" alt="Main effects plot for flight_hrs">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Normal Probability Plot of Effects</p>
+        <img src="../images/270_normal_effects_flight_hrs.png" alt="Normal probability plot for flight_hrs">
+      </div>
+      <div>
+        <p class="caption">Half-Normal Plot of Effects</p>
+        <img src="../images/270_half_normal_effects_flight_hrs.png" alt="Half-normal plot for flight_hrs">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Model Diagnostics</p>
+        <img src="../images/270_diagnostics_flight_hrs.png" alt="Model diagnostics for flight_hrs">
+      </div>
+    </div>
+
+    <h3>Response: ceiling_m</h3>
+    <p>Top factors: passengers (43.1%), burner_btu (36.7%), envelope_m3 (20.2%).</p>
+    <h4>ANOVA</h4>
+    <table style="font-size:.82rem;">
+      <thead><tr><th>Source</th><th>DF</th><th>SS</th><th>MS</th><th>F</th><th>p-value</th></tr></thead>
+      <tbody>
+        <tr><td>Source</td><td>DF</td><td>SS</td><td>MS</td><td>F</td><td>p-value</td></tr>
+        <tr><td>burner_btu</td><td>2</td><td>38454.0429</td><td>19227.0214</td><td>1.108</td><td>0.3760</td></tr>
+        <tr><td>envelope_m3</td><td>2</td><td>11595.9714</td><td>5797.9857</td><td>0.334</td><td>0.7255</td></tr>
+        <tr><td>passengers</td><td>2</td><td>38988.9714</td><td>19494.4857</td><td>1.124</td><td>0.3715</td></tr>
+        <tr><td>Lack</td><td>of</td><td>Fit</td><td>6</td><td>254570.7476</td><td>42428.4579</td></tr>
+        <tr><td>Pure</td><td>Error</td><td>2</td><td>34698.6667</td><td></td><td></td></tr>
+        <tr><td>Error</td><td>8</td><td>289269.4143</td><td>17349.3333</td><td></td><td></td></tr>
+        <tr><td>Total</td><td>14</td><td>378308.4000</td><td>27022.0286</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/270_pareto_ceiling_m.png" alt="Pareto chart for ceiling_m">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/270_main_effects_ceiling_m.png" alt="Main effects plot for ceiling_m">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Normal Probability Plot of Effects</p>
+        <img src="../images/270_normal_effects_ceiling_m.png" alt="Normal probability plot for ceiling_m">
+      </div>
+      <div>
+        <p class="caption">Half-Normal Plot of Effects</p>
+        <img src="../images/270_half_normal_effects_ceiling_m.png" alt="Half-normal plot for ceiling_m">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Model Diagnostics</p>
+        <img src="../images/270_diagnostics_ceiling_m.png" alt="Model diagnostics for ceiling_m">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">ceiling m burner btu vs envelope m3</p>
+      <img src="../images/270_rsm_ceiling_m_burner_btu_vs_envelope_m3.png" alt="RSM surface: ceiling m burner btu vs envelope m3" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">ceiling m burner btu vs passengers</p>
+      <img src="../images/270_rsm_ceiling_m_burner_btu_vs_passengers.png" alt="RSM surface: ceiling m burner btu vs passengers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">ceiling m envelope m3 vs passengers</p>
+      <img src="../images/270_rsm_ceiling_m_envelope_m3_vs_passengers.png" alt="RSM surface: ceiling m envelope m3 vs passengers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">flight hrs burner btu vs envelope m3</p>
+      <img src="../images/270_rsm_flight_hrs_burner_btu_vs_envelope_m3.png" alt="RSM surface: flight hrs burner btu vs envelope m3" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">flight hrs burner btu vs passengers</p>
+      <img src="../images/270_rsm_flight_hrs_burner_btu_vs_passengers.png" alt="RSM surface: flight hrs burner btu vs passengers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">flight hrs envelope m3 vs passengers</p>
+      <img src="../images/270_rsm_flight_hrs_envelope_m3_vs_passengers.png" alt="RSM surface: flight hrs envelope m3 vs passengers" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.9545</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>flight_hrs</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>2.80 0.9545        2.80 hrs</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>ceiling_m</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>729.00 0.9545      729.00 m</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>burner_btu</code></td><td>1.2e+07 BTU/hr</td></tr>
+            <tr><td><code>envelope_m3</code></td><td>3000 m3</td></tr>
+            <tr><td><code>passengers</code></td><td>8 count</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #15</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>ceiling_m</code></td><td>729.00</td><td>729.00</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#4</td><td><strong>0.8373</strong></td><td style="font-size:.78rem;">burner_btu=9e+06,  envelope_m3=4000,  passengers=2</td></tr>
+            <tr><td>#10</td><td><strong>0.7735</strong></td><td style="font-size:.78rem;">burner_btu=6e+06,  envelope_m3=2000,  passengers=5</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>ceiling_m</code></td><td style="color:#dc2626;font-weight:600;">0.0917</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.9545
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+flight_hrs                   1.5       0.9545        2.80 hrs   ↑
+ceiling_m                    1.0       0.9545      729.00 m   ↑
+
+Recommended settings:
+  burner_btu = 1.2e+07 BTU/hr
+  envelope_m3 = 3000 m3
+  passengers = 8 count
+  (from observed run #15)
+
+Trade-off summary:
+  flight_hrs: 2.80 (best observed: 2.80, sacrifice: +0.00)
+  ceiling_m: 729.00 (best observed: 729.00, sacrifice: +0.00)
+
+Model quality:
+  flight_hrs: R² = 0.1952 (linear)
+  ceiling_m: R² = 0.0917 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #15 (D=0.9545): burner_btu=1.2e+07, envelope_m3=3000, passengers=8
+  2. Run #4 (D=0.8373): burner_btu=9e+06, envelope_m3=4000, passengers=2
+  3. Run #10 (D=0.7735): burner_btu=6e+06, envelope_m3=2000, passengers=5</div></div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: flight_hrs ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+passengers               0.5250       0.1924            42.0%
+burner_btu               0.4107       0.1924            32.9%
+envelope_m3              0.3143       0.1924            25.1%
+
+=== ANOVA Table: flight_hrs ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+burner_btu                   2       0.6298       0.3149      0.482     0.6344
+envelope_m3                  2       0.2973       0.1486      0.227     0.8015
+passengers                   2       0.7373       0.3686      0.564     0.5899
+Lack of Fit                  6       4.8024       0.8004      1.225     0.5142
+Pure Error                   2       1.3067       0.6533
+Error                        8       6.1090       0.6533
+Total                       14       7.7733       0.5552
+
+=== Summary Statistics: flight_hrs ===
+
+burner_btu:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1.2e+07             4     1.1750     0.9708     0.3000     2.4000
+  6e+06               4     1.1750     0.4787     0.8000     1.8000
+  9e+06               7     1.5857     0.7777     0.3000     2.8000
+
+envelope_m3:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2000                4     1.2750     0.6652     0.3000     1.8000
+  3000                7     1.5143     0.8802     0.3000     2.8000
+  4000                4     1.2000     0.7071     0.5000     2.1000
+
+passengers:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2                   4     1.0000     0.5598     0.3000     1.5000
+  5                   7     1.4857     0.7581     0.5000     2.8000
+  8                   4     1.5250     0.9394     0.3000     2.4000
+
+=== Main Effects: ceiling_m ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+passengers             137.0000      42.4437            43.1%
+burner_btu             116.8929      42.4437            36.7%
+envelope_m3             64.2143      42.4437            20.2%
+
+=== ANOVA Table: ceiling_m ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+burner_btu                   2   38454.0429   19227.0214      1.108     0.3760
+envelope_m3                  2   11595.9714    5797.9857      0.334     0.7255
+passengers                   2   38988.9714   19494.4857      1.124     0.3715
+Lack of Fit                  6  254570.7476   42428.4579      2.446     0.3184
+Pure Error                   2   34698.6667   17349.3333
+Error                        8  289269.4143   17349.3333
+Total                       14  378308.4000   27022.0286
+
+=== Summary Statistics: ceiling_m ===
+
+burner_btu:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1.2e+07             4   407.2500   238.4832   194.0000   686.0000
+  6e+06               4   446.2500    64.2048   355.0000   505.0000
+  9e+06               7   524.1429   161.6915   239.0000   729.0000
+
+envelope_m3:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2000                4   436.5000   135.5126   239.0000   525.0000
+  3000                7   500.7143   175.5588   224.0000   729.0000
+  4000                4   458.0000   205.5043   194.0000   696.0000
+
+passengers:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2                   4   394.5000   134.1405   224.0000   525.0000
+  5                   7   482.7143   157.1355   194.0000   729.0000
+  8                   4   531.5000   213.8450   239.0000   696.0000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: flight_hrs ===
+Direction: maximize
+
+Best observed run: #15
+  burner_btu = 6e+06
+  envelope_m3 = 3000
+  passengers = 2
+  Value: 2.8
+
+RSM Model (linear, R² = 0.4384, Adj R² = 0.2852):
+  Coefficients:
+    intercept                      +1.3667
+    burner_btu                     -0.1250
+    envelope_m3                    -0.1875
+    passengers                     -0.6125
+
+RSM Model (quadratic, R² = 0.6839, Adj R² = 0.1148):
+  Coefficients:
+    intercept                      +1.4000
+    burner_btu                     -0.1250
+    envelope_m3                    -0.1875
+    passengers                     -0.6125
+    burner_btu*envelope_m3         -0.2000
+    burner_btu*passengers          +0.3500
+    envelope_m3*passengers         -0.0750
+    burner_btu^2                   +0.1125
+    envelope_m3^2                  -0.4625
+    passengers^2                   +0.2875
+
+  Curvature analysis:
+    envelope_m3                    coef=-0.4625  concave (has a maximum)
+    passengers                     coef=+0.2875  convex (has a minimum)
+    burner_btu                     coef=+0.1125  convex (has a minimum)
+
+  Notable interactions:
+    burner_btu*passengers          coef=+0.3500  (synergistic)
+
+  Predicted optimum (from linear model, at observed points):
+    burner_btu = 9e+06
+    envelope_m3 = 2000
+    passengers = 2
+    Predicted value: 2.1667
+
+  Surface optimum (via L-BFGS-B, linear model):
+    burner_btu = 6e+06
+    envelope_m3 = 2000
+    passengers = 2
+    Predicted value: 2.2917
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. passengers  (effect: 1.2, contribution: 56.9%)
+  2. envelope_m3  (effect: 0.7, contribution: 31.5%)
+  3. burner_btu  (effect: 0.2, contribution: 11.6%)
+
+=== Optimization: ceiling_m ===
+Direction: maximize
+
+Best observed run: #15
+  burner_btu = 6e+06
+  envelope_m3 = 3000
+  passengers = 2
+  Value: 729.0
+
+RSM Model (linear, R² = 0.3065, Adj R² = 0.1174):
+  Coefficients:
+    intercept                      +472.2000
+    burner_btu                     -16.1250
+    envelope_m3                    -60.0000
+    passengers                     -103.1250
+
+RSM Model (quadratic, R² = 0.6521, Adj R² = 0.0259):
+  Coefficients:
+    intercept                      +483.3333
+    burner_btu                     -16.1250
+    envelope_m3                    -60.0000
+    passengers                     -103.1250
+    burner_btu*envelope_m3         -82.0000
+    burner_btu*passengers          +50.7500
+    envelope_m3*passengers         -75.5000
+    burner_btu^2                   +61.4583
+    envelope_m3^2                  -113.7917
+    passengers^2                   +31.4583
+
+  Curvature analysis:
+    envelope_m3                    coef=-113.7917  concave (has a maximum)
+    burner_btu                     coef=+61.4583  convex (has a minimum)
+    passengers                     coef=+31.4583  convex (has a minimum)
+
+  Notable interactions:
+    burner_btu*envelope_m3         coef=-82.0000  (antagonistic)
+    envelope_m3*passengers         coef=-75.5000  (antagonistic)
+    burner_btu*passengers          coef=+50.7500  (synergistic)
+
+  Predicted optimum (from linear model, at observed points):
+    burner_btu = 9e+06
+    envelope_m3 = 2000
+    passengers = 2
+    Predicted value: 635.3250
+
+  Surface optimum (via L-BFGS-B, linear model):
+    burner_btu = 6e+06
+    envelope_m3 = 2000
+    passengers = 2
+    Predicted value: 651.4500
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. passengers  (effect: 206.2, contribution: 43.9%)
+  2. envelope_m3  (effect: 180.4, contribution: 38.4%)
+  3. burner_btu  (effect: 83.5, contribution: 17.8%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="269-parachute-deployment.html">&larr; Previous: Parachute Deployment Dynamics</a>
+    <a href="271-led-strip-install.html">Next: LED Strip Installation &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+<script>
+(function() {
+  var toc = document.getElementById('uc-toc-inner');
+  if (!toc) return;
+  var headings = document.querySelectorAll('.uc-section > h2, .uc-content > section > h2');
+  if (headings.length < 2) { document.getElementById('uc-toc').style.display = 'none'; return; }
+  headings.forEach(function(h, i) {
+    if (!h.id) h.id = 'sec-' + i;
+    var a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(null, '', '#' + h.id);
+    });
+    toc.appendChild(a);
+  });
+  var links = toc.querySelectorAll('a');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        links.forEach(function(a) { a.classList.remove('active'); });
+        var active = toc.querySelector('a[href="#' + entry.target.id + '"]');
+        if (active) {
+          active.classList.add('active');
+          active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      }
+    });
+  }, { rootMargin: '-80px 0px -70% 0px', threshold: 0 });
+  headings.forEach(function(h) { observer.observe(h); });
+  if (links.length) links[0].classList.add('active');
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Microservice Circuit Breaker &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #dbeafe, #bfdbfe);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x2601;</div>
+    <div class="uc-badge" style="background:rgba(29,78,216,.12);color:#1d4ed8;">Box-Behnken Design</div>
+    <h1>Microservice Circuit Breaker</h1>
+    <p class="uc-subtitle">Box-Behnken design to tune circuit breaker thresholds for error rate and recovery time</p>
+  </div>
+</section>
+
+<!-- Table of Contents -->
+<nav class="uc-toc" id="uc-toc"><div class="uc-toc-inner" id="uc-toc-inner"></div></nav>
+
+<div class="container-narrow uc-content">
+
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>microservice circuit breaker</strong>. Box-Behnken design to tune circuit breaker thresholds for error rate and recovery time.</p>
+
+    <p>The design varies 3 factors: <strong>failure threshold</strong> (count), ranging from 3 to 15, <strong>timeout ms</strong> (ms), ranging from 500 to 5000, and <strong>reset interval</strong> (s), ranging from 5 to 60. The goal is to optimize 2 responses: error rate (%) (minimize) and recovery time (s) (minimize). Fixed conditions held constant across all runs include backend pool size = 10, health check interval = 5.</p>
+
+    <p>A Box-Behnken design was chosen because it efficiently fits quadratic models with 3 continuous factors while avoiding extreme corner combinations &mdash; requiring only 15 runs instead of the 8 needed for a full factorial at two levels.</p>
+
+    <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
+
+    <h3>Key Findings</h3>
+    <p>For <strong>error rate</strong>, the most influential factors were reset interval (54.9%), timeout ms (28.8%), failure threshold (16.3%). The best observed value was <strong>2.25</strong> (at failure threshold = 3, timeout ms = 500, reset interval = 32.5).</p>
+<p>For <strong>recovery time</strong>, the most influential factors were timeout ms (41.7%), reset interval (34.1%), failure threshold (24.2%). The best observed value was <strong>8.3</strong> (at failure threshold = 9, timeout ms = 5000, reset interval = 5).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Run confirmation experiments at the predicted optimal settings to validate the model.</li>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+  </ul>
+  </section>
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>failure_threshold</code></td><td>3</td><td>15</td><td>count</td></tr>
+            <tr><td><code>timeout_ms</code></td><td>500</td><td>5000</td><td>ms</td></tr>
+            <tr><td><code>reset_interval</code></td><td>5</td><td>60</td><td>s</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> backend_pool_size = 10, health_check_interval = 5</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>error_rate</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>%</td></tr>
+            <tr><td><code>recovery_time</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>s</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/28_microservice_circuit_breaker/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Microservice Circuit Breaker&quot;,
+    &quot;description&quot;: &quot;Box-Behnken design to tune circuit breaker thresholds for error rate and recovery time&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;failure_threshold&quot;,
+      &quot;levels&quot;: [
+        &quot;3&quot;,
+        &quot;15&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;count&quot;
+    },
+    {
+      &quot;name&quot;: &quot;timeout_ms&quot;,
+      &quot;levels&quot;: [
+        &quot;500&quot;,
+        &quot;5000&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;ms&quot;
+    },
+    {
+      &quot;name&quot;: &quot;reset_interval&quot;,
+      &quot;levels&quot;: [
+        &quot;5&quot;,
+        &quot;60&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;s&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;backend_pool_size&quot;: &quot;10&quot;,
+    &quot;health_check_interval&quot;: &quot;5&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;error_rate&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;recovery_time&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;s&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;box_behnken&quot;,
+    &quot;test_script&quot;: &quot;use_cases/28_microservice_circuit_breaker/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Box-Behnken Design produces <strong>15 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>failure_threshold</code></th><th><code>timeout_ms</code></th><th><code>reset_interval</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>9</td><td>500</td><td>5</td></tr>
+        <tr><td>2</td><td>9</td><td>2750</td><td>32.5</td></tr>
+        <tr><td>3</td><td>15</td><td>2750</td><td>60</td></tr>
+        <tr><td>4</td><td>15</td><td>2750</td><td>5</td></tr>
+        <tr><td>5</td><td>9</td><td>2750</td><td>32.5</td></tr>
+        <tr><td>6</td><td>9</td><td>2750</td><td>32.5</td></tr>
+        <tr><td>7</td><td>3</td><td>2750</td><td>60</td></tr>
+        <tr><td>8</td><td>15</td><td>500</td><td>32.5</td></tr>
+        <tr><td>9</td><td>9</td><td>500</td><td>60</td></tr>
+        <tr><td>10</td><td>15</td><td>5000</td><td>32.5</td></tr>
+        <tr><td>11</td><td>3</td><td>2750</td><td>5</td></tr>
+        <tr><td>12</td><td>9</td><td>5000</td><td>60</td></tr>
+        <tr><td>13</td><td>3</td><td>500</td><td>32.5</td></tr>
+        <tr><td>14</td><td>3</td><td>5000</td><td>32.5</td></tr>
+        <tr><td>15</td><td>9</td><td>5000</td><td>5</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe info <span class="flag">--config</span> use_cases/28_microservice_circuit_breaker/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe generate <span class="flag">--config</span> use_cases/28_microservice_circuit_breaker/config.json \
+    <span class="flag">--output</span> use_cases/28_microservice_circuit_breaker/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/28_microservice_circuit_breaker/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe analyze <span class="flag">--config</span> use_cases/28_microservice_circuit_breaker/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> use_cases/28_microservice_circuit_breaker/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> use_cases/28_microservice_circuit_breaker/config.json <span class="flag">--multi</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">7</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe report <span class="flag">--config</span> use_cases/28_microservice_circuit_breaker/config.json \
+    <span class="flag">--output</span> use_cases/28_microservice_circuit_breaker/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>box_behnken</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (error_rate &#x2193;, recovery_time &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>15</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: error_rate</h3>
+    <p>Top factors: reset_interval (54.9%), timeout_ms (28.8%), failure_threshold (16.3%).</p>
+    <h4>ANOVA</h4>
+    <table style="font-size:.82rem;">
+      <thead><tr><th>Source</th><th>DF</th><th>SS</th><th>MS</th><th>F</th><th>p-value</th></tr></thead>
+      <tbody>
+        <tr><td>Source</td><td>DF</td><td>SS</td><td>MS</td><td>F</td><td>p-value</td></tr>
+        <tr><td>failure_threshold</td><td>2</td><td>1.8599</td><td>0.9299</td><td>0.698</td><td>0.5257</td></tr>
+        <tr><td>timeout_ms</td><td>2</td><td>6.8375</td><td>3.4187</td><td>2.565</td><td>0.1378</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>reset_interval</td><td>2</td><td>25.9731</td><td>12.9865</td><td>9.743</td><td>0.0072</td></tr>
+        <tr><td>Lack</td><td>of</td><td>Fit</td><td>6</td><td>55.6917</td><td>9.2819</td></tr>
+        <tr><td>Pure</td><td>Error</td><td>2</td><td>2.6659</td><td></td><td></td></tr>
+        <tr><td>Error</td><td>8</td><td>58.3576</td><td>1.3329</td><td></td><td></td></tr>
+        <tr><td>Total</td><td>14</td><td>93.0280</td><td>6.6449</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/28_pareto_error_rate.png" alt="Pareto chart for error_rate">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/28_main_effects_error_rate.png" alt="Main effects plot for error_rate">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Normal Probability Plot of Effects</p>
+        <img src="../images/28_normal_effects_error_rate.png" alt="Normal probability plot for error_rate">
+      </div>
+      <div>
+        <p class="caption">Half-Normal Plot of Effects</p>
+        <img src="../images/28_half_normal_effects_error_rate.png" alt="Half-normal plot for error_rate">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Model Diagnostics</p>
+        <img src="../images/28_diagnostics_error_rate.png" alt="Model diagnostics for error_rate">
+      </div>
+    </div>
+
+    <h3>Response: recovery_time</h3>
+    <p>Top factors: timeout_ms (41.7%), reset_interval (34.1%), failure_threshold (24.2%).</p>
+    <h4>ANOVA</h4>
+    <table style="font-size:.82rem;">
+      <thead><tr><th>Source</th><th>DF</th><th>SS</th><th>MS</th><th>F</th><th>p-value</th></tr></thead>
+      <tbody>
+        <tr><td>Source</td><td>DF</td><td>SS</td><td>MS</td><td>F</td><td>p-value</td></tr>
+        <tr><td>failure_threshold</td><td>2</td><td>72.0898</td><td>36.0449</td><td>0.313</td><td>0.7400</td></tr>
+        <tr><td>timeout_ms</td><td>2</td><td>236.2452</td><td>118.1226</td><td>1.025</td><td>0.4016</td></tr>
+        <tr><td>reset_interval</td><td>2</td><td>147.0113</td><td>73.5056</td><td>0.638</td><td>0.5534</td></tr>
+        <tr><td>Lack</td><td>of</td><td>Fit</td><td>6</td><td>1233.5910</td><td>205.5985</td></tr>
+        <tr><td>Pure</td><td>Error</td><td>2</td><td>230.5400</td><td></td><td></td></tr>
+        <tr><td>Error</td><td>8</td><td>1464.1310</td><td>115.2700</td><td></td><td></td></tr>
+        <tr><td>Total</td><td>14</td><td>1919.4773</td><td>137.1055</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/28_pareto_recovery_time.png" alt="Pareto chart for recovery_time">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/28_main_effects_recovery_time.png" alt="Main effects plot for recovery_time">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Normal Probability Plot of Effects</p>
+        <img src="../images/28_normal_effects_recovery_time.png" alt="Normal probability plot for recovery_time">
+      </div>
+      <div>
+        <p class="caption">Half-Normal Plot of Effects</p>
+        <img src="../images/28_half_normal_effects_recovery_time.png" alt="Half-normal plot for recovery_time">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Model Diagnostics</p>
+        <img src="../images/28_diagnostics_recovery_time.png" alt="Model diagnostics for recovery_time">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">error rate failure threshold vs reset interval</p>
+      <img src="../images/28_rsm_error_rate_failure_threshold_vs_reset_interval.png" alt="RSM surface: error rate failure threshold vs reset interval" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">error rate failure threshold vs timeout ms</p>
+      <img src="../images/28_rsm_error_rate_failure_threshold_vs_timeout_ms.png" alt="RSM surface: error rate failure threshold vs timeout ms" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">error rate timeout ms vs reset interval</p>
+      <img src="../images/28_rsm_error_rate_timeout_ms_vs_reset_interval.png" alt="RSM surface: error rate timeout ms vs reset interval" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">recovery time failure threshold vs reset interval</p>
+      <img src="../images/28_rsm_recovery_time_failure_threshold_vs_reset_interval.png" alt="RSM surface: recovery time failure threshold vs reset interval" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">recovery time failure threshold vs timeout ms</p>
+      <img src="../images/28_rsm_recovery_time_failure_threshold_vs_timeout_ms.png" alt="RSM surface: recovery time failure threshold vs timeout ms" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">recovery time timeout ms vs reset interval</p>
+      <img src="../images/28_rsm_recovery_time_timeout_ms_vs_reset_interval.png" alt="RSM surface: recovery time timeout ms vs reset interval" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ca8a04;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ca8a04;line-height:1.2;">D = 0.7261</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>error_rate</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:68.39%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.6839</span>
+                </div>
+              </td>
+              <td>4.73 0.6839        4.73 %</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>recovery_time</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:79.44%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7944</span>
+                </div>
+              </td>
+              <td>15.70 0.7944       15.70 s</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>failure_threshold</code></td><td>3 count</td></tr>
+            <tr><td><code>timeout_ms</code></td><td>2750 ms</td></tr>
+            <tr><td><code>reset_interval</code></td><td>5 s</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #1</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>recovery_time</code></td><td>15.70</td><td>8.30</td><td><span style="color:#dc2626;">+7.40</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#8</td><td><strong>0.6887</strong></td><td style="font-size:.78rem;">failure_threshold=9,  timeout_ms=500,  reset_interval=60</td></tr>
+            <tr><td>#5</td><td><strong>0.6080</strong></td><td style="font-size:.78rem;">failure_threshold=3,  timeout_ms=5000,  reset_interval=32.5</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>recovery_time</code></td><td style="color:#dc2626;font-weight:600;">0.2543</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.7261
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+error_rate                   1.5       0.6839        4.73 %   ↓
+recovery_time                1.0       0.7944       15.70 s   ↓
+
+Recommended settings:
+  failure_threshold = 3 count
+  timeout_ms = 2750 ms
+  reset_interval = 5 s
+  (from observed run #1)
+
+Trade-off summary:
+  error_rate: 4.73 (best observed: 2.25, sacrifice: +2.48)
+  recovery_time: 15.70 (best observed: 8.30, sacrifice: +7.40)
+
+Model quality:
+  error_rate: R² = 0.1813 (linear)
+  recovery_time: R² = 0.2543 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #1 (D=0.7261): failure_threshold=3, timeout_ms=2750, reset_interval=5
+  2. Run #8 (D=0.6887): failure_threshold=9, timeout_ms=500, reset_interval=60
+  3. Run #5 (D=0.6080): failure_threshold=3, timeout_ms=5000, reset_interval=32.5</div></div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: error_rate ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+reset_interval           3.0850       0.6656            54.9%
+timeout_ms               1.6186       0.6656            28.8%
+failure_threshold        0.9150       0.6656            16.3%
+
+=== ANOVA Table: error_rate ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+failure_threshold            2       1.8599       0.9299      0.698     0.5257
+timeout_ms                   2       6.8375       3.4187      2.565     0.1378
+reset_interval               2      25.9731      12.9865      9.743     0.0072
+Lack of Fit                  6      55.6917       9.2819      6.964     0.1309
+Pure Error                   2       2.6659       1.3329
+Error                        8      58.3576       1.3329
+Total                       14      93.0280       6.6449
+
+=== Summary Statistics: error_rate ===
+
+failure_threshold:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  15                  4     5.9225     2.4491     3.1800     8.5600
+  3                   4     6.8375     1.7434     5.5000     9.1900
+  9                   7     6.1571     3.2674     2.2500    10.5800
+
+timeout_ms:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2750                7     5.7514     1.7365     3.1900     8.5600
+  500                 4     7.3700     3.2598     3.1800    10.5800
+  5000                4     6.1000     3.4746     2.2500    10.3700
+
+reset_interval:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  32.5                7     5.3600     2.1669     3.1800     9.1900
+  5                   4     5.7100     2.6338     2.2500     8.5600
+  60                  4     8.4450     2.4544     5.5300    10.5800
+
+=== Main Effects: recovery_time ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+timeout_ms               9.1500       3.0233            41.7%
+reset_interval           7.4750       3.0233            34.1%
+failure_threshold        5.3000       3.0233            24.2%
+
+=== ANOVA Table: recovery_time ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+failure_threshold            2      72.0898      36.0449      0.313     0.7400
+timeout_ms                   2     236.2452     118.1226      1.025     0.4016
+reset_interval               2     147.0113      73.5056      0.638     0.5534
+Lack of Fit                  6    1233.5910     205.5985      1.784     0.4019
+Pure Error                   2     230.5400     115.2700
+Error                        8    1464.1310     115.2700
+Total                       14    1919.4773     137.1055
+
+=== Summary Statistics: recovery_time ===
+
+failure_threshold:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  15                  4    33.8000    13.2348    18.3000    49.5000
+  3                   4    30.8750     7.6986    22.9000    41.4000
+  9                   7    28.5000    13.8088     8.3000    50.3000
+
+timeout_ms:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2750                7    28.2571     8.4908    15.7000    38.1000
+  500                 4    37.1250    14.8023    22.9000    50.3000
+  5000                4    27.9750    14.0635     8.3000    41.4000
+
+reset_interval:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  32.5                7    32.1857    11.3907    15.7000    49.5000
+  5                   4    32.8500    13.2276    18.3000    50.3000
+  60                  4    25.3750    12.5042     8.3000    38.1000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: error_rate ===
+Direction: minimize
+
+Best observed run: #8
+  failure_threshold = 3
+  timeout_ms = 500
+  reset_interval = 32.5
+  Value: 2.25
+
+RSM Model (linear, R² = 0.4898, Adj R² = 0.3507):
+  Coefficients:
+    intercept                      +6.2760
+    failure_threshold              +1.5100
+    timeout_ms                     +0.9250
+    reset_interval                 -1.6000
+
+RSM Model (quadratic, R² = 0.7502, Adj R² = 0.3006):
+  Coefficients:
+    intercept                      +8.0800
+    failure_threshold              +1.5100
+    timeout_ms                     +0.9250
+    reset_interval                 -1.6000
+    failure_threshold*timeout_ms   +0.5250
+    failure_threshold*reset_interval -0.4300
+    timeout_ms*reset_interval      +0.2700
+    failure_threshold^2            -2.3525
+    timeout_ms^2                   -0.8475
+    reset_interval^2               -0.1825
+
+  Curvature analysis:
+    failure_threshold              coef=-2.3525  concave (has a maximum)
+    timeout_ms                     coef=-0.8475  concave (has a maximum)
+    reset_interval                 coef=-0.1825  concave (has a maximum)
+
+  Notable interactions:
+    failure_threshold*timeout_ms   coef=+0.5250  (synergistic)
+    failure_threshold*reset_interval coef=-0.4300  (antagonistic)
+
+  Predicted optimum (from linear model, at observed points):
+    failure_threshold = 15
+    timeout_ms = 2750
+    reset_interval = 5
+    Predicted value: 9.3860
+
+  Surface optimum (via L-BFGS-B, linear model):
+    failure_threshold = 3
+    timeout_ms = 500
+    reset_interval = 60
+    Predicted value: 2.2410
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. failure_threshold  (effect: 3.8, contribution: 42.9%)
+  2. reset_interval  (effect: 3.2, contribution: 36.2%)
+  3. timeout_ms  (effect: 1.8, contribution: 20.9%)
+
+=== Optimization: recovery_time ===
+Direction: minimize
+
+Best observed run: #11
+  failure_threshold = 9
+  timeout_ms = 5000
+  reset_interval = 5
+  Value: 8.3
+
+RSM Model (linear, R² = 0.1338, Adj R² = -0.1024):
+  Coefficients:
+    intercept                      +30.5467
+    failure_threshold              -1.4750
+    timeout_ms                     -2.0125
+    reset_interval                 +5.0875
+
+RSM Model (quadratic, R² = 0.5154, Adj R² = -0.3568):
+  Coefficients:
+    intercept                      +39.1667
+    failure_threshold              -1.4750
+    timeout_ms                     -2.0125
+    reset_interval                 +5.0875
+    failure_threshold*timeout_ms   -6.9000
+    failure_threshold*reset_interval -5.4500
+    timeout_ms*reset_interval      +1.8750
+    failure_threshold^2            -1.4208
+    timeout_ms^2                   -5.2458
+    reset_interval^2               -9.4958
+
+  Curvature analysis:
+    reset_interval                 coef=-9.4958  concave (has a maximum)
+    timeout_ms                     coef=-5.2458  concave (has a maximum)
+    failure_threshold              coef=-1.4208  concave (has a maximum)
+
+  Notable interactions:
+    failure_threshold*timeout_ms   coef=-6.9000  (antagonistic)
+    failure_threshold*reset_interval coef=-5.4500  (antagonistic)
+    timeout_ms*reset_interval      coef=+1.8750  (synergistic)
+
+  Predicted optimum (from linear model, at observed points):
+    failure_threshold = 9
+    timeout_ms = 500
+    reset_interval = 60
+    Predicted value: 37.6467
+
+  Surface optimum (via L-BFGS-B, linear model):
+    failure_threshold = 15
+    timeout_ms = 5000
+    reset_interval = 5
+    Predicted value: 21.9717
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. reset_interval  (effect: 14.1, contribution: 59.9%)
+  2. timeout_ms  (effect: 6.5, contribution: 27.5%)
+  3. failure_threshold  (effect: 3.0, contribution: 12.5%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="27-kubernetes-pod-autoscaling.html">&larr; Previous: Kubernetes Pod Autoscaling</a>
+    <a href="29-cdn-cache-optimization.html">Next: CDN Cache Hit Optimization &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+<script>
+(function() {
+  var toc = document.getElementById('uc-toc-inner');
+  if (!toc) return;
+  var headings = document.querySelectorAll('.uc-section > h2, .uc-content > section > h2');
+  if (headings.length < 2) { document.getElementById('uc-toc').style.display = 'none'; return; }
+  headings.forEach(function(h, i) {
+    if (!h.id) h.id = 'sec-' + i;
+    var a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(null, '', '#' + h.id);
+    });
+    toc.appendChild(a);
+  });
+  var links = toc.querySelectorAll('a');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        links.forEach(function(a) { a.classList.remove('active'); });
+        var active = toc.querySelector('a[href="#' + entry.target.id + '"]');
+        if (active) {
+          active.classList.add('active');
+          active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      }
+    });
+  }, { rootMargin: '-80px 0px -70% 0px', threshold: 0 });
+  headings.forEach(function(h) { observer.observe(h); });
+  if (links.length) links[0].classList.add('active');
+})();
+</script>
+</body>
+</html>

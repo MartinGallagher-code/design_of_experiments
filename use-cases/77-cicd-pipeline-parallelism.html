@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CI/CD Pipeline Parallelism &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #fae8ff, #f0abfc);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x2699;</div>
+    <div class="uc-badge" style="background:rgba(192,38,211,.12);color:#c026d3;">Full Factorial Design</div>
+    <h1>CI/CD Pipeline Parallelism</h1>
+    <p class="uc-subtitle">Full factorial of parallel jobs, runner cores, cache strategy, and artifact compression for pipeline duration and cost</p>
+  </div>
+</section>
+
+<!-- Table of Contents -->
+<nav class="uc-toc" id="uc-toc"><div class="uc-toc-inner" id="uc-toc-inner"></div></nav>
+
+<div class="container-narrow uc-content">
+
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>ci/cd pipeline parallelism</strong>. Full factorial of parallel jobs, runner cores, cache strategy, and artifact compression for pipeline duration and cost.</p>
+
+    <p>The design varies 4 factors: <strong>parallel jobs</strong> (jobs), ranging from 1 to 8, <strong>runner cpu cores</strong> (cores), ranging from 2 to 8, <strong>cache strategy</strong>, ranging from none to aggressive, and <strong>artifact compression</strong>, ranging from off to on. The goal is to optimize 2 responses: pipeline duration min (min) (minimize) and resource cost usd (USD) (minimize). Fixed conditions held constant across all runs include ci platform = github_actions, repo size = medium.</p>
+
+    <p>A full factorial design was used to explore all 16 possible combinations of the 4 factors at two levels. This guarantees that every main effect and interaction can be estimated independently, at the cost of a larger experiment (16 runs).</p>
+
+    <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
+
+    <h3>Key Findings</h3>
+    <p>For <strong>pipeline duration min</strong>, the most influential factors were parallel jobs (54.8%), artifact compression (22.0%), cache strategy (21.6%). The best observed value was <strong>9.0</strong> (at parallel jobs = 1, runner cpu cores = 8, cache strategy = aggressive).</p>
+<p>For <strong>resource cost usd</strong>, the most influential factors were parallel jobs (52.9%), runner cpu cores (24.0%), artifact compression (18.1%). The best observed value was <strong>-0.03</strong> (at parallel jobs = 8, runner cpu cores = 8, cache strategy = aggressive).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+  </ul>
+  </section>
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>parallel_jobs</code></td><td>1</td><td>8</td><td>jobs</td></tr>
+            <tr><td><code>runner_cpu_cores</code></td><td>2</td><td>8</td><td>cores</td></tr>
+            <tr><td><code>cache_strategy</code></td><td>none</td><td>aggressive</td><td></td></tr>
+            <tr><td><code>artifact_compression</code></td><td>off</td><td>on</td><td></td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> ci_platform = github_actions, repo_size = medium</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>pipeline_duration_min</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>min</td></tr>
+            <tr><td><code>resource_cost_usd</code></td><td style="color:var(--coral);font-weight:600;">&#x2193; minimize</td><td>USD</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/77_cicd_pipeline_parallelism/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;CI/CD Pipeline Parallelism&quot;,
+    &quot;description&quot;: &quot;Full factorial of parallel jobs, runner cores, cache strategy, and artifact compression for pipeline duration and cost&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;parallel_jobs&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;8&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;jobs&quot;
+    },
+    {
+      &quot;name&quot;: &quot;runner_cpu_cores&quot;,
+      &quot;levels&quot;: [
+        &quot;2&quot;,
+        &quot;8&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;cores&quot;
+    },
+    {
+      &quot;name&quot;: &quot;cache_strategy&quot;,
+      &quot;levels&quot;: [
+        &quot;none&quot;,
+        &quot;aggressive&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    },
+    {
+      &quot;name&quot;: &quot;artifact_compression&quot;,
+      &quot;levels&quot;: [
+        &quot;off&quot;,
+        &quot;on&quot;
+      ],
+      &quot;type&quot;: &quot;categorical&quot;,
+      &quot;unit&quot;: &quot;&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;ci_platform&quot;: &quot;github_actions&quot;,
+    &quot;repo_size&quot;: &quot;medium&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;pipeline_duration_min&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;min&quot;
+    },
+    {
+      &quot;name&quot;: &quot;resource_cost_usd&quot;,
+      &quot;optimize&quot;: &quot;minimize&quot;,
+      &quot;unit&quot;: &quot;USD&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;full_factorial&quot;,
+    &quot;test_script&quot;: &quot;use_cases/77_cicd_pipeline_parallelism/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Full Factorial Design produces <strong>16 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>parallel_jobs</code></th><th><code>runner_cpu_cores</code></th><th><code>cache_strategy</code></th><th><code>artifact_compression</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>1</td><td>8</td><td>aggressive</td><td>on</td></tr>
+        <tr><td>2</td><td>8</td><td>2</td><td>none</td><td>on</td></tr>
+        <tr><td>3</td><td>1</td><td>8</td><td>none</td><td>on</td></tr>
+        <tr><td>4</td><td>1</td><td>8</td><td>aggressive</td><td>off</td></tr>
+        <tr><td>5</td><td>8</td><td>8</td><td>aggressive</td><td>off</td></tr>
+        <tr><td>6</td><td>8</td><td>2</td><td>aggressive</td><td>off</td></tr>
+        <tr><td>7</td><td>8</td><td>8</td><td>none</td><td>off</td></tr>
+        <tr><td>8</td><td>8</td><td>2</td><td>none</td><td>off</td></tr>
+        <tr><td>9</td><td>1</td><td>2</td><td>none</td><td>on</td></tr>
+        <tr><td>10</td><td>1</td><td>2</td><td>aggressive</td><td>off</td></tr>
+        <tr><td>11</td><td>8</td><td>8</td><td>none</td><td>on</td></tr>
+        <tr><td>12</td><td>8</td><td>8</td><td>aggressive</td><td>on</td></tr>
+        <tr><td>13</td><td>1</td><td>8</td><td>none</td><td>off</td></tr>
+        <tr><td>14</td><td>8</td><td>2</td><td>aggressive</td><td>on</td></tr>
+        <tr><td>15</td><td>1</td><td>2</td><td>none</td><td>off</td></tr>
+        <tr><td>16</td><td>1</td><td>2</td><td>aggressive</td><td>on</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe info <span class="flag">--config</span> use_cases/77_cicd_pipeline_parallelism/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe generate <span class="flag">--config</span> use_cases/77_cicd_pipeline_parallelism/config.json \
+    <span class="flag">--output</span> use_cases/77_cicd_pipeline_parallelism/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/77_cicd_pipeline_parallelism/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe analyze <span class="flag">--config</span> use_cases/77_cicd_pipeline_parallelism/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> use_cases/77_cicd_pipeline_parallelism/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> use_cases/77_cicd_pipeline_parallelism/config.json <span class="flag">--multi</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">7</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe report <span class="flag">--config</span> use_cases/77_cicd_pipeline_parallelism/config.json \
+    <span class="flag">--output</span> use_cases/77_cicd_pipeline_parallelism/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>full_factorial</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (2), <code>categorical</code> (2)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (pipeline_duration_min &#x2193;, resource_cost_usd &#x2193;)</td></tr>
+        <tr><td>Total runs</td><td>16</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: pipeline_duration_min</h3>
+    <p>Top factors: parallel_jobs (54.8%), artifact_compression (22.0%), cache_strategy (21.6%).</p>
+    <h4>ANOVA</h4>
+    <table style="font-size:.82rem;">
+      <thead><tr><th>Source</th><th>DF</th><th>SS</th><th>MS</th><th>F</th><th>p-value</th></tr></thead>
+      <tbody>
+        <tr><td>Source</td><td>DF</td><td>SS</td><td>MS</td><td>F</td><td>p-value</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>parallel_jobs</td><td>1</td><td>706.2306</td><td>706.2306</td><td>7.161</td><td>0.0440</td></tr>
+        <tr><td>runner_cpu_cores</td><td>1</td><td>0.6006</td><td>0.6006</td><td>0.006</td><td>0.9408</td></tr>
+        <tr><td>cache_strategy</td><td>1</td><td>109.7256</td><td>109.7256</td><td>1.113</td><td>0.3398</td></tr>
+        <tr><td>artifact_compression</td><td>1</td><td>113.9556</td><td>113.9556</td><td>1.155</td><td>0.3315</td></tr>
+        <tr><td>parallel_jobs*runner_cpu_cores</td><td>1</td><td>53.6556</td><td>53.6556</td><td>0.544</td><td>0.4939</td></tr>
+        <tr><td>parallel_jobs*cache_strategy</td><td>1</td><td>22.3256</td><td>22.3256</td><td>0.226</td><td>0.6543</td></tr>
+        <tr><td>parallel_jobs*artifact_compression</td><td>1</td><td>298.4256</td><td>298.4256</td><td>3.026</td><td>0.1424</td></tr>
+        <tr><td>runner_cpu_cores*cache_strategy</td><td>1</td><td>216.8256</td><td>216.8256</td><td>2.198</td><td>0.1983</td></tr>
+        <tr><td>runner_cpu_cores*artifact_compression</td><td>1</td><td>50.0556</td><td>50.0556</td><td>0.508</td><td>0.5081</td></tr>
+        <tr><td>cache_strategy*artifact_compression</td><td>1</td><td>70.1406</td><td>70.1406</td><td>0.711</td><td>0.4375</td></tr>
+        <tr><td>Error</td><td>5</td><td>493.1281</td><td>98.6256</td><td></td><td></td></tr>
+        <tr><td>Total</td><td>15</td><td>2135.0694</td><td>142.3380</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/77_pareto_pipeline_duration_min.png" alt="Pareto chart for pipeline_duration_min">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/77_main_effects_pipeline_duration_min.png" alt="Main effects plot for pipeline_duration_min">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Normal Probability Plot of Effects</p>
+        <img src="../images/77_normal_effects_pipeline_duration_min.png" alt="Normal probability plot for pipeline_duration_min">
+      </div>
+      <div>
+        <p class="caption">Half-Normal Plot of Effects</p>
+        <img src="../images/77_half_normal_effects_pipeline_duration_min.png" alt="Half-normal plot for pipeline_duration_min">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Model Diagnostics</p>
+        <img src="../images/77_diagnostics_pipeline_duration_min.png" alt="Model diagnostics for pipeline_duration_min">
+      </div>
+    </div>
+
+    <h3>Response: resource_cost_usd</h3>
+    <p>Top factors: parallel_jobs (52.9%), runner_cpu_cores (24.0%), artifact_compression (18.1%).</p>
+    <h4>ANOVA</h4>
+    <table style="font-size:.82rem;">
+      <thead><tr><th>Source</th><th>DF</th><th>SS</th><th>MS</th><th>F</th><th>p-value</th></tr></thead>
+      <tbody>
+        <tr><td>Source</td><td>DF</td><td>SS</td><td>MS</td><td>F</td><td>p-value</td></tr>
+        <tr><td>parallel_jobs</td><td>1</td><td>4.8510</td><td>4.8510</td><td>3.974</td><td>0.1028</td></tr>
+        <tr><td>runner_cpu_cores</td><td>1</td><td>0.9950</td><td>0.9950</td><td>0.815</td><td>0.4080</td></tr>
+        <tr><td>cache_strategy</td><td>1</td><td>0.0431</td><td>0.0431</td><td>0.035</td><td>0.8584</td></tr>
+        <tr><td>artifact_compression</td><td>1</td><td>0.5663</td><td>0.5663</td><td>0.464</td><td>0.5260</td></tr>
+        <tr><td>parallel_jobs*runner_cpu_cores</td><td>1</td><td>6.5921</td><td>6.5921</td><td>5.401</td><td>0.0677</td></tr>
+        <tr><td>parallel_jobs*cache_strategy</td><td>1</td><td>3.1952</td><td>3.1952</td><td>2.618</td><td>0.1666</td></tr>
+        <tr style="font-weight:600;color:var(--mint);"><td>parallel_jobs*artifact_compression</td><td>1</td><td>8.8655</td><td>8.8655</td><td>7.264</td><td>0.0430</td></tr>
+        <tr><td>runner_cpu_cores*cache_strategy</td><td>1</td><td>3.9701</td><td>3.9701</td><td>3.253</td><td>0.1312</td></tr>
+        <tr><td>runner_cpu_cores*artifact_compression</td><td>1</td><td>1.7490</td><td>1.7490</td><td>1.433</td><td>0.2849</td></tr>
+        <tr><td>cache_strategy*artifact_compression</td><td>1</td><td>0.0077</td><td>0.0077</td><td>0.006</td><td>0.9399</td></tr>
+        <tr><td>Error</td><td>5</td><td>6.1027</td><td>1.2205</td><td></td><td></td></tr>
+        <tr><td>Total</td><td>15</td><td>36.9374</td><td>2.4625</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/77_pareto_resource_cost_usd.png" alt="Pareto chart for resource_cost_usd">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/77_main_effects_resource_cost_usd.png" alt="Main effects plot for resource_cost_usd">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Normal Probability Plot of Effects</p>
+        <img src="../images/77_normal_effects_resource_cost_usd.png" alt="Normal probability plot for resource_cost_usd">
+      </div>
+      <div>
+        <p class="caption">Half-Normal Plot of Effects</p>
+        <img src="../images/77_half_normal_effects_resource_cost_usd.png" alt="Half-normal plot for resource_cost_usd">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Model Diagnostics</p>
+        <img src="../images/77_diagnostics_resource_cost_usd.png" alt="Model diagnostics for resource_cost_usd">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">pipeline duration min parallel jobs vs runner cpu cores</p>
+      <img src="../images/77_rsm_pipeline_duration_min_parallel_jobs_vs_runner_cpu_cores.png" alt="RSM surface: pipeline duration min parallel jobs vs runner cpu cores" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">resource cost usd parallel jobs vs runner cpu cores</p>
+      <img src="../images/77_rsm_resource_cost_usd_parallel_jobs_vs_runner_cpu_cores.png" alt="RSM surface: resource cost usd parallel jobs vs runner cpu cores" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.8014</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>pipeline_duration_min</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:84.06%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.8406</span>
+                </div>
+              </td>
+              <td>14.10 0.8406       14.10 min</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+            <tr>
+              <td><code>resource_cost_usd</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:74.59%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7459</span>
+                </div>
+              </td>
+              <td>0.98 0.7459        0.98 USD</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>parallel_jobs</code></td><td>8 jobs</td></tr>
+            <tr><td><code>runner_cpu_cores</code></td><td>8 cores</td></tr>
+            <tr><td><code>cache_strategy</code></td><td>aggressive</td></tr>
+            <tr><td><code>artifact_compression</code></td><td>on</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #14</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>resource_cost_usd</code></td><td>0.98</td><td>-0.03</td><td><span style="color:#dc2626;">+1.01</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#6</td><td><strong>0.7031</strong></td><td style="font-size:.78rem;">parallel_jobs=1,  runner_cpu_cores=8,  cache_strategy=none,  artifact_compression=off</td></tr>
+            <tr><td>#2</td><td><strong>0.5994</strong></td><td style="font-size:.78rem;">parallel_jobs=1,  runner_cpu_cores=8,  cache_strategy=aggressive,  artifact_compression=off</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>resource_cost_usd</code></td><td style="color:#dc2626;font-weight:600;">0.1756</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.8014
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+pipeline_duration_min        1.5       0.8406       14.10 min   ↓
+resource_cost_usd            1.0       0.7459        0.98 USD   ↓
+
+Recommended settings:
+  parallel_jobs = 8 jobs
+  runner_cpu_cores = 8 cores
+  cache_strategy = aggressive
+  artifact_compression = on
+  (from observed run #14)
+
+Trade-off summary:
+  pipeline_duration_min: 14.10 (best observed: 9.00, sacrifice: +5.10)
+  resource_cost_usd: 0.98 (best observed: -0.03, sacrifice: +1.01)
+
+Model quality:
+  pipeline_duration_min: R² = 0.2508 (linear)
+  resource_cost_usd: R² = 0.1756 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #14 (D=0.8014): parallel_jobs=8, runner_cpu_cores=8, cache_strategy=aggressive, artifact_compression=on
+  2. Run #6 (D=0.7031): parallel_jobs=1, runner_cpu_cores=8, cache_strategy=none, artifact_compression=off
+  3. Run #2 (D=0.5994): parallel_jobs=1, runner_cpu_cores=8, cache_strategy=aggressive, artifact_compression=off</div></div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: pipeline_duration_min ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+parallel_jobs           13.2875       2.9826            54.8%
+artifact_compression    -5.3375       2.9826            22.0%
+cache_strategy          -5.2375       2.9826            21.6%
+runner_cpu_cores         0.3875       2.9826             1.6%
+
+=== ANOVA Table: pipeline_duration_min ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+parallel_jobs                1     706.2306     706.2306      7.161     0.0440
+runner_cpu_cores             1       0.6006       0.6006      0.006     0.9408
+cache_strategy               1     109.7256     109.7256      1.113     0.3398
+artifact_compression         1     113.9556     113.9556      1.155     0.3315
+parallel_jobs*runner_cpu_cores    1      53.6556      53.6556      0.544     0.4939
+parallel_jobs*cache_strategy    1      22.3256      22.3256      0.226     0.6543
+parallel_jobs*artifact_compression    1     298.4256     298.4256      3.026     0.1424
+runner_cpu_cores*cache_strategy    1     216.8256     216.8256      2.198     0.1983
+runner_cpu_cores*artifact_compression    1      50.0556      50.0556      0.508     0.5081
+cache_strategy*artifact_compression    1      70.1406      70.1406      0.711     0.4375
+Error                        5     493.1281      98.6256
+Total                       15    2135.0694     142.3380
+
+=== Interaction Effects: pipeline_duration_min ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+parallel_jobs        artifact_compression      -8.6375            29.0%
+runner_cpu_cores     cache_strategy             7.3625            24.7%
+cache_strategy       artifact_compression       4.1875            14.1%
+parallel_jobs        runner_cpu_cores          -3.6625            12.3%
+runner_cpu_cores     artifact_compression      -3.5375            11.9%
+parallel_jobs        cache_strategy             2.3625             7.9%
+
+=== Summary Statistics: pipeline_duration_min ===
+
+parallel_jobs:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   8    22.8500    11.1221     9.0000    37.0000
+  8                   8    36.1375     8.9677    22.1000    49.7000
+
+runner_cpu_cores:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2                   8    29.3000    13.2468     9.0000    42.6000
+  8                   8    29.6875    11.3775    14.1000    49.7000
+
+cache_strategy:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  aggressive          8    32.1125    11.4512    14.1000    49.7000
+  none                8    26.8750    12.5780     9.0000    42.6000
+
+artifact_compression:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 8    32.1625    13.4685     9.0000    49.7000
+  on                  8    26.8250    10.3601    10.4000    37.0000
+
+=== Main Effects: resource_cost_usd ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+parallel_jobs           -1.1013       0.3923            52.9%
+runner_cpu_cores        -0.4988       0.3923            24.0%
+artifact_compression     0.3762       0.3923            18.1%
+cache_strategy           0.1038       0.3923             5.0%
+
+=== ANOVA Table: resource_cost_usd ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+parallel_jobs                1       4.8510       4.8510      3.974     0.1028
+runner_cpu_cores             1       0.9950       0.9950      0.815     0.4080
+cache_strategy               1       0.0431       0.0431      0.035     0.8584
+artifact_compression         1       0.5663       0.5663      0.464     0.5260
+parallel_jobs*runner_cpu_cores    1       6.5921       6.5921      5.401     0.0677
+parallel_jobs*cache_strategy    1       3.1952       3.1952      2.618     0.1666
+parallel_jobs*artifact_compression    1       8.8655       8.8655      7.264     0.0430
+runner_cpu_cores*cache_strategy    1       3.9701       3.9701      3.253     0.1312
+runner_cpu_cores*artifact_compression    1       1.7490       1.7490      1.433     0.2849
+cache_strategy*artifact_compression    1       0.0077       0.0077      0.006     0.9399
+Error                        5       6.1027       1.2205
+Total                       15      36.9374       2.4625
+
+=== Interaction Effects: resource_cost_usd ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+parallel_jobs        artifact_compression       1.4888            27.7%
+parallel_jobs        runner_cpu_cores           1.2838            23.9%
+runner_cpu_cores     cache_strategy            -0.9962            18.6%
+parallel_jobs        cache_strategy            -0.8937            16.7%
+runner_cpu_cores     artifact_compression       0.6613            12.3%
+cache_strategy       artifact_compression       0.0437             0.8%
+
+=== Summary Statistics: resource_cost_usd ===
+
+parallel_jobs:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                   8     2.1288     1.6335     0.1700     4.3700
+  8                   8     1.0275     1.3840    -0.0300     4.0300
+
+runner_cpu_cores:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2                   8     1.8275     1.8594     0.0000     4.3700
+  8                   8     1.3288     1.2951    -0.0300     4.0300
+
+cache_strategy:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  aggressive          8     1.5263     1.5321     0.0000     4.0300
+  none                8     1.6300     1.7098    -0.0300     4.3700
+
+artifact_compression:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  off                 8     1.3900     1.6439    -0.0300     4.1900
+  on                  8     1.7663     1.5791     0.1700     4.3700</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: pipeline_duration_min ===
+Direction: minimize
+
+Best observed run: #12
+  parallel_jobs = 1
+  runner_cpu_cores = 8
+  cache_strategy = aggressive
+  artifact_compression = on
+  Value: 9.0
+
+RSM Model (linear, R² = 0.3915, Adj R² = 0.1702):
+  Coefficients:
+    intercept                      +29.4938
+    parallel_jobs                  +1.6063
+    runner_cpu_cores               -1.1438
+    cache_strategy                 -1.4812
+    artifact_compression           -6.7938
+
+RSM Model (quadratic, R² = 0.7834, Adj R² = -2.2488):
+  Coefficients:
+    intercept                      +5.8988
+    parallel_jobs                  +1.6062
+    runner_cpu_cores               -1.1438
+    cache_strategy                 -1.4812
+    artifact_compression           -6.7937
+    parallel_jobs*runner_cpu_cores +1.2687
+    parallel_jobs*cache_strategy   -0.3688
+    parallel_jobs*artifact_compression -0.3313
+    runner_cpu_cores*cache_strategy +0.7313
+    runner_cpu_cores*artifact_compression -6.4562
+    cache_strategy*artifact_compression -2.8688
+    parallel_jobs^2                +5.8988
+    runner_cpu_cores^2             +5.8988
+    cache_strategy^2               +5.8988
+    artifact_compression^2         +5.8988
+
+  Curvature analysis:
+    cache_strategy                 coef=+5.8988  convex (has a minimum)
+    parallel_jobs                  coef=+5.8988  convex (has a minimum)
+    runner_cpu_cores               coef=+5.8988  convex (has a minimum)
+    artifact_compression           coef=+5.8988  convex (has a minimum)
+
+  Notable interactions:
+    runner_cpu_cores*artifact_compression coef=-6.4562  (antagonistic)
+    cache_strategy*artifact_compression coef=-2.8688  (antagonistic)
+    parallel_jobs*runner_cpu_cores coef=+1.2687  (synergistic)
+    runner_cpu_cores*cache_strategy coef=+0.7313  (synergistic)
+    parallel_jobs*cache_strategy   coef=-0.3688  (antagonistic)
+    parallel_jobs*artifact_compression coef=-0.3313  (antagonistic)
+
+  Predicted optimum (from linear model, at observed points):
+    parallel_jobs = 8
+    runner_cpu_cores = 2
+    cache_strategy = aggressive
+    artifact_compression = off
+    Predicted value: 40.5188
+
+  Surface optimum (via L-BFGS-B, linear model):
+    parallel_jobs = 1
+    runner_cpu_cores = 8
+    cache_strategy = aggressive
+    artifact_compression = on
+    Predicted value: 18.4688
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. artifact_compression  (effect: -13.6, contribution: 61.6%)
+  2. parallel_jobs  (effect: 3.2, contribution: 14.6%)
+  3. cache_strategy  (effect: -3.0, contribution: 13.4%)
+  4. runner_cpu_cores  (effect: -2.3, contribution: 10.4%)
+
+=== Optimization: resource_cost_usd ===
+Direction: minimize
+
+Best observed run: #16
+  parallel_jobs = 8
+  runner_cpu_cores = 8
+  cache_strategy = aggressive
+  artifact_compression = off
+  Value: -0.03
+
+RSM Model (linear, R² = 0.1476, Adj R² = -0.1624):
+  Coefficients:
+    intercept                      +1.5781
+    parallel_jobs                  -0.0569
+    runner_cpu_cores               +0.2794
+    cache_strategy                 -0.0044
+    artifact_compression           +0.5094
+
+RSM Model (quadratic, R² = 0.7217, Adj R² = -3.1745):
+  Coefficients:
+    intercept                      +0.3156
+    parallel_jobs                  -0.0569
+    runner_cpu_cores               +0.2794
+    cache_strategy                 -0.0044
+    artifact_compression           +0.5094
+    parallel_jobs*runner_cpu_cores +0.1394
+    parallel_jobs*cache_strategy   +0.5006
+    parallel_jobs*artifact_compression +0.5569
+    runner_cpu_cores*cache_strategy -0.1006
+    runner_cpu_cores*artifact_compression +0.8556
+    cache_strategy*artifact_compression +0.0544
+    parallel_jobs^2                +0.3156
+    runner_cpu_cores^2             +0.3156
+    cache_strategy^2               +0.3156
+    artifact_compression^2         +0.3156
+
+  Curvature analysis:
+    parallel_jobs                  coef=+0.3156  convex (has a minimum)
+    runner_cpu_cores               coef=+0.3156  convex (has a minimum)
+    artifact_compression           coef=+0.3156  convex (has a minimum)
+    cache_strategy                 coef=+0.3156  convex (has a minimum)
+
+  Notable interactions:
+    runner_cpu_cores*artifact_compression coef=+0.8556  (synergistic)
+    parallel_jobs*artifact_compression coef=+0.5569  (synergistic)
+    parallel_jobs*cache_strategy   coef=+0.5006  (synergistic)
+
+  Predicted optimum (from linear model, at observed points):
+    parallel_jobs = 1
+    runner_cpu_cores = 8
+    cache_strategy = aggressive
+    artifact_compression = on
+    Predicted value: 2.4281
+
+  Surface optimum (via L-BFGS-B, linear model):
+    parallel_jobs = 8
+    runner_cpu_cores = 2
+    cache_strategy = aggressive
+    artifact_compression = off
+    Predicted value: 0.7281
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. artifact_compression  (effect: 1.0, contribution: 59.9%)
+  2. runner_cpu_cores  (effect: 0.6, contribution: 32.9%)
+  3. parallel_jobs  (effect: -0.1, contribution: 6.7%)
+  4. cache_strategy  (effect: -0.0, contribution: 0.5%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="76-battery-management-charging.html">&larr; Previous: Battery Management Charging</a>
+    <a href="78-deployment-canary-rollout.html">Next: Deployment Canary Rollout &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+<script>
+(function() {
+  var toc = document.getElementById('uc-toc-inner');
+  if (!toc) return;
+  var headings = document.querySelectorAll('.uc-section > h2, .uc-content > section > h2');
+  if (headings.length < 2) { document.getElementById('uc-toc').style.display = 'none'; return; }
+  headings.forEach(function(h, i) {
+    if (!h.id) h.id = 'sec-' + i;
+    var a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(null, '', '#' + h.id);
+    });
+    toc.appendChild(a);
+  });
+  var links = toc.querySelectorAll('a');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        links.forEach(function(a) { a.classList.remove('active'); });
+        var active = toc.querySelector('a[href="#' + entry.target.id + '"]');
+        if (active) {
+          active.classList.add('active');
+          active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      }
+    });
+  }, { rootMargin: '-80px 0px -70% 0px', threshold: 0 });
+  headings.forEach(function(h) { observer.observe(h); });
+  if (links.length) links[0].classList.add('active');
+})();
+</script>
+</body>
+</html>

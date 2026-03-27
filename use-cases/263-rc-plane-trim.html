@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RC Plane Trim Settings &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #e0f2fe, #bae6fd);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x2708;</div>
+    <div class="uc-badge" style="background:rgba(2,132,199,.12);color:#0284c7;">Full Factorial Design</div>
+    <h1>RC Plane Trim Settings</h1>
+    <p class="uc-subtitle">Full factorial of elevator trim, aileron differential, throttle curve, and CG position to maximize flight time and handling score</p>
+  </div>
+</section>
+
+<!-- Table of Contents -->
+<nav class="uc-toc" id="uc-toc"><div class="uc-toc-inner" id="uc-toc-inner"></div></nav>
+
+<div class="container-narrow uc-content">
+
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>rc plane trim settings</strong>. Full factorial of elevator trim, aileron differential, throttle curve, and CG position to maximize flight time and handling score.</p>
+
+    <p>The design varies 4 factors: <strong>elevator pct</strong> (%), ranging from -5 to 5, <strong>aileron diff pct</strong> (%), ranging from 0 to 40, <strong>throttle curve</strong> (%), ranging from 50 to 100, and <strong>cg pct mac</strong> (%MAC), ranging from 25 to 35. The goal is to optimize 2 responses: flight time min (min) (maximize) and handling score (pts) (maximize). Fixed conditions held constant across all runs include model = trainer, wingspan = 1200mm.</p>
+
+    <p>A full factorial design was used to explore all 16 possible combinations of the 4 factors at two levels. This guarantees that every main effect and interaction can be estimated independently, at the cost of a larger experiment (16 runs).</p>
+
+    <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
+
+    <h3>Key Findings</h3>
+    <p>For <strong>flight time min</strong>, the most influential factors were aileron diff pct (45.7%), cg pct mac (32.4%), elevator pct (21.1%). The best observed value was <strong>14.5</strong> (at elevator pct = -5, aileron diff pct = 0, throttle curve = 100).</p>
+<p>For <strong>handling score</strong>, the most influential factors were elevator pct (58.0%), throttle curve (22.0%), aileron diff pct (18.0%). The best observed value was <strong>6.9</strong> (at elevator pct = 5, aileron diff pct = 0, throttle curve = 100).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+  </ul>
+  </section>
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>elevator_pct</code></td><td>-5</td><td>5</td><td>%</td></tr>
+            <tr><td><code>aileron_diff_pct</code></td><td>0</td><td>40</td><td>%</td></tr>
+            <tr><td><code>throttle_curve</code></td><td>50</td><td>100</td><td>%</td></tr>
+            <tr><td><code>cg_pct_mac</code></td><td>25</td><td>35</td><td>%MAC</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> model = trainer, wingspan = 1200mm</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>flight_time_min</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>min</td></tr>
+            <tr><td><code>handling_score</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>pts</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/263_rc_plane_trim/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;RC Plane Trim Settings&quot;,
+    &quot;description&quot;: &quot;Full factorial of elevator trim, aileron differential, throttle curve, and CG position to maximize flight time and handling score&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;elevator_pct&quot;,
+      &quot;levels&quot;: [
+        &quot;-5&quot;,
+        &quot;5&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;aileron_diff_pct&quot;,
+      &quot;levels&quot;: [
+        &quot;0&quot;,
+        &quot;40&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;throttle_curve&quot;,
+      &quot;levels&quot;: [
+        &quot;50&quot;,
+        &quot;100&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;%&quot;
+    },
+    {
+      &quot;name&quot;: &quot;cg_pct_mac&quot;,
+      &quot;levels&quot;: [
+        &quot;25&quot;,
+        &quot;35&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;%MAC&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;model&quot;: &quot;trainer&quot;,
+    &quot;wingspan&quot;: &quot;1200mm&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;flight_time_min&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;min&quot;
+    },
+    {
+      &quot;name&quot;: &quot;handling_score&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;pts&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;full_factorial&quot;,
+    &quot;test_script&quot;: &quot;use_cases/263_rc_plane_trim/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Full Factorial Design produces <strong>16 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>elevator_pct</code></th><th><code>aileron_diff_pct</code></th><th><code>throttle_curve</code></th><th><code>cg_pct_mac</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>-5</td><td>40</td><td>100</td><td>35</td></tr>
+        <tr><td>2</td><td>5</td><td>0</td><td>50</td><td>35</td></tr>
+        <tr><td>3</td><td>-5</td><td>40</td><td>50</td><td>35</td></tr>
+        <tr><td>4</td><td>-5</td><td>40</td><td>100</td><td>25</td></tr>
+        <tr><td>5</td><td>5</td><td>40</td><td>100</td><td>25</td></tr>
+        <tr><td>6</td><td>5</td><td>0</td><td>100</td><td>25</td></tr>
+        <tr><td>7</td><td>5</td><td>40</td><td>50</td><td>25</td></tr>
+        <tr><td>8</td><td>5</td><td>0</td><td>50</td><td>25</td></tr>
+        <tr><td>9</td><td>-5</td><td>0</td><td>50</td><td>35</td></tr>
+        <tr><td>10</td><td>-5</td><td>0</td><td>100</td><td>25</td></tr>
+        <tr><td>11</td><td>5</td><td>40</td><td>50</td><td>35</td></tr>
+        <tr><td>12</td><td>5</td><td>40</td><td>100</td><td>35</td></tr>
+        <tr><td>13</td><td>-5</td><td>40</td><td>50</td><td>25</td></tr>
+        <tr><td>14</td><td>5</td><td>0</td><td>100</td><td>35</td></tr>
+        <tr><td>15</td><td>-5</td><td>0</td><td>50</td><td>25</td></tr>
+        <tr><td>16</td><td>-5</td><td>0</td><td>100</td><td>35</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe info <span class="flag">--config</span> use_cases/263_rc_plane_trim/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe generate <span class="flag">--config</span> use_cases/263_rc_plane_trim/config.json \
+    <span class="flag">--output</span> use_cases/263_rc_plane_trim/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/263_rc_plane_trim/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe analyze <span class="flag">--config</span> use_cases/263_rc_plane_trim/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> use_cases/263_rc_plane_trim/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> use_cases/263_rc_plane_trim/config.json <span class="flag">--multi</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">7</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>doe report <span class="flag">--config</span> use_cases/263_rc_plane_trim/config.json \
+    <span class="flag">--output</span> use_cases/263_rc_plane_trim/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>full_factorial</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 4)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (flight_time_min &#x2191;, handling_score &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>16</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: flight_time_min</h3>
+    <p>Top factors: aileron_diff_pct (45.7%), cg_pct_mac (32.4%), elevator_pct (21.1%).</p>
+    <h4>ANOVA</h4>
+    <table style="font-size:.82rem;">
+      <thead><tr><th>Source</th><th>DF</th><th>SS</th><th>MS</th><th>F</th><th>p-value</th></tr></thead>
+      <tbody>
+        <tr><td>Source</td><td>DF</td><td>SS</td><td>MS</td><td>F</td><td>p-value</td></tr>
+        <tr><td>elevator_pct</td><td>1</td><td>3.9006</td><td>3.9006</td><td>0.786</td><td>0.4160</td></tr>
+        <tr><td>aileron_diff_pct</td><td>1</td><td>18.2756</td><td>18.2756</td><td>3.682</td><td>0.1131</td></tr>
+        <tr><td>throttle_curve</td><td>1</td><td>0.0056</td><td>0.0056</td><td>0.001</td><td>0.9744</td></tr>
+        <tr><td>cg_pct_mac</td><td>1</td><td>9.1506</td><td>9.1506</td><td>1.844</td><td>0.2326</td></tr>
+        <tr><td>elevator_pct*aileron_diff_pct</td><td>1</td><td>0.6806</td><td>0.6806</td><td>0.137</td><td>0.7263</td></tr>
+        <tr><td>elevator_pct*throttle_curve</td><td>1</td><td>2.3256</td><td>2.3256</td><td>0.469</td><td>0.5241</td></tr>
+        <tr><td>elevator_pct*cg_pct_mac</td><td>1</td><td>0.0156</td><td>0.0156</td><td>0.003</td><td>0.9574</td></tr>
+        <tr><td>aileron_diff_pct*throttle_curve</td><td>1</td><td>0.0056</td><td>0.0056</td><td>0.001</td><td>0.9744</td></tr>
+        <tr><td>aileron_diff_pct*cg_pct_mac</td><td>1</td><td>4.9506</td><td>4.9506</td><td>0.997</td><td>0.3638</td></tr>
+        <tr><td>throttle_curve*cg_pct_mac</td><td>1</td><td>13.1406</td><td>13.1406</td><td>2.647</td><td>0.1646</td></tr>
+        <tr><td>Error</td><td>5</td><td>24.8181</td><td>4.9636</td><td></td><td></td></tr>
+        <tr><td>Total</td><td>15</td><td>77.2694</td><td>5.1513</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/263_pareto_flight_time_min.png" alt="Pareto chart for flight_time_min">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/263_main_effects_flight_time_min.png" alt="Main effects plot for flight_time_min">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Normal Probability Plot of Effects</p>
+        <img src="../images/263_normal_effects_flight_time_min.png" alt="Normal probability plot for flight_time_min">
+      </div>
+      <div>
+        <p class="caption">Half-Normal Plot of Effects</p>
+        <img src="../images/263_half_normal_effects_flight_time_min.png" alt="Half-normal plot for flight_time_min">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Model Diagnostics</p>
+        <img src="../images/263_diagnostics_flight_time_min.png" alt="Model diagnostics for flight_time_min">
+      </div>
+    </div>
+
+    <h3>Response: handling_score</h3>
+    <p>Top factors: elevator_pct (58.0%), throttle_curve (22.0%), aileron_diff_pct (18.0%).</p>
+    <h4>ANOVA</h4>
+    <table style="font-size:.82rem;">
+      <thead><tr><th>Source</th><th>DF</th><th>SS</th><th>MS</th><th>F</th><th>p-value</th></tr></thead>
+      <tbody>
+        <tr><td>Source</td><td>DF</td><td>SS</td><td>MS</td><td>F</td><td>p-value</td></tr>
+        <tr><td>elevator_pct</td><td>1</td><td>0.5256</td><td>0.5256</td><td>0.545</td><td>0.4934</td></tr>
+        <tr><td>aileron_diff_pct</td><td>1</td><td>0.0506</td><td>0.0506</td><td>0.053</td><td>0.8278</td></tr>
+        <tr><td>throttle_curve</td><td>1</td><td>0.0756</td><td>0.0756</td><td>0.078</td><td>0.7906</td></tr>
+        <tr><td>cg_pct_mac</td><td>1</td><td>0.0006</td><td>0.0006</td><td>0.001</td><td>0.9807</td></tr>
+        <tr><td>elevator_pct*aileron_diff_pct</td><td>1</td><td>3.7056</td><td>3.7056</td><td>3.846</td><td>0.1072</td></tr>
+        <tr><td>elevator_pct*throttle_curve</td><td>1</td><td>3.3306</td><td>3.3306</td><td>3.456</td><td>0.1221</td></tr>
+        <tr><td>elevator_pct*cg_pct_mac</td><td>1</td><td>2.3256</td><td>2.3256</td><td>2.413</td><td>0.1810</td></tr>
+        <tr><td>aileron_diff_pct*throttle_curve</td><td>1</td><td>0.2256</td><td>0.2256</td><td>0.234</td><td>0.6489</td></tr>
+        <tr><td>aileron_diff_pct*cg_pct_mac</td><td>1</td><td>0.3306</td><td>0.3306</td><td>0.343</td><td>0.5835</td></tr>
+        <tr><td>throttle_curve*cg_pct_mac</td><td>1</td><td>3.3306</td><td>3.3306</td><td>3.456</td><td>0.1221</td></tr>
+        <tr><td>Error</td><td>5</td><td>4.8181</td><td>0.9636</td><td></td><td></td></tr>
+        <tr><td>Total</td><td>15</td><td>18.7194</td><td>1.2480</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/263_pareto_handling_score.png" alt="Pareto chart for handling_score">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/263_main_effects_handling_score.png" alt="Main effects plot for handling_score">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Normal Probability Plot of Effects</p>
+        <img src="../images/263_normal_effects_handling_score.png" alt="Normal probability plot for handling_score">
+      </div>
+      <div>
+        <p class="caption">Half-Normal Plot of Effects</p>
+        <img src="../images/263_half_normal_effects_handling_score.png" alt="Half-normal plot for handling_score">
+      </div>
+    </div>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Model Diagnostics</p>
+        <img src="../images/263_diagnostics_handling_score.png" alt="Model diagnostics for handling_score">
+      </div>
+    </div>
+
+  </section>
+
+
+  <section class="uc-section">
+    <h2>Response Surface Plots</h2>
+    <p>3D surfaces fitted with quadratic RSM. Red dots are observed data points.</p>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">flight time min aileron diff pct vs cg pct mac</p>
+      <img src="../images/263_rsm_flight_time_min_aileron_diff_pct_vs_cg_pct_mac.png" alt="RSM surface: flight time min aileron diff pct vs cg pct mac" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">flight time min aileron diff pct vs throttle curve</p>
+      <img src="../images/263_rsm_flight_time_min_aileron_diff_pct_vs_throttle_curve.png" alt="RSM surface: flight time min aileron diff pct vs throttle curve" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">flight time min elevator pct vs aileron diff pct</p>
+      <img src="../images/263_rsm_flight_time_min_elevator_pct_vs_aileron_diff_pct.png" alt="RSM surface: flight time min elevator pct vs aileron diff pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">flight time min elevator pct vs cg pct mac</p>
+      <img src="../images/263_rsm_flight_time_min_elevator_pct_vs_cg_pct_mac.png" alt="RSM surface: flight time min elevator pct vs cg pct mac" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">flight time min elevator pct vs throttle curve</p>
+      <img src="../images/263_rsm_flight_time_min_elevator_pct_vs_throttle_curve.png" alt="RSM surface: flight time min elevator pct vs throttle curve" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">flight time min throttle curve vs cg pct mac</p>
+      <img src="../images/263_rsm_flight_time_min_throttle_curve_vs_cg_pct_mac.png" alt="RSM surface: flight time min throttle curve vs cg pct mac" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">handling score aileron diff pct vs cg pct mac</p>
+      <img src="../images/263_rsm_handling_score_aileron_diff_pct_vs_cg_pct_mac.png" alt="RSM surface: handling score aileron diff pct vs cg pct mac" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">handling score aileron diff pct vs throttle curve</p>
+      <img src="../images/263_rsm_handling_score_aileron_diff_pct_vs_throttle_curve.png" alt="RSM surface: handling score aileron diff pct vs throttle curve" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">handling score elevator pct vs aileron diff pct</p>
+      <img src="../images/263_rsm_handling_score_elevator_pct_vs_aileron_diff_pct.png" alt="RSM surface: handling score elevator pct vs aileron diff pct" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">handling score elevator pct vs cg pct mac</p>
+      <img src="../images/263_rsm_handling_score_elevator_pct_vs_cg_pct_mac.png" alt="RSM surface: handling score elevator pct vs cg pct mac" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">handling score elevator pct vs throttle curve</p>
+      <img src="../images/263_rsm_handling_score_elevator_pct_vs_throttle_curve.png" alt="RSM surface: handling score elevator pct vs throttle curve" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+
+    <div style="margin:20px 0;">
+      <p style="font-size:.78rem;color:var(--faint);margin-bottom:4px;">handling score throttle curve vs cg pct mac</p>
+      <img src="../images/263_rsm_handling_score_throttle_curve_vs_cg_pct_mac.png" alt="RSM surface: handling score throttle curve vs cg pct mac" style="width:100%;max-width:700px;border-radius:8px;border:1px solid var(--border);">
+    </div>
+  </section>
+
+
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.8312</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>flight_time_min</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>14.50 0.9545       14.50 min</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>handling_score</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:75.8%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7580</span>
+                </div>
+              </td>
+              <td>6.10 0.7580        6.10 pts</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>elevator_pct</code></td><td>-5 %</td></tr>
+            <tr><td><code>aileron_diff_pct</code></td><td>0 %</td></tr>
+            <tr><td><code>throttle_curve</code></td><td>100 %</td></tr>
+            <tr><td><code>cg_pct_mac</code></td><td>35 %MAC</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #13</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>handling_score</code></td><td>6.10</td><td>6.90</td><td><span style="color:#dc2626;">+0.80</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#7</td><td><strong>0.8159</strong></td><td style="font-size:.78rem;">elevator_pct=5,  aileron_diff_pct=40,  throttle_curve=100,  cg_pct_mac=25</td></tr>
+            <tr><td>#15</td><td><strong>0.6481</strong></td><td style="font-size:.78rem;">elevator_pct=-5,  aileron_diff_pct=40,  throttle_curve=100,  cg_pct_mac=25</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>handling_score</code></td><td style="color:#dc2626;font-weight:600;">0.2192</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.8312
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+flight_time_min              1.0       0.9545       14.50 min   ↑
+handling_score               1.5       0.7580        6.10 pts   ↑
+
+Recommended settings:
+  elevator_pct = -5 %
+  aileron_diff_pct = 0 %
+  throttle_curve = 100 %
+  cg_pct_mac = 35 %MAC
+  (from observed run #13)
+
+Trade-off summary:
+  flight_time_min: 14.50 (best observed: 14.50, sacrifice: +0.00)
+  handling_score: 6.10 (best observed: 6.90, sacrifice: +0.80)
+
+Model quality:
+  flight_time_min: R² = 0.5152 (linear)
+  handling_score: R² = 0.2192 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #13 (D=0.8312): elevator_pct=-5, aileron_diff_pct=0, throttle_curve=100, cg_pct_mac=35
+  2. Run #7 (D=0.8159): elevator_pct=5, aileron_diff_pct=40, throttle_curve=100, cg_pct_mac=25
+  3. Run #15 (D=0.6481): elevator_pct=-5, aileron_diff_pct=40, throttle_curve=100, cg_pct_mac=25</div></div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: flight_time_min ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+aileron_diff_pct        -2.1375       0.5674            45.7%
+cg_pct_mac              -1.5125       0.5674            32.4%
+elevator_pct             0.9875       0.5674            21.1%
+throttle_curve           0.0375       0.5674             0.8%
+
+=== ANOVA Table: flight_time_min ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+elevator_pct                 1       3.9006       3.9006      0.786     0.4160
+aileron_diff_pct             1      18.2756      18.2756      3.682     0.1131
+throttle_curve               1       0.0056       0.0056      0.001     0.9744
+cg_pct_mac                   1       9.1506       9.1506      1.844     0.2326
+elevator_pct*aileron_diff_pct    1       0.6806       0.6806      0.137     0.7263
+elevator_pct*throttle_curve    1       2.3256       2.3256      0.469     0.5241
+elevator_pct*cg_pct_mac      1       0.0156       0.0156      0.003     0.9574
+aileron_diff_pct*throttle_curve    1       0.0056       0.0056      0.001     0.9744
+aileron_diff_pct*cg_pct_mac    1       4.9506       4.9506      0.997     0.3638
+throttle_curve*cg_pct_mac    1      13.1406      13.1406      2.647     0.1646
+Error                        5      24.8181       4.9636
+Total                       15      77.2694       5.1513
+
+=== Interaction Effects: flight_time_min ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+throttle_curve       cg_pct_mac                -1.8125            43.2%
+aileron_diff_pct     cg_pct_mac                 1.1125            26.5%
+elevator_pct         throttle_curve            -0.7625            18.2%
+elevator_pct         aileron_diff_pct           0.4125             9.8%
+elevator_pct         cg_pct_mac                -0.0625             1.5%
+aileron_diff_pct     throttle_curve            -0.0375             0.9%
+
+=== Summary Statistics: flight_time_min ===
+
+elevator_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -5                  8    11.2000     1.9712     9.0000    14.5000
+  5                   8    12.1875     2.5682     8.9000    14.5000
+
+aileron_diff_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   8    12.7625     2.0839     9.5000    14.5000
+  40                  8    10.6250     2.0211     8.9000    14.3000
+
+throttle_curve:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 8    11.6750     2.1433     8.9000    14.2000
+  50                  8    11.7125     2.5385     9.0000    14.5000
+
+cg_pct_mac:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  25                  8    12.4500     2.3749     8.9000    14.5000
+  35                  8    10.9375     2.0227     9.0000    14.0000
+
+=== Main Effects: handling_score ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+elevator_pct            -0.3625       0.2793            58.0%
+throttle_curve           0.1375       0.2793            22.0%
+aileron_diff_pct        -0.1125       0.2793            18.0%
+cg_pct_mac              -0.0125       0.2793             2.0%
+
+=== ANOVA Table: handling_score ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+elevator_pct                 1       0.5256       0.5256      0.545     0.4934
+aileron_diff_pct             1       0.0506       0.0506      0.053     0.8278
+throttle_curve               1       0.0756       0.0756      0.078     0.7906
+cg_pct_mac                   1       0.0006       0.0006      0.001     0.9807
+elevator_pct*aileron_diff_pct    1       3.7056       3.7056      3.846     0.1072
+elevator_pct*throttle_curve    1       3.3306       3.3306      3.456     0.1221
+elevator_pct*cg_pct_mac      1       2.3256       2.3256      2.413     0.1810
+aileron_diff_pct*throttle_curve    1       0.2256       0.2256      0.234     0.6489
+aileron_diff_pct*cg_pct_mac    1       0.3306       0.3306      0.343     0.5835
+throttle_curve*cg_pct_mac    1       3.3306       3.3306      3.456     0.1221
+Error                        5       4.8181       0.9636
+Total                       15      18.7194       1.2480
+
+=== Interaction Effects: handling_score ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+elevator_pct         aileron_diff_pct           0.9625            23.6%
+elevator_pct         throttle_curve             0.9125            22.4%
+throttle_curve       cg_pct_mac                 0.9125            22.4%
+elevator_pct         cg_pct_mac                 0.7625            18.7%
+aileron_diff_pct     cg_pct_mac                -0.2875             7.1%
+aileron_diff_pct     throttle_curve            -0.2375             5.8%
+
+=== Summary Statistics: handling_score ===
+
+elevator_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  -5                  8     5.3375     1.1288     3.5000     6.7000
+  5                   8     4.9750     1.1511     3.2000     6.9000
+
+aileron_diff_pct:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  0                   8     5.2125     1.0494     3.2000     6.6000
+  40                  8     5.1000     1.2513     3.5000     6.9000
+
+throttle_curve:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  100                 8     5.0875     1.2484     3.2000     6.7000
+  50                  8     5.2250     1.0512     3.5000     6.9000
+
+cg_pct_mac:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  25                  8     5.1625     1.3522     3.2000     6.7000
+  35                  8     5.1500     0.9196     3.9000     6.9000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: flight_time_min ===
+Direction: maximize
+
+Best observed run: #3
+  elevator_pct = -5
+  aileron_diff_pct = 0
+  throttle_curve = 100
+  cg_pct_mac = 25
+  Value: 14.5
+
+RSM Model (linear, R² = 0.0649, Adj R² = -0.2751):
+  Coefficients:
+    intercept                      +11.6938
+    elevator_pct                   -0.4187
+    aileron_diff_pct               +0.0062
+    throttle_curve                 -0.1062
+    cg_pct_mac                     +0.3562
+
+RSM Model (quadratic, R² = 0.8601, Adj R² = -1.0981):
+  Coefficients:
+    intercept                      +2.3388
+    elevator_pct                   -0.4188
+    aileron_diff_pct               +0.0062
+    throttle_curve                 -0.1062
+    cg_pct_mac                     +0.3562
+    elevator_pct*aileron_diff_pct  +0.5437
+    elevator_pct*throttle_curve    -0.3938
+    elevator_pct*cg_pct_mac        +1.2438
+    aileron_diff_pct*throttle_curve +0.8312
+    aileron_diff_pct*cg_pct_mac    +0.8188
+    throttle_curve*cg_pct_mac      -0.6938
+    elevator_pct^2                 +2.3388
+    aileron_diff_pct^2             +2.3388
+    throttle_curve^2               +2.3388
+    cg_pct_mac^2                   +2.3388
+
+  Curvature analysis:
+    elevator_pct                   coef=+2.3388  convex (has a minimum)
+    aileron_diff_pct               coef=+2.3388  convex (has a minimum)
+    throttle_curve                 coef=+2.3388  convex (has a minimum)
+    cg_pct_mac                     coef=+2.3388  convex (has a minimum)
+
+  Notable interactions:
+    elevator_pct*cg_pct_mac        coef=+1.2438  (synergistic)
+    aileron_diff_pct*throttle_curve coef=+0.8312  (synergistic)
+    aileron_diff_pct*cg_pct_mac    coef=+0.8188  (synergistic)
+    throttle_curve*cg_pct_mac      coef=-0.6938  (antagonistic)
+    elevator_pct*aileron_diff_pct  coef=+0.5437  (synergistic)
+    elevator_pct*throttle_curve    coef=-0.3938  (antagonistic)
+
+  Predicted optimum (from linear model, at observed points):
+    elevator_pct = -5
+    aileron_diff_pct = 40
+    throttle_curve = 50
+    cg_pct_mac = 35
+    Predicted value: 12.5813
+
+  Surface optimum (via L-BFGS-B, linear model):
+    elevator_pct = -5
+    aileron_diff_pct = 40
+    throttle_curve = 50
+    cg_pct_mac = 35
+    Predicted value: 12.5813
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. elevator_pct  (effect: -0.8, contribution: 47.2%)
+  2. cg_pct_mac  (effect: 0.7, contribution: 40.1%)
+  3. throttle_curve  (effect: 0.2, contribution: 12.0%)
+  4. aileron_diff_pct  (effect: 0.0, contribution: 0.7%)
+
+=== Optimization: handling_score ===
+Direction: maximize
+
+Best observed run: #5
+  elevator_pct = 5
+  aileron_diff_pct = 0
+  throttle_curve = 100
+  cg_pct_mac = 35
+  Value: 6.9
+
+RSM Model (linear, R² = 0.0642, Adj R² = -0.2760):
+  Coefficients:
+    intercept                      +5.1563
+    elevator_pct                   -0.1437
+    aileron_diff_pct               -0.1813
+    throttle_curve                 +0.1438
+    cg_pct_mac                     +0.0312
+
+RSM Model (quadratic, R² = 0.7621, Adj R² = -2.5683):
+  Coefficients:
+    intercept                      +1.0312
+    elevator_pct                   -0.1438
+    aileron_diff_pct               -0.1813
+    throttle_curve                 +0.1438
+    cg_pct_mac                     +0.0313
+    elevator_pct*aileron_diff_pct  -0.0563
+    elevator_pct*throttle_curve    +0.2938
+    elevator_pct*cg_pct_mac        +0.0063
+    aileron_diff_pct*throttle_curve +0.1562
+    aileron_diff_pct*cg_pct_mac    -0.4313
+    throttle_curve*cg_pct_mac      +0.7187
+    elevator_pct^2                 +1.0313
+    aileron_diff_pct^2             +1.0312
+    throttle_curve^2               +1.0312
+    cg_pct_mac^2                   +1.0312
+
+  Curvature analysis:
+    elevator_pct                   coef=+1.0313  convex (has a minimum)
+    aileron_diff_pct               coef=+1.0312  convex (has a minimum)
+    throttle_curve                 coef=+1.0312  convex (has a minimum)
+    cg_pct_mac                     coef=+1.0312  convex (has a minimum)
+
+  Notable interactions:
+    throttle_curve*cg_pct_mac      coef=+0.7187  (synergistic)
+    aileron_diff_pct*cg_pct_mac    coef=-0.4313  (antagonistic)
+
+  Predicted optimum (from linear model, at observed points):
+    elevator_pct = -5
+    aileron_diff_pct = 0
+    throttle_curve = 100
+    cg_pct_mac = 35
+    Predicted value: 5.6563
+
+  Surface optimum (via L-BFGS-B, linear model):
+    elevator_pct = -5
+    aileron_diff_pct = 0
+    throttle_curve = 100
+    cg_pct_mac = 35
+    Predicted value: 5.6563
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. aileron_diff_pct  (effect: -0.4, contribution: 36.3%)
+  2. elevator_pct  (effect: -0.3, contribution: 28.7%)
+  3. throttle_curve  (effect: -0.3, contribution: 28.7%)
+  4. cg_pct_mac  (effect: 0.1, contribution: 6.2%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="262-paper-airplane.html">&larr; Previous: Paper Airplane Distance</a>
+    <a href="index.html">All Use Cases &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+<script>
+(function() {
+  var toc = document.getElementById('uc-toc-inner');
+  if (!toc) return;
+  var headings = document.querySelectorAll('.uc-section > h2, .uc-content > section > h2');
+  if (headings.length < 2) { document.getElementById('uc-toc').style.display = 'none'; return; }
+  headings.forEach(function(h, i) {
+    if (!h.id) h.id = 'sec-' + i;
+    var a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(null, '', '#' + h.id);
+    });
+    toc.appendChild(a);
+  });
+  var links = toc.querySelectorAll('a');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        links.forEach(function(a) { a.classList.remove('active'); });
+        var active = toc.querySelector('a[href="#' + entry.target.id + '"]');
+        if (active) {
+          active.classList.add('active');
+          active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      }
+    });
+  }, { rootMargin: '-80px 0px -70% 0px', threshold: 0 });
+  headings.forEach(function(h) { observer.observe(h); });
+  if (links.length) links[0].classList.add('active');
+})();
+</script>
+</body>
+</html>

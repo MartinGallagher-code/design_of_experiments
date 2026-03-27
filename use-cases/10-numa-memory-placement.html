@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NUMA Memory Placement &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .caption { font-size:.72rem; color:var(--faint); margin-bottom:4px; }
+  </style>
+</head>
+<body>
+
+<img src="../logo-light.svg" alt="" class="bg-logo-light">
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><span class="dot"></span> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../ai-prompts.html">AI Prompts</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<section class="uc-hero-detail" style="background:linear-gradient(135deg, #d9770611, #d9770608);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F9E9;</div>
+    <div class="uc-badge" style="background:#d9770618;color:#d97706;">Full Factorial</div>
+    <h1>NUMA Memory Placement</h1>
+    <p class="uc-subtitle">Find the best memory policy, thread binding, and hugepage configuration for STREAM bandwidth.</p>
+  </div>
+</section>
+
+
+
+
+<!-- Table of Contents -->
+<nav class="uc-toc" id="uc-toc"><div class="uc-toc-inner" id="uc-toc-inner"></div></nav>
+
+<div class="container-narrow uc-content">
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>numa memory placement</strong>. Full factorial design to optimize memory placement and thread binding on a dual-socket NUMA system.</p>
+
+    <p>The design varies 3 factors: <strong>mem policy</strong>, ranging from local to interleave, <strong>thread bind</strong>, ranging from close to spread, and <strong>hugepages</strong>, ranging from off to 2M. The goal is to optimize 2 responses: stream triad (GB/s) (maximize) and latency ns (ns) (minimize). Fixed conditions held constant across all runs include sockets = 2, cores per socket = 32.</p>
+
+    <p>A full factorial design was used to explore all 8 possible combinations of the 3 factors at two levels. This guarantees that every main effect and interaction can be estimated independently, at the cost of a larger experiment (8 runs).</p>
+
+    
+    <h3>Key Findings</h3>
+    <p>For <strong>stream triad</strong>, the most influential factors were thread bind (49.7%), mem policy (26.1%), hugepages (24.2%). The best observed value was <strong>293.9</strong> (at mem policy = interleave, thread bind = spread, hugepages = off).</p>
+<p>For <strong>latency ns</strong>, the most influential factors were thread bind (45.6%), mem policy (31.6%), hugepages (22.8%). The best observed value was <strong>34.0</strong> (at mem policy = local, thread bind = spread, hugepages = 2M).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+  </ul>
+  </section>
+
+
+
+
+
+
+
+
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Levels</th><th>Type</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>mem_policy</code></td><td>local, interleave</td><td>categorical</td><td></td></tr>
+            <tr><td><code>thread_bind</code></td><td>close, spread</td><td>categorical</td><td></td></tr>
+            <tr><td><code>hugepages</code></td><td>off, 2M</td><td>categorical</td><td></td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> sockets=2, cores_per_socket=32</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>stream_triad</code></td><td style="color:var(--green);font-weight:600;">&#x2191; maximize</td><td>GB/s</td></tr>
+            <tr><td><code>latency_ns</code></td><td style="color:#e11d48;font-weight:600;">&#x2193; minimize</td><td>ns</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Full Factorial Design produces <strong>8 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th><code>mem_policy</code></th><th><code>thread_bind</code></th><th><code>hugepages</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>local</td><td>spread</td><td>2M</td></tr>
+        <tr><td>2</td><td>interleave</td><td>close</td><td>off</td></tr>
+        <tr><td>3</td><td>interleave</td><td>spread</td><td>off</td></tr>
+        <tr><td>4</td><td>interleave</td><td>spread</td><td>2M</td></tr>
+        <tr><td>5</td><td>local</td><td>spread</td><td>off</td></tr>
+        <tr><td>6</td><td>interleave</td><td>close</td><td>2M</td></tr>
+        <tr><td>7</td><td>local</td><td>close</td><td>off</td></tr>
+        <tr><td>8</td><td>local</td><td>close</td><td>2M</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="uc-section">
+    <h2>How to Run</h2>
+    <div class="code-block"><div class="code-header"><span>terminal</span></div><div class="code-body"><span class="prompt">$ </span>doe info <span class="flag">--config</span> use_cases/10_numa_memory_placement/config.json
+<span class="prompt">$ </span>doe generate <span class="flag">--config</span> use_cases/10_numa_memory_placement/config.json <span class="flag">--output</span> results/run.sh <span class="flag">--seed</span> 42
+<span class="prompt">$ </span>bash results/run.sh
+<span class="prompt">$ </span>doe analyze <span class="flag">--config</span> use_cases/10_numa_memory_placement/config.json
+<span class="prompt">$ </span>doe optimize <span class="flag">--config</span> use_cases/10_numa_memory_placement/config.json
+<span class="prompt">$ </span>doe optimize <span class="flag">--config</span> use_cases/10_numa_memory_placement/config.json <span class="flag">--multi</span>  <span class="comment"># multi-objective</span>
+<span class="prompt">$ </span>doe report <span class="flag">--config</span> use_cases/10_numa_memory_placement/config.json <span class="flag">--output</span> report.html</div></div>
+  </section>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs.</p>
+
+    <h3>Response: stream_triad</h3>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/10_pareto_stream_triad.png" alt="Pareto chart for stream_triad">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/10_main_effects_stream_triad.png" alt="Main effects plot for stream_triad">
+      </div>
+    </div>
+
+    <h3>Response: latency_ns</h3>
+    <div class="results-grid">
+      <div>
+        <p class="caption">Pareto Chart</p>
+        <img src="../images/10_pareto_latency_ns.png" alt="Pareto chart for latency_ns">
+      </div>
+      <div>
+        <p class="caption">Main Effects Plot</p>
+        <img src="../images/10_main_effects_latency_ns.png" alt="Main effects plot for latency_ns">
+      </div>
+    </div>
+
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: stream_triad ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+mem_policy              35.7750      11.1421            51.4%
+thread_bind             26.2250      11.1421            37.7%
+hugepages               -7.5750      11.1421            10.9%
+
+=== Interaction Effects: stream_triad ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+mem_policy           thread_bind               22.0250            54.5%
+mem_policy           hugepages                  9.4250            23.3%
+thread_bind          hugepages                  8.9750            22.2%
+
+=== Summary Statistics: stream_triad ===
+
+mem_policy:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  interleave          4   225.3000    23.7380   196.1000   250.3000
+  local               4   261.0750    30.0114   226.4000   293.9000
+
+thread_bind:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  close               4   230.0750    25.0366   196.1000   250.3000
+  spread              4   256.3000    35.1010   217.3000   293.9000
+
+hugepages:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2M                  4   246.9750    34.2391   217.3000   293.9000
+  off                 4   239.4000    33.2692   196.1000   276.5000
+
+=== Main Effects: latency_ns ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+mem_policy              14.0250       5.1510            51.8%
+thread_bind              8.5250       5.1510            31.5%
+hugepages                4.5250       5.1510            16.7%
+
+=== Interaction Effects: latency_ns ===
+Factor A             Factor B              Interaction   % Contribution
+------------------------------------------------------------------------
+thread_bind          hugepages                 16.5250            53.8%
+mem_policy           thread_bind                9.2250            30.0%
+mem_policy           hugepages                 -4.9750            16.2%
+
+=== Summary Statistics: latency_ns ===
+
+mem_policy:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  interleave          4    51.5500    15.3921    34.0000    68.4000
+  local               4    65.5750    11.2796    52.4000    78.3000
+
+thread_bind:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  close               4    54.3000     7.7158    44.2000    61.0000
+  spread              4    62.8250    19.6798    34.0000    78.3000
+
+hugepages:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  2M                  4    56.3000    15.6499    34.0000    70.6000
+  off                 4    60.8250    15.3854    44.2000    78.3000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: stream_triad ===
+Direction: maximize
+
+Best observed run: #4
+  mem_policy = interleave
+  thread_bind = spread
+  hugepages = 2M
+  Value: 293.9
+
+RSM Model (linear, R² = 0.20):
+  Coefficients:
+    intercept:  +243.1875
+    mem_policy:  -0.5625
+    thread_bind:  +11.3375
+    hugepages:  -6.5625
+  Predicted optimum:
+    mem_policy = interleave
+    thread_bind = spread
+    hugepages = 2M
+    Predicted value: 261.6500
+
+Factor importance:
+  1. thread_bind  (effect: 22.7, contribution: 61.4%)
+  2. hugepages  (effect: -13.1, contribution: 35.5%)
+  3. mem_policy  (effect: -1.1, contribution: 3.0%)
+
+=== Optimization: latency_ns ===
+Direction: minimize
+
+Best observed run: #8
+  mem_policy = local
+  thread_bind = close
+  hugepages = 2M
+  Value: 34.0
+
+RSM Model (linear, R² = 0.03):
+  Coefficients:
+    intercept:  +58.5625
+    mem_policy:  -0.3375
+    thread_bind:  +2.3375
+    hugepages:  +0.4125
+  Predicted optimum:
+    mem_policy = interleave
+    thread_bind = spread
+    hugepages = off
+    Predicted value: 61.6500
+
+Factor importance:
+  1. thread_bind  (effect: 4.7, contribution: 75.7%)
+  2. hugepages  (effect: 0.8, contribution: 13.4%)
+  3. mem_policy  (effect: -0.7, contribution: 10.9%)</div></div>
+  </section>
+
+  
+  
+  
+  
+  
+  
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #ea580c;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#ea580c;line-height:1.2;">D = 0.5441</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>stream_triad</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:52.32%;height:100%;background:#f97316;border-radius:4px;"></div>
+                  </div>
+                  <span>0.5232</span>
+                </div>
+              </td>
+              <td>247.50 0.5232      247.50 GB/s</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>latency_ns</code></td>
+              <td>1.0</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:57.699999999999996%;height:100%;background:#f97316;border-radius:4px;"></div>
+                  </div>
+                  <span>0.5770</span>
+                </div>
+              </td>
+              <td>52.40 0.5770       52.40 ns</td>
+              <td><span style="color:#dc2626">↓</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>mem_policy</code></td><td>local</td></tr>
+            <tr><td><code>thread_bind</code></td><td>spread</td></tr>
+            <tr><td><code>hugepages</code></td><td>2M</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #1</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>latency_ns</code></td><td>52.40</td><td>34.00</td><td><span style="color:#dc2626;">+18.40</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#4</td><td><strong>0.5144</strong></td><td style="font-size:.78rem;">mem_policy=interleave,  thread_bind=close,  hugepages=off</td></tr>
+            <tr><td>#6</td><td><strong>0.4977</strong></td><td style="font-size:.78rem;">mem_policy=local,  thread_bind=close,  hugepages=off</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>latency_ns</code></td><td style="color:#dc2626;font-weight:600;">0.1848</td><td>linear</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.5441
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+stream_triad                 1.5       0.5232      247.50 GB/s   ↑
+latency_ns                   1.0       0.5770       52.40 ns   ↓
+
+Recommended settings:
+  mem_policy = local
+  thread_bind = spread
+  hugepages = 2M
+  (from observed run #1)
+
+Trade-off summary:
+  stream_triad: 247.50 (best observed: 293.90, sacrifice: +46.40)
+  latency_ns: 52.40 (best observed: 34.00, sacrifice: +18.40)
+
+Model quality:
+  stream_triad: R² = 0.0475 (linear)
+  latency_ns: R² = 0.1848 (linear)
+
+Top 3 observed runs by overall desirability:
+  1. Run #1 (D=0.5441): mem_policy=local, thread_bind=spread, hugepages=2M
+  2. Run #4 (D=0.5144): mem_policy=interleave, thread_bind=close, hugepages=off
+  3. Run #6 (D=0.4977): mem_policy=local, thread_bind=close, hugepages=off</div></div>
+  </section>
+
+  <div class="chapter-nav">
+    <a href="09-parallel-io-tuning.html">&larr; Parallel I/O Tuning</a>
+    <a href="11-infiniband-network.html">InfiniBand Network Tuning &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <span>doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2026</span>
+</footer>
+<script src="../js/main.js"></script>
+
+
+
+<script>
+(function() {
+  var toc = document.getElementById('uc-toc-inner');
+  if (!toc) return;
+  var headings = document.querySelectorAll('.uc-section > h2, .uc-content > section > h2');
+  if (headings.length < 2) { document.getElementById('uc-toc').style.display = 'none'; return; }
+  headings.forEach(function(h, i) {
+    if (!h.id) h.id = 'sec-' + i;
+    var a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(null, '', '#' + h.id);
+    });
+    toc.appendChild(a);
+  });
+  var links = toc.querySelectorAll('a');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        links.forEach(function(a) { a.classList.remove('active'); });
+        var active = toc.querySelector('a[href="#' + entry.target.id + '"]');
+        if (active) {
+          active.classList.add('active');
+          active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      }
+    });
+  }, { rootMargin: '-80px 0px -70% 0px', threshold: 0 });
+  headings.forEach(function(h) { observer.observe(h); });
+  if (links.length) links[0].classList.add('active');
+})();
+</script>
+</body>
+</html>
