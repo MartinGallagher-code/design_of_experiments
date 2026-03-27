@@ -44,14 +44,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Book sidebar (mobile)
-  const st = document.querySelector('.sidebar-toggle');
+  // Book mobile TOC — clone sidebar content into collapsible inline TOC
   const sb = document.querySelector('.book-sidebar');
+  const mobileToc = document.getElementById('mobile-toc');
+  if (sb && mobileToc) {
+    const btn = document.createElement('button');
+    btn.className = 'mobile-toc-toggle';
+    btn.innerHTML = 'Table of Contents <span class="arrow">&#9660;</span>';
+    const body = document.createElement('div');
+    body.className = 'mobile-toc-body';
+    body.innerHTML = sb.innerHTML;
+    mobileToc.appendChild(btn);
+    mobileToc.appendChild(body);
+
+    btn.addEventListener('click', () => {
+      btn.classList.toggle('open');
+      body.classList.toggle('open');
+    });
+    body.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+      btn.classList.remove('open');
+      body.classList.remove('open');
+    }));
+  }
+
+  // Book sidebar toggle (legacy, hidden on mobile now)
+  const st = document.querySelector('.sidebar-toggle');
   if (st && sb) {
     st.addEventListener('click', () => sb.classList.toggle('open'));
-    sb.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
-      if (window.innerWidth <= 860) sb.classList.remove('open');
-    }));
   }
 
   // Book sidebar active tracking
