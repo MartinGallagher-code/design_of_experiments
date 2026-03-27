@@ -1,0 +1,98 @@
+{
+    "metadata": {
+        "name": "Firewall Rule Ordering",
+        "description": "Plackett-Burman screening of 6 iptables/nftables parameters for packet processing throughput"
+    },
+    "factors": [
+        {
+            "name": "rule_count",
+            "levels": [
+                "100",
+                "5000"
+            ],
+            "type": "continuous",
+            "unit": "rules",
+            "description": "Total number of firewall rules"
+        },
+        {
+            "name": "conntrack_max",
+            "levels": [
+                "65536",
+                "1048576"
+            ],
+            "type": "continuous",
+            "unit": "entries",
+            "description": "Connection tracking table size"
+        },
+        {
+            "name": "rule_ordering",
+            "levels": [
+                "frequency",
+                "sequential"
+            ],
+            "type": "categorical",
+            "unit": "",
+            "description": "Rule evaluation ordering strategy"
+        },
+        {
+            "name": "hashlimit_burst",
+            "levels": [
+                "5",
+                "100"
+            ],
+            "type": "continuous",
+            "unit": "packets",
+            "description": "Hashlimit burst size"
+        },
+        {
+            "name": "nf_tables",
+            "levels": [
+                "iptables",
+                "nftables"
+            ],
+            "type": "categorical",
+            "unit": "",
+            "description": "Firewall framework"
+        },
+        {
+            "name": "batch_verdict",
+            "levels": [
+                "off",
+                "on"
+            ],
+            "type": "categorical",
+            "unit": "",
+            "description": "Batch verdict processing"
+        }
+    ],
+    "fixed_factors": {
+        "interface": "eth0",
+        "protocol_mix": "80_tcp_20_udp"
+    },
+    "responses": [
+        {
+            "name": "throughput_mpps",
+            "optimize": "maximize",
+            "unit": "Mpps",
+            "description": "Packet throughput in millions per second",
+            "weight": 1.5
+        },
+        {
+            "name": "latency_us",
+            "optimize": "minimize",
+            "unit": "us",
+            "description": "Per-packet processing latency",
+            "weight": 1.0
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "./sim.sh",
+        "operation": "plackett_burman",
+        "processed_directory": "./results/analysis",
+        "out_directory": "./results"
+    }
+}

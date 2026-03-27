@@ -1,0 +1,68 @@
+{
+    "metadata": {
+        "name": "VPN Tunnel MTU",
+        "description": "Box-Behnken design for MTU, fragmentation, and keepalive to optimize throughput and reconnect time"
+    },
+    "factors": [
+        {
+            "name": "tunnel_mtu",
+            "levels": [
+                "1200",
+                "1500"
+            ],
+            "type": "continuous",
+            "unit": "bytes",
+            "description": "VPN tunnel MTU"
+        },
+        {
+            "name": "fragment_size",
+            "levels": [
+                "0",
+                "1400"
+            ],
+            "type": "continuous",
+            "unit": "bytes",
+            "description": "Fragment size (0=disabled)"
+        },
+        {
+            "name": "keepalive_interval",
+            "levels": [
+                "10",
+                "120"
+            ],
+            "type": "continuous",
+            "unit": "s",
+            "description": "Tunnel keepalive interval"
+        }
+    ],
+    "fixed_factors": {
+        "protocol": "wireguard",
+        "encryption": "chacha20"
+    },
+    "responses": [
+        {
+            "name": "throughput_mbps",
+            "optimize": "maximize",
+            "unit": "Mbps",
+            "description": "Sustained tunnel throughput",
+            "weight": 1.5
+        },
+        {
+            "name": "reconnect_time_s",
+            "optimize": "minimize",
+            "unit": "s",
+            "description": "Tunnel reconnect time after drop",
+            "weight": 1.0
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "./sim.sh",
+        "operation": "box_behnken",
+        "processed_directory": "./results/analysis",
+        "out_directory": "./results"
+    }
+}

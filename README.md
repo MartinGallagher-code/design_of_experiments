@@ -58,40 +58,40 @@ pip install -e ".[dev]"
 
 ```bash
 # Preview the design matrix (no files written)
-python doe.py generate --config examples/example_config.json --dry-run
+doe generate --config examples/example_config.json --dry-run
 
 # Generate a runner script
-python doe.py generate --config examples/example_config.json --output run.sh --seed 42
+doe generate --config examples/example_config.json --output run.sh --seed 42
 
 # Run the experiments
 bash run.sh
 
 # Analyze results (with ANOVA, plots, and diagnostics)
-python doe.py analyze --config examples/example_config.json
+doe analyze --config examples/example_config.json
 
 # Export analysis results to CSV
-python doe.py analyze --config examples/example_config.json --csv results/csv
+doe analyze --config examples/example_config.json --csv results/csv
 
 # Show design summary with evaluation metrics
-python doe.py info --config examples/example_config.json
+doe info --config examples/example_config.json
 
 # Get optimization recommendations (with true surface optimization)
-python doe.py optimize --config examples/example_config.json
+doe optimize --config examples/example_config.json
 
 # Multi-objective optimization using desirability functions
-python doe.py optimize --config examples/example_config.json --multi
+doe optimize --config examples/example_config.json --multi
 
 # Show steepest ascent/descent pathway
-python doe.py optimize --config examples/example_config.json --steepest
+doe optimize --config examples/example_config.json --steepest
 
 # Compute statistical power for each factor
-python doe.py power --config examples/example_config.json --sigma 2.0 --delta 5.0
+doe power --config examples/example_config.json --sigma 2.0 --delta 5.0
 
 # Augment an existing design with fold-over runs
-python doe.py augment --config examples/example_config.json --type fold_over
+doe augment --config examples/example_config.json --type fold_over
 
 # Generate an interactive HTML report
-python doe.py report --config examples/example_config.json --output report.html
+doe report --config examples/example_config.json --output report.html
 ```
 
 ## Configuration
@@ -210,7 +210,7 @@ If omitted, defaults to a single response named `"response"`.
 
 ### `generate` — Create design and runner script
 ```
-python doe.py generate --config FILE [--output FILE] [--format sh|py] [--seed N] [--dry-run]
+doe generate --config FILE [--output FILE] [--format sh|py] [--seed N] [--dry-run]
 ```
 
 | Flag | Description |
@@ -223,7 +223,7 @@ python doe.py generate --config FILE [--output FILE] [--format sh|py] [--seed N]
 
 ### `analyze` — Analyze experiment results
 ```
-python doe.py analyze --config FILE [--results-dir DIR] [--no-plots] [--csv DIR] [--partial]
+doe analyze --config FILE [--results-dir DIR] [--no-plots] [--csv DIR] [--partial]
 ```
 
 Computes main effects, interaction effects, ANOVA table, and generates plots including Pareto charts, main effects plots, normal/half-normal probability plots, model diagnostic panels, and 3D response surface plots.
@@ -238,14 +238,14 @@ Computes main effects, interaction effects, ANOVA table, and generates plots inc
 
 ### `info` — Display design summary
 ```
-python doe.py info --config FILE
+doe info --config FILE
 ```
 
 Shows design matrix, factor details, alias structure (for fractional factorials), and design evaluation metrics (D-efficiency, A-efficiency, G-efficiency).
 
 ### `optimize` — Recommend optimal factor settings
 ```
-python doe.py optimize --config FILE [--results-dir DIR] [--response NAME] [--multi] [--steepest] [--partial]
+doe optimize --config FILE [--results-dir DIR] [--response NAME] [--multi] [--steepest] [--partial]
 ```
 
 | Flag | Description |
@@ -259,7 +259,7 @@ python doe.py optimize --config FILE [--results-dir DIR] [--response NAME] [--mu
 
 ### `power` — Compute statistical power
 ```
-python doe.py power --config FILE [--sigma FLOAT] [--delta FLOAT] [--alpha FLOAT] [--results-dir DIR] [--partial]
+doe power --config FILE [--sigma FLOAT] [--delta FLOAT] [--alpha FLOAT] [--results-dir DIR] [--partial]
 ```
 
 Computes statistical power for detecting effects of a given size. If `--sigma` is omitted and results are available, sigma is estimated from residuals.
@@ -273,7 +273,7 @@ Computes statistical power for detecting effects of a given size. If `--sigma` i
 
 ### `augment` — Extend an existing design
 ```
-python doe.py augment --config FILE --type TYPE [--output FILE] [--format sh|py] [--seed N]
+doe augment --config FILE --type TYPE [--output FILE] [--format sh|py] [--seed N]
 ```
 
 | Flag | Description |
@@ -285,7 +285,7 @@ python doe.py augment --config FILE --type TYPE [--output FILE] [--format sh|py]
 
 ### `report` — Generate interactive HTML report
 ```
-python doe.py report --config FILE [--results-dir DIR] [--output FILE] [--partial]
+doe report --config FILE [--results-dir DIR] [--output FILE] [--partial]
 ```
 
 Generates a self-contained HTML report with embedded plots, ANOVA tables, optimization results, and design matrix.
@@ -299,17 +299,17 @@ Generates a self-contained HTML report with embedded plots, ANOVA tables, optimi
 
 ### `record` — Interactively record results
 ```
-python doe.py record --config FILE --run N|all [--seed N]
+doe record --config FILE --run N|all [--seed N]
 ```
 
 ### `status` — Show experiment progress
 ```
-python doe.py status --config FILE [--seed N]
+doe status --config FILE [--seed N]
 ```
 
 ### `export-worksheet` — Export design as printable worksheet
 ```
-python doe.py export-worksheet --config FILE [--format csv|markdown] [--output FILE] [--seed N]
+doe export-worksheet --config FILE [--format csv|markdown] [--output FILE] [--seed N]
 ```
 
 ## Test Script Protocol
@@ -366,10 +366,10 @@ The `power` command helps determine if your design has enough runs to detect eff
 
 ```bash
 # With known error standard deviation
-python doe.py power --config config.json --sigma 2.0 --delta 5.0
+doe power --config config.json --sigma 2.0 --delta 5.0
 
 # Estimate sigma from existing results
-python doe.py power --config config.json --delta 5.0 --results-dir results/
+doe power --config config.json --delta 5.0 --results-dir results/
 ```
 
 Power < 0.80 indicates you may need more runs or blocks to reliably detect the specified effect size.

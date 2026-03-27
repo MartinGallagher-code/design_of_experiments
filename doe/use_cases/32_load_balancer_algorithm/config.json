@@ -1,0 +1,69 @@
+{
+    "metadata": {
+        "name": "Load Balancer Algorithm",
+        "description": "Full factorial of balancing algorithm, health check interval, and connection draining for availability"
+    },
+    "factors": [
+        {
+            "name": "algorithm",
+            "levels": [
+                "round_robin",
+                "least_conn",
+                "ip_hash"
+            ],
+            "type": "categorical",
+            "unit": "",
+            "description": "Load balancing algorithm"
+        },
+        {
+            "name": "health_interval",
+            "levels": [
+                "5",
+                "30"
+            ],
+            "type": "continuous",
+            "unit": "s",
+            "description": "Health check interval"
+        },
+        {
+            "name": "drain_timeout",
+            "levels": [
+                "10",
+                "60"
+            ],
+            "type": "continuous",
+            "unit": "s",
+            "description": "Connection draining timeout"
+        }
+    ],
+    "fixed_factors": {
+        "backend_count": "4",
+        "protocol": "http2"
+    },
+    "responses": [
+        {
+            "name": "availability",
+            "optimize": "maximize",
+            "unit": "%",
+            "description": "Service availability (nines)",
+            "weight": 1.5
+        },
+        {
+            "name": "imbalance_pct",
+            "optimize": "minimize",
+            "unit": "%",
+            "description": "Load imbalance across backends",
+            "weight": 1.0
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "./sim.sh",
+        "operation": "full_factorial",
+        "processed_directory": "./results/analysis",
+        "out_directory": "./results"
+    }
+}

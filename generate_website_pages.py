@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Copyright (C) 2026 Martin J. Gallagher, SageCor Solutions
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Generate website HTML pages for use cases 27-86 and inject experimental matrices into all use case pages (1-86)."""
 import json, os, glob, html, subprocess, re
 
@@ -695,7 +697,7 @@ def build_page(num, uc_dir):
         "factors": [{"name": f["name"], "levels": f["levels"], "type": f["type"], "unit": f.get("unit", "")} for f in factors],
         "fixed_factors": fixed,
         "responses": [{"name": r["name"], "optimize": r.get("optimize", "maximize"), "unit": r.get("unit", "")} for r in responses],
-        "settings": {"operation": design, "test_script": f"use_cases/{num:02d}_{slug}/sim.sh"}
+        "settings": {"operation": design, "test_script": f"doe/use_cases/{num:02d}_{slug}/sim.sh"}
     }, indent=2)
 
     config_html = escape(config_display)
@@ -789,7 +791,7 @@ def build_page(num, uc_dir):
         <p>With {len(responses)} competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
         <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
-          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/{num:02d}_{slug}/config.json <span class="flag">--multi</span></div>
+          <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> use_cases/{num:02d}_{slug}/config.json <span class="flag">--multi</span></div>
         </div>
       </div>
     </div>
@@ -813,7 +815,7 @@ def build_page(num, uc_dir):
     next_link = ""
 
     if prev_num >= 1:
-        prev_dirs = glob.glob(f"use_cases/{prev_num:02d}_*")
+        prev_dirs = glob.glob(f"doe/use_cases/{prev_num:02d}_*")
         if prev_dirs:
             prev_slug = os.path.basename(prev_dirs[0]).split("_", 1)[1]
             prev_web = slug_to_web(prev_slug)
@@ -822,7 +824,7 @@ def build_page(num, uc_dir):
             prev_link = f'<a href="{prev_num:02d}-{prev_web}.html">&larr; Previous: {escape(prev_name)}</a>'
 
     if next_num <= 310:
-        next_dirs = glob.glob(f"use_cases/{next_num:02d}_*")
+        next_dirs = glob.glob(f"doe/use_cases/{next_num:02d}_*")
         if next_dirs:
             next_slug = os.path.basename(next_dirs[0]).split("_", 1)[1]
             next_web = slug_to_web(next_slug)
@@ -923,7 +925,7 @@ def build_page(num, uc_dir):
         <h3>Preview the design</h3>
         <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
-          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/{num:02d}_{slug}/config.json</div>
+          <div class="code-body"><span class="prompt">$ </span>doe info <span class="flag">--config</span> use_cases/{num:02d}_{slug}/config.json</div>
         </div>
       </div>
     </div>
@@ -934,7 +936,7 @@ def build_page(num, uc_dir):
         <h3>Generate the runner script</h3>
         <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
-          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/{num:02d}_{slug}/config.json \\
+          <div class="code-body"><span class="prompt">$ </span>doe generate <span class="flag">--config</span> use_cases/{num:02d}_{slug}/config.json \\
     <span class="flag">--output</span> use_cases/{num:02d}_{slug}/results/run.sh <span class="flag">--seed</span> 42</div>
         </div>
       </div>
@@ -957,7 +959,7 @@ def build_page(num, uc_dir):
         <h3>Analyze results</h3>
         <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
-          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/{num:02d}_{slug}/config.json</div>
+          <div class="code-body"><span class="prompt">$ </span>doe analyze <span class="flag">--config</span> use_cases/{num:02d}_{slug}/config.json</div>
         </div>
       </div>
     </div>
@@ -968,7 +970,7 @@ def build_page(num, uc_dir):
         <h3>Get optimization recommendations</h3>
         <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
-          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/{num:02d}_{slug}/config.json</div>
+          <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> use_cases/{num:02d}_{slug}/config.json</div>
         </div>
       </div>
     </div>
@@ -979,7 +981,7 @@ def build_page(num, uc_dir):
         <h3>Generate the HTML report</h3>
         <div class="code-block">
           <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
-          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/{num:02d}_{slug}/config.json \\
+          <div class="code-body"><span class="prompt">$ </span>doe report <span class="flag">--config</span> use_cases/{num:02d}_{slug}/config.json \\
     <span class="flag">--output</span> use_cases/{num:02d}_{slug}/results/report.html</div>
         </div>
       </div>
@@ -1257,7 +1259,7 @@ def inject_matrix_into_existing(num, uc_dir):
 def main():
     # Generate pages for use cases 27-300
     for num in range(27, 311):
-        pattern = f"use_cases/{num:02d}_*" if num < 100 else f"use_cases/{num}_*"
+        pattern = f"doe/use_cases/{num:02d}_*" if num < 100 else f"doe/use_cases/{num}_*"
         dirs = glob.glob(pattern)
         if dirs:
             build_page(num, dirs[0])
@@ -1266,7 +1268,7 @@ def main():
     # Inject experimental matrix into existing pages for use cases 1-26
     print("\nInjecting experimental matrices into use cases 1-26...")
     for num in range(1, 27):
-        dirs = glob.glob(f"use_cases/{num:02d}_*")
+        dirs = glob.glob(f"doe/use_cases/{num:02d}_*")
         if dirs:
             inject_matrix_into_existing(num, dirs[0])
     print(f"\nDone: all use case pages updated with experimental matrices.")

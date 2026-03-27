@@ -1,0 +1,68 @@
+{
+    "metadata": {
+        "name": "Deployment Canary Rollout",
+        "description": "Box-Behnken design to tune canary percentage, evaluation window, and error threshold for rollout safety"
+    },
+    "factors": [
+        {
+            "name": "canary_pct",
+            "levels": [
+                "5",
+                "25"
+            ],
+            "type": "continuous",
+            "unit": "%",
+            "description": "Percentage of traffic to canary"
+        },
+        {
+            "name": "evaluation_window_min",
+            "levels": [
+                "5",
+                "30"
+            ],
+            "type": "continuous",
+            "unit": "min",
+            "description": "Canary evaluation window"
+        },
+        {
+            "name": "error_threshold_pct",
+            "levels": [
+                "0.5",
+                "5.0"
+            ],
+            "type": "continuous",
+            "unit": "%",
+            "description": "Error rate threshold for rollback"
+        }
+    ],
+    "fixed_factors": {
+        "orchestrator": "kubernetes",
+        "strategy": "canary"
+    },
+    "responses": [
+        {
+            "name": "rollout_safety_score",
+            "optimize": "maximize",
+            "unit": "score",
+            "description": "Rollout safety confidence score",
+            "weight": 2.0
+        },
+        {
+            "name": "deployment_time_min",
+            "optimize": "minimize",
+            "unit": "min",
+            "description": "Total deployment time",
+            "weight": 1.0
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "./sim.sh",
+        "operation": "box_behnken",
+        "processed_directory": "./results/analysis",
+        "out_directory": "./results"
+    }
+}

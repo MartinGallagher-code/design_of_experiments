@@ -1,3 +1,5 @@
+# Copyright (C) 2026 Martin J. Gallagher, SageCor Solutions
+# SPDX-License-Identifier: GPL-3.0-or-later
 import json
 import os
 from .models import DOEConfig, Factor, ResponseVar, RunnerConfig
@@ -18,8 +20,15 @@ SUPPORTED_OPERATIONS = {
 
 
 def load_config(path: str, strict: bool = True) -> DOEConfig:
+    if not os.path.exists(path):
+        raise FileNotFoundError(f"Config file not found: '{path}'")
     with open(path) as f:
-        raw = json.load(f)
+        try:
+            raw = json.load(f)
+        except json.JSONDecodeError as e:
+            raise json.JSONDecodeError(
+                f"Invalid JSON in '{path}': {e.msg}", e.doc, e.pos
+            ) from None
 
     factors = _parse_factors(raw.get("factors", []))
     fixed_factors = _parse_fixed_factors(raw)

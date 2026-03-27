@@ -74,7 +74,7 @@ def copy_plots_to_website(uc_dir, plots):
 
 def main():
     # Find all use case directories
-    uc_dirs = sorted(glob.glob("use_cases/*/"))
+    uc_dirs = sorted(glob.glob("doe/use_cases/*/"))
     total_new = 0
 
     for uc_dir in uc_dirs:

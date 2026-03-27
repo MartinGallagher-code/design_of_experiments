@@ -1,0 +1,68 @@
+{
+    "metadata": {
+        "name": "PWM Motor Control",
+        "description": "Box-Behnken design to tune PWM frequency, dead time, and PID gain for torque ripple and efficiency"
+    },
+    "factors": [
+        {
+            "name": "pwm_frequency_khz",
+            "levels": [
+                "5",
+                "50"
+            ],
+            "type": "continuous",
+            "unit": "kHz",
+            "description": "PWM switching frequency"
+        },
+        {
+            "name": "dead_time_ns",
+            "levels": [
+                "100",
+                "2000"
+            ],
+            "type": "continuous",
+            "unit": "ns",
+            "description": "Dead time between high/low side switching"
+        },
+        {
+            "name": "pid_gain_kp",
+            "levels": [
+                "0.5",
+                "10.0"
+            ],
+            "type": "continuous",
+            "unit": "gain",
+            "description": "PID proportional gain"
+        }
+    ],
+    "fixed_factors": {
+        "motor_type": "bldc",
+        "driver": "drv8305"
+    },
+    "responses": [
+        {
+            "name": "torque_ripple_pct",
+            "optimize": "minimize",
+            "unit": "%",
+            "description": "Torque ripple percentage",
+            "weight": 1.0
+        },
+        {
+            "name": "efficiency_pct",
+            "optimize": "maximize",
+            "unit": "%",
+            "description": "Motor drive efficiency",
+            "weight": 1.5
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "./sim.sh",
+        "operation": "box_behnken",
+        "processed_directory": "./results/analysis",
+        "out_directory": "./results"
+    }
+}

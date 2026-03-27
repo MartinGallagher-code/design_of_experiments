@@ -1,0 +1,78 @@
+{
+    "metadata": {
+        "name": "Log Aggregation Pipeline",
+        "description": "Latin Hypercube exploration of 4 log aggregation parameters for ingestion rate and query latency"
+    },
+    "factors": [
+        {
+            "name": "batch_size_kb",
+            "levels": [
+                "64",
+                "2048"
+            ],
+            "type": "continuous",
+            "unit": "KB",
+            "description": "Log batch size"
+        },
+        {
+            "name": "flush_interval_sec",
+            "levels": [
+                "1",
+                "30"
+            ],
+            "type": "continuous",
+            "unit": "sec",
+            "description": "Flush interval to storage"
+        },
+        {
+            "name": "parser_threads",
+            "levels": [
+                "1",
+                "16"
+            ],
+            "type": "continuous",
+            "unit": "threads",
+            "description": "Log parser threads"
+        },
+        {
+            "name": "compression_ratio",
+            "levels": [
+                "1",
+                "9"
+            ],
+            "type": "continuous",
+            "unit": "level",
+            "description": "Log compression level"
+        }
+    ],
+    "fixed_factors": {
+        "stack": "elk",
+        "retention_days": "30"
+    },
+    "responses": [
+        {
+            "name": "ingestion_rate_gbps",
+            "optimize": "maximize",
+            "unit": "Gbps",
+            "description": "Log ingestion throughput",
+            "weight": 1.5
+        },
+        {
+            "name": "query_latency_ms",
+            "optimize": "minimize",
+            "unit": "ms",
+            "description": "Log query latency",
+            "weight": 1.0
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "./sim.sh",
+        "operation": "latin_hypercube",
+        "processed_directory": "./results/analysis",
+        "out_directory": "./results"
+    }
+}

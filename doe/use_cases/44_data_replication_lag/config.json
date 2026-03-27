@@ -1,0 +1,88 @@
+{
+    "metadata": {
+        "name": "Data Replication Lag",
+        "description": "Fractional factorial of 5 replication parameters for lag and failover readiness"
+    },
+    "factors": [
+        {
+            "name": "sync_mode",
+            "levels": [
+                "async",
+                "semi_sync"
+            ],
+            "type": "categorical",
+            "unit": "",
+            "description": "Replication sync mode"
+        },
+        {
+            "name": "binlog_batch_size",
+            "levels": [
+                "1",
+                "100"
+            ],
+            "type": "continuous",
+            "unit": "txns",
+            "description": "Binlog batch size"
+        },
+        {
+            "name": "parallel_workers",
+            "levels": [
+                "1",
+                "16"
+            ],
+            "type": "continuous",
+            "unit": "threads",
+            "description": "Replica applier workers"
+        },
+        {
+            "name": "network_buffer_kb",
+            "levels": [
+                "64",
+                "1024"
+            ],
+            "type": "continuous",
+            "unit": "KB",
+            "description": "Replication network buffer"
+        },
+        {
+            "name": "compression",
+            "levels": [
+                "off",
+                "on"
+            ],
+            "type": "categorical",
+            "unit": "",
+            "description": "Binlog compression"
+        }
+    ],
+    "fixed_factors": {
+        "engine": "mysql_8",
+        "gtid": "on"
+    },
+    "responses": [
+        {
+            "name": "replication_lag_ms",
+            "optimize": "minimize",
+            "unit": "ms",
+            "description": "Median replication lag",
+            "weight": 1.0
+        },
+        {
+            "name": "failover_ready_pct",
+            "optimize": "maximize",
+            "unit": "%",
+            "description": "Percentage of time replica is within RPO",
+            "weight": 1.5
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "./sim.sh",
+        "operation": "fractional_factorial",
+        "processed_directory": "./results/analysis",
+        "out_directory": "./results"
+    }
+}

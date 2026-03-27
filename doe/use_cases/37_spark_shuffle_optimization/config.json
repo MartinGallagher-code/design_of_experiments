@@ -1,0 +1,68 @@
+{
+    "metadata": {
+        "name": "Spark Shuffle Optimization",
+        "description": "Central Composite design to optimize Spark shuffle partitions, buffer size, and compression for job time"
+    },
+    "factors": [
+        {
+            "name": "shuffle_partitions",
+            "levels": [
+                "50",
+                "500"
+            ],
+            "type": "continuous",
+            "unit": "count",
+            "description": "spark.sql.shuffle.partitions"
+        },
+        {
+            "name": "shuffle_buffer_kb",
+            "levels": [
+                "32",
+                "256"
+            ],
+            "type": "continuous",
+            "unit": "KB",
+            "description": "Shuffle write buffer size"
+        },
+        {
+            "name": "compress_codec",
+            "levels": [
+                "lz4",
+                "zstd"
+            ],
+            "type": "categorical",
+            "unit": "",
+            "description": "Shuffle compression codec"
+        }
+    ],
+    "fixed_factors": {
+        "executor_memory": "8g",
+        "executor_cores": "4"
+    },
+    "responses": [
+        {
+            "name": "job_time_min",
+            "optimize": "minimize",
+            "unit": "min",
+            "description": "Total job execution time",
+            "weight": 1.5
+        },
+        {
+            "name": "shuffle_spill_gb",
+            "optimize": "minimize",
+            "unit": "GB",
+            "description": "Shuffle data spilled to disk",
+            "weight": 1.0
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "./sim.sh",
+        "operation": "full_factorial",
+        "processed_directory": "./results/analysis",
+        "out_directory": "./results"
+    }
+}

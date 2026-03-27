@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# Copyright (C) 2026 Martin J. Gallagher, SageCor Solutions
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Design of Experiments helper tool — CLI entry point."""
 
 import argparse
@@ -31,6 +33,7 @@ def main():
     ana.add_argument("--config", required=True, metavar="FILE", help="Input JSON config file")
     ana.add_argument("--results-dir", default=None, help="Override out_directory from config")
     ana.add_argument("--no-plots", action="store_true", help="Skip generating plots")
+    ana.add_argument("--no-report", action="store_true", help="Skip generating the HTML report")
     ana.add_argument("--csv", default=None, metavar="DIR", help="Export analysis results to CSV files in DIR")
     ana.add_argument("--partial", action="store_true", help="Analyze only completed runs, skipping missing results")
 
@@ -83,6 +86,15 @@ def main():
     aug.add_argument("--format", choices=["sh", "py"], default="sh", help="Script format")
     aug.add_argument("--seed", type=int, default=None, help="Random seed for run order")
 
+    # --- init ---
+    init = subparsers.add_parser("init", help="Create a new experiment from a built-in use case template")
+    init.add_argument("--template", default=None, metavar="NAME",
+                       help="Use case template name (e.g. reactor_optimization, coffee_brewing)")
+    init.add_argument("--list", action="store_true", dest="list_templates",
+                       help="List all available use case templates")
+    init.add_argument("--output-dir", default=".", metavar="DIR",
+                       help="Directory to extract the template into (default: current directory)")
+
     # --- export-worksheet ---
     ew = subparsers.add_parser("export-worksheet", help="Export design as a printable worksheet")
     ew.add_argument("--config", required=True, metavar="FILE", help="Input JSON config file")
@@ -92,6 +104,25 @@ def main():
 
     args = parser.parse_args()
 
+    try:
+        _dispatch(args)
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
+    except json.JSONDecodeError as e:
+        print(f"Error: invalid JSON in config file: {e}")
+    except ValueError as e:
+        print(f"Error: {e}")
+    except PermissionError as e:
+        print(f"Error: {e}")
+    except OSError as e:
+        if "No such file or directory" in str(e):
+            print(f"Error: {e}")
+        else:
+            raise
+
+
+def _dispatch(args):
+    """Dispatch to the appropriate subcommand handler."""
     if args.command == "generate":
         cfg = load_config(args.config)
         matrix = generate_design(cfg, seed=args.seed)
@@ -106,14 +137,24 @@ def main():
     elif args.command == "analyze":
         cfg = load_config(args.config)
         matrix = generate_design(cfg)
-        from doe.analysis import analyze
-        report = analyze(matrix, cfg, results_dir=args.results_dir, no_plots=args.no_plots, partial=args.partial)
+        try:
+            from doe.analysis import analyze
+            report = analyze(matrix, cfg, results_dir=args.results_dir, no_plots=args.no_plots, partial=args.partial)
+        except FileNotFoundError:
+            _no_results_message(cfg, matrix)
+            return
         _print_report(report)
         if args.csv:
             from doe.analysis import export_csv
             csv_files = export_csv(report, args.csv)
             for p in csv_files:
                 print(f"CSV exported: {p}")
+        if not args.no_report:
+            from doe.report import generate_report
+            processed_dir = cfg.processed_directory or cfg.out_directory or "results"
+            report_path = os.path.join(processed_dir, "report.html")
+            generate_report(matrix, cfg, results_dir=args.results_dir, output_path=report_path, partial=args.partial)
+            print(f"\nHTML report: {report_path}")
 
     elif args.command == "info":
         cfg = load_config(args.config, strict=False)
@@ -134,45 +175,21 @@ def main():
     elif args.command == "optimize":
         cfg = load_config(args.config)
         matrix = generate_design(cfg)
-        if args.steepest:
-            from doe.analysis import _load_all_results
-            from doe.rsm import fit_rsm, steepest_ascent as _steepest
-            results_dir = args.results_dir or cfg.out_directory or "results"
-            all_data = _load_all_results(matrix.runs, results_dir, partial=args.partial)
-            for resp in cfg.responses:
-                responses = {}
-                for run in matrix.runs:
-                    data = all_data.get(run.run_id, {})
-                    if resp.name in data:
-                        responses[run.run_id] = float(data[resp.name])
-                if not responses:
-                    continue
-                valid_runs = [r for r in matrix.runs if r.run_id in responses]
-                model = fit_rsm(valid_runs, responses, matrix.factor_names, cfg.factors, model_type="linear")
-                pathway = _steepest(model, matrix.factor_names, cfg.factors, direction=resp.optimize)
-                print(f"\n=== Steepest {'Ascent' if resp.optimize == 'maximize' else 'Descent'}: {resp.name} ===")
-                print(f"{'Step':<6}", end="")
-                for fname in matrix.factor_names:
-                    print(f"{fname:>14}", end="")
-                print(f"{'Predicted':>14}")
-                print("-" * (6 + 14 * (len(matrix.factor_names) + 1)))
-                for pt in pathway:
-                    print(f"{pt['step']:<6}", end="")
-                    for fname in matrix.factor_names:
-                        print(f"{pt['settings'][fname]:>14}", end="")
-                    print(f"{pt['predicted_value']:>14.4f}")
-        elif args.multi:
-            from doe.optimize import multi_objective
-            multi_objective(matrix, cfg, results_dir=args.results_dir, partial=args.partial)
-        else:
-            from doe.optimize import recommend
-            recommend(matrix, cfg, results_dir=args.results_dir, response_name=args.response, partial=args.partial)
+        try:
+            _run_optimize(matrix, cfg, args)
+        except FileNotFoundError:
+            _no_results_message(cfg, matrix)
+            return
 
     elif args.command == "report":
         cfg = load_config(args.config)
         matrix = generate_design(cfg)
-        from doe.report import generate_report
-        generate_report(matrix, cfg, results_dir=args.results_dir, output_path=args.output, partial=args.partial)
+        try:
+            from doe.report import generate_report
+            generate_report(matrix, cfg, results_dir=args.results_dir, output_path=args.output, partial=args.partial)
+        except FileNotFoundError:
+            _no_results_message(cfg, matrix)
+            return
 
     elif args.command == "record":
         cfg = load_config(args.config)
@@ -200,10 +217,157 @@ def main():
         print(f"Augmented design: {len(matrix.runs)} original + {n_new} new = {len(augmented.runs)} total runs")
         print(f"Generated -> {args.output}")
 
+    elif args.command == "init":
+        _handle_init(args)
+
     elif args.command == "export-worksheet":
         cfg = load_config(args.config)
         matrix = generate_design(cfg, seed=args.seed)
         _handle_export_worksheet(matrix, cfg, fmt=args.format, output_path=args.output)
+
+
+def _no_results_message(cfg, matrix):
+    """Print a friendly message when results are missing."""
+    results_dir = cfg.out_directory or "results"
+    n_runs = len(matrix.runs)
+    print(f"No results found in '{results_dir}/'.")
+    print()
+    print(f"This experiment has {n_runs} runs that need to be completed first.")
+    print(f"To run the experiment:")
+    print(f"  1. doe generate --config config.json --output {results_dir}/run.sh")
+    print(f"  2. bash {results_dir}/run.sh")
+    print()
+    print(f"Or record results manually:")
+    print(f"  doe record --config config.json --run 1")
+    print()
+    print(f"To analyze partial results (completed runs only):")
+    print(f"  doe analyze --config config.json --partial")
+
+
+def _run_optimize(matrix, cfg, args):
+    """Run the optimize subcommand (steepest, multi, or single-response)."""
+    if args.steepest:
+        from doe.analysis import _load_all_results
+        from doe.rsm import fit_rsm, steepest_ascent as _steepest
+        results_dir = args.results_dir or cfg.out_directory or "results"
+        all_data = _load_all_results(matrix.runs, results_dir, partial=args.partial)
+        for resp in cfg.responses:
+            responses = {}
+            for run in matrix.runs:
+                data = all_data.get(run.run_id, {})
+                if resp.name in data:
+                    responses[run.run_id] = float(data[resp.name])
+            if not responses:
+                continue
+            valid_runs = [r for r in matrix.runs if r.run_id in responses]
+            model = fit_rsm(valid_runs, responses, matrix.factor_names, cfg.factors, model_type="linear")
+            pathway = _steepest(model, matrix.factor_names, cfg.factors, direction=resp.optimize)
+            print(f"\n=== Steepest {'Ascent' if resp.optimize == 'maximize' else 'Descent'}: {resp.name} ===")
+            print(f"{'Step':<6}", end="")
+            for fname in matrix.factor_names:
+                print(f"{fname:>14}", end="")
+            print(f"{'Predicted':>14}")
+            print("-" * (6 + 14 * (len(matrix.factor_names) + 1)))
+            for pt in pathway:
+                print(f"{pt['step']:<6}", end="")
+                for fname in matrix.factor_names:
+                    print(f"{pt['settings'][fname]:>14}", end="")
+                print(f"{pt['predicted_value']:>14.4f}")
+    elif args.multi:
+        from doe.optimize import multi_objective
+        multi_objective(matrix, cfg, results_dir=args.results_dir, partial=args.partial)
+    else:
+        from doe.optimize import recommend
+        recommend(matrix, cfg, results_dir=args.results_dir, response_name=args.response, partial=args.partial)
+
+
+def _handle_init(args):
+    """List or extract a built-in use case template."""
+    from importlib.resources import files as pkg_files
+    import shutil
+
+    use_cases_dir = pkg_files("doe").joinpath("use_cases")
+
+    # Discover available templates
+    templates = {}
+    for entry in sorted(use_cases_dir.iterdir()):
+        config_path = entry.joinpath("config.json")
+        if not config_path.is_file():
+            continue
+        with open(str(config_path)) as f:
+            cfg = json.load(f)
+        meta = cfg.get("metadata", {})
+        settings = cfg.get("settings", {})
+        n_factors = len(cfg.get("factors", []))
+        n_responses = len(cfg.get("responses", []))
+        # Strip numeric prefix for the short name (e.g. 01_reactor_optimization -> reactor_optimization)
+        dir_name = entry.name
+        parts = dir_name.split("_", 1)
+        short_name = parts[1] if len(parts) > 1 and parts[0].isdigit() else dir_name
+        templates[short_name] = {
+            "dir_name": dir_name,
+            "name": meta.get("name", short_name),
+            "description": meta.get("description", ""),
+            "operation": settings.get("operation", "?"),
+            "n_factors": n_factors,
+            "n_responses": n_responses,
+            "path": entry,
+        }
+
+    if args.list_templates or args.template is None:
+        print(f"Available templates ({len(templates)}):\n")
+        print(f"{'Template':<35} {'Design':<22} {'Factors':>7} {'Name'}")
+        print("-" * 100)
+        for short_name, info in templates.items():
+            op = info["operation"].replace("_", " ")
+            print(f"{short_name:<35} {op:<22} {info['n_factors']:>7}   {info['name']}")
+        print(f"\nUsage: doe init --template <name>")
+        print(f"Example: doe init --template reactor_optimization")
+        return
+
+    # Find the requested template
+    template_name = args.template
+    if template_name not in templates:
+        # Try fuzzy match: check if any template contains the search term
+        matches = [k for k in templates if template_name in k]
+        if len(matches) == 1:
+            template_name = matches[0]
+        elif len(matches) > 1:
+            print(f"Ambiguous template '{args.template}'. Matches:")
+            for m in matches:
+                print(f"  {m}")
+            return
+        else:
+            print(f"Unknown template '{args.template}'. Run 'doe init --list' to see available templates.")
+            return
+
+    info = templates[template_name]
+    out_dir = os.path.join(args.output_dir, template_name)
+
+    if os.path.exists(out_dir):
+        print(f"Error: directory '{out_dir}' already exists.")
+        return
+
+    os.makedirs(out_dir)
+
+    # Copy config.json and sim.sh
+    src_dir = info["path"]
+    for filename in ("config.json", "sim.sh", "README.md"):
+        src_file = src_dir.joinpath(filename)
+        if src_file.is_file():
+            shutil.copy2(str(src_file), os.path.join(out_dir, filename))
+
+    print(f"Created '{out_dir}/' from template '{template_name}'")
+    print(f"  Name: {info['name']}")
+    print(f"  Design: {info['operation'].replace('_', ' ')}")
+    print(f"  Factors: {info['n_factors']}, Responses: {info['n_responses']}")
+    print()
+    print(f"Next steps:")
+    print(f"  cd {out_dir}")
+    print(f"  doe info --config config.json")
+    print(f"  doe generate --config config.json --output results/run.sh")
+    print(f"  bash results/run.sh")
+    print(f"  doe analyze --config config.json")
 
 
 def _handle_record(matrix, cfg, run_arg):
@@ -334,7 +498,7 @@ def _handle_status(matrix, cfg):
         for run in completed:
             print(f"  Run {run.run_id}: {_compact_factors(run)}")
         print()
-        print(f"Analyze results with: python doe.py analyze --config <config>")
+        print(f"Analyze results with: doe analyze --config <config>")
         return
 
     if n_done == 0:
@@ -360,7 +524,7 @@ def _handle_status(matrix, cfg):
         unit_str = f" {factor.unit}" if factor.unit else ""
         print(f"  {fname} = {next_run.factor_values[fname]}{unit_str}")
     print()
-    print(f"Record results with: python doe.py record --config <config> --run {next_run.run_id}")
+    print(f"Record results with: doe record --config <config> --run {next_run.run_id}")
 
 
 def _handle_export_worksheet(matrix, cfg, fmt="csv", output_path=None):
@@ -472,7 +636,7 @@ def _format_markdown_worksheet(columns, rows, matrix, cfg, multiple_blocks):
     lines.append("Instructions:")
     lines.append("- Fill in response columns after each run")
     lines.append("- Record any anomalies in the Notes column")
-    lines.append("- Enter results with: python doe.py record --config config.json --run <N>")
+    lines.append("- Enter results with: doe record --config config.json --run <N>")
     lines.append("")
 
     return "\n".join(lines)

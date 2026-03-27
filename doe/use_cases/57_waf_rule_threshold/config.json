@@ -1,0 +1,98 @@
+{
+    "metadata": {
+        "name": "WAF Rule Threshold Tuning",
+        "description": "Plackett-Burman screening of 6 WAF parameters for detection rate and false positive rate"
+    },
+    "factors": [
+        {
+            "name": "rate_limit_rps",
+            "levels": [
+                "100",
+                "10000"
+            ],
+            "type": "continuous",
+            "unit": "rps",
+            "description": "Request rate limit per client"
+        },
+        {
+            "name": "body_inspection_depth",
+            "levels": [
+                "1000",
+                "65536"
+            ],
+            "type": "continuous",
+            "unit": "bytes",
+            "description": "Request body inspection depth"
+        },
+        {
+            "name": "anomaly_score_threshold",
+            "levels": [
+                "3",
+                "15"
+            ],
+            "type": "continuous",
+            "unit": "score",
+            "description": "Anomaly score blocking threshold"
+        },
+        {
+            "name": "paranoia_level",
+            "levels": [
+                "1",
+                "4"
+            ],
+            "type": "continuous",
+            "unit": "level",
+            "description": "CRS paranoia level"
+        },
+        {
+            "name": "sql_injection_sensitivity",
+            "levels": [
+                "1",
+                "9"
+            ],
+            "type": "continuous",
+            "unit": "level",
+            "description": "SQLi detection sensitivity"
+        },
+        {
+            "name": "xss_detection_level",
+            "levels": [
+                "1",
+                "5"
+            ],
+            "type": "continuous",
+            "unit": "level",
+            "description": "XSS detection sensitivity level"
+        }
+    ],
+    "fixed_factors": {
+        "waf_engine": "modsecurity",
+        "ruleset": "owasp_crs"
+    },
+    "responses": [
+        {
+            "name": "detection_rate",
+            "optimize": "maximize",
+            "unit": "%",
+            "description": "Attack detection rate",
+            "weight": 1.5
+        },
+        {
+            "name": "false_positive_rate",
+            "optimize": "minimize",
+            "unit": "%",
+            "description": "False positive rate on legitimate traffic",
+            "weight": 1.0
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "./sim.sh",
+        "operation": "plackett_burman",
+        "processed_directory": "./results/analysis",
+        "out_directory": "./results"
+    }
+}

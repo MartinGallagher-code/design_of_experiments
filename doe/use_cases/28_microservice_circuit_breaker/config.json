@@ -1,0 +1,68 @@
+{
+    "metadata": {
+        "name": "Microservice Circuit Breaker",
+        "description": "Box-Behnken design to tune circuit breaker thresholds for error rate and recovery time"
+    },
+    "factors": [
+        {
+            "name": "failure_threshold",
+            "levels": [
+                "3",
+                "15"
+            ],
+            "type": "continuous",
+            "unit": "count",
+            "description": "Failures before circuit opens"
+        },
+        {
+            "name": "timeout_ms",
+            "levels": [
+                "500",
+                "5000"
+            ],
+            "type": "continuous",
+            "unit": "ms",
+            "description": "Request timeout"
+        },
+        {
+            "name": "reset_interval",
+            "levels": [
+                "5",
+                "60"
+            ],
+            "type": "continuous",
+            "unit": "s",
+            "description": "Half-open retry interval"
+        }
+    ],
+    "fixed_factors": {
+        "backend_pool_size": "10",
+        "health_check_interval": "5"
+    },
+    "responses": [
+        {
+            "name": "error_rate",
+            "optimize": "minimize",
+            "unit": "%",
+            "description": "End-user visible error rate",
+            "weight": 1.5
+        },
+        {
+            "name": "recovery_time",
+            "optimize": "minimize",
+            "unit": "s",
+            "description": "Time to recover from cascade failure",
+            "weight": 1.0
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "./sim.sh",
+        "operation": "box_behnken",
+        "processed_directory": "./results/analysis",
+        "out_directory": "./results"
+    }
+}

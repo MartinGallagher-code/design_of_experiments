@@ -1,3 +1,5 @@
+# Copyright (C) 2026 Martin J. Gallagher, SageCor Solutions
+# SPDX-License-Identifier: GPL-3.0-or-later
 import csv
 import json
 import math
@@ -157,7 +159,13 @@ def _load_all_results(runs: list[ExperimentRun], results_dir: str, partial: bool
             missing.append(run.run_id)
             continue
         with open(path) as f:
-            result_data[run.run_id] = json.load(f)
+            try:
+                result_data[run.run_id] = json.load(f)
+            except json.JSONDecodeError as e:
+                raise ValueError(
+                    f"Corrupt result file '{path}': {e}. "
+                    f"Delete or fix this file and re-run the experiment for run {run.run_id}."
+                ) from None
 
     if missing and partial:
         n_completed = len(result_data)

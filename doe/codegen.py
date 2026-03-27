@@ -1,13 +1,12 @@
-import os
+# Copyright (C) 2026 Martin J. Gallagher, SageCor Solutions
+# SPDX-License-Identifier: GPL-3.0-or-later
 import stat
 from datetime import datetime, timezone
 from pathlib import Path
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, PackageLoader
 
 from .models import DesignMatrix, DOEConfig
-
-_TEMPLATES_DIR = Path(__file__).parent.parent / "templates"
 
 
 def generate_script(
@@ -21,7 +20,7 @@ def generate_script(
         raise ValueError(f"Unknown format '{format}'. Choose 'sh' or 'py'.")
 
     env = Environment(
-        loader=FileSystemLoader(str(_TEMPLATES_DIR)),
+        loader=PackageLoader("doe", "templates"),
         keep_trailing_newline=True,
     )
     env.filters["tojson"] = _tojson
@@ -29,6 +28,10 @@ def generate_script(
     template = env.get_template(template_map[format])
     context = _build_template_context(matrix, cfg)
     rendered = template.render(**context)
+
+    output_dir = Path(output_path).parent
+    if not output_dir.exists():
+        output_dir.mkdir(parents=True, exist_ok=True)
 
     with open(output_path, "w") as f:
         f.write(rendered)

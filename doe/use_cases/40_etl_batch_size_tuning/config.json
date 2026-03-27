@@ -1,0 +1,88 @@
+{
+    "metadata": {
+        "name": "ETL Batch Size Tuning",
+        "description": "Fractional factorial of 5 ETL pipeline parameters for throughput and resource efficiency"
+    },
+    "factors": [
+        {
+            "name": "batch_size",
+            "levels": [
+                "1000",
+                "100000"
+            ],
+            "type": "continuous",
+            "unit": "rows",
+            "description": "Rows per batch"
+        },
+        {
+            "name": "writer_threads",
+            "levels": [
+                "1",
+                "16"
+            ],
+            "type": "continuous",
+            "unit": "threads",
+            "description": "Parallel writer threads"
+        },
+        {
+            "name": "commit_interval",
+            "levels": [
+                "1000",
+                "50000"
+            ],
+            "type": "continuous",
+            "unit": "rows",
+            "description": "Commit frequency"
+        },
+        {
+            "name": "transform_mode",
+            "levels": [
+                "row",
+                "vectorized"
+            ],
+            "type": "categorical",
+            "unit": "",
+            "description": "Transform execution mode"
+        },
+        {
+            "name": "buffer_mb",
+            "levels": [
+                "64",
+                "512"
+            ],
+            "type": "continuous",
+            "unit": "MB",
+            "description": "In-memory buffer size"
+        }
+    ],
+    "fixed_factors": {
+        "source": "postgresql",
+        "sink": "s3_parquet"
+    },
+    "responses": [
+        {
+            "name": "rows_per_sec",
+            "optimize": "maximize",
+            "unit": "rows/s",
+            "description": "ETL throughput",
+            "weight": 1.5
+        },
+        {
+            "name": "peak_memory_gb",
+            "optimize": "minimize",
+            "unit": "GB",
+            "description": "Peak memory consumption",
+            "weight": 1.0
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "./sim.sh",
+        "operation": "fractional_factorial",
+        "processed_directory": "./results/analysis",
+        "out_directory": "./results"
+    }
+}

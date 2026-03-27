@@ -1,0 +1,88 @@
+{
+    "metadata": {
+        "name": "Parallel I/O Tuning",
+        "description": "Fractional factorial design to optimize parallel file I/O throughput on a Lustre filesystem"
+    },
+    "factors": [
+        {
+            "name": "stripe_count",
+            "levels": [
+                "4",
+                "32"
+            ],
+            "type": "continuous",
+            "unit": "",
+            "description": "Lustre stripe count"
+        },
+        {
+            "name": "stripe_size",
+            "levels": [
+                "1",
+                "16"
+            ],
+            "type": "continuous",
+            "unit": "MB",
+            "description": "Lustre stripe size"
+        },
+        {
+            "name": "aggregators",
+            "levels": [
+                "4",
+                "64"
+            ],
+            "type": "continuous",
+            "unit": "",
+            "description": "Number of I/O aggregators"
+        },
+        {
+            "name": "collective_io",
+            "levels": [
+                "on",
+                "off"
+            ],
+            "type": "categorical",
+            "unit": "",
+            "description": "MPI-IO collective buffering"
+        },
+        {
+            "name": "alignment",
+            "levels": [
+                "1",
+                "4"
+            ],
+            "type": "continuous",
+            "unit": "MB",
+            "description": "File alignment boundary"
+        }
+    ],
+    "fixed_factors": {
+        "filesystem": "lustre",
+        "file_size_gb": "100"
+    },
+    "responses": [
+        {
+            "name": "write_bw",
+            "optimize": "maximize",
+            "unit": "GB/s",
+            "description": "Aggregate write bandwidth",
+            "weight": 1.5
+        },
+        {
+            "name": "read_bw",
+            "optimize": "maximize",
+            "unit": "GB/s",
+            "description": "Aggregate read bandwidth",
+            "weight": 1.5
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "./sim.sh",
+        "operation": "fractional_factorial",
+        "processed_directory": "./results/analysis",
+        "out_directory": "./results"
+    }
+}

@@ -78,7 +78,7 @@ def insert_multi_opt_into_html(html_path, multi_opt_text):
 
 
 def main():
-    configs = sorted(glob.glob("use_cases/*/config.json"))
+    configs = sorted(glob.glob("doe/use_cases/*/config.json"))
     html_dir = "website/use-cases"
 
     success = 0

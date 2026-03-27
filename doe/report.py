@@ -1,3 +1,5 @@
+# Copyright (C) 2026 Martin J. Gallagher, SageCor Solutions
+# SPDX-License-Identifier: GPL-3.0-or-later
 """Generate self-contained interactive HTML report from DOE results."""
 
 import base64

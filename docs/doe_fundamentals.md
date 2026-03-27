@@ -208,10 +208,10 @@ Randomization scrambles the order so that any time-related drift is equally like
 
 ```bash
 # Use --seed for reproducible randomization
-python doe.py generate --config config.json --seed 42
+doe generate --config config.json --seed 42
 
 # Same seed = same randomized order (important for reproducibility)
-python doe.py generate --config config.json --seed 42  # identical output
+doe generate --config config.json --seed 42  # identical output
 ```
 
 The `--seed` flag is important: it ensures that the `generate` and `analyze` commands produce the same design matrix, so analysis correctly maps results back to factor combinations.
@@ -841,13 +841,13 @@ Before touching the tool, answer these questions on paper:
 
 ```bash
 # See the design before committing to it
-python doe.py info --config config.json
+doe info --config config.json
 
 # Generate the runner script (always use --seed for reproducibility)
-python doe.py generate --config config.json --output run.sh --seed 42
+doe generate --config config.json --output run.sh --seed 42
 
 # Or generate a Python runner instead of bash
-python doe.py generate --config config.json --output run.py --format py --seed 42
+doe generate --config config.json --output run.py --format py --seed 42
 ```
 
 #### Step 4: Write Your Test Script
@@ -912,19 +912,19 @@ bash run.sh
 
 ```bash
 # Full analysis with plots
-python doe.py analyze --config config.json
+doe analyze --config config.json
 
 # Skip plot generation (faster, for CI/scripts)
-python doe.py analyze --config config.json --no-plots
+doe analyze --config config.json --no-plots
 
 # Get optimization recommendations (best run + RSM model)
-python doe.py optimize --config config.json
+doe optimize --config config.json
 
 # Generate a self-contained HTML report (shareable, includes embedded plots)
-python doe.py report --config config.json --output report.html
+doe report --config config.json --output report.html
 
 # Export to CSV for further analysis in R, Excel, pandas, etc.
-python doe.py analyze --config config.json --csv results/csv
+doe analyze --config config.json --csv results/csv
 ```
 
 ---

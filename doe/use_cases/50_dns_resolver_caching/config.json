@@ -1,0 +1,68 @@
+{
+    "metadata": {
+        "name": "DNS Resolver Caching",
+        "description": "Central Composite design for DNS cache size, TTL override, and prefetch threshold for resolution time"
+    },
+    "factors": [
+        {
+            "name": "cache_size",
+            "levels": [
+                "10000",
+                "500000"
+            ],
+            "type": "continuous",
+            "unit": "entries",
+            "description": "Resolver cache size"
+        },
+        {
+            "name": "min_ttl_s",
+            "levels": [
+                "30",
+                "3600"
+            ],
+            "type": "continuous",
+            "unit": "s",
+            "description": "Minimum TTL override"
+        },
+        {
+            "name": "prefetch_pct",
+            "levels": [
+                "0",
+                "90"
+            ],
+            "type": "continuous",
+            "unit": "%",
+            "description": "Prefetch threshold (% of TTL remaining)"
+        }
+    ],
+    "fixed_factors": {
+        "resolver": "unbound",
+        "dnssec": "on"
+    },
+    "responses": [
+        {
+            "name": "avg_resolution_ms",
+            "optimize": "minimize",
+            "unit": "ms",
+            "description": "Average DNS resolution time",
+            "weight": 1.0
+        },
+        {
+            "name": "cache_hit_rate",
+            "optimize": "maximize",
+            "unit": "%",
+            "description": "Cache hit rate",
+            "weight": 1.5
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "./sim.sh",
+        "operation": "central_composite",
+        "processed_directory": "./results/analysis",
+        "out_directory": "./results"
+    }
+}

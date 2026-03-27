@@ -1,0 +1,68 @@
+{
+    "metadata": {
+        "name": "GitOps Sync Interval",
+        "description": "Full factorial of sync interval, health check timeout, and prune enabled for drift detection and reconciliation"
+    },
+    "factors": [
+        {
+            "name": "sync_interval_sec",
+            "levels": [
+                "30",
+                "300"
+            ],
+            "type": "continuous",
+            "unit": "sec",
+            "description": "GitOps sync interval"
+        },
+        {
+            "name": "health_check_timeout",
+            "levels": [
+                "10",
+                "60"
+            ],
+            "type": "continuous",
+            "unit": "sec",
+            "description": "Health check timeout"
+        },
+        {
+            "name": "prune_enabled",
+            "levels": [
+                "off",
+                "on"
+            ],
+            "type": "categorical",
+            "unit": "",
+            "description": "Automatic resource pruning"
+        }
+    ],
+    "fixed_factors": {
+        "tool": "argocd",
+        "cluster_count": "3"
+    },
+    "responses": [
+        {
+            "name": "drift_detection_delay_sec",
+            "optimize": "minimize",
+            "unit": "sec",
+            "description": "Drift detection delay",
+            "weight": 1.0
+        },
+        {
+            "name": "reconciliation_success_pct",
+            "optimize": "maximize",
+            "unit": "%",
+            "description": "Reconciliation success rate",
+            "weight": 1.5
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "block_count": 1,
+        "test_script": "./sim.sh",
+        "operation": "full_factorial",
+        "processed_directory": "./results/analysis",
+        "out_directory": "./results"
+    }
+}
