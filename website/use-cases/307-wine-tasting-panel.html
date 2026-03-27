@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wine Tasting Panel &mdash; DOE Use Case</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/usecase.css">
+</head>
+<body>
+
+<nav class="nav scrolled">
+  <div class="nav-inner">
+    <a href="../index.html" class="nav-logo"><img src="../logo.svg" alt="" class="nav-logo-icon"> doe-helper</a>
+    <ul class="nav-links">
+      <li><a href="../index.html">Home</a></li>
+      <li><a href="../howto.html">Quick Start</a></li>
+      <li><a href="index.html">Use Cases</a></li>
+      <li><a href="../book.html" class="cta">Guide</a></li>
+    </ul>
+    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="uc-hero-detail" style="background: linear-gradient(135deg, #fef9c3, #fef08a);">
+  <div class="container-narrow">
+    <a href="index.html" class="uc-back">&larr; All Use Cases</a>
+    <div class="uc-hero-icon">&#x1F37A;</div>
+    <div class="uc-badge" style="background:rgba(161,98,7,.12);color:#a16207;">Box-Behnken Design</div>
+    <h1>Wine Tasting Panel</h1>
+    <p class="uc-subtitle">Box-Behnken design with 3 tasting panel blocks to optimize wine blending parameters for aroma and balance</p>
+  </div>
+</section>
+
+<!-- Table of Contents -->
+<nav class="uc-toc" id="uc-toc"><div class="uc-toc-inner" id="uc-toc-inner"></div></nav>
+
+<div class="container-narrow uc-content">
+
+
+  <!-- Prose Summary -->
+  <section class="uc-section">
+    <h2>Summary</h2>
+    <p>This experiment investigates <strong>wine tasting panel</strong>. Box-Behnken design with 3 tasting panel blocks to optimize wine blending parameters for aroma and balance.</p>
+
+    <p>The design varies 3 factors: <strong>oak aging</strong> (months), ranging from 3 to 18, <strong>sugar residual</strong> (g/L), ranging from 1 to 8, and <strong>sulfite level</strong> (mg/L), ranging from 20 to 60. The goal is to optimize 2 responses: aroma score (pts) (maximize) and balance score (pts) (maximize). Fixed conditions held constant across all runs include grape variety = cabernet_sauvignon, vintage = 2024.</p>
+
+    <p>A Box-Behnken design was chosen because it efficiently fits quadratic models with 3 continuous factors while avoiding extreme corner combinations &mdash; requiring only 45 runs instead of the 8 needed for a full factorial at two levels.</p>
+
+    <p>Quadratic response surface models were fitted to capture potential curvature and factor interactions. The RSM contour plots below visualize how pairs of factors jointly affect each response.</p>
+
+    <h3>Key Findings</h3>
+    <p>For <strong>aroma score</strong>, the most influential factors were oak aging (43.6%), sugar residual (43.0%), sulfite level (13.4%). The best observed value was <strong>8.4</strong> (at oak aging = 10.5, sugar residual = 1, sulfite level = 60).</p>
+<p>For <strong>balance score</strong>, the most influential factors were sugar residual (60.2%), sulfite level (25.0%), oak aging (14.8%). The best observed value was <strong>7.9</strong> (at oak aging = 3, sugar residual = 4.5, sulfite level = 60).</p>
+
+
+    <h3>Recommended Next Steps</h3>
+    <ul>
+    <li>Run confirmation experiments at the predicted optimal settings to validate the model.</li>
+    <li>Consider whether any fixed factors should be varied in a future study.</li>
+  </ul>
+  </section>
+
+  <!-- Factors & Responses -->
+  <section class="uc-section">
+    <h2>Experimental Setup</h2>
+    <div class="uc-tables-grid">
+      <div>
+        <h3>Factors</h3>
+        <table>
+          <thead><tr><th>Factor</th><th>Low</th><th>High</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>oak_aging</code></td><td>3</td><td>18</td><td>months</td></tr>
+            <tr><td><code>sugar_residual</code></td><td>1</td><td>8</td><td>g/L</td></tr>
+            <tr><td><code>sulfite_level</code></td><td>20</td><td>60</td><td>mg/L</td></tr>
+          </tbody>
+        </table>
+        <p class="uc-fixed"><strong>Fixed:</strong> grape_variety = cabernet_sauvignon, vintage = 2024</p>
+      </div>
+      <div>
+        <h3>Responses</h3>
+        <table>
+          <thead><tr><th>Response</th><th>Direction</th><th>Unit</th></tr></thead>
+          <tbody>
+            <tr><td><code>aroma_score</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>pts</td></tr>
+            <tr><td><code>balance_score</code></td><td style="color:var(--mint);font-weight:600;">&#x2191; maximize</td><td>pts</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- Config -->
+  <section class="uc-section">
+    <h2>Configuration</h2>
+    <div class="code-block">
+      <div class="code-header"><span>use_cases/307_wine_tasting_panel/config.json</span><button class="code-copy">Copy</button></div>
+      <div class="code-body">{
+  &quot;metadata&quot;: {
+    &quot;name&quot;: &quot;Wine Tasting Panel&quot;,
+    &quot;description&quot;: &quot;Box-Behnken design with 3 tasting panel blocks to optimize wine blending parameters for aroma and balance&quot;
+  },
+  &quot;factors&quot;: [
+    {
+      &quot;name&quot;: &quot;oak_aging&quot;,
+      &quot;levels&quot;: [
+        &quot;3&quot;,
+        &quot;18&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;months&quot;
+    },
+    {
+      &quot;name&quot;: &quot;sugar_residual&quot;,
+      &quot;levels&quot;: [
+        &quot;1&quot;,
+        &quot;8&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;g/L&quot;
+    },
+    {
+      &quot;name&quot;: &quot;sulfite_level&quot;,
+      &quot;levels&quot;: [
+        &quot;20&quot;,
+        &quot;60&quot;
+      ],
+      &quot;type&quot;: &quot;continuous&quot;,
+      &quot;unit&quot;: &quot;mg/L&quot;
+    }
+  ],
+  &quot;fixed_factors&quot;: {
+    &quot;grape_variety&quot;: &quot;cabernet_sauvignon&quot;,
+    &quot;vintage&quot;: &quot;2024&quot;
+  },
+  &quot;responses&quot;: [
+    {
+      &quot;name&quot;: &quot;aroma_score&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;pts&quot;
+    },
+    {
+      &quot;name&quot;: &quot;balance_score&quot;,
+      &quot;optimize&quot;: &quot;maximize&quot;,
+      &quot;unit&quot;: &quot;pts&quot;
+    }
+  ],
+  &quot;settings&quot;: {
+    &quot;operation&quot;: &quot;box_behnken&quot;,
+    &quot;test_script&quot;: &quot;use_cases/307_wine_tasting_panel/sim.sh&quot;
+  }
+}</div>
+    </div>
+  </section>
+
+
+  <!-- Experimental Matrix -->
+  <section class="uc-section">
+    <h2>Experimental Matrix</h2>
+    <p>The Box-Behnken Design produces <strong>45 runs</strong>. Each row is one experiment with specific factor settings.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>Block</th><th><code>oak_aging</code></th><th><code>sugar_residual</code></th><th><code>sulfite_level</code></th></tr></thead>
+        <tbody>
+        <tr><td>1</td><td>1</td><td>10.5</td><td>1</td><td>20</td></tr>
+        <tr><td>2</td><td>1</td><td>10.5</td><td>4.5</td><td>40</td></tr>
+        <tr><td>3</td><td>1</td><td>18</td><td>4.5</td><td>60</td></tr>
+        <tr><td>4</td><td>1</td><td>18</td><td>4.5</td><td>20</td></tr>
+        <tr><td>5</td><td>1</td><td>10.5</td><td>4.5</td><td>40</td></tr>
+        <tr><td>6</td><td>1</td><td>10.5</td><td>4.5</td><td>40</td></tr>
+        <tr><td>7</td><td>1</td><td>3</td><td>4.5</td><td>60</td></tr>
+        <tr><td>8</td><td>1</td><td>18</td><td>1</td><td>40</td></tr>
+        <tr><td>9</td><td>1</td><td>10.5</td><td>1</td><td>60</td></tr>
+        <tr><td>10</td><td>1</td><td>18</td><td>8</td><td>40</td></tr>
+        <tr><td>11</td><td>1</td><td>3</td><td>4.5</td><td>20</td></tr>
+        <tr><td>12</td><td>1</td><td>10.5</td><td>8</td><td>60</td></tr>
+        <tr><td>13</td><td>1</td><td>3</td><td>1</td><td>40</td></tr>
+        <tr><td>14</td><td>1</td><td>3</td><td>8</td><td>40</td></tr>
+        <tr><td>15</td><td>1</td><td>10.5</td><td>8</td><td>20</td></tr>
+        <tr><td>16</td><td>2</td><td>18</td><td>1</td><td>40</td></tr>
+        <tr><td>17</td><td>2</td><td>10.5</td><td>4.5</td><td>40</td></tr>
+        <tr><td>18</td><td>2</td><td>10.5</td><td>1</td><td>60</td></tr>
+        <tr><td>19</td><td>2</td><td>18</td><td>4.5</td><td>60</td></tr>
+        <tr><td>20</td><td>2</td><td>3</td><td>4.5</td><td>20</td></tr>
+        <tr><td>21</td><td>2</td><td>18</td><td>4.5</td><td>20</td></tr>
+        <tr><td>22</td><td>2</td><td>3</td><td>4.5</td><td>60</td></tr>
+        <tr><td>23</td><td>2</td><td>10.5</td><td>8</td><td>20</td></tr>
+        <tr><td>24</td><td>2</td><td>10.5</td><td>4.5</td><td>40</td></tr>
+        <tr><td>25</td><td>2</td><td>10.5</td><td>1</td><td>20</td></tr>
+        <tr><td>26</td><td>2</td><td>10.5</td><td>8</td><td>60</td></tr>
+        <tr><td>27</td><td>2</td><td>18</td><td>8</td><td>40</td></tr>
+        <tr><td>28</td><td>2</td><td>3</td><td>8</td><td>40</td></tr>
+        <tr><td>29</td><td>2</td><td>10.5</td><td>4.5</td><td>40</td></tr>
+        <tr><td>30</td><td>2</td><td>3</td><td>1</td><td>40</td></tr>
+        <tr><td>31</td><td>3</td><td>18</td><td>4.5</td><td>60</td></tr>
+        <tr><td>32</td><td>3</td><td>10.5</td><td>1</td><td>20</td></tr>
+        <tr><td>33</td><td>3</td><td>18</td><td>8</td><td>40</td></tr>
+        <tr><td>34</td><td>3</td><td>10.5</td><td>8</td><td>60</td></tr>
+        <tr><td>35</td><td>3</td><td>10.5</td><td>8</td><td>20</td></tr>
+        <tr><td>36</td><td>3</td><td>10.5</td><td>4.5</td><td>40</td></tr>
+        <tr><td>37</td><td>3</td><td>3</td><td>8</td><td>40</td></tr>
+        <tr><td>38</td><td>3</td><td>10.5</td><td>4.5</td><td>40</td></tr>
+        <tr><td>39</td><td>3</td><td>3</td><td>4.5</td><td>60</td></tr>
+        <tr><td>40</td><td>3</td><td>18</td><td>4.5</td><td>20</td></tr>
+        <tr><td>41</td><td>3</td><td>18</td><td>1</td><td>40</td></tr>
+        <tr><td>42</td><td>3</td><td>3</td><td>1</td><td>40</td></tr>
+        <tr><td>43</td><td>3</td><td>10.5</td><td>4.5</td><td>40</td></tr>
+        <tr><td>44</td><td>3</td><td>3</td><td>4.5</td><td>20</td></tr>
+        <tr><td>45</td><td>3</td><td>10.5</td><td>1</td><td>60</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Workflow -->
+  <section class="uc-section">
+    <h2>Step-by-Step Workflow</h2>
+
+    <div class="uc-step">
+      <div class="uc-step-num">1</div>
+      <div class="uc-step-body">
+        <h3>Preview the design</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py info <span class="flag">--config</span> use_cases/307_wine_tasting_panel/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">2</div>
+      <div class="uc-step-body">
+        <h3>Generate the runner script</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py generate <span class="flag">--config</span> use_cases/307_wine_tasting_panel/config.json \
+    <span class="flag">--output</span> use_cases/307_wine_tasting_panel/results/run.sh <span class="flag">--seed</span> 42</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">3</div>
+      <div class="uc-step-body">
+        <h3>Execute the experiments</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>bash use_cases/307_wine_tasting_panel/results/run.sh</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">4</div>
+      <div class="uc-step-body">
+        <h3>Analyze results</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py analyze <span class="flag">--config</span> use_cases/307_wine_tasting_panel/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">5</div>
+      <div class="uc-step-body">
+        <h3>Get optimization recommendations</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/307_wine_tasting_panel/config.json</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">6</div>
+      <div class="uc-step-body">
+        <h3>Multi-objective optimization</h3>
+        <p>With 2 competing responses, use <code>--multi</code> to find the best compromise via Derringer&ndash;Suich desirability.</p>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py optimize <span class="flag">--config</span> use_cases/307_wine_tasting_panel/config.json <span class="flag">--multi</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="uc-step">
+      <div class="uc-step-num">7</div>
+      <div class="uc-step-body">
+        <h3>Generate the HTML report</h3>
+        <div class="code-block">
+          <div class="code-header"><span>Terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body"><span class="prompt">$ </span>python doe.py report <span class="flag">--config</span> use_cases/307_wine_tasting_panel/config.json \
+    <span class="flag">--output</span> use_cases/307_wine_tasting_panel/results/report.html</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="uc-section">
+    <h2>Features Exercised</h2>
+    <table>
+      <thead><tr><th>Feature</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Design type</td><td><code>box_behnken</code></td></tr>
+        <tr><td>Factor types</td><td><code>continuous</code> (all 3)</td></tr>
+        <tr><td>Arg style</td><td><code>double-dash</code></td></tr>
+        <tr><td>Responses</td><td>2 (aroma_score &#x2191;, balance_score &#x2191;)</td></tr>
+        <tr><td>Total runs</td><td>45</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <style>
+    .results-grid { display:grid; grid-template-columns:1fr; gap:16px; margin:16px 0; }
+    @media (max-width:700px) { .results-grid { grid-template-columns:1fr; } }
+    .results-grid img { width:100%; border-radius:8px; border:1px solid var(--border); }
+    .results-grid .caption { font-size:.75rem; color:var(--faint); margin-bottom:6px; }
+  </style>
+
+  <section class="uc-section">
+    <h2>Analysis Results</h2>
+    <p>Generated from actual experiment runs using the DOE Helper Tool.</p>
+
+    <h3>Response: aroma_score</h3>
+    <p>Top factors: oak_aging (43.6%), sugar_residual (43.0%), sulfite_level (13.4%).</p>
+    <h4>ANOVA</h4>
+    <table style="font-size:.82rem;">
+      <thead><tr><th>Source</th><th>DF</th><th>SS</th><th>MS</th><th>F</th><th>p-value</th></tr></thead>
+      <tbody>
+        <tr><td>Source</td><td>DF</td><td>SS</td><td>MS</td><td>F</td><td>p-value</td></tr>
+        <tr><td>oak_aging</td><td>2</td><td>1.7678</td><td>0.8839</td><td>0.879</td><td>0.4233</td></tr>
+        <tr><td>sugar_residual</td><td>2</td><td>2.5892</td><td>1.2946</td><td>1.288</td><td>0.2876</td></tr>
+        <tr><td>sulfite_level</td><td>2</td><td>0.2131</td><td>0.1066</td><td>0.106</td><td>0.8997</td></tr>
+        <tr><td>Lack</td><td>of</td><td>Fit</td><td>6</td><td>14.3064</td><td>2.3844</td></tr>
+        <tr><td>Pure</td><td>Error</td><td>32</td><td>32.1667</td><td></td><td></td></tr>
+        <tr><td>Error</td><td>38</td><td>46.4731</td><td>1.0052</td><td></td><td></td></tr>
+        <tr><td>Total</td><td>44</td><td>51.0431</td><td>1.1601</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Response: balance_score</h3>
+    <p>Top factors: sugar_residual (60.2%), sulfite_level (25.0%), oak_aging (14.8%).</p>
+    <h4>ANOVA</h4>
+    <table style="font-size:.82rem;">
+      <thead><tr><th>Source</th><th>DF</th><th>SS</th><th>MS</th><th>F</th><th>p-value</th></tr></thead>
+      <tbody>
+        <tr><td>Source</td><td>DF</td><td>SS</td><td>MS</td><td>F</td><td>p-value</td></tr>
+        <tr><td>oak_aging</td><td>2</td><td>0.0893</td><td>0.0447</td><td>0.082</td><td>0.9214</td></tr>
+        <tr><td>sugar_residual</td><td>2</td><td>1.0941</td><td>0.5470</td><td>1.005</td><td>0.3757</td></tr>
+        <tr><td>sulfite_level</td><td>2</td><td>0.2632</td><td>0.1316</td><td>0.242</td><td>0.7865</td></tr>
+        <tr><td>Lack</td><td>of</td><td>Fit</td><td>6</td><td>2.2747</td><td>0.3791</td></tr>
+        <tr><td>Pure</td><td>Error</td><td>32</td><td>17.4267</td><td></td><td></td></tr>
+        <tr><td>Error</td><td>38</td><td>19.7014</td><td>0.5446</td><td></td><td></td></tr>
+        <tr><td>Total</td><td>44</td><td>21.1480</td><td>0.4806</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+
+  </section>
+
+
+
+
+  <!-- Multi-Objective Optimization -->
+  <section class="uc-section">
+    <h2>Multi-Objective Optimization</h2>
+    <p>When responses compete, <strong>Derringer&ndash;Suich desirability</strong> finds the best compromise.
+    Each response is scaled to a 0&ndash;1 desirability, then combined via a weighted geometric mean.</p>
+
+    <div style="text-align:center;margin:20px 0;">
+      <div style="display:inline-block;padding:16px 32px;border-radius:12px;background:linear-gradient(135deg,#f8fafc,#f1f5f9);border:2px solid #16a34a;">
+        <div style="font-size:.75rem;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;">Overall Desirability</div>
+        <div style="font-size:2.2rem;font-weight:800;color:#16a34a;line-height:1.2;">D = 0.8432</div>
+      </div>
+    </div>
+
+    <h3>Per-Response Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Weight</th><th>Desirability</th><th>Predicted</th><th>Dir</th></tr></thead>
+        <tbody>
+            <tr>
+              <td><code>aroma_score</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:74.48%;height:100%;background:#eab308;border-radius:4px;"></div>
+                  </div>
+                  <span>0.7448</span>
+                </div>
+              </td>
+              <td>7.50 0.7448        7.50 pts</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+            <tr>
+              <td><code>balance_score</code></td>
+              <td>1.5</td>
+              <td>
+                <div style="display:flex;align-items:center;gap:8px;">
+                  <div style="width:60px;height:8px;background:#e5e7eb;border-radius:4px;overflow:hidden;">
+                    <div style="width:95.45%;height:100%;background:#22c55e;border-radius:4px;"></div>
+                  </div>
+                  <span>0.9545</span>
+                </div>
+              </td>
+              <td>7.90 0.9545        7.90 pts</td>
+              <td><span style="color:#16a34a">↑</span></td>
+            </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Recommended Settings</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Factor</th><th>Value</th></tr></thead>
+        <tbody>
+            <tr><td><code>oak_aging</code></td><td>10.5 months</td></tr>
+            <tr><td><code>sugar_residual</code></td><td>1 g/L</td></tr>
+            <tr><td><code>sulfite_level</code></td><td>60 mg/L</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.78rem;color:var(--faint);margin-top:8px;">Source: from observed run #23</p>
+
+    <h3>Trade-off Summary</h3>
+    <p style="font-size:.85rem;color:var(--faint);">Sacrifice = how much worse than single-objective best.</p>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>Predicted</th><th>Best Observed</th><th>Sacrifice</th></tr></thead>
+        <tbody>
+            <tr><td><code>balance_score</code></td><td>7.90</td><td>7.90</td><td><span style="color:#16a34a;">+0.00</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Top 3 Runs by Desirability</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Run</th><th>D</th><th>Factor Settings</th></tr></thead>
+        <tbody>
+            <tr><td>#4</td><td><strong>0.8384</strong></td><td style="font-size:.78rem;">oak_aging=10.5,  sugar_residual=8,  sulfite_level=60</td></tr>
+            <tr><td>#35</td><td><strong>0.8119</strong></td><td style="font-size:.78rem;">oak_aging=18,  sugar_residual=4.5,  sulfite_level=20</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Model Quality</h3>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead><tr><th>Response</th><th>R&sup2;</th><th>Type</th></tr></thead>
+        <tbody>
+            <tr><td><code>balance_score</code></td><td style="color:#dc2626;font-weight:600;">0.1898</td><td>quadratic</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Full Multi-Objective Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize --multi</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.8432
+
+Response                  Weight Desirability    Predicted  Direction
+---------------------------------------------------------------------
+aroma_score                  1.5       0.7448        7.50 pts   ↑
+balance_score                1.5       0.9545        7.90 pts   ↑
+
+Recommended settings:
+  oak_aging = 10.5 months
+  sugar_residual = 1 g/L
+  sulfite_level = 60 mg/L
+  (from observed run #23)
+
+Trade-off summary:
+  aroma_score: 7.50 (best observed: 8.40, sacrifice: +0.90)
+  balance_score: 7.90 (best observed: 7.90, sacrifice: +0.00)
+
+Model quality:
+  aroma_score: R² = 0.0318 (linear)
+  balance_score: R² = 0.1898 (quadratic)
+
+Top 3 observed runs by overall desirability:
+  1. Run #23 (D=0.8432): oak_aging=10.5, sugar_residual=1, sulfite_level=60
+  2. Run #4 (D=0.8384): oak_aging=10.5, sugar_residual=8, sulfite_level=60
+  3. Run #35 (D=0.8119): oak_aging=18, sugar_residual=4.5, sulfite_level=20</div></div>
+  </section>
+
+
+  <section class="uc-section">
+    <h3>Full Analysis Output</h3>
+    <div class="code-block"><div class="code-header"><span>doe analyze</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Main Effects: aroma_score ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+oak_aging                0.5417       0.1606            43.6%
+sugar_residual           0.5345       0.1606            43.0%
+sulfite_level            0.1667       0.1606            13.4%
+
+=== ANOVA Table: aroma_score ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+oak_aging                    2       1.7678       0.8839      0.879     0.4233
+sugar_residual               2       2.5892       1.2946      1.288     0.2876
+sulfite_level                2       0.2131       0.1066      0.106     0.8997
+Lack of Fit                  6      14.3064       2.3844      2.372     0.0522
+Pure Error                  32      32.1667       1.0052
+Error                       38      46.4731       1.0052
+Total                       44      51.0431       1.1601
+
+=== Summary Statistics: aroma_score ===
+
+oak_aging:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10.5               21     6.4619     1.0581     4.5000     8.4000
+  18                 12     6.2167     0.8664     5.0000     7.7000
+  3                  12     6.7583     1.3014     4.6000     8.4000
+
+sugar_residual:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                  12     6.7583     0.8649     5.2000     8.4000
+  4.5                21     6.2238     1.1353     4.5000     7.8000
+  8                  12     6.6333     1.1460     5.0000     8.4000
+
+sulfite_level:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  20                 12     6.4833     1.2540     4.6000     8.4000
+  40                 21     6.5333     1.0365     4.5000     8.4000
+  60                 12     6.3667     1.0465     4.6000     7.7000
+
+=== Main Effects: balance_score ===
+Factor                   Effect    Std Error   % Contribution
+--------------------------------------------------------------
+sugar_residual           0.4250       0.1033            60.2%
+sulfite_level            0.1762       0.1033            25.0%
+oak_aging                0.1048       0.1033            14.8%
+
+=== ANOVA Table: balance_score ===
+Source                      DF           SS           MS          F    p-value
+-----------------------------------------------------------------------------
+oak_aging                    2       0.0893       0.0447      0.082     0.9214
+sugar_residual               2       1.0941       0.5470      1.005     0.3757
+sulfite_level                2       0.2632       0.1316      0.242     0.7865
+Lack of Fit                  6       2.2747       0.3791      0.696     0.6545
+Pure Error                  32      17.4267       0.5446
+Error                       38      19.7014       0.5446
+Total                       44      21.1480       0.4806
+
+=== Summary Statistics: balance_score ===
+
+oak_aging:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  10.5               21     6.6714     0.7142     5.4000     7.7000
+  18                 12     6.5667     0.5742     5.6000     7.7000
+  3                  12     6.6583     0.8107     5.4000     7.9000
+
+sugar_residual:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  1                  12     6.8667     0.6272     6.0000     7.7000
+  4.5                21     6.6238     0.8130     5.4000     7.9000
+  8                  12     6.4417     0.4776     5.6000     7.2000
+
+sulfite_level:
+  Level               N       Mean        Std        Min        Max
+  ------------------------------------------------------------
+  20                 12     6.6000     0.7663     5.4000     7.5000
+  40                 21     6.5905     0.7224     5.4000     7.7000
+  60                 12     6.7667     0.6020     5.8000     7.9000</div></div>
+
+    <h3>Optimization Recommendations</h3>
+    <div class="code-block"><div class="code-header"><span>doe optimize</span></div><div class="code-body" style="font-size:.72rem;line-height:1.5;">=== Optimization: aroma_score ===
+Direction: maximize
+
+Best observed run: #4
+  oak_aging = 10.5
+  sugar_residual = 1
+  sulfite_level = 60
+  Value: 8.4
+
+RSM Model (linear, R² = 0.0642, Adj R² = -0.0043):
+  Coefficients:
+    intercept                      +6.4756
+    oak_aging                      +0.1083
+    sugar_residual                 -0.1042
+    sulfite_level                  +0.3375
+
+RSM Model (quadratic, R² = 0.2719, Adj R² = 0.0847):
+  Coefficients:
+    intercept                      +6.4111
+    oak_aging                      +0.1083
+    sugar_residual                 -0.1042
+    sulfite_level                  +0.3375
+    oak_aging*sugar_residual       +0.0333
+    oak_aging*sulfite_level        -0.2167
+    sugar_residual*sulfite_level   +0.2250
+    oak_aging^2                    -0.0764
+    sugar_residual^2               +0.7153
+    sulfite_level^2                -0.5181
+
+  Curvature analysis:
+    sugar_residual                 coef=+0.7153  convex (has a minimum)
+    sulfite_level                  coef=-0.5181  concave (has a maximum)
+    oak_aging                      coef=-0.0764  negligible curvature
+
+  Predicted optimum (from quadratic model, at observed points):
+    oak_aging = 18
+    sugar_residual = 1
+    sulfite_level = 40
+    Predicted value: 7.2292
+
+  Surface optimum (via L-BFGS-B, quadratic model):
+    oak_aging = 14.0923
+    sugar_residual = 1
+    sulfite_level = 40.1684
+    Predicted value: 7.2490
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. sulfite_level  (effect: 0.9, contribution: 45.5%)
+  2. sugar_residual  (effect: 0.9, contribution: 43.5%)
+  3. oak_aging  (effect: 0.2, contribution: 10.9%)
+
+=== Optimization: balance_score ===
+Direction: maximize
+
+Best observed run: #23
+  oak_aging = 3
+  sugar_residual = 4.5
+  sulfite_level = 60
+  Value: 7.9
+
+RSM Model (linear, R² = 0.0762, Adj R² = 0.0086):
+  Coefficients:
+    intercept                      +6.6400
+    oak_aging                      +0.1500
+    sugar_residual                 +0.0542
+    sulfite_level                  +0.2042
+
+RSM Model (quadratic, R² = 0.1741, Adj R² = -0.0383):
+  Coefficients:
+    intercept                      +6.6778
+    oak_aging                      +0.1500
+    sugar_residual                 +0.0542
+    sulfite_level                  +0.2042
+    oak_aging*sugar_residual       -0.0833
+    oak_aging*sulfite_level        -0.1667
+    sugar_residual*sulfite_level   +0.2417
+    oak_aging^2                    +0.0319
+    sugar_residual^2               +0.1403
+    sulfite_level^2                -0.2431
+
+  Curvature analysis:
+    sulfite_level                  coef=-0.2431  concave (has a maximum)
+    sugar_residual                 coef=+0.1403  convex (has a minimum)
+    oak_aging                      coef=+0.0319  negligible curvature
+
+  Predicted optimum (from linear model, at observed points):
+    oak_aging = 18
+    sugar_residual = 4.5
+    sulfite_level = 60
+    Predicted value: 6.9942
+
+  Surface optimum (via L-BFGS-B, linear model):
+    oak_aging = 18
+    sugar_residual = 8
+    sulfite_level = 60
+    Predicted value: 7.0483
+
+  Model quality: Weak fit — consider adding center points or using a different design.
+
+Factor importance:
+  1. sulfite_level  (effect: 0.5, contribution: 47.4%)
+  2. oak_aging  (effect: 0.3, contribution: 31.0%)
+  3. sugar_residual  (effect: 0.2, contribution: 21.6%)</div></div>
+  </section>
+
+  <!-- Nav -->
+  <div class="chapter-nav">
+    <a href="306-injection-molding.html">&larr; Previous: Injection Molding Quality</a>
+    <a href="308-pcb-solder-reflow.html">Next: PCB Solder Reflow Profile &rarr;</a>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+</footer>
+<script src="../js/main.js"></script>
+<script>
+(function() {
+  var toc = document.getElementById('uc-toc-inner');
+  if (!toc) return;
+  var headings = document.querySelectorAll('.uc-section > h2, .uc-content > section > h2');
+  if (headings.length < 2) { document.getElementById('uc-toc').style.display = 'none'; return; }
+  headings.forEach(function(h, i) {
+    if (!h.id) h.id = 'sec-' + i;
+    var a = document.createElement('a');
+    a.href = '#' + h.id;
+    a.textContent = h.textContent;
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      h.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      history.replaceState(null, '', '#' + h.id);
+    });
+    toc.appendChild(a);
+  });
+  var links = toc.querySelectorAll('a');
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        links.forEach(function(a) { a.classList.remove('active'); });
+        var active = toc.querySelector('a[href="#' + entry.target.id + '"]');
+        if (active) {
+          active.classList.add('active');
+          active.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+      }
+    });
+  }, { rootMargin: '-80px 0px -70% 0px', threshold: 0 });
+  headings.forEach(function(h) { observer.observe(h); });
+  if (links.length) links[0].classList.add('active');
+})();
+</script>
+</body>
+</html>

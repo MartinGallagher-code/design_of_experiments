@@ -79,6 +79,9 @@ CATEGORIES = {
     271: "electronics", 272: "electronics", 274: "electronics", 275: "electronics", 277: "electronics", 278: "electronics", 280: "electronics",
     281: "painting", 282: "painting", 283: "painting", 284: "painting", 288: "painting",
     291: "veterinary", 292: "veterinary", 293: "veterinary", 294: "veterinary", 295: "veterinary", 297: "veterinary",
+    301: "general", 302: "painting", 303: "chemistry", 304: "general",
+    305: "cosmetics", 306: "general", 307: "brewing", 308: "electronics",
+    309: "environment", 310: "electronics",
 }
 
 def slug_to_web(slug):
@@ -818,7 +821,7 @@ def build_page(num, uc_dir):
             prev_name = prev_cfg["metadata"]["name"]
             prev_link = f'<a href="{prev_num:02d}-{prev_web}.html">&larr; Previous: {escape(prev_name)}</a>'
 
-    if next_num <= 300:
+    if next_num <= 310:
         next_dirs = glob.glob(f"use_cases/{next_num:02d}_*")
         if next_dirs:
             next_slug = os.path.basename(next_dirs[0]).split("_", 1)[1]
@@ -1253,7 +1256,7 @@ def inject_matrix_into_existing(num, uc_dir):
 
 def main():
     # Generate pages for use cases 27-300
-    for num in range(27, 301):
+    for num in range(27, 311):
         pattern = f"use_cases/{num:02d}_*" if num < 100 else f"use_cases/{num}_*"
         dirs = glob.glob(pattern)
         if dirs:
