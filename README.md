@@ -5,7 +5,7 @@
 [![Python](https://img.shields.io/pypi/pyversions/doehelper)](https://pypi.org/project/doehelper/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-Created and developed by **Martin J. Gallagher**.
+**Martin J. Gallagher**
 
 A Python CLI tool that automates the creation and analysis of experimental designs. It generates reproducible design matrices, creates executable runner scripts, and analyzes results using classical DOE techniques including ANOVA, response surface modeling, and multi-objective optimization.
 
