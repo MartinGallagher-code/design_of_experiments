@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright (C) 2026 Martin J. Gallagher, SageCor Solutions
+# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Simulated dragonfly network routing benchmark — produces msg_latency_us and throughput_GBs.
 #

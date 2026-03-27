@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (C) 2026 Martin J. Gallagher, SageCor Solutions
+# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Compiler Optimization Flags Simulator
 # Simulates execution time and binary size for various GCC flag combinations.

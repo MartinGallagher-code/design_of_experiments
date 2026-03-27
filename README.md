@@ -9,7 +9,7 @@ Created and developed by **Martin J. Gallagher**.
 
 A Python CLI tool that automates the creation and analysis of experimental designs. It generates reproducible design matrices, creates executable runner scripts, and analyzes results using classical DOE techniques including ANOVA, response surface modeling, and multi-objective optimization.
 
-The project includes **221 worked use cases** spanning HPC, cloud infrastructure, networking, food science, agriculture, manufacturing, sports, and many more domains — each with a full configuration, simulated results, and analysis walkthrough. Browse them on the [project website](https://martingallagher-code.github.io/design_of_experiments/).
+The project includes **221 worked use cases** spanning HPC, cloud infrastructure, networking, food science, agriculture, manufacturing, sports, and many more domains — each with a full configuration, simulated results, and analysis walkthrough. Browse them on the [project website](https://doehelper.com/).
 
 ## Features
 
@@ -61,41 +61,47 @@ pip install -e ".[dev]"
 ## Quick Start
 
 ```bash
+# List available built-in templates
+doe init --list
+
+# Create a new experiment from a template
+doe init --template reactor_optimization
+
 # Preview the design matrix (no files written)
-doe generate --config examples/example_config.json --dry-run
+doe generate --config config.json --dry-run
 
 # Generate a runner script
-doe generate --config examples/example_config.json --output run.sh --seed 42
+doe generate --config config.json --output run.sh --seed 42
 
 # Run the experiments
 bash run.sh
 
 # Analyze results (with ANOVA, plots, and diagnostics)
-doe analyze --config examples/example_config.json
+doe analyze --config config.json
 
 # Export analysis results to CSV
-doe analyze --config examples/example_config.json --csv results/csv
+doe analyze --config config.json --csv results/csv
 
 # Show design summary with evaluation metrics
-doe info --config examples/example_config.json
+doe info --config config.json
 
 # Get optimization recommendations (with true surface optimization)
-doe optimize --config examples/example_config.json
+doe optimize --config config.json
 
 # Multi-objective optimization using desirability functions
-doe optimize --config examples/example_config.json --multi
+doe optimize --config config.json --multi
 
 # Show steepest ascent/descent pathway
-doe optimize --config examples/example_config.json --steepest
+doe optimize --config config.json --steepest
 
 # Compute statistical power for each factor
-doe power --config examples/example_config.json --sigma 2.0 --delta 5.0
+doe power --config config.json --sigma 2.0 --delta 5.0
 
 # Augment an existing design with fold-over runs
-doe augment --config examples/example_config.json --type fold_over
+doe augment --config config.json --type fold_over
 
 # Generate an interactive HTML report
-doe report --config examples/example_config.json --output report.html
+doe report --config config.json --output report.html
 ```
 
 ## Configuration
@@ -126,7 +132,7 @@ The tool is driven by a JSON configuration file. Here is a full example:
     },
     "settings": {
         "block_count": 1,
-        "test_script": "examples/example_test_script.sh",
+        "test_script": "my_test_script.sh",
         "operation": "full_factorial",
         "processed_directory": "results/analysis",
         "out_directory": "results"
@@ -211,6 +217,16 @@ If omitted, defaults to a single response named `"response"`.
 | `mixture_simplex_centroid` | Simplex-centroid for mixture/formulation experiments | Components that sum to 1 |
 
 ## CLI Reference
+
+### `init` — Create a new experiment from a built-in template
+```
+doe init [--template NAME] [--list]
+```
+
+| Flag | Description |
+|------|-------------|
+| `--list` | List all available built-in templates |
+| `--template` | Template name (e.g. `reactor_optimization`, `coffee_brewing`) |
 
 ### `generate` — Create design and runner script
 ```
@@ -397,9 +413,6 @@ design_of_experiments/
 │   ├── runner_sh.j2        # Bash runner template (with error recovery)
 │   └── runner_py.j2        # Python runner template (with error recovery)
 ├── tests/                  # Test suite (pytest)
-├── examples/
-│   ├── example_config.json
-│   └── sysbench_config.json
 ├── website/                # Project website with 221 use case walkthroughs
 ├── pyproject.toml          # Package metadata and build config
 └── .github/workflows/

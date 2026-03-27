@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (C) 2026 Martin J. Gallagher, SageCor Solutions
+# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Generate website HTML pages for use cases 27-86 and inject experimental matrices into all use case pages (1-86)."""
 import json, os, glob, html, subprocess, re
@@ -1036,7 +1036,7 @@ def build_page(num, uc_dir):
 </div>
 
 <footer class="footer">
-  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher for <a href="https://sagecor.com/" style="margin:0;color:inherit;text-decoration:underline;">SageCor Solutions</a> &middot; GPL-3.0 &middot; 2025</span></div></div>
+  <div class="container"><div class="footer-inner"><span class="mono" style="font-size:.78rem;">doe-helper &middot; Created by Martin J. Gallagher &middot; GPL-3.0 &middot; 2025</span></div></div>
 </footer>
 <script src="../js/main.js"></script>
 <script>

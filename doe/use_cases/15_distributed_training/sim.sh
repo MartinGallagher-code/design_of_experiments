@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (C) 2026 Martin J. Gallagher, SageCor Solutions
+# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Distributed Deep Learning Scaling Simulator
 # Simulates multi-GPU training throughput and scaling efficiency for ResNet-50.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (C) 2026 Martin J. Gallagher, SageCor Solutions
+# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Design of Experiments helper tool — CLI entry point."""
 
@@ -16,7 +16,7 @@ from doe.design import generate_design
 def _print_version():
     from doe import __version__
     print(f"doe {__version__}")
-    print("Copyright (C) 2026 Martin J. Gallagher, SageCor Solutions")
+    print("Copyright (C) 2026 Martin J. Gallagher")
     print("License: GPL-3.0-or-later <https://www.gnu.org/licenses/gpl-3.0.html>")
     raise SystemExit(0)
 

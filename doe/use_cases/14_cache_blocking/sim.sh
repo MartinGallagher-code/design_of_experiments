@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (C) 2026 Martin J. Gallagher, SageCor Solutions
+# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Cache Blocking Strategy Simulator
 # Simulates DGEMM performance (GFLOPS) and cache miss rate for tile/block sizes.

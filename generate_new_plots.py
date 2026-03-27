@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Copyright (C) 2026 Martin J. Gallagher, SageCor Solutions
+# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Generate new plot types (normal, half-normal, diagnostics) for all use cases
 and copy them to website/images/ with the correct naming convention."""
