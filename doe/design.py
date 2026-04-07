@@ -28,6 +28,8 @@ def generate_design(cfg: DOEConfig, seed: int | None = None) -> DesignMatrix:
         base_runs = _mixture_simplex_lattice(cfg)
     elif cfg.operation == "mixture_simplex_centroid":
         base_runs = _mixture_simplex_centroid(cfg)
+    elif cfg.operation == "linear_sweep":
+        base_runs = _linear_sweep(cfg)
     elif cfg.operation == "log_sweep":
         base_runs = _log_sweep(cfg)
     else:
@@ -584,6 +586,39 @@ def augment_design(
             "augment_type": augment_type,
         },
     )
+
+
+def _linear_sweep(cfg: DOEConfig) -> list[ExperimentRun]:
+    """Generate a full factorial design using linearly-spaced levels.
+
+    For integer factors (dtype="int"), every integer between low and high is
+    used.  For other factors, *sweep_points* (or *lhs_samples*, or 8)
+    evenly-spaced points are generated between low and high inclusive.
+    """
+    import numpy as np
+
+    n_points = cfg.sweep_points if cfg.sweep_points > 0 else (
+        cfg.lhs_samples if cfg.lhs_samples > 0 else 8
+    )
+
+    expanded_levels = []
+    for factor in cfg.factors:
+        low = float(factor.levels[0])
+        high = float(factor.levels[1])
+        if factor.dtype == "int":
+            int_low = int(round(low))
+            int_high = int(round(high))
+            expanded_levels.append([str(v) for v in range(int_low, int_high + 1)])
+        else:
+            pts = np.linspace(low, high, n_points)
+            expanded_levels.append([f"{v:.6g}" for v in pts])
+
+    factor_names = [f.name for f in cfg.factors]
+    runs = []
+    for i, combo in enumerate(itertools.product(*expanded_levels)):
+        factor_values = dict(zip(factor_names, combo))
+        runs.append(ExperimentRun(run_id=i + 1, block_id=1, factor_values=factor_values))
+    return runs
 
 
 def _log_sweep(cfg: DOEConfig) -> list[ExperimentRun]:

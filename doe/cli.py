@@ -58,6 +58,21 @@ def _load_matrix(directory: str) -> DesignMatrix | None:
     )
 
 
+def _merge_matrix(base: DesignMatrix, new: DesignMatrix) -> DesignMatrix:
+    """Merge new adaptive runs into the base design matrix."""
+    existing_ids = {r.run_id for r in base.runs}
+    merged_runs = list(base.runs)
+    for r in new.runs:
+        if r.run_id not in existing_ids:
+            merged_runs.append(r)
+    return DesignMatrix(
+        runs=merged_runs,
+        factor_names=base.factor_names,
+        operation=base.operation,
+        metadata={**base.metadata, "n_total_runs": len(merged_runs)},
+    )
+
+
 def _results_dir_for(cfg) -> str:
     """Return the results directory for a config."""
     return cfg.out_directory or "results"
@@ -347,7 +362,12 @@ def _dispatch(args):
         else:
             from doe.codegen import generate_script
             generate_script(new_matrix, cfg, args.output, format=args.format)
+            # Merge new runs into the saved matrix so analyze sees them
+            merged = _merge_matrix(matrix, new_matrix)
+            out_dir = args.results_dir or _results_dir_for(cfg)
+            _save_matrix(merged, out_dir)
             print(f"Phase {state.phase}: generated {len(new_matrix.runs)} new runs -> {args.output}")
+            print(f"Design matrix updated: {len(merged.runs)} total runs")
 
 
 def _no_results_message(cfg, matrix):

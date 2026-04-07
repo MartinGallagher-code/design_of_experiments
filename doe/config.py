@@ -16,6 +16,7 @@ SUPPORTED_OPERATIONS = {
     "d_optimal",
     "mixture_simplex_lattice",
     "mixture_simplex_centroid",
+    "linear_sweep",
     "log_sweep",
 }
 
@@ -235,6 +236,22 @@ def _validate_config(cfg: DOEConfig, strict: bool = True) -> None:
             except ValueError:
                 raise ValueError(
                     f"Definitive Screening Design requires numeric levels, "
+                    f"but factor '{f.name}' has non-numeric levels: {f.levels}"
+                )
+
+    if cfg.operation == "linear_sweep":
+        for f in cfg.factors:
+            if len(f.levels) != 2:
+                raise ValueError(
+                    f"linear_sweep requires exactly 2 levels (min, max) per factor, "
+                    f"but factor '{f.name}' has {len(f.levels)}: {f.levels}"
+                )
+            try:
+                float(f.levels[0])
+                float(f.levels[1])
+            except ValueError:
+                raise ValueError(
+                    f"linear_sweep requires numeric levels, "
                     f"but factor '{f.name}' has non-numeric levels: {f.levels}"
                 )
 
