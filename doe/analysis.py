@@ -235,7 +235,10 @@ def _compute_main_effects(
             level = run.factor_values[factor_name]
             level_responses.setdefault(level, []).append(responses[run.run_id])
 
-        levels = sorted(level_responses.keys())
+        try:
+            levels = sorted(level_responses.keys(), key=lambda x: float(x))
+        except (ValueError, TypeError):
+            levels = sorted(level_responses.keys())
         if len(levels) == 2:
             low_mean = sum(level_responses[levels[0]]) / len(level_responses[levels[0]])
             high_mean = sum(level_responses[levels[1]]) / len(level_responses[levels[1]])
@@ -620,7 +623,10 @@ def _compute_ordinal_trends(
             level = run.factor_values[fname]
             level_responses.setdefault(level, []).append(responses[run.run_id])
 
-        levels = sorted(level_responses.keys())
+        try:
+            levels = sorted(level_responses.keys(), key=lambda x: float(x))
+        except (ValueError, TypeError):
+            levels = sorted(level_responses.keys())
         k = len(levels)
         if k < 3:
             continue
@@ -799,7 +805,10 @@ def plot_main_effects(
             level = run.factor_values[factor_name]
             level_responses.setdefault(level, []).append(responses[run.run_id])
 
-        levels = sorted(level_responses.keys())
+        try:
+            levels = sorted(level_responses.keys(), key=lambda x: float(x))
+        except (ValueError, TypeError):
+            levels = sorted(level_responses.keys())
         means = [sum(level_responses[lv]) / len(level_responses[lv]) for lv in levels]
 
         ax.plot(levels, means, "o-", color="steelblue", linewidth=2, markersize=6)
