@@ -10,6 +10,7 @@ class Factor:
     type: str = "categorical"   # categorical | continuous | ordinal
     description: str = ""
     unit: str = ""
+    dtype: str = ""             # "" (auto) | "int" | "float"
 
 
 @dataclass

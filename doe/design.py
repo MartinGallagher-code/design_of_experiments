@@ -603,7 +603,11 @@ def _log_sweep(cfg: DOEConfig) -> list[ExperimentRun]:
         low = float(factor.levels[0])
         high = float(factor.levels[1])
         log_levels = np.logspace(np.log10(low), np.log10(high), n_points)
-        expanded_levels.append([f"{v:.6g}" for v in log_levels])
+        if factor.dtype == "int":
+            int_levels = sorted(set(int(round(v)) for v in log_levels))
+            expanded_levels.append([str(v) for v in int_levels])
+        else:
+            expanded_levels.append([f"{v:.6g}" for v in log_levels])
 
     factor_names = [f.name for f in cfg.factors]
     runs = []

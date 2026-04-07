@@ -13,6 +13,14 @@ from .models import (
 )
 
 
+def _numeric_sort_key(x):
+    """Sort key that orders numeric strings numerically, falling back to lexicographic."""
+    try:
+        return (0, float(x))
+    except (ValueError, TypeError):
+        return (1, x)
+
+
 def analyze(
     matrix: DesignMatrix,
     cfg: DOEConfig,
@@ -235,10 +243,7 @@ def _compute_main_effects(
             level = run.factor_values[factor_name]
             level_responses.setdefault(level, []).append(responses[run.run_id])
 
-        try:
-            levels = sorted(level_responses.keys(), key=lambda x: float(x))
-        except (ValueError, TypeError):
-            levels = sorted(level_responses.keys())
+        levels = sorted(level_responses.keys(), key=_numeric_sort_key)
         if len(levels) == 2:
             low_mean = sum(level_responses[levels[0]]) / len(level_responses[levels[0]])
             high_mean = sum(level_responses[levels[1]]) / len(level_responses[levels[1]])
@@ -305,8 +310,8 @@ def _compute_interaction_effects(
 
     interactions: list[InteractionEffect] = []
     for fa, fb in combinations(two_level_factors, 2):
-        levels_a = sorted(factor_levels[fa])
-        levels_b = sorted(factor_levels[fb])
+        levels_a = sorted(factor_levels[fa], key=_numeric_sort_key)
+        levels_b = sorted(factor_levels[fb], key=_numeric_sort_key)
 
         # Both high or both low (concordant) vs one high one low (discordant)
         concordant: list[float] = []
@@ -355,7 +360,7 @@ def _compute_summary_stats(
             level_responses.setdefault(level, []).append(responses[run.run_id])
 
         stats[factor_name] = {}
-        for level, vals in sorted(level_responses.items()):
+        for level, vals in sorted(level_responses.items(), key=lambda item: _numeric_sort_key(item[0])):
             n = len(vals)
             mean = sum(vals) / n
             variance = sum((v - mean) ** 2 for v in vals) / max(n - 1, 1)
@@ -623,10 +628,7 @@ def _compute_ordinal_trends(
             level = run.factor_values[fname]
             level_responses.setdefault(level, []).append(responses[run.run_id])
 
-        try:
-            levels = sorted(level_responses.keys(), key=lambda x: float(x))
-        except (ValueError, TypeError):
-            levels = sorted(level_responses.keys())
+        levels = sorted(level_responses.keys(), key=_numeric_sort_key)
         k = len(levels)
         if k < 3:
             continue
@@ -805,10 +807,7 @@ def plot_main_effects(
             level = run.factor_values[factor_name]
             level_responses.setdefault(level, []).append(responses[run.run_id])
 
-        try:
-            levels = sorted(level_responses.keys(), key=lambda x: float(x))
-        except (ValueError, TypeError):
-            levels = sorted(level_responses.keys())
+        levels = sorted(level_responses.keys(), key=_numeric_sort_key)
         means = [sum(level_responses[lv]) / len(level_responses[lv]) for lv in levels]
 
         ax.plot(levels, means, "o-", color="steelblue", linewidth=2, markersize=6)
@@ -1174,7 +1173,7 @@ def export_csv(report: AnalysisReport, output_dir: str) -> list[str]:
             writer = csv.writer(f)
             writer.writerow(["factor", "level", "n", "mean", "std", "min", "max"])
             for factor, levels in analysis.summary_stats.items():
-                for level, s in sorted(levels.items()):
+                for level, s in sorted(levels.items(), key=lambda item: _numeric_sort_key(item[0])):
                     writer.writerow([factor, level, s["n"], s["mean"], s["std"], s["min"], s["max"]])
         created.append(stats_path)
 

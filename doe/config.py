@@ -74,6 +74,7 @@ def _parse_factors(raw: list) -> list[Factor]:
                 type=item.get("type", "categorical"),
                 description=item.get("description", ""),
                 unit=item.get("unit", ""),
+                dtype=item.get("dtype", ""),
             ))
         elif isinstance(item, list):
             # legacy array format: ["name", "val1", "val2", ...]
