@@ -8,7 +8,8 @@ import numpy as np
 
 from .models import (
     AnalysisReport, AnovaRow, AnovaTable, DesignMatrix, DOEConfig,
-    EffectResult, ExperimentRun, InteractionEffect, ResponseAnalysis,
+    EffectResult, ExperimentRun, InteractionEffect, KneePointResult,
+    OrdinalTrendResult, ResponseAnalysis,
 )
 
 
@@ -19,6 +20,7 @@ def analyze(
     no_plots: bool = False,
     pareto_threshold: float = 80,
     partial: bool = False,
+    detect_knee: bool = False,
 ) -> AnalysisReport:
     results_dir = results_dir or cfg.out_directory or "results"
     processed_dir = cfg.processed_directory or results_dir
@@ -31,6 +33,9 @@ def analyze(
     normal_plot_paths: dict[str, str] = {}
     half_normal_plot_paths: dict[str, str] = {}
     diagnostics_plot_paths: dict[str, str] = {}
+    knee_point_results: dict[str, list[KneePointResult]] = {}
+    knee_point_plot_paths: dict[str, str] = {}
+    ordinal_trend_plot_paths: dict[str, str] = {}
 
     for resp in cfg.responses:
         responses: dict[int, float] = {}
@@ -66,12 +71,32 @@ def analyze(
             except Exception:
                 pass  # graceful fallback if ANOVA fails
 
+        # Ordinal trend analysis
+        ms_error = 0.0
+        df_error = 0
+        if anova_table and anova_table.error_row:
+            ms_error = anova_table.error_row.ms
+            df_error = anova_table.error_row.df
+        ordinal_trends = _compute_ordinal_trends(
+            valid_runs, responses, cfg.factors, matrix.factor_names,
+            resp.name, ms_error, df_error,
+        )
+
+        # Knee-point detection
+        if detect_knee:
+            knee_results = _detect_knee_points(
+                valid_runs, responses, cfg.factors, matrix.factor_names, resp.name,
+            )
+            if knee_results:
+                knee_point_results[resp.name] = knee_results
+
         results_by_response[resp.name] = ResponseAnalysis(
             response_name=resp.name,
             effects=effects,
             summary_stats=summary_stats,
             interactions=interactions,
             anova_table=anova_table,
+            ordinal_trends=ordinal_trends,
         )
 
         if not no_plots:
@@ -139,6 +164,9 @@ def analyze(
         normal_plot_paths=normal_plot_paths,
         half_normal_plot_paths=half_normal_plot_paths,
         diagnostics_plot_paths=diagnostics_plot_paths,
+        knee_point_results=knee_point_results,
+        knee_point_plot_paths=knee_point_plot_paths,
+        ordinal_trend_plot_paths=ordinal_trend_plot_paths,
     )
 
 
@@ -560,6 +588,162 @@ def _compute_anova(
         pure_error_row=pure_error_row,
         error_method=error_method,
     )
+
+
+def _compute_ordinal_trends(
+    runs: list[ExperimentRun],
+    responses: dict[int, float],
+    factors: list,
+    factor_names: list[str],
+    response_name: str,
+    ms_error: float = 0.0,
+    df_error: int = 0,
+) -> list[OrdinalTrendResult]:
+    """Compute linear and quadratic trend tests for ordinal factors with 3+ levels."""
+    try:
+        from scipy.stats import f as f_dist
+        _has_scipy = True
+    except ImportError:
+        _has_scipy = False
+
+    factor_map = {f.name: f for f in factors}
+    results = []
+
+    for fname in factor_names:
+        factor = factor_map.get(fname)
+        if not factor or factor.type != "ordinal":
+            continue
+
+        # Group responses by level
+        level_responses: dict[str, list[float]] = {}
+        for run in runs:
+            level = run.factor_values[fname]
+            level_responses.setdefault(level, []).append(responses[run.run_id])
+
+        levels = sorted(level_responses.keys())
+        k = len(levels)
+        if k < 3:
+            continue
+
+        means = [sum(level_responses[lv]) / len(level_responses[lv]) for lv in levels]
+        ns = [len(level_responses[lv]) for lv in levels]
+        n_total = sum(ns)
+
+        # Orthogonal polynomial contrasts for equally-spaced ordinal levels
+        # Use integer positions as the ordinal encoding
+        positions = list(range(k))
+        pos_mean = sum(positions) / k
+
+        # Linear contrast coefficients: centered positions
+        linear_c = [p - pos_mean for p in positions]
+        # Quadratic contrast: c_i = x_i^2 - mean(x^2)
+        sq_mean = sum(p ** 2 for p in positions) / k
+        quadratic_c = [p ** 2 - sq_mean for p in positions]
+
+        # SS_contrast = (sum(c_i * mean_i))^2 * n_per / sum(c_i^2)
+        # For unbalanced, use weighted version
+        linear_sum = sum(c * m for c, m in zip(linear_c, means))
+        linear_c_ss = sum(c ** 2 for c in linear_c)
+        n_harm = k / sum(1.0 / ni for ni in ns) if all(ni > 0 for ni in ns) else min(ns)
+
+        linear_ss = (linear_sum ** 2) * n_harm / linear_c_ss if linear_c_ss > 0 else 0.0
+        linear_coeff = linear_sum / linear_c_ss if linear_c_ss > 0 else 0.0
+
+        quadratic_sum = sum(c * m for c, m in zip(quadratic_c, means))
+        quadratic_c_ss = sum(c ** 2 for c in quadratic_c)
+        quadratic_ss = (quadratic_sum ** 2) * n_harm / quadratic_c_ss if quadratic_c_ss > 0 else 0.0
+        quadratic_coeff = quadratic_sum / quadratic_c_ss if quadratic_c_ss > 0 else 0.0
+
+        # R-squared values
+        grand_mean = sum(m * n for m, n in zip(means, ns)) / n_total
+        ss_total = sum(n * (m - grand_mean) ** 2 for m, n in zip(means, ns))
+        r2_lin = linear_ss / ss_total if ss_total > 0 else 0.0
+        r2_quad = (linear_ss + quadratic_ss) / ss_total if ss_total > 0 else 0.0
+
+        # F-tests
+        linear_f = None
+        linear_p = None
+        quadratic_f = None
+        quadratic_p = None
+        if ms_error > 0 and df_error > 0:
+            linear_f = linear_ss / ms_error
+            quadratic_f = quadratic_ss / ms_error
+            if _has_scipy:
+                linear_p = float(f_dist.sf(linear_f, 1, df_error))
+                quadratic_p = float(f_dist.sf(quadratic_f, 1, df_error))
+
+        results.append(OrdinalTrendResult(
+            factor_name=fname,
+            response_name=response_name,
+            linear_coefficient=linear_coeff,
+            linear_ss=linear_ss,
+            linear_f_value=linear_f,
+            linear_p_value=linear_p,
+            quadratic_coefficient=quadratic_coeff,
+            quadratic_ss=quadratic_ss,
+            quadratic_f_value=quadratic_f,
+            quadratic_p_value=quadratic_p,
+            r_squared_linear=r2_lin,
+            r_squared_quadratic=r2_quad,
+        ))
+
+    return results
+
+
+def _detect_knee_points(
+    runs: list[ExperimentRun],
+    responses: dict[int, float],
+    factors: list,
+    factor_names: list[str],
+    response_name: str,
+) -> list[KneePointResult]:
+    """Detect saturation/knee points for ordinal/continuous factors with 3+ levels."""
+    from .knee import detect_knee_point
+
+    factor_map = {f.name: f for f in factors}
+    results = []
+
+    for fname in factor_names:
+        factor = factor_map.get(fname)
+        if not factor or factor.type not in ("ordinal", "continuous"):
+            continue
+
+        # Group responses by level
+        level_responses: dict[str, list[float]] = {}
+        for run in runs:
+            level = run.factor_values[fname]
+            level_responses.setdefault(level, []).append(responses[run.run_id])
+
+        # Need 3+ distinct levels
+        if len(level_responses) < 3:
+            continue
+
+        # Try to convert levels to numeric
+        try:
+            numeric_levels = [(float(lv), sum(vals) / len(vals))
+                              for lv, vals in level_responses.items()]
+        except ValueError:
+            continue
+
+        numeric_levels.sort(key=lambda x: x[0])
+        factor_values = [x[0] for x in numeric_levels]
+        response_values = [x[1] for x in numeric_levels]
+
+        knee = detect_knee_point(factor_values, response_values)
+        if knee is not None:
+            results.append(KneePointResult(
+                factor_name=fname,
+                response_name=response_name,
+                knee_value=knee.knee_value,
+                knee_response=knee.knee_response,
+                ci_low=knee.ci_low,
+                ci_high=knee.ci_high,
+                r_squared=knee.r_squared,
+                segment1_slope=knee.segment1_slope,
+                segment2_slope=knee.segment2_slope,
+            ))
+
+    return results
 
 
 def plot_pareto(

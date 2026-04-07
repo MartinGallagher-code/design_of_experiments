@@ -47,6 +47,7 @@ def main():
     ana.add_argument("--no-report", action="store_true", help="Skip generating the HTML report")
     ana.add_argument("--csv", default=None, metavar="DIR", help="Export analysis results to CSV files in DIR")
     ana.add_argument("--partial", action="store_true", help="Analyze only completed runs, skipping missing results")
+    ana.add_argument("--knee", action="store_true", help="Detect saturation/knee points in response curves")
 
     # --- info ---
     info = subparsers.add_parser("info", help="Show design info without generating anything")
@@ -113,6 +114,18 @@ def main():
     ew.add_argument("--output", default=None, metavar="FILE", help="Output file path (default: stdout)")
     ew.add_argument("--seed", type=int, default=42, help="Random seed for run order (default: 42)")
 
+    # --- next-batch ---
+    nb = subparsers.add_parser("next-batch", help="Generate next batch of adaptive experiment runs")
+    nb.add_argument("--config", required=True, metavar="FILE", help="Input JSON config file")
+    nb.add_argument("--results-dir", default=None, help="Override out_directory from config")
+    nb.add_argument("--strategy", choices=["refine", "explore", "balanced"], default=None,
+                    help="Override strategy from config")
+    nb.add_argument("--batch-size", type=int, default=None, help="Override batch size from config")
+    nb.add_argument("--output", default="run_next_batch.sh", help="Output script path")
+    nb.add_argument("--format", choices=["sh", "py"], default="sh", help="Script format")
+    nb.add_argument("--seed", type=int, default=None, help="Random seed")
+    nb.add_argument("--partial", action="store_true", help="Analyze only completed runs")
+
     args = parser.parse_args()
 
     if args.version:
@@ -157,7 +170,7 @@ def _dispatch(args):
         matrix = generate_design(cfg)
         try:
             from doe.analysis import analyze
-            report = analyze(matrix, cfg, results_dir=args.results_dir, no_plots=args.no_plots, partial=args.partial)
+            report = analyze(matrix, cfg, results_dir=args.results_dir, no_plots=args.no_plots, partial=args.partial, detect_knee=args.knee)
         except FileNotFoundError:
             _no_results_message(cfg, matrix)
             return
@@ -242,6 +255,31 @@ def _dispatch(args):
         cfg = load_config(args.config)
         matrix = generate_design(cfg, seed=args.seed)
         _handle_export_worksheet(matrix, cfg, fmt=args.format, output_path=args.output)
+
+    elif args.command == "next-batch":
+        cfg = load_config(args.config)
+        matrix = generate_design(cfg)
+        from doe.adaptive import plan_next_batch, AdaptiveConfig
+        adaptive_cfg = cfg.adaptive if cfg.adaptive else AdaptiveConfig()
+        if args.strategy:
+            adaptive_cfg.strategy = args.strategy
+        if args.batch_size:
+            adaptive_cfg.batch_size = args.batch_size
+        try:
+            new_matrix, state = plan_next_batch(
+                matrix, cfg, adaptive_cfg,
+                results_dir=args.results_dir, seed=args.seed,
+            )
+        except FileNotFoundError:
+            _no_results_message(cfg, matrix)
+            return
+        if state.should_stop:
+            print(f"Stopping recommended: {state.stop_reason}")
+            print(f"Completed {state.phase} phases with {state.total_runs} total runs.")
+        else:
+            from doe.codegen import generate_script
+            generate_script(new_matrix, cfg, args.output, format=args.format)
+            print(f"Phase {state.phase}: generated {len(new_matrix.runs)} new runs -> {args.output}")
 
 
 def _no_results_message(cfg, matrix):
@@ -826,6 +864,24 @@ def _print_report(report):
             print(f"  {'-'*60}")
             for level, s in levels.items():
                 print(f"  {level:<15} {s['n']:>5} {s['mean']:>10.4f} {s['std']:>10.4f} {s['min']:>10.4f} {s['max']:>10.4f}")
+
+        if analysis.ordinal_trends:
+            print(f"\n=== Ordinal Trends: {resp_name} ===")
+            print(f"{'Factor':<20} {'Linear Coeff':>14} {'Lin SS':>10} {'Lin F':>10} {'Lin p':>10} {'Quad Coeff':>14} {'R² (L+Q)':>10}")
+            print("-" * 102)
+            for t in analysis.ordinal_trends:
+                f_str = f"{t.linear_f_value:.3f}" if t.linear_f_value is not None else ""
+                p_str = f"{t.linear_p_value:.4f}" if t.linear_p_value is not None else ""
+                print(f"{t.factor_name:<20} {t.linear_coefficient:>14.4f} {t.linear_ss:>10.4f} {f_str:>10} {p_str:>10} {t.quadratic_coefficient:>14.4f} {t.r_squared_quadratic:>10.4f}")
+
+    if report.knee_point_results:
+        print(f"\n=== Knee-Point / Saturation Detection ===")
+        for resp_name, knees in report.knee_point_results.items():
+            for k in knees:
+                print(f"  {k.factor_name} -> {resp_name}: knee at {k.knee_value:.4g} "
+                      f"(95% CI: [{k.ci_low:.4g}, {k.ci_high:.4g}]), "
+                      f"R²={k.r_squared:.3f}, "
+                      f"slopes: {k.segment1_slope:.4g} -> {k.segment2_slope:.4g}")
 
     for resp_name, path in report.pareto_chart_paths.items():
         print(f"\nPareto chart ({resp_name}): {path}")

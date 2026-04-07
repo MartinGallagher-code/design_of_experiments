@@ -1,0 +1,60 @@
+{
+    "metadata": {
+        "name": "Thread Saturation Study",
+        "description": "Determine the thread count at which throughput saturates using log-spaced sweep with adaptive refinement"
+    },
+    "factors": [
+        {
+            "name": "thread_count",
+            "levels": ["1", "64"],
+            "type": "ordinal",
+            "unit": "threads",
+            "description": "Number of worker threads"
+        }
+    ],
+    "fixed_factors": {
+        "workload": "matrix_multiply",
+        "matrix_size": "2048",
+        "duration_sec": "30"
+    },
+    "responses": [
+        {
+            "name": "throughput",
+            "optimize": "maximize",
+            "unit": "ops/sec",
+            "description": "Operations completed per second"
+        },
+        {
+            "name": "cpu_util",
+            "optimize": "maximize",
+            "unit": "%",
+            "description": "Average CPU utilization",
+            "weight": 0.5
+        },
+        {
+            "name": "p99_latency",
+            "optimize": "minimize",
+            "unit": "ms",
+            "description": "99th percentile latency",
+            "weight": 0.8
+        }
+    ],
+    "runner": {
+        "arg_style": "double-dash"
+    },
+    "settings": {
+        "operation": "log_sweep",
+        "sweep_points": 7,
+        "block_count": 3,
+        "test_script": "./thread_saturation/bench.sh",
+        "out_directory": "./thread_saturation/results",
+        "processed_directory": "./thread_saturation/results/analysis"
+    },
+    "adaptive": {
+        "strategy": "balanced",
+        "batch_size": 4,
+        "stopping_max_phases": 3,
+        "stopping_effect_threshold": 0.5,
+        "response_name": "throughput"
+    }
+}

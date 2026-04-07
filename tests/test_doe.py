@@ -1537,3 +1537,375 @@ class TestOptimize:
         assert len(importance_lines) == 2
         assert "A" in importance_lines[0]
         assert "B" in importance_lines[1]
+
+
+# ===================================================================
+# LOG SWEEP TESTS
+# ===================================================================
+
+class TestLogSweep:
+
+    def test_log_sweep_single_factor(self, tmp_path):
+        """Single factor [1, 1000] with 4 sweep points -> log-spaced values."""
+        cfg_dict = _make_config_dict(
+            factors=[{"name": "threads", "levels": ["1", "1000"], "type": "continuous"}],
+            operation="log_sweep",
+        )
+        cfg_dict["settings"]["sweep_points"] = 4
+        path = _write_config(tmp_path, cfg_dict)
+        cfg = load_config(path, strict=False)
+        matrix = generate_design(cfg)
+        assert len(matrix.runs) == 4
+        # Values should be approximately 1, 10, 100, 1000
+        values = [float(r.factor_values["threads"]) for r in sorted(matrix.runs, key=lambda r: float(r.factor_values["threads"]))]
+        assert math.isclose(values[0], 1.0, rel_tol=0.01)
+        assert math.isclose(values[1], 10.0, rel_tol=0.01)
+        assert math.isclose(values[2], 100.0, rel_tol=0.01)
+        assert math.isclose(values[3], 1000.0, rel_tol=0.01)
+
+    def test_log_sweep_multi_factor(self, tmp_path):
+        """Two factors with 3 sweep points -> 9 runs (3x3)."""
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "threads", "levels": ["1", "100"], "type": "continuous"},
+                {"name": "batch", "levels": ["10", "1000"], "type": "continuous"},
+            ],
+            operation="log_sweep",
+        )
+        cfg_dict["settings"]["sweep_points"] = 3
+        path = _write_config(tmp_path, cfg_dict)
+        cfg = load_config(path, strict=False)
+        matrix = generate_design(cfg)
+        assert len(matrix.runs) == 9  # 3 * 3
+
+    def test_log_sweep_validates_positive_levels(self, tmp_path):
+        cfg_dict = _make_config_dict(
+            factors=[{"name": "x", "levels": ["0", "10"], "type": "continuous"}],
+            operation="log_sweep",
+        )
+        path = _write_config(tmp_path, cfg_dict)
+        with pytest.raises(ValueError, match="positive"):
+            load_config(path, strict=False)
+
+    def test_log_sweep_validates_numeric_levels(self, tmp_path):
+        cfg_dict = _make_config_dict(
+            factors=[{"name": "x", "levels": ["low", "high"], "type": "categorical"}],
+            operation="log_sweep",
+        )
+        path = _write_config(tmp_path, cfg_dict)
+        with pytest.raises(ValueError, match="numeric"):
+            load_config(path, strict=False)
+
+    def test_log_sweep_validates_two_levels(self, tmp_path):
+        cfg_dict = _make_config_dict(
+            factors=[{"name": "x", "levels": ["1", "10", "100"], "type": "continuous"}],
+            operation="log_sweep",
+        )
+        path = _write_config(tmp_path, cfg_dict)
+        with pytest.raises(ValueError, match="exactly 2 levels"):
+            load_config(path, strict=False)
+
+    def test_log_sweep_default_points(self, tmp_path):
+        """When sweep_points and lhs_samples are 0, should default to 8."""
+        cfg_dict = _make_config_dict(
+            factors=[{"name": "x", "levels": ["1", "100"], "type": "continuous"}],
+            operation="log_sweep",
+        )
+        path = _write_config(tmp_path, cfg_dict)
+        cfg = load_config(path, strict=False)
+        matrix = generate_design(cfg)
+        assert len(matrix.runs) == 8
+
+
+# ===================================================================
+# ORDINAL TREND TESTS
+# ===================================================================
+
+class TestOrdinalTrends:
+
+    def test_ordinal_trend_linear(self, tmp_path):
+        """3-level ordinal factor with perfectly linear response."""
+        factors = [Factor(name="speed", levels=["1", "2", "3"], type="ordinal")]
+        responses = [ResponseVar(name="output")]
+        cfg = _make_doe_config(factors=factors, responses=responses, operation="full_factorial", block_count=1)
+        matrix = generate_design(cfg)
+        results_dir = str(tmp_path / "results")
+        # Linear response: output = 10 * speed_level
+        response_map = {}
+        for run in matrix.runs:
+            val = float(run.factor_values["speed"])
+            response_map[run.run_id] = {"output": val * 10}
+        _write_result_files(results_dir, response_map)
+
+        report = analyze(matrix, cfg, results_dir=results_dir, no_plots=True)
+        analysis = report.results_by_response["output"]
+        assert len(analysis.ordinal_trends) == 1
+        trend = analysis.ordinal_trends[0]
+        assert trend.factor_name == "speed"
+        assert trend.linear_coefficient != 0
+        assert trend.r_squared_linear > 0.9
+
+    def test_ordinal_trend_quadratic(self, tmp_path):
+        """3-level ordinal factor with U-shaped response."""
+        factors = [Factor(name="temp", levels=["1", "2", "3"], type="ordinal")]
+        responses = [ResponseVar(name="yield")]
+        cfg = _make_doe_config(factors=factors, responses=responses, operation="full_factorial", block_count=2)
+        matrix = generate_design(cfg)
+        results_dir = str(tmp_path / "results")
+        # U-shaped: yield = (speed - 2)^2 + 5
+        response_map = {}
+        for run in matrix.runs:
+            val = float(run.factor_values["temp"])
+            response_map[run.run_id] = {"yield": (val - 2) ** 2 + 5}
+        _write_result_files(results_dir, response_map)
+
+        report = analyze(matrix, cfg, results_dir=results_dir, no_plots=True)
+        analysis = report.results_by_response["yield"]
+        assert len(analysis.ordinal_trends) == 1
+        trend = analysis.ordinal_trends[0]
+        assert trend.quadratic_ss > 0
+
+    def test_ordinal_trend_skips_categorical(self, tmp_path):
+        """Categorical factors should produce no ordinal trends."""
+        factors = [
+            Factor(name="color", levels=["red", "green", "blue"], type="categorical"),
+        ]
+        responses = [ResponseVar(name="score")]
+        cfg = _make_doe_config(factors=factors, responses=responses)
+        matrix = generate_design(cfg)
+        results_dir = str(tmp_path / "results")
+        response_map = {r.run_id: {"score": float(i)} for i, r in enumerate(matrix.runs)}
+        _write_result_files(results_dir, response_map)
+
+        report = analyze(matrix, cfg, results_dir=results_dir, no_plots=True)
+        analysis = report.results_by_response["score"]
+        assert len(analysis.ordinal_trends) == 0
+
+    def test_ordinal_trend_skips_2_level(self, tmp_path):
+        """2-level ordinal factors should produce no trends (need 3+)."""
+        factors = [Factor(name="speed", levels=["1", "2"], type="ordinal")]
+        responses = [ResponseVar(name="output")]
+        cfg = _make_doe_config(factors=factors, responses=responses)
+        matrix = generate_design(cfg)
+        results_dir = str(tmp_path / "results")
+        response_map = {r.run_id: {"output": float(r.factor_values["speed"])} for r in matrix.runs}
+        _write_result_files(results_dir, response_map)
+
+        report = analyze(matrix, cfg, results_dir=results_dir, no_plots=True)
+        analysis = report.results_by_response["output"]
+        assert len(analysis.ordinal_trends) == 0
+
+
+# ===================================================================
+# KNEE-POINT DETECTION TESTS
+# ===================================================================
+
+class TestKneePointDetection:
+
+    def test_knee_detection_obvious_saturation(self):
+        """Obvious saturation curve should detect knee near the correct value."""
+        from doe.knee import detect_knee_point
+        # Throughput saturates around x=8
+        factor_values = [1, 2, 4, 8, 16, 32, 64]
+        response_values = [10, 20, 38, 42, 43, 43.5, 43.8]
+        result = detect_knee_point(factor_values, response_values)
+        assert result is not None
+        # Knee should be near 4-8 range
+        assert 2 <= result.knee_value <= 16
+        assert result.r_squared > 0.5
+
+    def test_knee_detection_no_knee(self):
+        """Perfectly linear response should have similar slopes."""
+        from doe.knee import detect_knee_point
+        factor_values = [1, 2, 3, 4, 5]
+        response_values = [10, 20, 30, 40, 50]
+        result = detect_knee_point(factor_values, response_values)
+        if result is not None:
+            # Slopes should be similar (no real knee)
+            assert abs(result.segment1_slope - result.segment2_slope) < 5
+
+    def test_knee_detection_confidence_interval(self):
+        """CI should bracket the knee value."""
+        from doe.knee import detect_knee_point
+        factor_values = [1, 2, 4, 8, 16, 32]
+        response_values = [5, 10, 18, 21, 22, 22.5]
+        result = detect_knee_point(factor_values, response_values)
+        assert result is not None
+        assert result.ci_low <= result.knee_value <= result.ci_high
+
+    def test_knee_detection_too_few_points(self):
+        """Less than 3 points should return None."""
+        from doe.knee import detect_knee_point
+        result = detect_knee_point([1, 2], [10, 20])
+        assert result is None
+
+    def test_knee_detection_in_analyze(self, tmp_path):
+        """Knee detection integrates with analyze() when detect_knee=True."""
+        factors = [Factor(name="threads", levels=["1", "2", "4", "8", "16", "32", "64"],
+                          type="ordinal", unit="threads")]
+        responses = [ResponseVar(name="throughput", optimize="maximize")]
+        cfg = _make_doe_config(factors=factors, responses=responses, operation="full_factorial")
+        matrix = generate_design(cfg)
+        results_dir = str(tmp_path / "results")
+        # Saturating response
+        saturation_map = {"1": 10, "2": 20, "4": 38, "8": 42, "16": 43, "32": 43.5, "64": 43.8}
+        response_map = {}
+        for run in matrix.runs:
+            t = run.factor_values["threads"]
+            response_map[run.run_id] = {"throughput": saturation_map[t]}
+        _write_result_files(results_dir, response_map)
+
+        report = analyze(matrix, cfg, results_dir=results_dir, no_plots=True, detect_knee=True)
+        assert "throughput" in report.knee_point_results
+        assert len(report.knee_point_results["throughput"]) >= 1
+
+    def test_knee_plot_creates_file(self, tmp_path):
+        """Verify PNG is created by plot_knee_point."""
+        from doe.knee import detect_knee_point, plot_knee_point
+        factor_values = [1, 2, 4, 8, 16, 32]
+        response_values = [5, 10, 18, 21, 22, 22.5]
+        result = detect_knee_point(factor_values, response_values)
+        assert result is not None
+        output_path = str(tmp_path / "knee.png")
+        plot_knee_point(factor_values, response_values, result, output_path,
+                       factor_name="threads", response_name="throughput")
+        assert os.path.exists(output_path)
+
+
+# ===================================================================
+# ADAPTIVE EXPERIMENTATION TESTS
+# ===================================================================
+
+class TestAdaptiveExperimentation:
+
+    def _setup_initial_results(self, tmp_path):
+        """Create a simple experiment with initial results."""
+        factors = [
+            Factor(name="A", levels=["1", "10"], type="continuous"),
+            Factor(name="B", levels=["1", "10"], type="continuous"),
+        ]
+        responses = [ResponseVar(name="y", optimize="maximize")]
+        cfg = _make_doe_config(factors=factors, responses=responses, operation="full_factorial")
+        matrix = generate_design(cfg)
+        results_dir = str(tmp_path / "results")
+        # Response: y = A + B (so higher is better)
+        response_map = {}
+        for run in matrix.runs:
+            a = float(run.factor_values["A"])
+            b = float(run.factor_values["B"])
+            response_map[run.run_id] = {"y": a + b}
+        _write_result_files(results_dir, response_map)
+        cfg_with_dir = _make_doe_config(factors=factors, responses=responses, operation="full_factorial")
+        cfg_with_dir.out_directory = results_dir
+        return cfg_with_dir, matrix, results_dir
+
+    def test_adaptive_refine_contracts_space(self, tmp_path):
+        """Refine strategy should produce points near the best observed region."""
+        from doe.adaptive import plan_next_batch, AdaptiveConfig
+        cfg, matrix, results_dir = self._setup_initial_results(tmp_path)
+        adaptive_cfg = AdaptiveConfig(strategy="refine", batch_size=4)
+        new_matrix, state = plan_next_batch(matrix, cfg, adaptive_cfg, results_dir=results_dir, seed=42)
+        assert len(new_matrix.runs) == 4
+        # Best run is A=10, B=10. New points should be near there.
+        for run in new_matrix.runs:
+            a = float(run.factor_values["A"])
+            b = float(run.factor_values["B"])
+            # Should be in the upper range (within 25% of full range from best)
+            assert a >= 5.0  # 10 - 0.25*9 ≈ 7.75, but with randomness allow some slack
+            assert b >= 5.0
+
+    def test_adaptive_explore_avoids_existing(self, tmp_path):
+        """Explore strategy should produce points distant from existing."""
+        from doe.adaptive import plan_next_batch, AdaptiveConfig
+        cfg, matrix, results_dir = self._setup_initial_results(tmp_path)
+        adaptive_cfg = AdaptiveConfig(strategy="explore", batch_size=4)
+        new_matrix, state = plan_next_batch(matrix, cfg, adaptive_cfg, results_dir=results_dir, seed=42)
+        assert len(new_matrix.runs) == 4
+        # New points should exist (basic sanity)
+        for run in new_matrix.runs:
+            a = float(run.factor_values["A"])
+            b = float(run.factor_values["B"])
+            assert 1.0 <= a <= 10.0
+            assert 1.0 <= b <= 10.0
+
+    def test_adaptive_balanced_splits_batch(self, tmp_path):
+        """Balanced strategy should generate both refine and explore points."""
+        from doe.adaptive import plan_next_batch, AdaptiveConfig
+        cfg, matrix, results_dir = self._setup_initial_results(tmp_path)
+        adaptive_cfg = AdaptiveConfig(strategy="balanced", batch_size=6)
+        new_matrix, state = plan_next_batch(matrix, cfg, adaptive_cfg, results_dir=results_dir, seed=42)
+        assert len(new_matrix.runs) == 6
+
+    def test_adaptive_stopping_max_phases(self, tmp_path):
+        """Should stop after max phases reached."""
+        from doe.adaptive import plan_next_batch, AdaptiveConfig, _save_state, AdaptiveState
+        cfg, matrix, results_dir = self._setup_initial_results(tmp_path)
+        # Pretend we already did 5 phases
+        state = AdaptiveState(phase=5, total_runs=20, completed_phases=[{"phase": i} for i in range(1, 6)])
+        _save_state(state, results_dir)
+        adaptive_cfg = AdaptiveConfig(strategy="refine", batch_size=4, stopping_max_phases=5)
+        _, state = plan_next_batch(matrix, cfg, adaptive_cfg, results_dir=results_dir)
+        assert state.should_stop is True
+        assert "Maximum phases" in state.stop_reason
+
+    def test_adaptive_stopping_effect_threshold(self, tmp_path):
+        """Should stop when max effect is below threshold."""
+        from doe.adaptive import plan_next_batch, AdaptiveConfig
+        # Create experiment with very small effects
+        factors = [
+            Factor(name="A", levels=["1", "2"], type="continuous"),
+            Factor(name="B", levels=["1", "2"], type="continuous"),
+        ]
+        responses = [ResponseVar(name="y")]
+        cfg = _make_doe_config(factors=factors, responses=responses)
+        matrix = generate_design(cfg)
+        results_dir = str(tmp_path / "results")
+        # Nearly constant response
+        response_map = {r.run_id: {"y": 100.0 + 0.001 * r.run_id} for r in matrix.runs}
+        _write_result_files(results_dir, response_map)
+        cfg.out_directory = results_dir
+
+        adaptive_cfg = AdaptiveConfig(strategy="refine", batch_size=4,
+                                      stopping_effect_threshold=1.0)
+        _, state = plan_next_batch(matrix, cfg, adaptive_cfg, results_dir=results_dir)
+        assert state.should_stop is True
+        assert "below threshold" in state.stop_reason
+
+    def test_adaptive_state_persistence(self, tmp_path):
+        """Save state, load state, verify round-trip."""
+        from doe.adaptive import _save_state, _load_state, AdaptiveState
+        results_dir = str(tmp_path / "results")
+        os.makedirs(results_dir, exist_ok=True)
+        state = AdaptiveState(
+            phase=3, total_runs=25,
+            completed_phases=[{"phase": 1, "n_runs": 10}, {"phase": 2, "n_runs": 8}],
+            should_stop=False, stop_reason="",
+        )
+        _save_state(state, results_dir)
+        loaded = _load_state(results_dir)
+        assert loaded is not None
+        assert loaded.phase == 3
+        assert loaded.total_runs == 25
+        assert len(loaded.completed_phases) == 2
+
+    def test_adaptive_backward_compatible(self, tmp_path):
+        """Config without adaptive key should still load fine."""
+        cfg_dict = _make_config_dict()
+        path = _write_config(tmp_path, cfg_dict)
+        cfg = load_config(path, strict=False)
+        assert cfg.adaptive is None
+
+    def test_adaptive_config_parsed(self, tmp_path):
+        """Config with adaptive section should parse correctly."""
+        cfg_dict = _make_config_dict()
+        cfg_dict["adaptive"] = {
+            "strategy": "balanced",
+            "batch_size": 8,
+            "stopping_max_phases": 3,
+        }
+        path = _write_config(tmp_path, cfg_dict)
+        cfg = load_config(path, strict=False)
+        assert cfg.adaptive is not None
+        assert cfg.adaptive.strategy == "balanced"
+        assert cfg.adaptive.batch_size == 8
+        assert cfg.adaptive.stopping_max_phases == 3

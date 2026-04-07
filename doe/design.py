@@ -28,6 +28,8 @@ def generate_design(cfg: DOEConfig, seed: int | None = None) -> DesignMatrix:
         base_runs = _mixture_simplex_lattice(cfg)
     elif cfg.operation == "mixture_simplex_centroid":
         base_runs = _mixture_simplex_centroid(cfg)
+    elif cfg.operation == "log_sweep":
+        base_runs = _log_sweep(cfg)
     else:
         raise ValueError(f"Unknown operation: {cfg.operation}")
 
@@ -582,6 +584,33 @@ def augment_design(
             "augment_type": augment_type,
         },
     )
+
+
+def _log_sweep(cfg: DOEConfig) -> list[ExperimentRun]:
+    """Generate a full factorial design using logarithmically-spaced levels.
+
+    Each factor's 2 levels (min, max) are expanded to *n* log-spaced points.
+    The resulting design is the full factorial over these expanded level sets.
+    """
+    import numpy as np
+
+    n_points = cfg.sweep_points if cfg.sweep_points > 0 else (
+        cfg.lhs_samples if cfg.lhs_samples > 0 else 8
+    )
+
+    expanded_levels = []
+    for factor in cfg.factors:
+        low = float(factor.levels[0])
+        high = float(factor.levels[1])
+        log_levels = np.logspace(np.log10(low), np.log10(high), n_points)
+        expanded_levels.append([f"{v:.6g}" for v in log_levels])
+
+    factor_names = [f.name for f in cfg.factors]
+    runs = []
+    for i, combo in enumerate(itertools.product(*expanded_levels)):
+        factor_values = dict(zip(factor_names, combo))
+        runs.append(ExperimentRun(run_id=i + 1, block_id=1, factor_values=factor_values))
+    return runs
 
 
 def _mixture_simplex_lattice(cfg: DOEConfig) -> list[ExperimentRun]:

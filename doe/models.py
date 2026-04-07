@@ -39,8 +39,10 @@ class DOEConfig:
     processed_directory: str
     out_directory: str
     lhs_samples: int = 0                    # 0 = auto: max(10, 2 * n_factors)
+    sweep_points: int = 0                    # 0 = auto: use lhs_samples or default 8
     metadata: dict = field(default_factory=dict)
     runner: RunnerConfig = field(default_factory=RunnerConfig)
+    adaptive: object = None                  # AdaptiveConfig | None
 
 
 @dataclass
@@ -97,12 +99,43 @@ class AnovaTable:
 
 
 @dataclass
+class OrdinalTrendResult:
+    factor_name: str
+    response_name: str
+    linear_coefficient: float
+    linear_ss: float
+    linear_f_value: float | None = None
+    linear_p_value: float | None = None
+    quadratic_coefficient: float = 0.0
+    quadratic_ss: float = 0.0
+    quadratic_f_value: float | None = None
+    quadratic_p_value: float | None = None
+    r_squared_linear: float = 0.0
+    r_squared_quadratic: float = 0.0
+
+
+@dataclass
+class KneePointResult:
+    factor_name: str
+    response_name: str
+    knee_value: float
+    knee_response: float
+    ci_low: float
+    ci_high: float
+    r_squared: float
+    segment1_slope: float
+    segment2_slope: float
+    method: str = "piecewise_linear"
+
+
+@dataclass
 class ResponseAnalysis:
     response_name: str
     effects: list[EffectResult]
     summary_stats: dict
     interactions: list[InteractionEffect] = field(default_factory=list)
     anova_table: AnovaTable | None = None
+    ordinal_trends: list[OrdinalTrendResult] = field(default_factory=list)
 
 
 @dataclass
@@ -113,3 +146,6 @@ class AnalysisReport:
     normal_plot_paths: dict[str, str] = field(default_factory=dict)
     half_normal_plot_paths: dict[str, str] = field(default_factory=dict)
     diagnostics_plot_paths: dict[str, str] = field(default_factory=dict)
+    knee_point_results: dict[str, list[KneePointResult]] = field(default_factory=dict)
+    knee_point_plot_paths: dict[str, str] = field(default_factory=dict)
+    ordinal_trend_plot_paths: dict[str, str] = field(default_factory=dict)

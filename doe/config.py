@@ -16,6 +16,7 @@ SUPPORTED_OPERATIONS = {
     "d_optimal",
     "mixture_simplex_lattice",
     "mixture_simplex_centroid",
+    "log_sweep",
 }
 
 
@@ -37,6 +38,8 @@ def load_config(path: str, strict: bool = True) -> DOEConfig:
     metadata = raw.get("metadata", {})
     runner = _parse_runner(raw.get("runner", {}))
 
+    adaptive = _parse_adaptive(raw.get("adaptive", None))
+
     cfg = DOEConfig(
         factors=factors,
         fixed_factors=fixed_factors,
@@ -47,8 +50,10 @@ def load_config(path: str, strict: bool = True) -> DOEConfig:
         processed_directory=settings.get("processed_directory", ""),
         out_directory=settings.get("out_directory", ""),
         lhs_samples=settings.get("lhs_samples", 0),
+        sweep_points=settings.get("sweep_points", 0),
         metadata=metadata,
         runner=runner,
+        adaptive=adaptive,
     )
 
     _validate_config(cfg, strict=strict)
@@ -123,6 +128,21 @@ def _parse_runner(raw: dict) -> RunnerConfig:
     return RunnerConfig(
         arg_style=raw.get("arg_style", "double-dash"),
         result_file=raw.get("result_file", "json"),
+    )
+
+
+def _parse_adaptive(raw) -> object:
+    """Parse optional adaptive experimentation settings."""
+    if raw is None:
+        return None
+    from doe.adaptive import AdaptiveConfig
+    return AdaptiveConfig(
+        strategy=raw.get("strategy", "refine"),
+        batch_size=raw.get("batch_size", 4),
+        stopping_effect_threshold=float(raw.get("stopping_effect_threshold", 0.0)),
+        stopping_power_threshold=float(raw.get("stopping_power_threshold", 0.0)),
+        stopping_max_phases=int(raw.get("stopping_max_phases", 10)),
+        response_name=raw.get("response_name"),
     )
 
 
@@ -214,6 +234,29 @@ def _validate_config(cfg: DOEConfig, strict: bool = True) -> None:
             except ValueError:
                 raise ValueError(
                     f"Definitive Screening Design requires numeric levels, "
+                    f"but factor '{f.name}' has non-numeric levels: {f.levels}"
+                )
+
+    if cfg.operation == "log_sweep":
+        for f in cfg.factors:
+            if len(f.levels) != 2:
+                raise ValueError(
+                    f"log_sweep requires exactly 2 levels (min, max) per factor, "
+                    f"but factor '{f.name}' has {len(f.levels)}: {f.levels}"
+                )
+            try:
+                low = float(f.levels[0])
+                high = float(f.levels[1])
+                if low <= 0 or high <= 0:
+                    raise ValueError(
+                        f"log_sweep requires positive levels, "
+                        f"but factor '{f.name}' has levels: {f.levels}"
+                    )
+            except ValueError as e:
+                if "log_sweep requires positive" in str(e):
+                    raise
+                raise ValueError(
+                    f"log_sweep requires numeric positive levels, "
                     f"but factor '{f.name}' has non-numeric levels: {f.levels}"
                 )
 
