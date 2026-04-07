@@ -11,6 +11,70 @@ import os
 
 from doe.config import load_config
 from doe.design import generate_design
+from doe.models import DesignMatrix, ExperimentRun
+
+
+_MATRIX_FILENAME = "design_matrix.json"
+
+
+def _save_matrix(matrix: DesignMatrix, directory: str) -> str:
+    """Persist the design matrix so that analyze/report/etc. are deterministic."""
+    os.makedirs(directory, exist_ok=True)
+    path = os.path.join(directory, _MATRIX_FILENAME)
+    data = {
+        "factor_names": matrix.factor_names,
+        "operation": matrix.operation,
+        "metadata": matrix.metadata,
+        "runs": [
+            {"run_id": r.run_id, "block_id": r.block_id, "factor_values": r.factor_values}
+            for r in matrix.runs
+        ],
+    }
+    with open(path, "w") as f:
+        json.dump(data, f, indent=2)
+    return path
+
+
+def _load_matrix(directory: str) -> DesignMatrix | None:
+    """Load a previously saved design matrix, or return None if not found."""
+    path = os.path.join(directory, _MATRIX_FILENAME)
+    if not os.path.exists(path):
+        return None
+    with open(path) as f:
+        data = json.load(f)
+    runs = [
+        ExperimentRun(
+            run_id=r["run_id"],
+            block_id=r["block_id"],
+            factor_values=r["factor_values"],
+        )
+        for r in data["runs"]
+    ]
+    return DesignMatrix(
+        runs=runs,
+        factor_names=data["factor_names"],
+        operation=data["operation"],
+        metadata=data.get("metadata", {}),
+    )
+
+
+def _results_dir_for(cfg) -> str:
+    """Return the results directory for a config."""
+    return cfg.out_directory or "results"
+
+
+def _load_or_generate(cfg, results_dir: str | None = None) -> DesignMatrix:
+    """Load persisted design matrix, falling back to regeneration with a warning."""
+    directory = results_dir or _results_dir_for(cfg)
+    matrix = _load_matrix(directory)
+    if matrix is not None:
+        return matrix
+    print(
+        f"Warning: {_MATRIX_FILENAME} not found in '{directory}'. "
+        "Regenerating design without a seed — run-ID mapping may be wrong. "
+        "Re-run 'doe generate' to save the matrix."
+    )
+    return generate_design(cfg)
 
 
 def _print_version():
@@ -162,12 +226,14 @@ def _dispatch(args):
         else:
             from doe.codegen import generate_script
             generate_script(matrix, cfg, args.output, format=args.format)
+            out_dir = _results_dir_for(cfg)
+            _save_matrix(matrix, out_dir)
             print(f"Generated {len(matrix.runs)} runs -> {args.output}")
             print(f"Run with: bash {args.output}")
 
     elif args.command == "analyze":
         cfg = load_config(args.config)
-        matrix = generate_design(cfg)
+        matrix = _load_or_generate(cfg, results_dir=args.results_dir)
         try:
             from doe.analysis import analyze
             report = analyze(matrix, cfg, results_dir=args.results_dir, no_plots=args.no_plots, partial=args.partial, detect_knee=args.knee)
@@ -205,7 +271,7 @@ def _dispatch(args):
 
     elif args.command == "optimize":
         cfg = load_config(args.config)
-        matrix = generate_design(cfg)
+        matrix = _load_or_generate(cfg)
         try:
             _run_optimize(matrix, cfg, args)
         except FileNotFoundError:
@@ -214,7 +280,7 @@ def _dispatch(args):
 
     elif args.command == "report":
         cfg = load_config(args.config)
-        matrix = generate_design(cfg)
+        matrix = _load_or_generate(cfg, results_dir=args.results_dir)
         try:
             from doe.report import generate_report
             generate_report(matrix, cfg, results_dir=args.results_dir, output_path=args.output, partial=args.partial)
@@ -224,26 +290,28 @@ def _dispatch(args):
 
     elif args.command == "record":
         cfg = load_config(args.config)
-        matrix = generate_design(cfg, seed=args.seed)
+        matrix = _load_or_generate(cfg)
         _handle_record(matrix, cfg, args.run)
 
     elif args.command == "status":
         cfg = load_config(args.config)
-        matrix = generate_design(cfg, seed=args.seed)
+        matrix = _load_or_generate(cfg)
         _handle_status(matrix, cfg)
 
     elif args.command == "power":
         cfg = load_config(args.config)
-        matrix = generate_design(cfg)
+        matrix = _load_or_generate(cfg)
         _handle_power(matrix, cfg, args)
 
     elif args.command == "augment":
         cfg = load_config(args.config)
-        matrix = generate_design(cfg, seed=args.seed)
+        matrix = _load_or_generate(cfg)
         from doe.design import augment_design
         augmented = augment_design(matrix, cfg, augment_type=args.type)
         from doe.codegen import generate_script
         generate_script(augmented, cfg, args.output, format=args.format)
+        out_dir = _results_dir_for(cfg)
+        _save_matrix(augmented, out_dir)
         n_new = augmented.metadata.get("n_augmented_runs", 0)
         print(f"Augmented design: {len(matrix.runs)} original + {n_new} new = {len(augmented.runs)} total runs")
         print(f"Generated -> {args.output}")
@@ -253,12 +321,12 @@ def _dispatch(args):
 
     elif args.command == "export-worksheet":
         cfg = load_config(args.config)
-        matrix = generate_design(cfg, seed=args.seed)
+        matrix = _load_or_generate(cfg)
         _handle_export_worksheet(matrix, cfg, fmt=args.format, output_path=args.output)
 
     elif args.command == "next-batch":
         cfg = load_config(args.config)
-        matrix = generate_design(cfg)
+        matrix = _load_or_generate(cfg, results_dir=args.results_dir)
         from doe.adaptive import plan_next_batch, AdaptiveConfig
         adaptive_cfg = cfg.adaptive if cfg.adaptive else AdaptiveConfig()
         if args.strategy:
