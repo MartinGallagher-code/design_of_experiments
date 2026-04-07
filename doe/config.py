@@ -148,6 +148,27 @@ def _parse_adaptive(raw) -> object:
     )
 
 
+def _is_sweep_factor(f: Factor) -> bool:
+    """Return True if this factor should be expanded by a sweep operation.
+
+    A factor is swept when it has exactly 2 levels that can be interpreted
+    as a numeric (min, max) range.  Categorical factors are never swept —
+    their levels are discrete choices.  Factors with >2 levels or
+    non-numeric levels are kept as-is (passed through to the full factorial
+    cross).
+    """
+    if f.type == "categorical":
+        return False
+    if len(f.levels) != 2:
+        return False
+    try:
+        float(f.levels[0])
+        float(f.levels[1])
+        return True
+    except ValueError:
+        return False
+
+
 def _validate_config(cfg: DOEConfig, strict: bool = True) -> None:
     if cfg.operation not in SUPPORTED_OPERATIONS:
         raise ValueError(
@@ -241,27 +262,21 @@ def _validate_config(cfg: DOEConfig, strict: bool = True) -> None:
 
     if cfg.operation == "linear_sweep":
         for f in cfg.factors:
-            if len(f.levels) != 2:
-                raise ValueError(
-                    f"linear_sweep requires exactly 2 levels (min, max) per factor, "
-                    f"but factor '{f.name}' has {len(f.levels)}: {f.levels}"
-                )
+            if not _is_sweep_factor(f):
+                continue  # non-numeric or >2 levels pass through as-is
             try:
                 float(f.levels[0])
                 float(f.levels[1])
             except ValueError:
                 raise ValueError(
-                    f"linear_sweep requires numeric levels, "
+                    f"linear_sweep requires numeric levels for 2-level factors, "
                     f"but factor '{f.name}' has non-numeric levels: {f.levels}"
                 )
 
     if cfg.operation == "log_sweep":
         for f in cfg.factors:
-            if len(f.levels) != 2:
-                raise ValueError(
-                    f"log_sweep requires exactly 2 levels (min, max) per factor, "
-                    f"but factor '{f.name}' has {len(f.levels)}: {f.levels}"
-                )
+            if not _is_sweep_factor(f):
+                continue  # non-numeric or >2 levels pass through as-is
             try:
                 low = float(f.levels[0])
                 high = float(f.levels[1])

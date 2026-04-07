@@ -1587,23 +1587,29 @@ class TestLogSweep:
         with pytest.raises(ValueError, match="positive"):
             load_config(path, strict=False)
 
-    def test_log_sweep_validates_numeric_levels(self, tmp_path):
+    def test_log_sweep_passes_through_non_numeric_levels(self, tmp_path):
+        """Non-numeric 2-level factors are not swept, just passed through."""
         cfg_dict = _make_config_dict(
-            factors=[{"name": "x", "levels": ["low", "high"], "type": "categorical"}],
+            factors=[{"name": "x", "levels": ["low", "high"], "type": "continuous"}],
             operation="log_sweep",
         )
         path = _write_config(tmp_path, cfg_dict)
-        with pytest.raises(ValueError, match="numeric"):
-            load_config(path, strict=False)
+        cfg = load_config(path, strict=False)
+        matrix = generate_design(cfg, seed=42)
+        levels = sorted(set(r.factor_values["x"] for r in matrix.runs))
+        assert levels == ["high", "low"]
 
-    def test_log_sweep_validates_two_levels(self, tmp_path):
+    def test_log_sweep_passes_through_multi_level_factors(self, tmp_path):
+        """Factors with >2 levels are kept as-is (not swept)."""
         cfg_dict = _make_config_dict(
             factors=[{"name": "x", "levels": ["1", "10", "100"], "type": "continuous"}],
             operation="log_sweep",
         )
         path = _write_config(tmp_path, cfg_dict)
-        with pytest.raises(ValueError, match="exactly 2 levels"):
-            load_config(path, strict=False)
+        cfg = load_config(path, strict=False)
+        matrix = generate_design(cfg, seed=42)
+        levels = sorted(set(r.factor_values["x"] for r in matrix.runs))
+        assert levels == ["1", "10", "100"]
 
     def test_log_sweep_default_points(self, tmp_path):
         """When sweep_points and lhs_samples are 0, should default to 8."""

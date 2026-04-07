@@ -2,7 +2,25 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 import itertools
 import random
-from .models import DOEConfig, DesignMatrix, ExperimentRun
+from .models import DOEConfig, DesignMatrix, ExperimentRun, Factor
+
+
+def _can_sweep(factor: Factor) -> bool:
+    """True if this factor has exactly 2 numeric levels (a sweepable range).
+
+    Categorical factors are never swept — their levels are discrete choices,
+    not a numeric range, even when the values happen to be numbers.
+    """
+    if factor.type == "categorical":
+        return False
+    if len(factor.levels) != 2:
+        return False
+    try:
+        float(factor.levels[0])
+        float(factor.levels[1])
+        return True
+    except ValueError:
+        return False
 
 
 def generate_design(cfg: DOEConfig, seed: int | None = None) -> DesignMatrix:
@@ -591,9 +609,12 @@ def augment_design(
 def _linear_sweep(cfg: DOEConfig) -> list[ExperimentRun]:
     """Generate a full factorial design using linearly-spaced levels.
 
-    For integer factors (dtype="int"), every integer between low and high is
-    used.  For other factors, *sweep_points* (or *lhs_samples*, or 8)
-    evenly-spaced points are generated between low and high inclusive.
+    Factors with exactly 2 numeric levels are expanded:
+      - dtype="int": every integer between low and high inclusive.
+      - otherwise: *sweep_points* evenly-spaced points.
+
+    Factors with >2 levels or non-numeric levels are kept as-is and
+    crossed with the expanded factors (full factorial).
     """
     import numpy as np
 
@@ -603,6 +624,9 @@ def _linear_sweep(cfg: DOEConfig) -> list[ExperimentRun]:
 
     expanded_levels = []
     for factor in cfg.factors:
+        if not _can_sweep(factor):
+            expanded_levels.append(list(factor.levels))
+            continue
         low = float(factor.levels[0])
         high = float(factor.levels[1])
         if factor.dtype == "int":
@@ -624,8 +648,9 @@ def _linear_sweep(cfg: DOEConfig) -> list[ExperimentRun]:
 def _log_sweep(cfg: DOEConfig) -> list[ExperimentRun]:
     """Generate a full factorial design using logarithmically-spaced levels.
 
-    Each factor's 2 levels (min, max) are expanded to *n* log-spaced points.
-    The resulting design is the full factorial over these expanded level sets.
+    Factors with exactly 2 numeric levels are expanded to *n* log-spaced
+    points.  Factors with >2 levels or non-numeric levels are kept as-is
+    and crossed with the expanded factors (full factorial).
     """
     import numpy as np
 
@@ -635,6 +660,9 @@ def _log_sweep(cfg: DOEConfig) -> list[ExperimentRun]:
 
     expanded_levels = []
     for factor in cfg.factors:
+        if not _can_sweep(factor):
+            expanded_levels.append(list(factor.levels))
+            continue
         low = float(factor.levels[0])
         high = float(factor.levels[1])
         log_levels = np.logspace(np.log10(low), np.log10(high), n_points)
