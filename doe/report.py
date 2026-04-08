@@ -21,6 +21,7 @@ def generate_report(
     results_dir: str | None = None,
     output_path: str = "report.html",
     partial: bool = False,
+    filter_factors: list[str] | None = None,
 ) -> str:
     """Run analysis and generate a self-contained HTML report.
 
@@ -37,6 +38,8 @@ def generate_report(
         Path for the generated HTML file.
     partial : bool
         When True, skip missing result files and analyze only completed runs.
+    filter_factors : list[str] | None
+        When provided, restrict analysis to only the named factor(s).
 
     Returns
     -------
@@ -44,7 +47,7 @@ def generate_report(
         The *output_path* that was written.
     """
     results_dir_resolved = results_dir or cfg.out_directory or "results"
-    report = analyze(matrix, cfg, results_dir=results_dir, no_plots=False, partial=partial)
+    report = analyze(matrix, cfg, results_dir=results_dir, no_plots=False, partial=partial, filter_factors=filter_factors)
 
     # --- Encode plot images as base64 data URIs ---
     pareto_images: dict[str, str] = {}

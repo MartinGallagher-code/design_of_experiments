@@ -29,11 +29,23 @@ def analyze(
     pareto_threshold: float = 80,
     partial: bool = False,
     detect_knee: bool = False,
+    filter_factors: list[str] | None = None,
 ) -> AnalysisReport:
     results_dir = results_dir or cfg.out_directory or "results"
     processed_dir = cfg.processed_directory or results_dir
 
     all_data = _load_all_results(matrix.runs, results_dir, partial=partial)
+
+    # Apply factor filter
+    factor_names = matrix.factor_names
+    if filter_factors:
+        unknown = [f for f in filter_factors if f not in factor_names]
+        if unknown:
+            raise ValueError(
+                f"Unknown factor(s): {', '.join(unknown)}. "
+                f"Available factors: {', '.join(factor_names)}"
+            )
+        factor_names = [f for f in factor_names if f in filter_factors]
 
     results_by_response: dict[str, ResponseAnalysis] = {}
     pareto_chart_paths: dict[str, str] = {}
@@ -67,15 +79,15 @@ def analyze(
             continue
 
         valid_runs = [r for r in matrix.runs if r.run_id in responses]
-        effects = _compute_main_effects(valid_runs, responses, matrix.factor_names)
-        interactions = _compute_interaction_effects(valid_runs, responses, matrix.factor_names)
-        summary_stats = _compute_summary_stats(valid_runs, responses, matrix.factor_names)
+        effects = _compute_main_effects(valid_runs, responses, factor_names)
+        interactions = _compute_interaction_effects(valid_runs, responses, factor_names)
+        summary_stats = _compute_summary_stats(valid_runs, responses, factor_names)
 
         # ANOVA table
         anova_table = None
-        if len(valid_runs) > len(matrix.factor_names):
+        if len(valid_runs) > len(factor_names):
             try:
-                anova_table = _compute_anova(valid_runs, responses, matrix.factor_names, cfg.factors)
+                anova_table = _compute_anova(valid_runs, responses, factor_names, cfg.factors)
             except Exception:
                 pass  # graceful fallback if ANOVA fails
 
@@ -86,14 +98,14 @@ def analyze(
             ms_error = anova_table.error_row.ms
             df_error = anova_table.error_row.df
         ordinal_trends = _compute_ordinal_trends(
-            valid_runs, responses, cfg.factors, matrix.factor_names,
+            valid_runs, responses, cfg.factors, factor_names,
             resp.name, ms_error, df_error,
         )
 
         # Knee-point detection
         if detect_knee:
             knee_results = _detect_knee_points(
-                valid_runs, responses, cfg.factors, matrix.factor_names, resp.name,
+                valid_runs, responses, cfg.factors, factor_names, resp.name,
             )
             if knee_results:
                 knee_point_results[resp.name] = knee_results
@@ -123,7 +135,7 @@ def analyze(
                 pareto_chart_paths[resp.name] = pareto_path
 
                 effects_path = os.path.join(processed_dir, f"main_effects_{safe}.png")
-                plot_main_effects(valid_runs, responses, matrix.factor_names, effects_path, ylabel=ylabel)
+                plot_main_effects(valid_runs, responses, factor_names, effects_path, ylabel=ylabel)
                 effects_plot_paths[resp.name] = effects_path
 
                 # Normal/half-normal probability plots of effects
@@ -143,7 +155,7 @@ def analyze(
 
                 # RSM surface plots for designs with continuous factors
                 rsm_paths = plot_rsm_surface(
-                    valid_runs, responses, cfg.factors, matrix.factor_names,
+                    valid_runs, responses, cfg.factors, factor_names,
                     resp.name, processed_dir, response_unit=resp.unit,
                 )
                 for p in rsm_paths:
@@ -153,7 +165,7 @@ def analyze(
                 try:
                     from .rsm import fit_rsm as _fit_rsm
                     valid_runs_for_rsm = [r for r in matrix.runs if r.run_id in responses]
-                    diag_model = _fit_rsm(valid_runs_for_rsm, responses, matrix.factor_names, cfg.factors, model_type="linear")
+                    diag_model = _fit_rsm(valid_runs_for_rsm, responses, factor_names, cfg.factors, model_type="linear")
                     if diag_model.diagnostics and len(diag_model.diagnostics.residuals) >= 3:
                         diag_path = os.path.join(processed_dir, f"diagnostics_{safe}.png")
                         plot_diagnostics(diag_model.diagnostics, diag_path,

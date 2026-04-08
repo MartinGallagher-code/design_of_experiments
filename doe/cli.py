@@ -127,6 +127,7 @@ def main():
     ana.add_argument("--csv", default=None, metavar="DIR", help="Export analysis results to CSV files in DIR")
     ana.add_argument("--partial", action="store_true", help="Analyze only completed runs, skipping missing results")
     ana.add_argument("--knee", action="store_true", help="Detect saturation/knee points in response curves")
+    ana.add_argument("--factor", nargs="+", metavar="NAME", help="Analyze only the specified factor(s)")
 
     # --- info ---
     info = subparsers.add_parser("info", help="Show design info without generating anything")
@@ -251,7 +252,7 @@ def _dispatch(args):
         matrix = _load_or_generate(cfg, results_dir=args.results_dir)
         try:
             from doe.analysis import analyze
-            report = analyze(matrix, cfg, results_dir=args.results_dir, no_plots=args.no_plots, partial=args.partial, detect_knee=args.knee)
+            report = analyze(matrix, cfg, results_dir=args.results_dir, no_plots=args.no_plots, partial=args.partial, detect_knee=args.knee, filter_factors=args.factor)
         except FileNotFoundError:
             _no_results_message(cfg, matrix)
             return
@@ -265,7 +266,7 @@ def _dispatch(args):
             from doe.report import generate_report
             processed_dir = cfg.processed_directory or cfg.out_directory or "results"
             report_path = os.path.join(processed_dir, "report.html")
-            generate_report(matrix, cfg, results_dir=args.results_dir, output_path=report_path, partial=args.partial)
+            generate_report(matrix, cfg, results_dir=args.results_dir, output_path=report_path, partial=args.partial, filter_factors=args.factor)
             print(f"\nHTML report: {report_path}")
 
     elif args.command == "info":
