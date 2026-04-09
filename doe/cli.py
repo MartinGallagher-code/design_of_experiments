@@ -194,6 +194,14 @@ def main():
     ew.add_argument("--output", default=None, metavar="FILE", help="Output file path (default: stdout)")
     ew.add_argument("--seed", type=int, default=42, help="Random seed for run order (default: 42)")
 
+    # --- export-data ---
+    ed = subparsers.add_parser("export-data", help="Export design matrix and response values as CSV/TSV")
+    ed.add_argument("--config", required=True, metavar="FILE", help="Input JSON config file")
+    ed.add_argument("--format", choices=["csv", "tsv"], default="csv", help="Output format (default: csv)")
+    ed.add_argument("--output", default=None, metavar="FILE", help="Output file path (default: stdout)")
+    ed.add_argument("--seed", type=int, default=42, help="Random seed for run order (default: 42)")
+    ed.add_argument("--partial", action="store_true", help="Include runs with missing results")
+
     # --- next-batch ---
     nb = subparsers.add_parser("next-batch", help="Generate next batch of adaptive experiment runs")
     nb.add_argument("--config", required=True, metavar="FILE", help="Input JSON config file")
@@ -339,6 +347,12 @@ def _dispatch(args):
         cfg = load_config(args.config)
         matrix = _load_or_generate(cfg)
         _handle_export_worksheet(matrix, cfg, fmt=args.format, output_path=args.output)
+
+    elif args.command == "export-data":
+        cfg = load_config(args.config)
+        matrix = _load_or_generate(cfg)
+        _handle_export_data(matrix, cfg, fmt=args.format, output_path=args.output,
+                            partial=args.partial)
 
     elif args.command == "next-batch":
         cfg = load_config(args.config)
@@ -729,6 +743,61 @@ def _handle_export_worksheet(matrix, cfg, fmt="csv", output_path=None):
         with open(output_path, "w", newline="") as f:
             f.write(output)
         print(f"Worksheet exported to {output_path}")
+    else:
+        print(output, end="")
+
+
+def _handle_export_data(matrix, cfg, fmt="csv", output_path=None, partial=False):
+    """Export design matrix with response values as a flat CSV or TSV."""
+    results_dir = cfg.out_directory
+    delimiter = "\t" if fmt == "tsv" else ","
+
+    # Build headers
+    columns = ["run_id", "block_id"] + list(matrix.factor_names)
+    for resp in cfg.responses:
+        columns.append(resp.name)
+
+    # Load results
+    results_by_run = {}
+    missing_runs = []
+    if results_dir:
+        for run in matrix.runs:
+            result_path = os.path.join(results_dir, f"run_{run.run_id}.json")
+            if os.path.exists(result_path):
+                with open(result_path) as f:
+                    results_by_run[run.run_id] = json.load(f)
+            else:
+                missing_runs.append(run.run_id)
+
+    if missing_runs and not partial:
+        missing_ids = ", ".join(str(r) for r in missing_runs[:10])
+        suffix = f" (and {len(missing_runs) - 10} more)" if len(missing_runs) > 10 else ""
+        print(f"Error: missing results for runs: {missing_ids}{suffix}", file=__import__('sys').stderr)
+        print("Use --partial to include runs with missing response values.", file=__import__('sys').stderr)
+        raise SystemExit(1)
+
+    # Build rows
+    buf = io.StringIO()
+    writer = csv.writer(buf, delimiter=delimiter)
+    writer.writerow(columns)
+    for run in matrix.runs:
+        if run.run_id in missing_runs and not partial:
+            continue
+        row = [run.run_id, run.block_id]
+        for name in matrix.factor_names:
+            row.append(run.factor_values[name])
+        run_results = results_by_run.get(run.run_id, {})
+        for resp in cfg.responses:
+            val = run_results.get(resp.name)
+            row.append(val if val is not None else "")
+        writer.writerow(row)
+
+    output = buf.getvalue()
+    if output_path:
+        with open(output_path, "w", newline="") as f:
+            f.write(output)
+        print(f"Data exported to {output_path} ({len(matrix.runs) - len(missing_runs)} "
+              f"complete runs{', ' + str(len(missing_runs)) + ' pending' if missing_runs else ''})")
     else:
         print(output, end="")
 
