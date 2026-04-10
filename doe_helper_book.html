@@ -1,243 +1,2735 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Design of Experiments — The Book</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" type="text/css" href="css/style.css">
-  <style>
-    .book-content { font-family: 'Merriweather', Georgia, serif; font-size: .92rem; }
-    .book-content h1, .book-content h2, .book-content h3, .book-content h4 {
-      font-family: var(--sans);
-    }
-    .book-cover {
-      text-align: center; padding: 80px 16px 60px;
-      background: var(--ink); color: #fff;
-      position: relative; overflow: hidden;
-    }
-    .book-cover::before {
-      content: ''; position: absolute; top: 0; right: 0; bottom: 0; left: 0;
-      background-image: radial-gradient(rgba(99,102,241,.12) 1px, transparent 1px);
-      background-size: 20px 20px;
-    }
-    .book-cover h1 { color: #fff; font-size: 2.8rem; margin-bottom: 8px; letter-spacing: -.03em; position: relative; }
-    .book-cover .subtitle { font-size: 1.1rem; color: var(--electric-l); margin-bottom: 8px; font-weight: 500; position: relative; }
-    .book-cover .edition { font-size: .8rem; color: var(--muted); font-family: var(--mono); position: relative; }
-    .book-cover .cube-art {
-      margin: 32px auto; width: 100px; height: 100px;
-      border: 2px solid var(--electric); border-radius: 4px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 2.5rem; transform: rotate(3deg);
-      background: rgba(99,102,241,.08); position: relative;
-    }
-    .book-selector {
-      background: var(--slate-50); border-bottom: 1px solid var(--slate-200);
-      padding: 12px 0; text-align: center;
-    }
-    .book-selector .tabs { justify-content: center; border-bottom: none; }
-    .analogy {
-      background: linear-gradient(135deg, #f0fdf4, #dcfce7);
-      border: 1px solid #bbf7d0; border-radius: var(--radius);
-      padding: 20px 24px; margin: 20px 0;
-    }
-    .analogy h4 { color: #166534; font-size: .9rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-    .analogy p { color: #15803d; font-size: .88rem; }
-    .keypoint-box {
-      background: linear-gradient(135deg, var(--ice), #dbeafe);
-      border: 1px solid #93c5fd; border-radius: var(--radius);
-      padding: 20px 24px; margin: 20px 0;
-    }
-    .keypoint-box h4 { color: var(--deep-blue); font-size: .9rem; margin-bottom: 8px; }
-    .keypoint-box p { color: #1e40af; font-size: .88rem; }
-    .warning-box {
-      background: linear-gradient(135deg, #fef3c7, #fde68a);
-      border: 1px solid #fbbf24; border-radius: var(--radius);
-      padding: 20px 24px; margin: 20px 0;
-    }
-    .warning-box h4 { color: #92400e; font-size: .9rem; margin-bottom: 8px; }
-    .warning-box p { color: #a16207; font-size: .88rem; }
-    .danger-box {
-      background: linear-gradient(135deg, #fee2e2, #fecaca);
-      border: 1px solid #f87171; border-radius: var(--radius);
-      padding: 20px 24px; margin: 20px 0;
-    }
-    .danger-box h4 { color: #991b1b; font-size: .9rem; margin-bottom: 8px; }
-    .danger-box p { color: #b91c1c; font-size: .88rem; }
-    .comparison-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;
-    }
-    .comparison-card {
-      border-radius: var(--radius-sm); padding: 20px; font-size: .85rem;
-    }
-    .comparison-card.bad { background: var(--coral-light); border: 1px solid #fca5a5; }
-    .comparison-card.good { background: var(--mint-light); border: 1px solid #6ee7b7; }
-    .comparison-card h4 { font-size: .85rem; margin-bottom: 8px; }
-    .visual-grid {
-      display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 8px; margin: 16px 0;
-    }
-    .visual-cell {
-      text-align: center; padding: 12px 8px; border-radius: 8px;
-      font-size: .8rem; font-weight: 600;
-    }
-    .progress-bar {
-      height: 4px; background: var(--slate-200); border-radius: 2px;
-      margin: 4px 0 0; overflow: hidden;
-    }
-    .progress-bar-fill { height: 100%; border-radius: 2px; transition: width .6s ease; }
+<meta charset="UTF-8">
+<title>DOE Helper — Design Experiments, Not Guesswork</title>
+<style>
+/* ── Page setup: 6×9 inch for Lulu.com ── */
+@page {
+  size: 6in 9in;
+  margin: 0.75in 0.625in 0.875in 0.625in;  /* top right bottom left */
+  @bottom-center {
+    content: counter(page);
+    font: 9pt "Inter", sans-serif;
+    color: #666;
+  }
+}
+@page :first {
+  @bottom-center { content: none; }
+}
+@page :blank {
+  @bottom-center { content: none; }
+}
 
-    @media (max-width: 860px) {
-      .book-cover { padding: 80px 16px 40px; }
-      .book-cover h1 { font-size: clamp(1.4rem, 5vw, 2.8rem); }
-      .book-cover .subtitle { font-size: clamp(.8rem, 2.5vw, 1.1rem); }
-      .comparison-grid { grid-template-columns: 1fr; }
-      .responsive-grid-2 { grid-template-columns: 1fr !important; }
-      .responsive-grid-3 { grid-template-columns: 1fr !important; }
-      .responsive-grid-flow { grid-template-columns: 1fr !important; }
-      .book-content table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-      .book-content .code-body { font-size: .7rem; }
-      .book-content .math { padding: 10px 12px; font-size: .82rem; overflow-x: auto; }
-      .book-content p, .book-content li { font-size: .85rem; }
-      .keypoint-box, .analogy, .warning-box, .danger-box { padding: 14px 14px; }
-      .keypoint-box p, .analogy p, .warning-box p, .danger-box p { font-size: .8rem; }
-      .callout { padding: 12px 14px; }
-    }
-  </style>
+/* ── Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap');
+
+/* ── Base ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 10pt; }
+body {
+  font: 400 10pt/1.55 'Merriweather', Georgia, serif;
+  color: #222;
+  orphans: 3;
+  widows: 3;
+}
+a { color: #333; text-decoration: none; }
+img, svg { max-width: 100%; height: auto; }
+
+/* ── Headings ── */
+h1, h2, h3, h4 {
+  font-family: 'Inter', system-ui, sans-serif;
+  page-break-after: avoid;
+  break-after: avoid;
+  color: #111;
+}
+h1 {
+  font-size: 20pt;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  margin: 0 0 8pt;
+  line-height: 1.15;
+}
+h2 {
+  font-size: 14pt;
+  font-weight: 700;
+  margin: 24pt 0 8pt;
+  padding-bottom: 3pt;
+  border-bottom: 1.5pt solid #ddd;
+  letter-spacing: -0.02em;
+}
+h3 {
+  font-size: 11pt;
+  font-weight: 600;
+  color: #4338ca;
+  margin: 16pt 0 6pt;
+}
+h4 {
+  font-size: 10pt;
+  font-weight: 600;
+  margin: 12pt 0 4pt;
+}
+
+/* ── Paragraphs & lists ── */
+p {
+  margin: 0 0 8pt;
+  font-size: 10pt;
+  line-height: 1.55;
+}
+ul, ol {
+  margin: 0 0 8pt 14pt;
+  font-size: 10pt;
+}
+li {
+  margin-bottom: 2pt;
+  line-height: 1.5;
+}
+strong { font-weight: 700; }
+em { font-style: italic; }
+
+/* ── Code ── */
+code {
+  font: 500 8.5pt/1.4 'JetBrains Mono', 'Consolas', monospace;
+  background: #f3f4f6;
+  padding: 0.5pt 3pt;
+  border-radius: 2pt;
+  word-break: break-all;
+}
+pre {
+  margin: 6pt 0 10pt;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+pre code {
+  display: block;
+  background: #1a1a2e;
+  color: #d4d4d4;
+  padding: 8pt 10pt;
+  border-radius: 4pt;
+  font-size: 7.5pt;
+  line-height: 1.55;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* ── Code blocks (website style) ── */
+.code-block {
+  background: #1a1a2e;
+  border-radius: 4pt;
+  margin: 6pt 0 10pt;
+  page-break-inside: avoid;
+  break-inside: avoid;
+  overflow: hidden;
+}
+.code-header {
+  background: #252540;
+  padding: 4pt 10pt;
+  font: 500 7pt 'JetBrains Mono', monospace;
+  color: #888;
+}
+.code-body {
+  padding: 8pt 10pt;
+  font: 400 7.5pt/1.55 'JetBrains Mono', monospace;
+  color: #d4d4d4;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.code-body .prompt { color: #6ec86e; }
+.code-body .flag { color: #8b9cf7; }
+.code-body .string { color: #e5a64e; }
+.code-body .key { color: #5cc8d8; }
+.code-body .comment { color: #777; }
+.code-body .number { color: #b5cea8; }
+
+/* ── Tables ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 8pt 0 12pt;
+  font-size: 8.5pt;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+thead th {
+  background: #1e1b4b;
+  color: #fff;
+  padding: 5pt 6pt;
+  text-align: left;
+  font: 600 7.5pt 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+thead th:first-child { border-radius: 3pt 0 0 0; }
+thead th:last-child { border-radius: 0 3pt 0 0; }
+tbody td {
+  padding: 5pt 6pt;
+  border-bottom: 0.5pt solid #e5e5e5;
+  vertical-align: top;
+  line-height: 1.45;
+}
+tbody tr:nth-child(even) { background: #f9fafb; }
+
+/* flag-table (reference) */
+.flag-table { font-size: 8pt; }
+.flag-table thead th {
+  background: #1e1b4b;
+  color: #fff;
+  padding: 5pt 6pt;
+  font-size: 7pt;
+}
+.flag-table td { padding: 4pt 6pt; font-size: 8pt; }
+.cmd-header { margin-top: 18pt; margin-bottom: 2pt; }
+.cmd-header code { font-size: 11pt; font-weight: 600; color: #4338ca; background: none; }
+
+/* ── Callout boxes ── */
+.callout {
+  border-radius: 4pt;
+  padding: 8pt 10pt;
+  margin: 8pt 0;
+  font-size: 9pt;
+  line-height: 1.45;
+  page-break-inside: avoid;
+  break-inside: avoid;
+  display: flex;
+  gap: 8pt;
+}
+.callout-icon { font-size: 11pt; flex-shrink: 0; }
+.callout h4 { font-size: 9pt; font-weight: 700; margin-bottom: 2pt; }
+.callout p { font-size: 9pt; margin: 0; }
+.callout.info { background: #eef2ff; border-left: 2.5pt solid #5046e5; }
+.callout.info h4 { color: #5046e5; }
+.callout.success { background: #f0fdf4; border-left: 2.5pt solid #16a34a; }
+.callout.success h4 { color: #16a34a; }
+.callout.warning { background: #fffbeb; border-left: 2.5pt solid #d97706; }
+.callout.warning h4 { color: #d97706; }
+.callout.danger { background: #fff1f2; border-left: 2.5pt solid #e11d48; }
+.callout.danger h4 { color: #e11d48; }
+
+/* ── Keypoint / analogy / warning boxes ── */
+.keypoint-box {
+  background: #eef2ff;
+  border: 0.75pt solid #c7d2fe;
+  border-radius: 4pt;
+  padding: 10pt 12pt;
+  margin: 10pt 0;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+.keypoint-box h4 { font-size: 9pt; font-weight: 700; color: #4338ca; margin-bottom: 3pt; }
+.keypoint-box p { font-size: 9pt; color: #3730a3; margin: 0; line-height: 1.45; }
+
+.analogy {
+  background: #f0fdf4;
+  border: 0.75pt solid #86efac;
+  border-radius: 4pt;
+  padding: 10pt 12pt;
+  margin: 10pt 0;
+  page-break-inside: avoid;
+}
+.analogy h4 { font-size: 9pt; font-weight: 700; color: #166534; margin-bottom: 3pt; }
+.analogy p { font-size: 9pt; color: #15803d; margin: 0; line-height: 1.45; }
+
+.warning-box {
+  background: #fffbeb;
+  border: 0.75pt solid #fcd34d;
+  border-radius: 4pt;
+  padding: 10pt 12pt;
+  margin: 10pt 0;
+  page-break-inside: avoid;
+}
+.warning-box h4 { font-size: 9pt; font-weight: 700; color: #92400e; margin-bottom: 3pt; }
+.warning-box p { font-size: 9pt; color: #a16207; margin: 0; line-height: 1.45; }
+
+.danger-box {
+  background: #fff1f2;
+  border: 0.75pt solid #fca5a5;
+  border-radius: 4pt;
+  padding: 10pt 12pt;
+  margin: 10pt 0;
+  page-break-inside: avoid;
+}
+.danger-box h4 { font-size: 9pt; font-weight: 700; color: #9f1239; margin-bottom: 3pt; }
+.danger-box p { font-size: 9pt; color: #be123c; margin: 0; line-height: 1.45; }
+
+/* ── Math boxes ── */
+.math {
+  background: #f5f3ff;
+  border: 0.75pt solid #c7d2fe;
+  border-radius: 4pt;
+  padding: 8pt 10pt;
+  margin: 8pt 0;
+  font-family: Georgia, serif;
+  font-size: 10pt;
+  text-align: center;
+  page-break-inside: avoid;
+}
+
+/* ── Comparison grid ── */
+.comparison-grid {
+  display: flex;
+  gap: 8pt;
+  margin: 10pt 0;
+}
+.comparison-card {
+  flex: 1;
+  border-radius: 4pt;
+  padding: 10pt;
+  font-size: 9pt;
+}
+.comparison-card.bad { background: #fff1f2; border: 0.5pt solid #fca5a5; }
+.comparison-card.good { background: #f0fdf4; border: 0.5pt solid #86efac; }
+.comparison-card h4 { font-size: 9pt; margin-bottom: 4pt; }
+
+/* ── Visual grid ── */
+.visual-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4pt;
+  margin: 8pt 0;
+}
+.visual-cell {
+  text-align: center;
+  padding: 6pt 4pt;
+  border-radius: 3pt;
+  font-size: 7.5pt;
+  font-weight: 600;
+  flex: 1;
+  min-width: 60pt;
+}
+.progress-bar { height: 2pt; background: #e5e5e5; border-radius: 1pt; margin-top: 2pt; overflow: hidden; }
+.progress-bar-fill { height: 100%; border-radius: 1pt; }
+
+/* ── Accordion (print as always-open) ── */
+.accordion { margin: 8pt 0; }
+.accordion-item {
+  border: 0.5pt solid #e5e5e5;
+  border-radius: 4pt;
+  margin-bottom: 4pt;
+  overflow: hidden;
+  page-break-inside: avoid;
+}
+.accordion-header {
+  padding: 8pt 10pt;
+  font: 600 9.5pt 'Inter', sans-serif;
+}
+.accordion-header .arrow { display: none; }
+.accordion-body {
+  max-height: none !important;
+  padding: 0 10pt 10pt !important;
+  overflow: visible !important;
+}
+.accordion-item .accordion-body { display: block; }
+
+/* ── Tabs (print all panels) ── */
+.tabs { display: none; }
+.tab-panel { display: block !important; margin-bottom: 8pt; }
+
+/* ── Workflow diagram ── */
+.workflow-diagram {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin: 12pt 0;
+}
+.workflow-box {
+  background: #4338ca;
+  color: #fff;
+  border-radius: 4pt;
+  padding: 6pt 10pt;
+  text-align: center;
+  font: 600 8.5pt 'Inter', sans-serif;
+}
+.workflow-box .wf-cmd {
+  display: block;
+  font-size: 6.5pt;
+  font-weight: 400;
+  opacity: .85;
+  margin-top: 2pt;
+  font-family: 'JetBrains Mono', monospace;
+}
+.workflow-arrow {
+  font-size: 11pt;
+  color: #999;
+  padding: 0 3pt;
+}
+
+/* ── Config anatomy ── */
+.config-anatomy {
+  border-left: 2pt solid #4338ca;
+  padding-left: 10pt;
+  margin: 8pt 0;
+}
+.config-anatomy h4 { color: #4338ca; margin-bottom: 2pt; font-size: 9pt; }
+.config-anatomy p { font-size: 9pt; color: #333; }
+
+/* ── Responsive grid overrides ── */
+.responsive-grid-2, .responsive-grid-3, .responsive-grid-flow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8pt;
+}
+.responsive-grid-2 > *, .responsive-grid-3 > * { flex: 1; min-width: 40%; }
+
+/* ── Part title pages ── */
+.part-title {
+  page-break-before: always;
+  page-break-after: always;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 7in;
+  text-align: center;
+}
+.part-title h1 {
+  font-size: 28pt;
+  font-weight: 800;
+  color: #1e1b4b;
+  margin-bottom: 8pt;
+  letter-spacing: -0.03em;
+}
+.part-title .part-subtitle {
+  font: 500 13pt 'Inter', sans-serif;
+  color: #6366f1;
+  letter-spacing: 0.02em;
+}
+.part-title .part-number {
+  font: 700 10pt 'JetBrains Mono', monospace;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin-bottom: 12pt;
+}
+
+/* ── Title page ── */
+.title-page {
+  page-break-after: always;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 7.5in;
+  text-align: center;
+}
+.title-page h1 {
+  font-size: 32pt;
+  font-weight: 800;
+  color: #1e1b4b;
+  margin-bottom: 6pt;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+.title-page .subtitle {
+  font: 500 14pt 'Inter', sans-serif;
+  color: #6366f1;
+  margin-bottom: 30pt;
+}
+.title-page .author {
+  font: 400 12pt 'Merriweather', Georgia, serif;
+  color: #666;
+  margin-bottom: 4pt;
+}
+.title-page .year {
+  font: 400 10pt 'JetBrains Mono', monospace;
+  color: #999;
+}
+
+/* ── Copyright page ── */
+.copyright-page {
+  page-break-after: always;
+  padding-top: 5in;
+  font-size: 8pt;
+  color: #888;
+  line-height: 1.7;
+}
+
+/* ── TOC ── */
+.toc-page {
+  page-break-after: always;
+}
+.toc-page h1 {
+  font-size: 20pt;
+  margin-bottom: 16pt;
+}
+.toc-page .toc-part {
+  font: 700 9pt 'JetBrains Mono', monospace;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: 14pt 0 4pt;
+}
+.toc-page .toc-entry {
+  font: 400 10pt 'Inter', sans-serif;
+  color: #333;
+  margin: 3pt 0;
+  padding-left: 8pt;
+}
+.toc-page .toc-entry.chapter {
+  font-weight: 600;
+  padding-left: 0;
+  margin: 6pt 0 2pt;
+}
+
+/* ── Chapter subtitle ── */
+.chapter-subtitle {
+  font: 500 10pt 'JetBrains Mono', monospace;
+  color: #6366f1;
+  margin-bottom: 12pt;
+}
+
+/* ── Lead paragraph ── */
+.lead {
+  font-size: 10.5pt;
+  color: #555;
+  font-style: italic;
+  margin-bottom: 12pt;
+  line-height: 1.6;
+  border-left: 2.5pt solid #6366f1;
+  padding-left: 10pt;
+}
+
+/* ── Section breaks ── */
+section {
+  page-break-before: always;
+}
+section:first-child {
+  page-break-before: auto;
+}
+
+/* ── Howto sections (from guide) ── */
+.howto-section {
+  page-break-before: auto;
+  padding: 0;
+  border: none;
+}
+
+/* ── Miscellaneous website cleanup ── */
+.container-narrow { max-width: none; }
+.book-content { padding: 0; }
+.home, .home-inner, .hero-left, .features, .feature-grid, .feature-card {
+  display: none;
+}
+
+/* ── Horizontal rules ── */
+hr {
+  border: none;
+  border-top: 0.5pt solid #ddd;
+  margin: 16pt 0;
+}
+
+/* ── Sup/sub ── */
+sup { font-size: 7pt; vertical-align: super; }
+sub { font-size: 7pt; vertical-align: sub; }
+
+/* ── Hidden elements ── */
+.nav, .footer, .bg-logo, .bg-logo-light,
+.abstract-deco, .nav-toggle, .sidebar-toggle,
+.mobile-toc { display: none !important; }
+
+/* ── Print-specific ── */
+@media print {
+  body { font-size: 10pt; }
+  .part-title { height: 100vh; }
+  .title-page { height: 100vh; }
+}
+</style>
 </head>
 <body>
 
-<img src="logo-light.svg" alt="" class="bg-logo-light">
+<!-- ══════════════════════════════════════════
+     TITLE PAGE
+     ══════════════════════════════════════════ -->
+<div class="title-page">
+  <h1>DOE Helper</h1>
+  <div class="subtitle">Design Experiments, Not Guesswork</div>
+  <div class="author">Martin J. Gallagher</div>
+  <div class="year">2026</div>
+</div>
 
-<!-- ═══════════════ NAVIGATION ═══════════════ -->
-<nav class="nav scrolled">
-  <div class="nav-inner">
-    <a href="index.html" class="nav-logo"><span class="dot"></span> doe-helper</a>
-    <ul class="nav-links">
-      <li><a href="index.html">Home</a></li>
-      <li><a href="howto.html">Quick Start</a></li>
-      <li><a href="use-cases/index.html">Use Cases</a></li>
-      <li><a href="ai-prompts.html">AI Prompts</a></li>
-      <li><a href="guide.html">User Guide</a></li>
-      <li><a href="reference.html">Reference</a></li>
-      <li><a href="book.html" class="cta active">Theory</a></li>
-    </ul>
-    <button class="nav-toggle" aria-label="Menu"><span></span><span></span><span></span></button>
-  </div>
-</nav>
+<!-- ══════════════════════════════════════════
+     COPYRIGHT PAGE
+     ══════════════════════════════════════════ -->
+<div class="copyright-page">
+  <p><strong>DOE Helper: Design Experiments, Not Guesswork</strong></p>
+  <p>Copyright &copy; 2026 Martin J. Gallagher</p>
+  <p>Licensed under the GNU General Public License v3.0 or later.</p>
+  <p>Published with Lulu.com</p>
+  <p style="margin-top: 12pt;">
+    This book accompanies the <code>doehelper</code> Python package, available on PyPI.<br>
+    Website: doehelper.com
+  </p>
+  <p style="margin-top: 12pt;">
+    No part of this publication may be reproduced without the prior written
+    permission of the author, except as permitted under the GPL-3.0 license.
+  </p>
+  <p style="margin-top: 12pt;">First edition, 2026.</p>
+</div>
 
-<!-- ═══════════════ BOOK COVER ═══════════════ -->
-<section class="book-cover" style="margin-top: 64px;">
-  <h1>Design of Experiments</h1>
-  <div class="subtitle">A Practical Guide &mdash; From Theory to Automated Analysis</div>
+<!-- ══════════════════════════════════════════
+     TABLE OF CONTENTS
+     ══════════════════════════════════════════ -->
+<div class="toc-page">
+  <h1>Contents</h1>
+
+  <div class="toc-part">Part I: Introduction</div>
+  <div class="toc-entry chapter">What Is DOE Helper?</div>
+  <div class="toc-entry">Why Design of Experiments</div>
+  <div class="toc-entry">Who This Book Is For</div>
+  <div class="toc-entry">How to Read This Book</div>
+
+  <div class="toc-part">Part II: User&rsquo;s Guide</div>
+  <div class="toc-entry chapter">1. Getting Started</div>
+  <div class="toc-entry chapter">2. Core Workflow</div>
+  <div class="toc-entry chapter">3. Working with Configurations</div>
+  <div class="toc-entry chapter">4. Choosing a Design</div>
+  <div class="toc-entry chapter">5. Running Experiments</div>
+  <div class="toc-entry chapter">6. Analyzing Results</div>
+  <div class="toc-entry chapter">7. Optimization</div>
+  <div class="toc-entry chapter">8. Advanced Features</div>
+  <div class="toc-entry chapter">9. Best Practices</div>
+  <div class="toc-entry chapter">10. Troubleshooting</div>
+
+  <div class="toc-part">Part III: Technical Reference</div>
+  <div class="toc-entry chapter">CLI Reference</div>
+  <div class="toc-entry chapter">Configuration Schema</div>
+  <div class="toc-entry chapter">Design Types</div>
+  <div class="toc-entry chapter">Analysis Output</div>
+  <div class="toc-entry chapter">Output Formats</div>
+  <div class="toc-entry chapter">Statistical Formulas</div>
+  <div class="toc-entry chapter">Design Evaluation Metrics</div>
+
+  <div class="toc-part">Part IV: Design of Experiments &mdash; Theory</div>
+  <div class="toc-entry chapter">Preface</div>
+  <div class="toc-entry chapter">Chapter 1: Why Design of Experiments?</div>
+  <div class="toc-entry chapter">Chapter 2: Statistical Foundations</div>
+  <div class="toc-entry chapter">Chapter 3: Full Factorial Designs</div>
+  <div class="toc-entry chapter">Chapter 4: Fractional Factorial Designs</div>
+  <div class="toc-entry chapter">Chapter 5: Screening Designs</div>
+  <div class="toc-entry chapter">Chapter 6: Response Surface Designs</div>
+  <div class="toc-entry chapter">Chapter 7: Analyzing Results</div>
+  <div class="toc-entry chapter">Chapter 8: Response Surface Methodology</div>
+  <div class="toc-entry chapter">Chapter 9: Practical Troubleshooting</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PART I: INTRODUCTION
+     ══════════════════════════════════════════ -->
+<div class="part-title">
+  <div class="part-number">Part I</div>
+  <h1>Introduction</h1>
+  <div class="part-subtitle">What This Book Covers and How to Use It</div>
+</div>
+
+<section>
+<h1>What Is DOE Helper?</h1>
+
+<p><strong>DOE Helper</strong> is a command-line tool that automates the design, execution, and
+analysis of scientific experiments using Design of Experiments (DOE) methodology. You
+describe your factors and responses in a JSON configuration file, and the tool does
+the rest: it picks the optimal experiment plan, generates executable scripts to run
+each test, collects the results, and delivers a full statistical analysis &mdash;
+complete with ANOVA tables, Pareto charts, response surface models, and optimization
+recommendations.</p>
+
+<p>Instead of guessing which settings to try or exhaustively testing every possible
+combination, DOE Helper uses mathematically optimal designs to extract the maximum
+information from the minimum number of experimental runs. The result is faster
+answers, lower costs, and statistically defensible conclusions.</p>
+
+<h2>Why Design of Experiments?</h2>
+
+<p>Every experiment costs something &mdash; time, money, compute cycles, materials.
+Poorly planned experiments waste these resources and can lead to wrong conclusions.
+The traditional approach of changing one variable at a time (OVAT) misses interactions
+between factors and requires far more runs than necessary.</p>
+
+<p>Design of Experiments is a systematic method developed by Ronald Fisher in the 1920s
+and refined over the past century for industrial, scientific, and engineering applications.
+It lets you:</p>
+
+<ul>
+  <li><strong>Test multiple factors simultaneously</strong> &mdash; finding interactions
+      that OVAT misses</li>
+  <li><strong>Minimize the number of experimental runs</strong> &mdash; a fractional
+      factorial can test 7 factors in just 8 runs</li>
+  <li><strong>Quantify which factors matter</strong> &mdash; with p-values and
+      confidence intervals, not gut feeling</li>
+  <li><strong>Find optimal settings</strong> &mdash; using response surface models
+      and multi-objective optimization</li>
+  <li><strong>Make defensible decisions</strong> &mdash; with statistical power
+      analysis and model diagnostics</li>
+</ul>
+
+<h2>Who This Book Is For</h2>
+
+<p>This book is written for anyone who runs experiments and wants to do so more
+efficiently:</p>
+
+<ul>
+  <li><strong>Engineers</strong> optimizing systems, processes, or software configurations</li>
+  <li><strong>Scientists</strong> planning laboratory or field experiments</li>
+  <li><strong>Data scientists</strong> evaluating model hyperparameters</li>
+  <li><strong>Quality engineers</strong> improving manufacturing processes</li>
+  <li><strong>DevOps and SRE teams</strong> tuning infrastructure performance</li>
+  <li>Anyone who has ever wondered: <em>&ldquo;Which of these 10 knobs actually
+      matters?&rdquo;</em></li>
+</ul>
+
+<p><strong>Prerequisites:</strong> Basic familiarity with mean, variance, and standard
+deviation. No prior statistics coursework is assumed. The tool handles the math; this
+book explains how to interpret the results.</p>
+
+<h2>How to Read This Book</h2>
+
+<p>This book has four parts, each designed to stand alone:</p>
+
+<p><strong>Part I (this section)</strong> introduces the tool and sets the stage.</p>
+
+<p><strong>Part II: User&rsquo;s Guide</strong> is a hands-on walkthrough of every feature.
+Start here if you want to get running immediately. It covers the complete workflow from
+writing your first configuration file through analyzing results and finding optimal
+settings.</p>
+
+<p><strong>Part III: Technical Reference</strong> is the authoritative specification.
+Every CLI command, every configuration field, every design type algorithm, every formula.
+Use this when you need the exact syntax or want to understand what the tool is computing
+under the hood.</p>
+
+<p><strong>Part IV: Theory</strong> teaches the statistical foundations of DOE. It covers
+factorial designs, fractional factorials, screening designs, response surface methodology,
+ANOVA, and practical troubleshooting. Read this to understand <em>why</em> the designs
+work, not just <em>how</em> to use them.</p>
+
+<div class="keypoint-box">
+  <h4>Suggested Reading Paths</h4>
+  <p><strong>New to DOE and the tool:</strong> Read Part I, then Part II (User&rsquo;s Guide),
+  then Part IV chapters 1&ndash;3 for theory. Come back to the rest as needed.</p>
+  <p style="margin-top: 4pt;"><strong>Know DOE, new to the tool:</strong> Skim Part I,
+  then read Part II and keep Part III open as a reference.</p>
+  <p style="margin-top: 4pt;"><strong>Already using the tool:</strong> Jump straight to
+  Part III for the reference, or Part IV for deeper statistical understanding.</p>
+</div>
+
+<h2>What&rsquo;s Included</h2>
+
+<p>The DOE Helper tool supports:</p>
+
+<ul>
+  <li><strong>13 design types</strong> &mdash; full factorial, fractional factorial,
+      Plackett-Burman, Box-Behnken, central composite, Latin hypercube, definitive
+      screening, Taguchi, D-optimal, two mixture designs, and linear/log sweeps</li>
+  <li><strong>13 CLI commands</strong> &mdash; generate, analyze, optimize, report,
+      info, power, augment, record, status, init, export-worksheet, export-data,
+      and next-batch</li>
+  <li><strong>220+ ready-made templates</strong> &mdash; from chemical reactors to
+      Kubernetes tuning to bread baking</li>
+  <li><strong>Complete statistical analysis</strong> &mdash; ANOVA, main effects,
+      interactions, Pareto charts, normal probability plots, model diagnostics,
+      response surface modeling, and multi-objective optimization</li>
+  <li><strong>Automated and manual workflows</strong> &mdash; generate runner scripts
+      or record results by hand</li>
+  <li><strong>Interactive HTML reports</strong> &mdash; self-contained reports with
+      embedded charts that you can share with your team</li>
+</ul>
+
+<p>Everything in this book is based on version 0.1.0 of the <code>doehelper</code>
+package, installable via <code>pip install doehelper</code>.</p>
 </section>
 
-<!-- ═══════════════ BOOK LAYOUT ═══════════════ -->
-<div class="book-layout">
+<!-- ══════════════════════════════════════════
+     PART II: USER'S GUIDE
+     ══════════════════════════════════════════ -->
+<div class="part-title">
+  <div class="part-number">Part II</div>
+  <h1>User&rsquo;s Guide</h1>
+  <div class="part-subtitle">Hands-On Walkthrough of Every Feature</div>
+</div>
 
-  <!-- ── Sidebar ── -->
-  <aside class="book-sidebar">
-    <div class="sidebar-part">Preface</div>
-    <a class="sidebar-chapter" href="#preface">Preface</a>
-    <a class="sidebar-section-link" href="#organization">How This Book Is Organized</a>
 
-    <div class="sidebar-part">Part I: Foundations</div>
-    <a class="sidebar-chapter" href="#ch1">1. Why Design of Experiments?</a>
-    <a class="sidebar-section-link" href="#cost">The Cost of Unplanned Experiments</a>
-    <a class="sidebar-section-link" href="#three-principles">The Three Principles</a>
-    <a class="sidebar-section-link" href="#ovat-trap">The OVAT Trap</a>
-    <a class="sidebar-section-link" href="#web-server">Web Server Tuning Example</a>
-    <a class="sidebar-section-link" href="#effect-sparsity">Effect Sparsity</a>
-    <a class="sidebar-section-link" href="#when-not">When NOT to Use DOE</a>
 
-    <a class="sidebar-chapter" href="#ch2">2. Statistical Foundations</a>
-    <a class="sidebar-section-link" href="#linear-model">The Linear Model</a>
-    <a class="sidebar-section-link" href="#coded-vars">Coded Variables</a>
-    <a class="sidebar-section-link" href="#estimating-effects">Estimating Effects</a>
-    <a class="sidebar-section-link" href="#confidence-intervals">Confidence Intervals</a>
-    <a class="sidebar-section-link" href="#orthogonality">Orthogonality and Balance</a>
-    <a class="sidebar-section-link" href="#degrees-of-freedom">Degrees of Freedom</a>
-    <a class="sidebar-section-link" href="#normal-plot">Normal Probability Plot</a>
+<section class="howto-section" id="getting-started">
+  <div class="container-narrow">
+    <h2>Getting Started</h2>
 
-    <div class="sidebar-part">Part II: Design Types</div>
-    <a class="sidebar-chapter" href="#ch3">3. Full Factorial Designs</a>
-    <a class="sidebar-section-link" href="#2k-factorial">The 2&#x1D4F; Factorial</a>
-    <a class="sidebar-section-link" href="#design-matrix">The Design Matrix</a>
-    <a class="sidebar-section-link" href="#when-full-factorial">When to Use Full Factorials</a>
-    <a class="sidebar-section-link" href="#seal-strength">Worked Example: Seal Strength</a>
-    <a class="sidebar-section-link" href="#center-points">Adding Center Points</a>
-    <a class="sidebar-section-link" href="#blocking">Blocking a Factorial</a>
-    <a class="sidebar-section-link" href="#replicated-factorials">Replicated Factorials</a>
+    <h3>What is DOE Helper?</h3>
+    <p>DOE Helper is a command-line tool that brings the power of Design of Experiments (DOE) to software engineers, data scientists, researchers, and anyone who needs to systematically optimize a process. Instead of changing one variable at a time (OVAT) or running random guesses, DOE lets you test multiple factors simultaneously in a structured way that reveals not just which factors matter, but how they interact.</p>
 
-    <a class="sidebar-chapter" href="#ch4">4. Fractional Factorial Designs</a>
-    <a class="sidebar-section-link" href="#exponential-growth">Exponential Growth Problem</a>
-    <a class="sidebar-section-link" href="#2kp-design">The 2&#x1D4F;&#x207B;&#x1D56; Design</a>
-    <a class="sidebar-section-link" href="#resolution">Resolution</a>
-    <a class="sidebar-section-link" href="#generators">Generators &amp; Defining Relations</a>
-    <a class="sidebar-section-link" href="#half-fraction-example">Worked Example: Half-Fraction</a>
-    <a class="sidebar-section-link" href="#foldover">Foldover</a>
-    <a class="sidebar-section-link" href="#choosing-fraction">Choosing the Right Fraction</a>
+    <div class="callout info">
+      <span class="callout-icon">&#x2139;</span>
+      <div class="callout-body">
+        <h4>What problems does it solve?</h4>
+        <p>Tuning database configurations, optimizing compiler flags, finding the best ML hyperparameters, improving chemical processes, calibrating manufacturing settings &mdash; any scenario where you have multiple knobs to turn and want to find the best combination efficiently.</p>
+      </div>
+    </div>
 
-    <a class="sidebar-chapter" href="#ch5">5. Screening Designs</a>
-    <a class="sidebar-section-link" href="#plackett-burman">Plackett-Burman Designs</a>
-    <a class="sidebar-section-link" href="#screening-pipeline">Screening-to-Optimization Pipeline</a>
-    <a class="sidebar-section-link" href="#hpc-example">Worked Example: HPC Cluster</a>
-    <a class="sidebar-section-link" href="#dummy-factors">Dummy Factors</a>
-    <a class="sidebar-section-link" href="#definitive-screening">Definitive Screening Designs</a>
+    <h3>Installation</h3>
+    <div class="code-block">
+      <div class="code-header"><span>Terminal</span></div>
+      <div class="code-body"><span class="prompt">$ </span>pip install doehelper
+<span class="prompt">$ </span>doe <span class="flag">--version</span></div>
+    </div>
+    <p>For detailed system requirements and dependency information, see the <a href="howto.html#installation">Quick Start</a> page.</p>
 
-    <a class="sidebar-chapter" href="#ch6">6. Response Surface Designs</a>
-    <a class="sidebar-section-link" href="#ccd">Central Composite Design</a>
-    <a class="sidebar-section-link" href="#alpha-parameter">The Alpha Parameter</a>
-    <a class="sidebar-section-link" href="#box-behnken">Box-Behnken Design</a>
-    <a class="sidebar-section-link" href="#lhs">Latin Hypercube Sampling</a>
-    <a class="sidebar-section-link" href="#choosing-design">Choosing a Design</a>
-    <a class="sidebar-section-link" href="#chemical-example">Worked Example: Chemical Process</a>
-    <a class="sidebar-section-link" href="#sequential">Sequential Experimentation</a>
+    <h3 style="margin-top: 32px;">Your First Experiment: End-to-End Walkthrough</h3>
+    <p>Let's walk through a complete experiment from scratch. We'll optimize a web server's performance by testing three configuration parameters.</p>
 
-    <div class="sidebar-part">Part III: Analysis</div>
-    <a class="sidebar-chapter" href="#ch7">7. Analyzing Results</a>
-    <a class="sidebar-section-link" href="#pareto">The Pareto Chart</a>
-    <a class="sidebar-section-link" href="#main-effects-plots">Main Effects Plots</a>
-    <a class="sidebar-section-link" href="#interaction-plots">Interaction Plots</a>
-    <a class="sidebar-section-link" href="#statistical-significance">Statistical Significance</a>
-    <a class="sidebar-section-link" href="#residuals">Residual Analysis</a>
-    <a class="sidebar-section-link" href="#multi-response">Multi-Response Analysis</a>
-    <a class="sidebar-section-link" href="#effect-power">Effect Size and Power</a>
-    <a class="sidebar-section-link" href="#confirmation">Confirmation Runs</a>
-    <a class="sidebar-section-link" href="#analysis-workflow">The Analysis Workflow</a>
+    <h4>Step 1: Create a configuration file</h4>
+    <div class="code-block">
+      <div class="code-header"><span>Terminal</span></div>
+      <div class="code-body"><span class="comment"># Bootstrap a config with doe init</span>
+<span class="prompt">$ </span>doe init <span class="flag">--name</span> <span class="string">"Web Server Tuning"</span> <span class="flag">--factors</span> 3 <span class="flag">--operation</span> full_factorial</div>
+    </div>
+    <p>Edit the generated <code>config.json</code> to define your factors and responses:</p>
+    <div class="code-block">
+      <div class="code-header"><span>config.json</span></div>
+      <div class="code-body">{
+  <span class="key">"metadata"</span>: {
+    <span class="key">"name"</span>: <span class="string">"Web Server Tuning"</span>,
+    <span class="key">"description"</span>: <span class="string">"Optimize Nginx for throughput and latency"</span>
+  },
+  <span class="key">"factors"</span>: [
+    {<span class="key">"name"</span>: <span class="string">"worker_connections"</span>, <span class="key">"levels"</span>: [<span class="string">"512"</span>, <span class="string">"2048"</span>], <span class="key">"type"</span>: <span class="string">"continuous"</span>},
+    {<span class="key">"name"</span>: <span class="string">"keepalive_timeout"</span>, <span class="key">"levels"</span>: [<span class="string">"15"</span>, <span class="string">"75"</span>],   <span class="key">"type"</span>: <span class="string">"continuous"</span>, <span class="key">"unit"</span>: <span class="string">"s"</span>},
+    {<span class="key">"name"</span>: <span class="string">"gzip_level"</span>,        <span class="key">"levels"</span>: [<span class="string">"1"</span>, <span class="string">"6"</span>],     <span class="key">"type"</span>: <span class="string">"continuous"</span>}
+  ],
+  <span class="key">"responses"</span>: [
+    {<span class="key">"name"</span>: <span class="string">"throughput"</span>, <span class="key">"optimize"</span>: <span class="string">"maximize"</span>, <span class="key">"unit"</span>: <span class="string">"req/s"</span>},
+    {<span class="key">"name"</span>: <span class="string">"p99_latency"</span>, <span class="key">"optimize"</span>: <span class="string">"minimize"</span>, <span class="key">"unit"</span>: <span class="string">"ms"</span>}
+  ],
+  <span class="key">"runner"</span>: {
+    <span class="key">"arg_style"</span>: <span class="string">"double-dash"</span>,
+    <span class="key">"result_file"</span>: <span class="string">"json"</span>
+  },
+  <span class="key">"settings"</span>: {
+    <span class="key">"operation"</span>: <span class="string">"full_factorial"</span>,
+    <span class="key">"test_script"</span>: <span class="string">"benchmark.sh"</span>,
+    <span class="key">"out_directory"</span>: <span class="string">"results"</span>
+  }
+}</div>
+    </div>
 
-    <a class="sidebar-chapter" href="#ch8">8. Response Surface Methodology</a>
-    <a class="sidebar-section-link" href="#effects-to-models">From Effects to Models</a>
-    <a class="sidebar-section-link" href="#rsm-worked-example">Worked Example: Reactor Yield</a>
-    <a class="sidebar-section-link" href="#model-adequacy">Model Adequacy</a>
-    <a class="sidebar-section-link" href="#finding-optimum">Finding the Optimum</a>
-    <a class="sidebar-section-link" href="#contour-plots">Contour &amp; Surface Plots</a>
-    <a class="sidebar-section-link" href="#canonical">Canonical Analysis</a>
-    <a class="sidebar-section-link" href="#ridge-analysis">Ridge Analysis</a>
-    <a class="sidebar-section-link" href="#steepest-ascent">Steepest Ascent</a>
-    <a class="sidebar-section-link" href="#lack-of-fit">Lack-of-Fit Testing</a>
-    <a class="sidebar-section-link" href="#desirability">Multi-Response Desirability</a>
-    <a class="sidebar-section-link" href="#rsm-workflow">The RSM Workflow</a>
+    <h4>Step 2: Preview and generate the design</h4>
+    <div class="code-block">
+      <div class="code-header"><span>Terminal</span></div>
+      <div class="code-body"><span class="comment"># Preview the design matrix</span>
+<span class="prompt">$ </span>doe generate <span class="flag">--config</span> config.json <span class="flag">--dry-run</span>
 
-    <a class="sidebar-chapter" href="#ch9">9. Practical Troubleshooting</a>
-    <a class="sidebar-section-link" href="#common-mistakes">Common Mistakes Checklist</a>
-    <a class="sidebar-section-link" href="#doe-workflow">The DOE Workflow</a>
+<span class="comment"># Generate the runner script</span>
+<span class="prompt">$ </span>doe generate <span class="flag">--config</span> config.json <span class="flag">--seed</span> 42
 
-    <div class="sidebar-part">User Guide &amp; Reference</div>
-    <a class="sidebar-chapter" href="#user-guide">Documentation</a>
-    <a class="sidebar-section-link" href="#ug-guide">User Guide</a>
-    <a class="sidebar-section-link" href="#ug-reference">Technical Reference</a>
-    <a class="sidebar-section-link" href="#ug-quickstart">Quick Start &amp; Tutorials</a>
+<span class="comment"># Check the plan</span>
+<span class="prompt">$ </span>doe info <span class="flag">--config</span> config.json</div>
+    </div>
 
-  </aside>
+    <h4>Step 3: Run the experiment</h4>
+    <div class="code-block">
+      <div class="code-header"><span>Terminal</span></div>
+      <div class="code-body"><span class="comment"># Execute all runs</span>
+<span class="prompt">$ </span>bash run_experiments.sh
 
-  <!-- ── Content ── -->
-  <main class="book-content">
+<span class="comment"># Check progress</span>
+<span class="prompt">$ </span>doe status <span class="flag">--config</span> config.json</div>
+    </div>
+
+    <h4>Step 4: Analyze results</h4>
+    <div class="code-block">
+      <div class="code-header"><span>Terminal</span></div>
+      <div class="code-body"><span class="prompt">$ </span>doe analyze <span class="flag">--config</span> config.json</div>
+    </div>
+
+    <h4>Step 5: Find the optimum</h4>
+    <div class="code-block">
+      <div class="code-header"><span>Terminal</span></div>
+      <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> config.json <span class="flag">--multi</span></div>
+    </div>
+
+    <h4>Step 6: Generate a shareable report</h4>
+    <div class="code-block">
+      <div class="code-header"><span>Terminal</span></div>
+      <div class="code-body"><span class="prompt">$ </span>doe report <span class="flag">--config</span> config.json <span class="flag">--output</span> webserver_report.html</div>
+    </div>
+
+    <div class="callout success">
+      <span class="callout-icon">&#x2714;</span>
+      <div class="callout-body">
+        <h4>That's the full loop</h4>
+        <p>In six commands, you went from a question ("which settings matter?") to a statistically rigorous answer with optimization recommendations and a shareable report. The rest of this guide dives deep into each step.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="howto-section" id="core-workflow">
+  <div class="container-narrow">
+    <h2>Core Workflow</h2>
+    <p>Every DOE experiment follows the same six-phase lifecycle. The DOE Helper Tool provides commands for each phase.</p>
+
+    <div class="workflow-diagram">
+      <div class="workflow-box">Plan<span class="wf-cmd">doe init / doe info</span></div>
+      <span class="workflow-arrow">&rarr;</span>
+      <div class="workflow-box">Design<span class="wf-cmd">doe generate</span></div>
+      <span class="workflow-arrow">&rarr;</span>
+      <div class="workflow-box">Execute<span class="wf-cmd">bash run_*.sh</span></div>
+      <span class="workflow-arrow">&rarr;</span>
+      <div class="workflow-box">Analyze<span class="wf-cmd">doe analyze</span></div>
+      <span class="workflow-arrow">&rarr;</span>
+      <div class="workflow-box">Optimize<span class="wf-cmd">doe optimize</span></div>
+      <span class="workflow-arrow">&rarr;</span>
+      <div class="workflow-box">Report<span class="wf-cmd">doe report</span></div>
+    </div>
+
+    <table>
+      <thead><tr><th>Phase</th><th>Command(s)</th><th>What Happens</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Plan</strong></td>
+          <td><code>doe init</code>, <code>doe info</code>, <code>doe power</code></td>
+          <td>Define factors, responses, and choose a design. Verify the plan makes sense and has sufficient power.</td>
+        </tr>
+        <tr>
+          <td><strong>Design</strong></td>
+          <td><code>doe generate</code></td>
+          <td>Create the design matrix and generate a runner script. Use <code>--dry-run</code> to preview first.</td>
+        </tr>
+        <tr>
+          <td><strong>Execute</strong></td>
+          <td><code>bash run_*.sh</code>, <code>doe record</code>, <code>doe status</code></td>
+          <td>Run the generated script or manually record results. Track progress with <code>doe status</code>.</td>
+        </tr>
+        <tr>
+          <td><strong>Analyze</strong></td>
+          <td><code>doe analyze</code></td>
+          <td>Compute ANOVA, effects, generate plots, and identify significant factors.</td>
+        </tr>
+        <tr>
+          <td><strong>Optimize</strong></td>
+          <td><code>doe optimize</code></td>
+          <td>Find the best factor settings using response surface methodology.</td>
+        </tr>
+        <tr>
+          <td><strong>Report</strong></td>
+          <td><code>doe report</code></td>
+          <td>Generate a self-contained HTML report with all results, plots, and recommendations.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout info" style="margin-top: 20px;">
+      <span class="callout-icon">&#x2139;</span>
+      <div class="callout-body">
+        <h4>Iterative by nature</h4>
+        <p>DOE is often iterative. After your first analysis, you may want to augment the design with center or star points, run additional blocks, or switch to a more focused design. The tool supports this workflow with <code>doe augment</code> and <code>doe next-batch</code>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="howto-section" id="configurations">
+  <div class="container-narrow">
+    <h2>Working with Configurations</h2>
+    <p>The configuration file (<code>config.json</code>) is the single source of truth for your experiment. Every command reads from it. Understanding its structure is essential.</p>
+
+    <h3>Anatomy of a Config File</h3>
+    <p>A config file has five top-level sections:</p>
+
+    <div class="config-anatomy">
+      <h4>metadata</h4>
+      <p>Human-readable name and description. Used in reports and status output. Optional but highly recommended.</p>
+    </div>
+    <div class="config-anatomy">
+      <h4>factors</h4>
+      <p>The variables you are testing. Each factor has a name, levels (at least 2), and an optional type and unit. This is the heart of your experiment design.</p>
+    </div>
+    <div class="config-anatomy">
+      <h4>responses</h4>
+      <p>What you are measuring. Each response has a name, optimization direction (maximize or minimize), and optional unit, weight, and bounds for multi-objective optimization.</p>
+    </div>
+    <div class="config-anatomy">
+      <h4>runner</h4>
+      <p>How factors are passed to your test script and how results are collected. Controls argument style and result file format.</p>
+    </div>
+    <div class="config-anatomy">
+      <h4>settings</h4>
+      <p>Design type, test script path, output directories, blocking, and design-specific options like LHS sample count.</p>
+    </div>
+
+    <h3 style="margin-top: 32px;">Factor Types</h3>
+    <p>Choosing the right factor type affects which designs are available and how results are analyzed.</p>
+
+    <table>
+      <thead><tr><th>Type</th><th>When to Use</th><th>Examples</th><th>Design Implications</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>continuous</code></td>
+          <td>Numeric values on a scale</td>
+          <td>Temperature (150&ndash;200), Pressure (2&ndash;6), Thread count (1&ndash;16)</td>
+          <td>Required for CCD, Box-Behnken, and star points. Enables response surface modeling and interpolation.</td>
+        </tr>
+        <tr>
+          <td><code>categorical</code></td>
+          <td>Discrete, unordered choices</td>
+          <td>Algorithm (A, B, C), Cache type (LRU, LFU), Material (steel, aluminum)</td>
+          <td>Works with all designs. Cannot be interpolated. No star/center points for this factor.</td>
+        </tr>
+        <tr>
+          <td><code>ordinal</code></td>
+          <td>Ordered categories</td>
+          <td>Priority (low, medium, high), Compression level (none, fast, best)</td>
+          <td>Treated as categorical in most designs but ordering is preserved in analysis output.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin-top: 32px;">Response Configuration</h3>
+    <div class="code-block">
+      <div class="code-header"><span>config.json &mdash; responses section</span></div>
+      <div class="code-body"><span class="key">"responses"</span>: [
+  {
+    <span class="key">"name"</span>: <span class="string">"throughput"</span>,
+    <span class="key">"optimize"</span>: <span class="string">"maximize"</span>,
+    <span class="key">"unit"</span>: <span class="string">"req/s"</span>,
+    <span class="key">"weight"</span>: <span class="number">2</span>,           <span class="comment">// twice as important in --multi mode</span>
+    <span class="key">"bounds"</span>: [<span class="number">1000</span>, <span class="number">5000</span>] <span class="comment">// [worst, best] for desirability</span>
+  },
+  {
+    <span class="key">"name"</span>: <span class="string">"p99_latency"</span>,
+    <span class="key">"optimize"</span>: <span class="string">"minimize"</span>,
+    <span class="key">"unit"</span>: <span class="string">"ms"</span>,
+    <span class="key">"weight"</span>: <span class="number">1</span>,
+    <span class="key">"bounds"</span>: [<span class="number">500</span>, <span class="number">10</span>]     <span class="comment">// [worst, best] &mdash; note: worst > best for minimize</span>
+  }
+]</div>
+    </div>
+
+    <div class="callout warning">
+      <span class="callout-icon">&#x26A0;</span>
+      <div class="callout-body">
+        <h4>Bounds direction matters</h4>
+        <p>For <code>maximize</code> responses, bounds are <code>[worst, best]</code> where worst &lt; best. For <code>minimize</code> responses, bounds are <code>[worst, best]</code> where worst &gt; best. If omitted, bounds are auto-computed from observed data.</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top: 32px;">Fixed Factors</h3>
+    <p>Fixed factors are held constant across all runs. They are passed to your test script alongside the varying factors but do not contribute to the design matrix.</p>
+    <div class="code-block">
+      <div class="code-header"><span>config.json &mdash; fixed factors</span></div>
+      <div class="code-body"><span class="key">"fixed_factors"</span>: {
+  <span class="key">"duration"</span>: <span class="string">"60"</span>,
+  <span class="key">"warmup"</span>: <span class="string">"10"</span>,
+  <span class="key">"num_clients"</span>: <span class="string">"100"</span>
+}</div>
+    </div>
+    <p>Use fixed factors when a parameter must be specified for your test script to run but you are not currently varying it. They appear in reports for reproducibility.</p>
+
+    <h3 style="margin-top: 32px;">Runner Configuration</h3>
+
+    <div class="accordion">
+      <div class="accordion-item">
+        <div class="accordion-header">Argument Styles Explained <span class="arrow">&#9660;</span></div>
+        <div class="accordion-body">
+          <p>The <code>arg_style</code> setting controls how factor values are passed to your test script:</p>
+          <table>
+            <thead><tr><th>Style</th><th>Invocation Example</th><th>Best For</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><code>double-dash</code></td>
+                <td><code>./test.sh --temperature 200 --pressure 6 --out run_1.json</code></td>
+                <td>Most scripts. Clear, self-documenting, order-independent.</td>
+              </tr>
+              <tr>
+                <td><code>env</code></td>
+                <td><code>TEMPERATURE=200 PRESSURE=6 OUT=run_1.json ./test.sh</code></td>
+                <td>Docker containers, Makefiles, scripts that read environment variables.</td>
+              </tr>
+              <tr>
+                <td><code>positional</code></td>
+                <td><code>./test.sh 200 6 run_1.json</code></td>
+                <td>Simple scripts. Order must match factor definition order.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <div class="accordion-header">Result File Formats <span class="arrow">&#9660;</span></div>
+        <div class="accordion-body">
+          <p>The <code>result_file</code> setting controls the expected output format:</p>
+          <p><strong>json</strong> (default) &mdash; Your script writes a JSON file with keys matching response names:</p>
+          <div class="code-block">
+            <div class="code-header"><span>run_1.json</span></div>
+            <div class="code-body">{<span class="key">"throughput"</span>: <span class="number">3420</span>, <span class="key">"p99_latency"</span>: <span class="number">47.2</span>}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-top: 32px;">Quick Start with Templates</h3>
+    <p>Use <code>doe init</code> to generate a starter config file rather than writing one from scratch:</p>
+    <div class="code-block">
+      <div class="code-header"><span>Terminal</span></div>
+      <div class="code-body"><span class="prompt">$ </span>doe init <span class="flag">--name</span> <span class="string">"My Experiment"</span> <span class="flag">--factors</span> 4 <span class="flag">--operation</span> plackett_burman
+<span class="comment"># Creates config.json with 4 placeholder factors and sensible defaults</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="howto-section" id="choosing-design">
+  <div class="container-narrow">
+    <h2>Choosing a Design</h2>
+    <p>The right design depends on your goals, the number of factors, and how many runs you can afford. This section helps you make that choice.</p>
+
+    <h3>Decision Guide</h3>
+    <div class="callout info">
+      <span class="callout-icon">&#x2139;</span>
+      <div class="callout-body">
+        <h4>Quick rule of thumb</h4>
+        <p><strong>Screening</strong> (many factors, limited budget): Use Plackett-Burman or Definitive Screening to find the important factors. <strong>Optimization</strong> (few factors, need the best settings): Use Central Composite or Box-Behnken to model the response surface.</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top: 24px;">Design Comparison</h3>
+    <table>
+      <thead><tr><th>Design</th><th>Factors</th><th>Runs (k factors)</th><th>Detects Interactions</th><th>Detects Curvature</th><th>Best For</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Full Factorial</strong></td><td>2&ndash;5</td><td>2<sup>k</sup> (e.g., 8, 16, 32)</td><td>All</td><td>No (2-level)</td><td>Complete understanding of a small system</td></tr>
+        <tr><td><strong>Fractional Factorial</strong></td><td>4&ndash;8</td><td>2<sup>k-1</sup> or 2<sup>k-2</sup></td><td>Some (aliased)</td><td>No</td><td>Moderate screening with fewer runs</td></tr>
+        <tr><td><strong>Plackett-Burman</strong></td><td>4&ndash;23</td><td>k+1 (next multiple of 4)</td><td>No</td><td>No</td><td>Fast screening of many factors</td></tr>
+        <tr><td><strong>Definitive Screening</strong></td><td>3&ndash;12</td><td>2k+1</td><td>Some</td><td>Yes</td><td>Modern screening: fewer runs, detects curvature</td></tr>
+        <tr><td><strong>Central Composite (CCD)</strong></td><td>2&ndash;6</td><td>2<sup>k</sup> + 2k + n<sub>c</sub></td><td>All (2FI)</td><td>Yes (quadratic)</td><td>Full response surface modeling</td></tr>
+        <tr><td><strong>Box-Behnken</strong></td><td>3&ndash;7</td><td>Varies (e.g., 15 for 3)</td><td>All (2FI)</td><td>Yes (quadratic)</td><td>RSM without extreme corners</td></tr>
+        <tr><td><strong>Taguchi</strong></td><td>2&ndash;15</td><td>L4, L8, L12, L16, L27</td><td>Limited</td><td>No</td><td>Robust design, signal-to-noise ratios</td></tr>
+        <tr><td><strong>Latin Hypercube (LHS)</strong></td><td>Any</td><td>User-defined</td><td>Via analysis</td><td>Via analysis</td><td>Space-filling, computer experiments</td></tr>
+        <tr><td><strong>D-Optimal</strong></td><td>Any</td><td>User-defined</td><td>Depends on model</td><td>Depends on model</td><td>Custom run count, irregular constraints</td></tr>
+        <tr><td><strong>Mixture (Simplex)</strong></td><td>3+</td><td>Varies</td><td>Via model</td><td>Via model</td><td>Components that sum to 1 (formulations)</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin-top: 32px;">Screening vs. Optimization</h3>
+    <p>DOE typically follows a two-phase approach:</p>
+    <table>
+      <thead><tr><th>Phase</th><th>Goal</th><th>Typical Designs</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Phase 1: Screening</strong></td>
+          <td>Identify the vital few factors from a larger set</td>
+          <td>Plackett-Burman, Definitive Screening, Fractional Factorial</td>
+          <td>Narrow from 8&ndash;15 factors down to 3&ndash;5 important ones</td>
+        </tr>
+        <tr>
+          <td><strong>Phase 2: Optimization</strong></td>
+          <td>Find the best settings for the important factors</td>
+          <td>CCD, Box-Behnken, Full Factorial</td>
+          <td>Response surface model with optimal settings</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin-top: 32px;">Run Count Reference</h3>
+    <p>Use this table to estimate how many runs your experiment will require:</p>
+    <table>
+      <thead><tr><th>Factors</th><th>Full Factorial (2-level)</th><th>Fractional (Res IV)</th><th>Plackett-Burman</th><th>Definitive Screening</th><th>CCD</th><th>Box-Behnken</th></tr></thead>
+      <tbody>
+        <tr><td>3</td><td>8</td><td>&mdash;</td><td>4</td><td>7</td><td>20</td><td>15</td></tr>
+        <tr><td>4</td><td>16</td><td>8</td><td>8</td><td>9</td><td>30</td><td>27</td></tr>
+        <tr><td>5</td><td>32</td><td>16</td><td>8</td><td>11</td><td>32</td><td>46</td></tr>
+        <tr><td>6</td><td>64</td><td>16</td><td>8</td><td>13</td><td>52</td><td>&mdash;</td></tr>
+        <tr><td>7</td><td>128</td><td>16</td><td>8</td><td>15</td><td>78</td><td>62</td></tr>
+        <tr><td>8</td><td>256</td><td>16</td><td>12</td><td>17</td><td>&mdash;</td><td>&mdash;</td></tr>
+        <tr><td>10</td><td>1024</td><td>32</td><td>12</td><td>21</td><td>&mdash;</td><td>&mdash;</td></tr>
+        <tr><td>15</td><td>32768</td><td>64</td><td>16</td><td>31</td><td>&mdash;</td><td>&mdash;</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin-top: 32px;">Design Evaluation Metrics</h3>
+    <p>When you run <code>doe info --config config.json</code>, the tool reports three efficiency metrics:</p>
+    <table>
+      <thead><tr><th>Metric</th><th>What It Measures</th><th>Good Value</th><th>Practical Meaning</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>D-efficiency</strong></td>
+          <td>Overall information content of the design</td>
+          <td>&gt; 90%</td>
+          <td>Higher means more precise estimates of all effects. An efficiency of 100% means the design is optimal for the given model.</td>
+        </tr>
+        <tr>
+          <td><strong>A-efficiency</strong></td>
+          <td>Average precision of effect estimates</td>
+          <td>&gt; 80%</td>
+          <td>Focuses on average variance rather than overall determinant. Good complement to D-efficiency.</td>
+        </tr>
+        <tr>
+          <td><strong>G-efficiency</strong></td>
+          <td>Worst-case prediction variance</td>
+          <td>&gt; 50%</td>
+          <td>Ensures no point in the design space has wildly imprecise predictions. Important for RSM.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout success">
+      <span class="callout-icon">&#x2714;</span>
+      <div class="callout-body">
+        <h4>Don't overthink it</h4>
+        <p>For most experiments, the built-in designs are already highly efficient. Use <code>doe info</code> to check, and only worry about efficiency if you're using D-Optimal or heavily constrained designs.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="howto-section" id="running-experiments">
+  <div class="container-narrow">
+    <h2>Running Experiments</h2>
+
+    <h3>Automated Execution</h3>
+    <p>After <code>doe generate</code>, you have a runner script that executes all runs sequentially. The tool supports both Bash and Python formats.</p>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="tab-run-bash">Bash Script</button>
+      <button class="tab-btn" data-tab="tab-run-python">Python Script</button>
+    </div>
+
+    <div id="tab-run-bash" class="tab-panel active">
+      <div class="code-block">
+        <div class="code-header"><span>Terminal</span></div>
+        <div class="code-body"><span class="comment"># Generate a Bash runner (default)</span>
+<span class="prompt">$ </span>doe generate <span class="flag">--config</span> config.json <span class="flag">--format</span> sh <span class="flag">--seed</span> 42
+
+<span class="comment"># Execute it</span>
+<span class="prompt">$ </span>bash run_experiments.sh</div>
+      </div>
+      <p>The generated script creates the results directory, runs each combination in randomized order, and saves results as <code>run_N.json</code> files.</p>
+    </div>
+
+    <div id="tab-run-python" class="tab-panel">
+      <div class="code-block">
+        <div class="code-header"><span>Terminal</span></div>
+        <div class="code-body"><span class="comment"># Generate a Python runner</span>
+<span class="prompt">$ </span>doe generate <span class="flag">--config</span> config.json <span class="flag">--format</span> py <span class="flag">--seed</span> 42
+
+<span class="comment"># Execute it</span>
+<span class="prompt">$ </span>python run_experiments.py</div>
+      </div>
+      <p>The Python script uses <code>subprocess</code> to call your test script. Useful when you need cross-platform compatibility or want to extend the runner logic.</p>
+    </div>
+
+    <h3 style="margin-top: 32px;">Writing Effective Test Scripts</h3>
+    <p>Your test script is the bridge between the DOE tool and your real experiment. It must follow a simple contract:</p>
+    <ol>
+      <li><strong>Accept factor values</strong> via the configured <code>arg_style</code> (double-dash, env, or positional)</li>
+      <li><strong>Accept <code>--out &lt;path&gt;</code></strong> specifying where to write the result file</li>
+      <li><strong>Write a JSON file</strong> with keys matching your response names</li>
+    </ol>
+
+    <div class="code-block">
+      <div class="code-header"><span>benchmark.sh &mdash; a complete test script example</span></div>
+      <div class="code-body"><span class="comment">#!/bin/bash</span>
+<span class="comment"># Parse arguments</span>
+<span class="keyword">while</span> [[ $# -gt <span class="number">0</span> ]]; <span class="keyword">do</span>
+  <span class="keyword">case</span> $<span class="number">1</span> <span class="keyword">in</span>
+    <span class="flag">--worker_connections</span>) WORKERS=$<span class="number">2</span>; shift <span class="number">2</span>;;
+    <span class="flag">--keepalive_timeout</span>) KEEPALIVE=$<span class="number">2</span>; shift <span class="number">2</span>;;
+    <span class="flag">--gzip_level</span>)        GZIP=$<span class="number">2</span>;     shift <span class="number">2</span>;;
+    <span class="flag">--out</span>)               OUT=$<span class="number">2</span>;      shift <span class="number">2</span>;;
+    *) shift;;
+  <span class="keyword">esac</span>
+<span class="keyword">done</span>
+
+<span class="comment"># Apply configuration (e.g., update nginx.conf)</span>
+sed -i <span class="string">"s/worker_connections .*/worker_connections $WORKERS;/"</span> /etc/nginx/nginx.conf
+sed -i <span class="string">"s/keepalive_timeout .*/keepalive_timeout $KEEPALIVE;/"</span> /etc/nginx/nginx.conf
+sed -i <span class="string">"s/gzip_comp_level .*/gzip_comp_level $GZIP;/"</span> /etc/nginx/nginx.conf
+nginx -s reload
+sleep 5
+
+<span class="comment"># Run the benchmark</span>
+RESULT=$(wrk -t4 -c100 -d30s http://localhost:8080/)
+THROUGHPUT=$(echo <span class="string">"$RESULT"</span> | grep <span class="string">"Requests/sec"</span> | awk <span class="string">'{print $2}'</span>)
+LATENCY=$(echo <span class="string">"$RESULT"</span> | grep <span class="string">"99%"</span> | awk <span class="string">'{print $2}'</span> | sed <span class="string">'s/ms//'</span>)
+
+<span class="comment"># Write results as JSON</span>
+echo <span class="string">"{\"throughput\": $THROUGHPUT, \"p99_latency\": $LATENCY}"</span> > <span class="string">"$OUT"</span></div>
+    </div>
+
+    <h3 style="margin-top: 32px;">Manual Execution with <code>doe record</code></h3>
+    <p>For physical experiments (lab work, field tests, manufacturing trials), you don't need a test script. Use <code>doe record</code> to manually enter results:</p>
+    <div class="code-block">
+      <div class="code-header"><span>Terminal</span></div>
+      <div class="code-body"><span class="comment"># Record a single run</span>
+<span class="prompt">$ </span>doe record <span class="flag">--config</span> config.json <span class="flag">--run</span> 3
+
+<span class="comment"># Record all pending runs interactively</span>
+<span class="prompt">$ </span>doe record <span class="flag">--config</span> config.json <span class="flag">--run</span> all</div>
+    </div>
+
+    <h3 style="margin-top: 32px;">Tracking Progress</h3>
+    <div class="code-block">
+      <div class="code-header"><span>Terminal</span></div>
+      <div class="code-body"><span class="prompt">$ </span>doe status <span class="flag">--config</span> config.json
+
+<span class="comment">Experiment: Web Server Tuning
+Design: full_factorial | 8 runs | 3 factors | 2 responses
+
+Progress: 5/8 complete  [############........]  63%
+
+Next run to complete: Run 6
+  worker_connections = 2048
+  keepalive_timeout  = 15 s
+  gzip_level         = 6
+
+Record results with: doe record --config config.json --run 6</span></div>
+    </div>
+
+    <h3 style="margin-top: 32px;">Handling Failures and Recovery</h3>
+    <div class="callout warning">
+      <span class="callout-icon">&#x26A0;</span>
+      <div class="callout-body">
+        <h4>A run failed or produced bad data?</h4>
+        <p>Simply delete the offending <code>run_N.json</code> file from the results directory and re-run that specific experiment. The runner script or <code>doe record</code> will regenerate it. Use <code>doe status</code> to see which runs are missing.</p>
+      </div>
+    </div>
+    <p>If you cannot complete all runs, use the <code>--partial</code> flag on <code>doe analyze</code> and <code>doe optimize</code> to work with whatever data you have.</p>
+
+    <h3 style="margin-top: 32px;">Exporting Worksheets</h3>
+    <p>For lab and field work, print a worksheet showing all runs with blank columns for recording results by hand:</p>
+    <div class="code-block">
+      <div class="code-header"><span>Terminal</span></div>
+      <div class="code-body"><span class="comment"># CSV for Excel or Google Sheets</span>
+<span class="prompt">$ </span>doe export-worksheet <span class="flag">--config</span> config.json <span class="flag">--format</span> csv <span class="flag">--output</span> worksheet.csv
+
+<span class="comment"># Markdown for documentation</span>
+<span class="prompt">$ </span>doe export-worksheet <span class="flag">--config</span> config.json <span class="flag">--format</span> markdown</div>
+    </div>
+  </div>
+</section>
+
+<section class="howto-section" id="analyzing-results">
+  <div class="container-narrow">
+    <h2>Analyzing Results</h2>
+    <p>Analysis is where DOE pays off. A single command produces a complete statistical analysis of your experiment.</p>
+
+    <div class="code-block">
+      <div class="code-header"><span>Terminal</span></div>
+      <div class="code-body"><span class="prompt">$ </span>doe analyze <span class="flag">--config</span> config.json</div>
+    </div>
+
+    <h3 style="margin-top: 24px;">What <code>doe analyze</code> Produces</h3>
+    <ul>
+      <li><strong>ANOVA table</strong> &mdash; Full analysis of variance with F-tests and p-values</li>
+      <li><strong>Main effects</strong> &mdash; How much each factor changes the response</li>
+      <li><strong>Interaction effects</strong> &mdash; How factor pairs amplify or cancel each other</li>
+      <li><strong>Confidence intervals</strong> &mdash; 95% CI on all effect estimates</li>
+      <li><strong>Summary statistics</strong> &mdash; Per-factor, per-level: count, mean, std, min, max</li>
+      <li><strong>Pareto chart</strong> &mdash; Visual ranking of factor importance</li>
+      <li><strong>Main effects plot</strong> &mdash; Line plots of mean response at each level</li>
+      <li><strong>Normal and half-normal probability plots</strong> &mdash; For screening significant effects</li>
+      <li><strong>Model diagnostics</strong> &mdash; Residuals, leverage, predicted vs. actual</li>
+      <li><strong>Response surface plots</strong> &mdash; 3D surfaces for continuous factor pairs</li>
+    </ul>
+
+    <h3 style="margin-top: 32px;">Reading ANOVA Tables</h3>
+    <p>The ANOVA table is the core output. Here's how to read each column:</p>
+    <table>
+      <thead><tr><th>Column</th><th>Full Name</th><th>What It Tells You</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Source</strong></td><td>Source of Variation</td><td>The factor or interaction being tested</td></tr>
+        <tr><td><strong>SS</strong></td><td>Sum of Squares</td><td>Total variation explained by this source. Larger = more influence.</td></tr>
+        <tr><td><strong>DF</strong></td><td>Degrees of Freedom</td><td>Number of independent comparisons (levels - 1 for main effects)</td></tr>
+        <tr><td><strong>MS</strong></td><td>Mean Square</td><td>SS / DF. The average variation per degree of freedom.</td></tr>
+        <tr><td><strong>F</strong></td><td>F-statistic</td><td>MS(factor) / MS(error). Large F = the factor has a real effect.</td></tr>
+        <tr><td><strong>p-value</strong></td><td>Probability</td><td>Probability that the observed effect is due to chance. <strong>p &lt; 0.05 = statistically significant</strong>.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout info">
+      <span class="callout-icon">&#x2139;</span>
+      <div class="callout-body">
+        <h4>Unreplicated designs</h4>
+        <p>When you have no replicates (block_count = 1) and a saturated design, there is no independent error term. The tool uses Lenth's method (pseudo-standard error) to estimate significance, the same approach used by R's FrF2 package.</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top: 32px;">Understanding Main Effects and Interactions</h3>
+    <p><strong>Main effect:</strong> The average change in response when a factor moves from its low level to its high level. For example, a main effect of +15 for temperature means increasing temperature raises the response by 15 units on average.</p>
+    <p><strong>Interaction effect:</strong> When the effect of one factor depends on the level of another. If temperature has an effect of +20 when pressure is high but only +5 when pressure is low, there is a temperature-pressure interaction.</p>
+
+    <h3 style="margin-top: 32px;">Reading Pareto Charts</h3>
+    <p>The Pareto chart ranks all effects (main effects and interactions) from largest to smallest. A cumulative contribution line shows how much of the total variation is explained. Typically, 2&ndash;3 factors account for 80% or more of the variation (the Pareto principle).</p>
+
+    <div class="callout success">
+      <span class="callout-icon">&#x2714;</span>
+      <div class="callout-body">
+        <h4>What to look for</h4>
+        <p>Focus on the factors above the significance line (dashed red line). These are the "vital few" that truly drive your response. Everything below the line is noise.</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top: 32px;">Model Diagnostics</h3>
+    <p>The diagnostic panel contains four plots that help you validate the analysis:</p>
+    <table>
+      <thead><tr><th>Plot</th><th>What to Look For</th><th>Problem Sign</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Residuals vs. Fitted</strong></td>
+          <td>Random scatter around zero</td>
+          <td>Funnel shape (non-constant variance) or curved pattern (model misfit)</td>
+        </tr>
+        <tr>
+          <td><strong>Normal Probability (Q-Q)</strong></td>
+          <td>Points following the diagonal line</td>
+          <td>Systematic departures indicate non-normal errors</td>
+        </tr>
+        <tr>
+          <td><strong>Residuals vs. Run Order</strong></td>
+          <td>No trends over time</td>
+          <td>Drift or trending suggests an uncontrolled variable changing during the experiment</td>
+        </tr>
+        <tr>
+          <td><strong>Predicted vs. Actual</strong></td>
+          <td>Points close to the 45-degree line</td>
+          <td>Systematic deviation means the model is missing important terms</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin-top: 32px;">Partial Analysis and Filtering</h3>
+    <div class="code-block">
+      <div class="code-header"><span>Terminal</span></div>
+      <div class="code-body"><span class="comment"># Analyze with incomplete data (some runs not yet finished)</span>
+<span class="prompt">$ </span>doe analyze <span class="flag">--config</span> config.json <span class="flag">--partial</span>
+
+<span class="comment"># Skip generating plots (faster, for CI/CD or headless servers)</span>
+<span class="prompt">$ </span>doe analyze <span class="flag">--config</span> config.json <span class="flag">--no-plots</span>
+
+<span class="comment"># Export results to CSV for further analysis in R, Excel, etc.</span>
+<span class="prompt">$ </span>doe analyze <span class="flag">--config</span> config.json <span class="flag">--csv</span> exports/</div>
+    </div>
+  </div>
+</section>
+
+<section class="howto-section" id="optimization">
+  <div class="container-narrow">
+    <h2>Optimization</h2>
+    <p>Once you understand which factors matter, optimization finds the best settings.</p>
+
+    <h3>Single-Response Optimization</h3>
+    <div class="code-block">
+      <div class="code-header"><span>Terminal</span></div>
+      <div class="code-body"><span class="comment"># Optimize for a specific response</span>
+<span class="prompt">$ </span>doe optimize <span class="flag">--config</span> config.json <span class="flag">--response</span> throughput</div>
+    </div>
+    <p>The optimizer does three things:</p>
+    <ol>
+      <li><strong>Reports the best observed run</strong> &mdash; the actual run with the best measured result</li>
+      <li><strong>Fits a response surface model</strong> &mdash; linear and quadratic models using least squares</li>
+      <li><strong>Finds the true optimum</strong> &mdash; uses L-BFGS-B optimization with multi-start to find the global optimum on the fitted surface, which may lie between tested levels</li>
+    </ol>
+
+    <h3 style="margin-top: 32px;">Response Surface Modeling</h3>
+    <p>Response Surface Methodology (RSM) fits a mathematical model to your data, then uses that model to predict the response at any point in the factor space &mdash; even points you didn't test. This is what allows the optimizer to find settings between your tested levels.</p>
+
+    <div class="callout info">
+      <span class="callout-icon">&#x2139;</span>
+      <div class="callout-body">
+        <h4>Linear vs. Quadratic models</h4>
+        <p>The tool automatically fits both. A <strong>linear model</strong> captures main effects and interactions. A <strong>quadratic model</strong> also captures curvature (the sweet spot). If the quadratic model fits significantly better (higher R-squared), the optimum likely lies in the interior of the factor space rather than at a corner.</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top: 32px;">Multi-Objective Optimization</h3>
+    <p>When you have conflicting goals (e.g., maximize throughput AND minimize latency), use <code>--multi</code> to find the best compromise:</p>
+    <div class="code-block">
+      <div class="code-header"><span>Terminal</span></div>
+      <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> config.json <span class="flag">--multi</span>
+
+<span class="comment">============================================================
+MULTI-OBJECTIVE OPTIMIZATION
+Method: Derringer-Suich Desirability Function
+============================================================
+
+Overall desirability: D = 0.7432
+
+Response              Weight Desirability    Predicted  Direction
+-----------------------------------------------------------------
+throughput               2.0       0.8125     3842 req/s   &uarr;
+p99_latency              1.0       0.6215     38.5 ms      &darr;
+
+Recommended settings:
+  worker_connections = 1820
+  keepalive_timeout  = 62 s
+  gzip_level         = 3
+
+Trade-off summary:
+  throughput:  3842 (best observed: 4210, sacrifice: +368)
+  p99_latency: 38.5 (best observed: 28.1, sacrifice: +10.4)</span></div>
+    </div>
+
+    <p>The <strong>desirability function</strong> converts each response into a 0&ndash;1 scale (0 = worst, 1 = best), then combines them using a weighted geometric mean. The weights in your config control the relative importance of each response.</p>
+
+    <h3 style="margin-top: 32px;">Steepest Ascent/Descent</h3>
+    <p>For sequential experimentation (Phase 1 RSM), use <code>--steepest</code> to generate a table of follow-up experiments along the gradient direction:</p>
+    <div class="code-block">
+      <div class="code-header"><span>Terminal</span></div>
+      <div class="code-body"><span class="prompt">$ </span>doe optimize <span class="flag">--config</span> config.json <span class="flag">--response</span> throughput <span class="flag">--steepest</span>
+
+<span class="comment">Steepest Ascent Path (for throughput, maximize):
+Step  worker_connections  keepalive_timeout  gzip_level  Predicted
+  0             1280.0              45.0          3.5       3120
+  1             1536.0              51.0          3.0       3340
+  2             1792.0              57.0          2.5       3560
+  3             2048.0              63.0          2.0       3780
+  4             2304.0              69.0          1.5       4000
+
+Run these experiments and check if the response keeps improving.
+Stop when the response starts declining &mdash; you've found the region of the optimum.</span></div>
+    </div>
+
+    <div class="callout success">
+      <span class="callout-icon">&#x2714;</span>
+      <div class="callout-body">
+        <h4>When to use steepest ascent</h4>
+        <p>Use it when your initial screening design suggests the optimum is outside the tested region. Follow the path of improvement until the response starts declining, then run a new RSM design (CCD or Box-Behnken) centered at the new best point.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="howto-section" id="advanced-features">
+  <div class="container-narrow">
+    <h2>Advanced Features</h2>
+
+    <h3>Design Augmentation</h3>
+    <p>Augmentation lets you add runs to an existing design without re-running what you've already completed. This is essential for sequential experimentation.</p>
+
+    <div class="accordion">
+      <div class="accordion-item">
+        <div class="accordion-header">Fold-Over: De-aliasing Confounded Effects <span class="arrow">&#9660;</span></div>
+        <div class="accordion-body">
+          <p>If your fractional factorial design has aliased (confounded) effects and you need to separate them, a fold-over mirrors all factor levels (swaps high and low). This doubles your run count but breaks the aliasing.</p>
+          <div class="code-block">
+            <div class="code-header"><span>Terminal</span></div>
+            <div class="code-body"><span class="prompt">$ </span>doe augment <span class="flag">--config</span> config.json <span class="flag">--type</span> fold_over</div>
+          </div>
+          <p><strong>When to use:</strong> After a fractional factorial shows significant effects, but you can't tell which aliased term is really driving the response.</p>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <div class="accordion-header">Star Points: Enabling RSM After Factorial <span class="arrow">&#9660;</span></div>
+        <div class="accordion-body">
+          <p>Adding axial (star) points to a 2-level factorial design converts it into a Central Composite Design, enabling quadratic response surface modeling.</p>
+          <div class="code-block">
+            <div class="code-header"><span>Terminal</span></div>
+            <div class="code-body"><span class="prompt">$ </span>doe augment <span class="flag">--config</span> config.json <span class="flag">--type</span> star_points</div>
+          </div>
+          <p><strong>When to use:</strong> When your factorial analysis reveals significant curvature and you need to model the response surface to find the true optimum.</p>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <div class="accordion-header">Center Points: Detecting Curvature <span class="arrow">&#9660;</span></div>
+        <div class="accordion-body">
+          <p>Adds 3 replicate runs at the center of the design space (midpoint of all continuous factors). These runs serve two purposes: detecting curvature and estimating pure error.</p>
+          <div class="code-block">
+            <div class="code-header"><span>Terminal</span></div>
+            <div class="code-body"><span class="prompt">$ </span>doe augment <span class="flag">--config</span> config.json <span class="flag">--type</span> center_points</div>
+          </div>
+          <p><strong>When to use:</strong> After a 2-level design when you suspect the relationship isn't purely linear. If center points show significantly different results from the factorial average, curvature is present.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-top: 32px;">Power Analysis</h3>
+    <p>Before running an expensive experiment, check whether your design has enough runs to detect the effects you care about:</p>
+    <div class="code-block">
+      <div class="code-header"><span>Terminal</span></div>
+      <div class="code-body"><span class="prompt">$ </span>doe power <span class="flag">--config</span> config.json <span class="flag">--sigma</span> 5.0 <span class="flag">--delta</span> 10.0
+
+<span class="comment">Power Analysis
+  Design: full_factorial (8 runs)
+  Error std dev (sigma): 5.0
+  Min detectable effect (delta): 10.0
+  Significance level (alpha): 0.05
+
+  Power: 0.93
+
+  Interpretation: You have a 93% chance of detecting an effect
+  of size 10.0 or larger. This is above the recommended threshold
+  of 0.80. Your design has sufficient power.</span></div>
+    </div>
+
+    <div class="callout warning">
+      <span class="callout-icon">&#x26A0;</span>
+      <div class="callout-body">
+        <h4>Power below 0.80?</h4>
+        <p>If power is low, you have several options: (1) increase <code>block_count</code> to add replicates, (2) switch to a design with more runs, (3) accept that you can only detect larger effects. Don't run an underpowered experiment &mdash; you'll spend time and resources without being able to draw conclusions.</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top: 32px;">Adaptive/Sequential Experimentation</h3>
+    <p>Use <code>doe next-batch</code> for iterative experimentation where each batch of runs informs the next:</p>
+    <div class="code-block">
+      <div class="code-header"><span>Terminal</span></div>
+      <div class="code-body"><span class="prompt">$ </span>doe next-batch <span class="flag">--config</span> config.json</div>
+    </div>
+    <p>This command analyzes your current results and suggests the most informative next set of experiments to run, focusing on regions of the factor space where the model is most uncertain.</p>
+
+    <h3 style="margin-top: 32px;">HTML Report Generation</h3>
+    <div class="code-block">
+      <div class="code-header"><span>Terminal</span></div>
+      <div class="code-body"><span class="prompt">$ </span>doe report <span class="flag">--config</span> config.json <span class="flag">--output</span> experiment_report.html</div>
+    </div>
+    <p>The report is fully self-contained HTML with all plots embedded as base64 images. No external dependencies. Share via email, Slack, wiki, or any file-sharing tool.</p>
+    <p>Contents include: design summary, ANOVA tables, effects tables, Pareto charts, main effects plots, normal/half-normal probability plots, diagnostic panels, 3D response surfaces, optimization recommendations, and the full design matrix.</p>
+
+    <h3 style="margin-top: 32px;">Integration with AI Assistants</h3>
+    <p>Use the DOE Helper with AI tools like ChatGPT or Claude for:</p>
+    <ul>
+      <li>Generating config files from natural language descriptions</li>
+      <li>Interpreting analysis output in plain English</li>
+      <li>Getting recommendations on which design to use</li>
+      <li>Explaining statistical concepts in context</li>
+    </ul>
+    <p>See the <a href="ai-prompts.html">AI Prompts</a> page for ready-to-use prompts.</p>
+  </div>
+</section>
+
+<section class="howto-section" id="best-practices">
+  <div class="container-narrow">
+    <h2>Best Practices</h2>
+
+    <h3>How Many Factors Are Too Many?</h3>
+    <table>
+      <thead><tr><th>Factors</th><th>Approach</th><th>Rationale</th></tr></thead>
+      <tbody>
+        <tr><td>2&ndash;5</td><td>Full factorial or CCD</td><td>Affordable run count. Full interaction analysis.</td></tr>
+        <tr><td>6&ndash;12</td><td>Screen first (PB or DSD), then optimize top 3&ndash;5</td><td>Too many runs for full factorial. Screen to find the vital few.</td></tr>
+        <tr><td>13+</td><td>Plackett-Burman screening, then sequential refinement</td><td>Screening is mandatory. Only test the survivors in detail.</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin-top: 32px;">Replication and Blocking</h3>
+    <div class="callout info">
+      <span class="callout-icon">&#x2139;</span>
+      <div class="callout-body">
+        <h4>Why replicate?</h4>
+        <p>Replication (via <code>block_count</code>) gives you an independent estimate of experimental error, makes significance tests more powerful, and helps you detect if conditions changed between batches. For critical experiments, always use at least 2 blocks.</p>
+      </div>
+    </div>
+
+    <h3 style="margin-top: 32px;">Common Mistakes and How to Avoid Them</h3>
+
+    <div class="accordion">
+      <div class="accordion-item">
+        <div class="accordion-header">Changing one factor at a time (OVAT) <span class="arrow">&#9660;</span></div>
+        <div class="accordion-body">
+          <p><strong>The mistake:</strong> Testing factors one at a time while holding others constant.</p>
+          <p><strong>Why it's bad:</strong> OVAT requires more runs than DOE and completely misses interaction effects. Two factors might be fine individually but terrible (or great) together.</p>
+          <p><strong>The fix:</strong> Use any DOE design. Even a simple full factorial with 3 factors and 2 levels (8 runs) gives you complete information about all main effects AND all interactions.</p>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <div class="accordion-header">Not randomizing run order <span class="arrow">&#9660;</span></div>
+        <div class="accordion-body">
+          <p><strong>The mistake:</strong> Running experiments in a systematic order (all low values first, then all high values).</p>
+          <p><strong>Why it's bad:</strong> If conditions drift over time (temperature, load, degradation), your results will be confounded with the time trend.</p>
+          <p><strong>The fix:</strong> The DOE Helper randomizes run order automatically. Use <code>--seed</code> for reproducible randomization.</p>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <div class="accordion-header">Testing too many levels <span class="arrow">&#9660;</span></div>
+        <div class="accordion-body">
+          <p><strong>The mistake:</strong> Using 5 levels for every factor "to be thorough."</p>
+          <p><strong>Why it's bad:</strong> A 5-factor experiment with 5 levels each = 3125 runs. With 2 levels it's just 32 runs (or 16 with fractional factorial).</p>
+          <p><strong>The fix:</strong> Start with 2 levels per factor. If curvature exists, add center points or switch to CCD. You rarely need more than 3 levels for continuous factors.</p>
+        </div>
+      </div>
+      <div class="accordion-item">
+        <div class="accordion-header">Ignoring practical significance <span class="arrow">&#9660;</span></div>
+        <div class="accordion-body">
+          <p><strong>The mistake:</strong> Declaring a factor important because p &lt; 0.05, even though its actual effect is tiny.</p>
+          <p><strong>Why it's bad:</strong> Statistical significance is not the same as practical significance. A factor that changes throughput by 0.1% may be "significant" with enough data but not worth optimizing.</p>
+          <p><strong>The fix:</strong> Always look at the effect size (the actual magnitude of change), not just the p-value. Use the Pareto chart to see the relative contribution of each factor.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="margin-top: 32px;">When to Use DOE vs. Other Methods</h3>
+    <table>
+      <thead><tr><th>Situation</th><th>Method</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>Multiple factors, want interactions</td><td><strong>DOE</strong></td><td>Designed for this exact problem</td></tr>
+        <tr><td>Single continuous parameter to tune</td><td>Grid search or bisection</td><td>DOE is overkill for 1 parameter</td></tr>
+        <tr><td>Huge search space, cheap evaluations</td><td>Bayesian optimization</td><td>Better for 20+ dimensional spaces with fast evaluations</td></tr>
+        <tr><td>Need to understand causal relationships</td><td><strong>DOE</strong></td><td>Only controlled experimentation proves causation</td></tr>
+        <tr><td>Observational data only</td><td>Regression / ML</td><td>Can't run experiments, must work with what you have</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin-top: 32px;">Tips for Getting the Most Out of Your Experiments</h3>
+    <ol>
+      <li><strong>Always preview first.</strong> Use <code>doe generate --dry-run</code> and <code>doe info</code> before committing.</li>
+      <li><strong>Check power before running.</strong> Use <code>doe power</code> to verify your design can detect the effects you care about.</li>
+      <li><strong>Start with screening.</strong> If you have more than 5 factors, screen first with PB or DSD before investing in RSM.</li>
+      <li><strong>Use center points.</strong> They're cheap (3 extra runs) and tell you if curvature exists.</li>
+      <li><strong>Examine diagnostics.</strong> Always check the residual plots. A bad model gives bad recommendations.</li>
+      <li><strong>Document everything.</strong> Use <code>doe report</code> to generate a permanent record of your experiment.</li>
+      <li><strong>Iterate.</strong> Your first experiment rarely gives the final answer. Use what you learn to design a better follow-up.</li>
+    </ol>
+  </div>
+</section>
+
+<section class="howto-section" id="troubleshooting">
+  <div class="container-narrow">
+    <h2>Troubleshooting</h2>
+
+    <h3>Common Error Messages</h3>
+    <table>
+      <thead><tr><th>Error</th><th>Cause</th><th>Solution</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><code>No result files found</code></td>
+          <td>The results directory is empty or doesn't exist</td>
+          <td>Check that <code>out_directory</code> in config matches where results are saved. Run <code>doe status</code> to verify.</td>
+        </tr>
+        <tr>
+          <td><code>Factor X requires exactly 2 levels</code></td>
+          <td>Fractional factorial, PB, or CCD requires 2-level factors</td>
+          <td>Ensure all factors have exactly 2 levels, or switch to a design that supports more.</td>
+        </tr>
+        <tr>
+          <td><code>Box-Behnken requires 3+ factors</code></td>
+          <td>You have fewer than 3 factors</td>
+          <td>Use CCD or full factorial for 2-factor experiments instead.</td>
+        </tr>
+        <tr>
+          <td><code>Response 'X' not found in run_N.json</code></td>
+          <td>The result file is missing a key that matches your response name</td>
+          <td>Verify that your test script writes JSON with keys exactly matching the <code>name</code> fields in your <code>responses</code> config.</td>
+        </tr>
+        <tr>
+          <td><code>Duplicate factor names</code></td>
+          <td>Two factors have the same <code>name</code></td>
+          <td>Every factor name must be unique. Check for typos.</td>
+        </tr>
+        <tr>
+          <td><code>Invalid JSON in config file</code></td>
+          <td>Syntax error in config.json</td>
+          <td>Check for trailing commas, missing quotes, or mismatched brackets. Use a JSON validator.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3 style="margin-top: 32px;">Missing Results</h3>
+    <p>If some runs failed or weren't completed:</p>
+    <div class="code-block">
+      <div class="code-header"><span>Terminal</span></div>
+      <div class="code-body"><span class="comment"># See which runs are missing</span>
+<span class="prompt">$ </span>doe status <span class="flag">--config</span> config.json
+
+<span class="comment"># Analyze with available data only</span>
+<span class="prompt">$ </span>doe analyze <span class="flag">--config</span> config.json <span class="flag">--partial</span>
+
+<span class="comment"># Re-record a specific failed run</span>
+<span class="prompt">$ </span>doe record <span class="flag">--config</span> config.json <span class="flag">--run</span> 5</div>
+    </div>
+
+    <h3 style="margin-top: 32px;">Design Validation Failures</h3>
+    <p>The tool validates your config against the selected design type. Common validation issues:</p>
+    <ul>
+      <li><strong>CCD with categorical factors:</strong> CCD requires all factors to be continuous with exactly 2 levels. Use full factorial for mixed factor types.</li>
+      <li><strong>Definitive Screening with 2 factors:</strong> DSD requires at least 3 factors. Use full factorial instead.</li>
+      <li><strong>Fractional factorial with 3+ levels:</strong> Fractional factorial is only defined for 2-level factors. Use Taguchi for multi-level screening.</li>
+    </ul>
+
+    <h3 style="margin-top: 32px;">Result Format Issues</h3>
+    <div class="callout warning">
+      <span class="callout-icon">&#x26A0;</span>
+      <div class="callout-body">
+        <h4>Check your JSON output</h4>
+        <p>The most common issue is response names in the result file not matching the config. Names are case-sensitive. If your config says <code>"throughput"</code>, your result file must use <code>"throughput"</code> &mdash; not <code>"Throughput"</code> or <code>"THROUGHPUT"</code>.</p>
+      </div>
+    </div>
+
+    <p>Verify a result file is valid:</p>
+    <div class="code-block">
+      <div class="code-header"><span>Terminal</span></div>
+      <div class="code-body"><span class="comment"># Check that the file is valid JSON with the expected keys</span>
+<span class="prompt">$ </span>python -m json.tool results/run_1.json
+{
+    <span class="key">"throughput"</span>: <span class="number">3420</span>,
+    <span class="key">"p99_latency"</span>: <span class="number">47.2</span>
+}</div>
+    </div>
+
+    <p style="margin-top: 24px;">For additional help, see the <a href="howto.html">Quick Start</a> for command reference, <a href="book.html">Theory</a> for statistical background, or <a href="ai-prompts.html">AI Prompts</a> to get AI-assisted explanations of your results.</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     PART III: TECHNICAL REFERENCE
+     ══════════════════════════════════════════ -->
+<div class="part-title">
+  <div class="part-number">Part III</div>
+  <h1>Technical Reference</h1>
+  <div class="part-subtitle">Complete CLI, Configuration, and Formula Specification</div>
+</div>
+
+
+
+    <!-- Mobile TOC (shown only on small screens) -->
+    
+
+    <!-- ═══════════════════════════════════════════
+         PART 1: CLI REFERENCE
+         ═══════════════════════════════════════════ -->
+    <section id="cli">
+      <h1>Part 1: CLI Reference</h1>
+      <p>The <code>doe</code> command-line interface provides 13 subcommands for generating, running, analyzing, and managing experimental designs. All commands follow the pattern:</p>
+
+      <div class="code-block">
+        <div class="code-header"><span>Terminal</span></div>
+        <div class="code-body"><span class="prompt">$ </span>doe &lt;command&gt; [options]</div>
+      </div>
+
+      <div class="callout info">
+        <span class="callout-icon">&#x2139;</span>
+        <div class="callout-body">
+          <h4>Global Behavior</h4>
+          <p>The <code>--config</code> flag accepts any valid JSON file path. Relative paths are resolved from the current working directory. Most commands that read results use the <code>out_directory</code> field from the config unless overridden with <code>--results-dir</code>.</p>
+        </div>
+      </div>
+
+      <!-- ── doe generate ── -->
+      <h2 id="cmd-generate" class="cmd-header"><code>doe generate</code></h2>
+      <p>Generate a design matrix and write a runner script that executes all experimental runs.</p>
+
+      <table class="flag-table">
+        <thead><tr><th>Flag</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--config FILE</code></td><td>string</td><td><em>required</em></td><td>Input JSON configuration file defining factors, responses, and design settings.</td></tr>
+          <tr><td><code>--output PATH</code></td><td>string</td><td><code>run_experiments.sh</code></td><td>Output path for the generated runner script.</td></tr>
+          <tr><td><code>--format {sh,py}</code></td><td>choice</td><td><code>sh</code></td><td>Script format. <code>sh</code> produces a Bash script; <code>py</code> produces a Python script.</td></tr>
+          <tr><td><code>--seed INT</code></td><td>integer</td><td><em>none</em></td><td>Random seed for run-order randomization. If omitted, run order is not randomized.</td></tr>
+          <tr><td><code>--dry-run</code></td><td>flag</td><td><em>off</em></td><td>Print the design matrix to stdout without writing any files.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header"><span>Example</span></div>
+        <div class="code-body"><span class="prompt">$ </span>doe generate <span class="flag">--config</span> experiment.json <span class="flag">--seed</span> 42 <span class="flag">--format</span> py
+<span class="prompt">$ </span>doe generate <span class="flag">--config</span> experiment.json <span class="flag">--dry-run</span></div>
+      </div>
+
+      <!-- ── doe analyze ── -->
+      <h2 id="cmd-analyze" class="cmd-header"><code>doe analyze</code></h2>
+      <p>Analyze completed experiment results. Computes effects, ANOVA, generates plots, and produces an HTML report.</p>
+
+      <table class="flag-table">
+        <thead><tr><th>Flag</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--config FILE</code></td><td>string</td><td><em>required</em></td><td>Input JSON configuration file.</td></tr>
+          <tr><td><code>--results-dir DIR</code></td><td>string</td><td><em>from config</em></td><td>Override the <code>out_directory</code> setting from the config file.</td></tr>
+          <tr><td><code>--no-plots</code></td><td>flag</td><td><em>off</em></td><td>Skip generating Pareto, main effects, interaction, and diagnostic plots.</td></tr>
+          <tr><td><code>--no-report</code></td><td>flag</td><td><em>off</em></td><td>Skip generating the HTML analysis report.</td></tr>
+          <tr><td><code>--csv DIR</code></td><td>string</td><td><em>none</em></td><td>Export analysis results (effects, ANOVA, summaries) as CSV files into <code>DIR</code>.</td></tr>
+          <tr><td><code>--partial</code></td><td>flag</td><td><em>off</em></td><td>Analyze only the runs that have completed so far (ignore missing results).</td></tr>
+          <tr><td><code>--knee</code></td><td>flag</td><td><em>off</em></td><td>Detect saturation/knee points in response curves where diminishing returns begin.</td></tr>
+          <tr><td><code>--factor NAME [NAME...]</code></td><td>string(s)</td><td><em>all</em></td><td>Restrict analysis to the specified factor(s) only.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header"><span>Example</span></div>
+        <div class="code-body"><span class="prompt">$ </span>doe analyze <span class="flag">--config</span> experiment.json <span class="flag">--csv</span> exports/
+<span class="prompt">$ </span>doe analyze <span class="flag">--config</span> experiment.json <span class="flag">--partial</span> <span class="flag">--knee</span> <span class="flag">--factor</span> temperature pressure</div>
+      </div>
+
+      <!-- ── doe info ── -->
+      <h2 id="cmd-info" class="cmd-header"><code>doe info</code></h2>
+      <p>Display summary information about a design: number of factors, levels, design type, run count, and design evaluation metrics.</p>
+
+      <table class="flag-table">
+        <thead><tr><th>Flag</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--config FILE</code></td><td>string</td><td><em>required</em></td><td>Input JSON configuration file.</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ── doe optimize ── -->
+      <h2 id="cmd-optimize" class="cmd-header"><code>doe optimize</code></h2>
+      <p>Find optimal factor settings from experiment results. Supports single-response optimization, multi-objective desirability, and steepest ascent/descent pathways.</p>
+
+      <table class="flag-table">
+        <thead><tr><th>Flag</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--config FILE</code></td><td>string</td><td><em>required</em></td><td>Input JSON configuration file.</td></tr>
+          <tr><td><code>--results-dir DIR</code></td><td>string</td><td><em>from config</em></td><td>Override the <code>out_directory</code> setting.</td></tr>
+          <tr><td><code>--response NAME</code></td><td>string</td><td><em>all</em></td><td>Optimize for a specific response variable. By default, considers all responses.</td></tr>
+          <tr><td><code>--partial</code></td><td>flag</td><td><em>off</em></td><td>Use only completed runs for optimization.</td></tr>
+          <tr><td><code>--multi</code></td><td>flag</td><td><em>off</em></td><td>Multi-objective optimization using desirability functions. Requires <code>bounds</code> on responses.</td></tr>
+          <tr><td><code>--steepest</code></td><td>flag</td><td><em>off</em></td><td>Show steepest ascent (for maximize) or descent (for minimize) pathway from the current best point.</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ── doe report ── -->
+      <h2 id="cmd-report" class="cmd-header"><code>doe report</code></h2>
+      <p>Generate a standalone HTML analysis report without running the full analysis pipeline.</p>
+
+      <table class="flag-table">
+        <thead><tr><th>Flag</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--config FILE</code></td><td>string</td><td><em>required</em></td><td>Input JSON configuration file.</td></tr>
+          <tr><td><code>--results-dir DIR</code></td><td>string</td><td><em>from config</em></td><td>Override the <code>out_directory</code> setting.</td></tr>
+          <tr><td><code>--output PATH</code></td><td>string</td><td><code>report.html</code></td><td>Output path for the HTML report file.</td></tr>
+          <tr><td><code>--partial</code></td><td>flag</td><td><em>off</em></td><td>Generate a report using only completed runs.</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ── doe record ── -->
+      <h2 id="cmd-record" class="cmd-header"><code>doe record</code></h2>
+      <p>Manually record response values for one or all runs. Prompts interactively for each response value.</p>
+
+      <table class="flag-table">
+        <thead><tr><th>Flag</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--config FILE</code></td><td>string</td><td><em>required</em></td><td>Input JSON configuration file.</td></tr>
+          <tr><td><code>--run {N|all}</code></td><td>string</td><td><em>required</em></td><td>Run number (1-based) to record, or <code>all</code> to iterate through all pending runs.</td></tr>
+          <tr><td><code>--seed INT</code></td><td>integer</td><td><code>42</code></td><td>Random seed used to determine run order (must match the seed used in <code>generate</code>).</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ── doe status ── -->
+      <h2 id="cmd-status" class="cmd-header"><code>doe status</code></h2>
+      <p>Show experiment progress: how many runs are completed, pending, and failed.</p>
+
+      <table class="flag-table">
+        <thead><tr><th>Flag</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--config FILE</code></td><td>string</td><td><em>required</em></td><td>Input JSON configuration file.</td></tr>
+          <tr><td><code>--seed INT</code></td><td>integer</td><td><code>42</code></td><td>Random seed used to determine run order.</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ── doe power ── -->
+      <h2 id="cmd-power" class="cmd-header"><code>doe power</code></h2>
+      <p>Perform power analysis to determine whether the design has enough runs to detect a given effect size at the specified significance level.</p>
+
+      <table class="flag-table">
+        <thead><tr><th>Flag</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--config FILE</code></td><td>string</td><td><em>required</em></td><td>Input JSON configuration file.</td></tr>
+          <tr><td><code>--sigma FLOAT</code></td><td>float</td><td><em>estimated</em></td><td>Error standard deviation. If omitted and results exist, estimated from residuals.</td></tr>
+          <tr><td><code>--delta FLOAT</code></td><td>float</td><td><em>none</em></td><td>Minimum detectable effect size (the smallest effect you care about).</td></tr>
+          <tr><td><code>--alpha FLOAT</code></td><td>float</td><td><code>0.05</code></td><td>Significance level (Type I error rate).</td></tr>
+          <tr><td><code>--results-dir DIR</code></td><td>string</td><td><em>from config</em></td><td>Override the <code>out_directory</code> setting.</td></tr>
+          <tr><td><code>--partial</code></td><td>flag</td><td><em>off</em></td><td>Use only completed runs when estimating sigma from results.</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ── doe augment ── -->
+      <h2 id="cmd-augment" class="cmd-header"><code>doe augment</code></h2>
+      <p>Augment an existing design with additional runs. Use to de-alias effects (fold-over), fit quadratic models (star points), or estimate pure error (center points).</p>
+
+      <table class="flag-table">
+        <thead><tr><th>Flag</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--config FILE</code></td><td>string</td><td><em>required</em></td><td>Input JSON configuration file.</td></tr>
+          <tr><td><code>--type {fold_over,star_points,center_points}</code></td><td>choice</td><td><em>required</em></td><td>Augmentation type. <code>fold_over</code> reverses all signs; <code>star_points</code> adds axial points; <code>center_points</code> adds center-point replicates.</td></tr>
+          <tr><td><code>--output PATH</code></td><td>string</td><td><code>run_experiments_augmented.sh</code></td><td>Output path for the augmented runner script.</td></tr>
+          <tr><td><code>--format {sh,py}</code></td><td>choice</td><td><code>sh</code></td><td>Script format for the augmented runner.</td></tr>
+          <tr><td><code>--seed INT</code></td><td>integer</td><td><em>none</em></td><td>Random seed for run-order randomization of augmented runs.</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ── doe init ── -->
+      <h2 id="cmd-init" class="cmd-header"><code>doe init</code></h2>
+      <p>Initialize a new experiment from a use-case template. Creates a config file and optionally a test script scaffold.</p>
+
+      <table class="flag-table">
+        <thead><tr><th>Flag</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--template NAME</code></td><td>string</td><td><em>none</em></td><td>Use-case template name (e.g., <code>web-server</code>, <code>database</code>, <code>ml-hyperparameter</code>).</td></tr>
+          <tr><td><code>--list</code></td><td>flag</td><td><em>off</em></td><td>List all available templates with descriptions.</td></tr>
+          <tr><td><code>--output-dir DIR</code></td><td>string</td><td><code>.</code></td><td>Directory where the config file and scaffold will be written.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header"><span>Example</span></div>
+        <div class="code-body"><span class="prompt">$ </span>doe init <span class="flag">--list</span>
+<span class="prompt">$ </span>doe init <span class="flag">--template</span> web-server <span class="flag">--output-dir</span> my-experiment/</div>
+      </div>
+
+      <!-- ── doe export-worksheet ── -->
+      <h2 id="cmd-export-worksheet" class="cmd-header"><code>doe export-worksheet</code></h2>
+      <p>Export a blank worksheet showing the design matrix with columns for manually recording responses.</p>
+
+      <table class="flag-table">
+        <thead><tr><th>Flag</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--config FILE</code></td><td>string</td><td><em>required</em></td><td>Input JSON configuration file.</td></tr>
+          <tr><td><code>--format {csv,markdown}</code></td><td>choice</td><td><code>csv</code></td><td>Output format: CSV or Markdown table.</td></tr>
+          <tr><td><code>--output FILE</code></td><td>string</td><td><em>stdout</em></td><td>Output file path. Defaults to printing to stdout.</td></tr>
+          <tr><td><code>--seed INT</code></td><td>integer</td><td><code>42</code></td><td>Random seed for run order.</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ── doe export-data ── -->
+      <h2 id="cmd-export-data" class="cmd-header"><code>doe export-data</code></h2>
+      <p>Export the design matrix and collected response values as a flat data file for use in external analysis tools.</p>
+
+      <table class="flag-table">
+        <thead><tr><th>Flag</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--config FILE</code></td><td>string</td><td><em>required</em></td><td>Input JSON configuration file.</td></tr>
+          <tr><td><code>--format {csv,tsv}</code></td><td>choice</td><td><code>csv</code></td><td>Output format: comma-separated or tab-separated.</td></tr>
+          <tr><td><code>--output FILE</code></td><td>string</td><td><em>stdout</em></td><td>Output file path. Defaults to printing to stdout.</td></tr>
+          <tr><td><code>--seed INT</code></td><td>integer</td><td><code>42</code></td><td>Random seed for run order.</td></tr>
+          <tr><td><code>--partial</code></td><td>flag</td><td><em>off</em></td><td>Include only completed runs (skip missing results).</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ── doe next-batch ── -->
+      <h2 id="cmd-next-batch" class="cmd-header"><code>doe next-batch</code></h2>
+      <p>Generate the next batch of runs for sequential experimentation. Analyzes current results and selects new points based on the chosen strategy.</p>
+
+      <table class="flag-table">
+        <thead><tr><th>Flag</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>--config FILE</code></td><td>string</td><td><em>required</em></td><td>Input JSON configuration file.</td></tr>
+          <tr><td><code>--results-dir DIR</code></td><td>string</td><td><em>from config</em></td><td>Override the <code>out_directory</code> setting.</td></tr>
+          <tr><td><code>--strategy {refine,explore,balanced}</code></td><td>choice</td><td><em>balanced</em></td><td><code>refine</code>: focus near the best region. <code>explore</code>: maximize space coverage. <code>balanced</code>: mix of both.</td></tr>
+          <tr><td><code>--batch-size INT</code></td><td>integer</td><td><em>auto</em></td><td>Number of new runs to generate. Auto-selects based on factor count if omitted.</td></tr>
+          <tr><td><code>--output PATH</code></td><td>string</td><td><code>run_next_batch.sh</code></td><td>Output path for the batch runner script.</td></tr>
+          <tr><td><code>--format {sh,py}</code></td><td>choice</td><td><code>sh</code></td><td>Script format for the batch runner.</td></tr>
+          <tr><td><code>--seed INT</code></td><td>integer</td><td><em>none</em></td><td>Random seed for run-order randomization.</td></tr>
+          <tr><td><code>--partial</code></td><td>flag</td><td><em>off</em></td><td>Consider only completed runs when planning the next batch.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <hr style="border: none; border-top: 2px solid #e5e5e5; margin: 48px 0;">
+
+    <!-- ═══════════════════════════════════════════
+         PART 2: CONFIGURATION SCHEMA
+         ═══════════════════════════════════════════ -->
+    <section id="config">
+      <h1>Part 2: Configuration Schema</h1>
+      <p>The configuration file (<code>config.json</code>) is a single JSON object that defines the entire experiment. Every <code>doe</code> command reads this file.</p>
+
+      <h2 id="config-top">Top-level Fields</h2>
+
+      <table class="flag-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>metadata</code></td><td>object</td><td>No</td><td>Contains <code>name</code> (string) and <code>description</code> (string) for labeling the experiment.</td></tr>
+          <tr><td><code>factors</code></td><td>array of Factor</td><td><strong>Yes</strong></td><td>Array of factor definitions. Must contain at least 1 factor (2+ for most design types).</td></tr>
+          <tr><td><code>fixed_factors</code></td><td>object</td><td>No</td><td>Key-value pairs passed to every run but not varied. Useful for constants.</td></tr>
+          <tr><td><code>responses</code></td><td>array of ResponseVar</td><td>No</td><td>Response variables to collect and analyze. If omitted, all keys in result JSON are treated as responses.</td></tr>
+          <tr><td><code>runner</code></td><td>RunnerConfig</td><td>No</td><td>Controls how factor values are passed to the test script.</td></tr>
+          <tr><td><code>settings</code></td><td>object</td><td>No</td><td>Design type, blocking, output directories, and other operational settings.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code-block">
+        <div class="code-header"><span>Minimal config.json</span></div>
+        <div class="code-body">{
+  "metadata": { "name": "My Experiment", "description": "Testing two factors" },
+  "factors": [
+    { "name": "temperature", "levels": ["60", "80"], "type": "continuous" },
+    { "name": "pressure", "levels": ["1.0", "2.0"], "type": "continuous" }
+  ],
+  "responses": [
+    { "name": "yield", "optimize": "maximize" }
+  ],
+  "settings": {
+    "operation": "full_factorial",
+    "test_script": "./run_test.sh",
+    "out_directory": "results"
+  }
+}</div>
+      </div>
+
+      <h2 id="config-factor">Factor Object</h2>
+
+      <table class="flag-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>name</code></td><td>string</td><td><em>required</em></td><td>Unique identifier for the factor. Used as the argument name in runner scripts and as column headers in output.</td></tr>
+          <tr><td><code>levels</code></td><td>array of strings</td><td><em>required</em></td><td>At least 2 values. For continuous factors, these define the low and high (and optionally center) points. Values are always strings in the config.</td></tr>
+          <tr><td><code>type</code></td><td>string</td><td><code>"categorical"</code></td><td><code>"categorical"</code> &mdash; unordered discrete values.<br><code>"continuous"</code> &mdash; numeric range (enables RSM, CCD, etc.).<br><code>"ordinal"</code> &mdash; ordered discrete values (enables trend analysis).</td></tr>
+          <tr><td><code>unit</code></td><td>string</td><td><em>none</em></td><td>Display unit (e.g., <code>"C"</code>, <code>"MB"</code>, <code>"ms"</code>). Shown in reports and plots.</td></tr>
+          <tr><td><code>description</code></td><td>string</td><td><em>none</em></td><td>Human-readable description of the factor.</td></tr>
+          <tr><td><code>dtype</code></td><td>string</td><td><code>""</code> (auto)</td><td>Force a data type for level values: <code>"int"</code>, <code>"float"</code>, or <code>""</code> for automatic detection.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout warning">
+        <span class="callout-icon">&#x26A0;</span>
+        <div class="callout-body">
+          <h4>Level Values Are Strings</h4>
+          <p>All level values in the JSON config must be strings, even for numeric factors. The tool parses them based on the <code>type</code> and <code>dtype</code> fields. Example: <code>"levels": ["100", "200"]</code>, not <code>"levels": [100, 200]</code>.</p>
+        </div>
+      </div>
+
+      <h2 id="config-response">ResponseVar Object</h2>
+
+      <table class="flag-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>name</code></td><td>string</td><td><em>required</em></td><td>Must match a key in the result JSON output by the test script.</td></tr>
+          <tr><td><code>optimize</code></td><td>string</td><td><code>"maximize"</code></td><td><code>"maximize"</code> or <code>"minimize"</code>. Determines optimization direction and steepest ascent/descent.</td></tr>
+          <tr><td><code>unit</code></td><td>string</td><td><em>none</em></td><td>Display unit shown in reports and plots.</td></tr>
+          <tr><td><code>description</code></td><td>string</td><td><em>none</em></td><td>Human-readable description.</td></tr>
+          <tr><td><code>weight</code></td><td>float</td><td><code>1.0</code></td><td>Relative importance weight for multi-objective optimization. Higher weight gives this response more influence on the overall desirability.</td></tr>
+          <tr><td><code>bounds</code></td><td>[float, float]</td><td><em>none</em></td><td>Two-element array: <code>[worst, best]</code>. Required for desirability-based multi-objective optimization (<code>--multi</code>). For maximize: worst &lt; best. For minimize: worst &gt; best.</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="config-runner">RunnerConfig</h2>
+
+      <table class="flag-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>arg_style</code></td><td>string</td><td><code>"double-dash"</code></td><td>
+            How factor values are passed to the test script:<br>
+            <code>"double-dash"</code> &mdash; <code>./test.sh --temperature 80 --pressure 2.0</code><br>
+            <code>"env"</code> &mdash; <code>TEMPERATURE=80 PRESSURE=2.0 ./test.sh</code><br>
+            <code>"positional"</code> &mdash; <code>./test.sh 80 2.0</code> (in factor definition order)
+          </td></tr>
+          <tr><td><code>result_file</code></td><td>string</td><td><code>"json"</code></td><td>Expected output format from the test script. Currently <code>"json"</code> is the supported format.</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="config-settings">Settings</h2>
+
+      <table class="flag-table">
+        <thead><tr><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>operation</code></td><td>string</td><td><code>"full_factorial"</code></td><td>Design type. One of the 13 supported design types (see <a href="#designs">Part 3</a>).</td></tr>
+          <tr><td><code>test_script</code></td><td>string</td><td><em>none</em></td><td>Path to the test executable. Invoked for each experimental run.</td></tr>
+          <tr><td><code>block_count</code></td><td>integer</td><td><code>1</code></td><td>Number of blocks (replicates) for the design. Values &gt; 1 replicate the entire design matrix.</td></tr>
+          <tr><td><code>out_directory</code></td><td>string</td><td><code>"results"</code></td><td>Directory where result JSON files are stored, one per run.</td></tr>
+          <tr><td><code>processed_directory</code></td><td>string</td><td><em>none</em></td><td>Directory to move result files after processing. If omitted, results stay in <code>out_directory</code>.</td></tr>
+          <tr><td><code>lhs_samples</code></td><td>integer</td><td><code>0</code></td><td>Number of sample points for Latin Hypercube designs. <code>0</code> = auto: <code>max(10, 2 * n_factors)</code>.</td></tr>
+          <tr><td><code>sweep_points</code></td><td>integer</td><td><code>0</code></td><td>Number of points for linear/log sweep designs. <code>0</code> = auto.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <hr style="border: none; border-top: 2px solid #e5e5e5; margin: 48px 0;">
+
+    <!-- ═══════════════════════════════════════════
+         PART 3: DESIGN TYPES
+         ═══════════════════════════════════════════ -->
+    <section id="designs">
+      <h1>Part 3: Design Types</h1>
+      <p>The <code>operation</code> field in settings selects the experimental design. Each design type has different requirements, run counts, and estimation capabilities.</p>
+
+      <!-- ── full_factorial ── -->
+      <h2 id="design-full-factorial">full_factorial</h2>
+      <h4>Full Factorial Design</h4>
+      <table class="flag-table">
+        <thead><tr><th>Property</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Operation string</strong></td><td><code>"full_factorial"</code></td></tr>
+          <tr><td><strong>Purpose</strong></td><td>Evaluate all possible combinations of factor levels. The most thorough design &mdash; no aliasing, complete information.</td></tr>
+          <tr><td><strong>Requirements</strong></td><td>1+ factors, 2+ levels each. No restrictions on factor types.</td></tr>
+          <tr><td><strong>Run count</strong></td><td>L<sub>1</sub> &times; L<sub>2</sub> &times; ... &times; L<sub>k</sub> (product of all level counts)</td></tr>
+          <tr><td><strong>Algorithm</strong></td><td>Cartesian product of all factor levels. Optionally randomized and/or blocked.</td></tr>
+          <tr><td><strong>Estimates</strong></td><td>All main effects, all 2-factor interactions, all higher-order interactions up to k-way.</td></tr>
+        </tbody>
+      </table>
+      <div class="callout info">
+        <span class="callout-icon">&#x2139;</span>
+        <div class="callout-body">
+          <p>Run count grows exponentially: a 2<sup>5</sup> design has 32 runs, but a 3<sup>5</sup> design has 243. Consider fractional or screening designs when k &gt; 4 with 3+ levels.</p>
+        </div>
+      </div>
+
+      <!-- ── fractional_factorial ── -->
+      <h2 id="design-fractional-factorial">fractional_factorial</h2>
+      <h4>Fractional Factorial Design</h4>
+      <table class="flag-table">
+        <thead><tr><th>Property</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Operation string</strong></td><td><code>"fractional_factorial"</code></td></tr>
+          <tr><td><strong>Purpose</strong></td><td>Estimate main effects and some interactions with a fraction of the full factorial runs. Trades resolution for efficiency.</td></tr>
+          <tr><td><strong>Requirements</strong></td><td>2+ factors. Exactly 2 levels per factor.</td></tr>
+          <tr><td><strong>Run count</strong></td><td>2<sup>k&minus;p</sup>, where p is chosen automatically to achieve Resolution III or higher.</td></tr>
+          <tr><td><strong>Algorithm</strong></td><td>Uses generators to define the fraction. The defining relation determines which effects are aliased (confounded).</td></tr>
+          <tr><td><strong>Estimates</strong></td><td>Main effects (aliased with higher-order interactions at Resolution III). At Resolution IV+, main effects are clear of 2-factor interactions.</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ── plackett_burman ── -->
+      <h2 id="design-plackett-burman">plackett_burman</h2>
+      <h4>Plackett-Burman Design</h4>
+      <table class="flag-table">
+        <thead><tr><th>Property</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Operation string</strong></td><td><code>"plackett_burman"</code></td></tr>
+          <tr><td><strong>Purpose</strong></td><td>Screening: identify which factors have significant main effects with minimal runs. Resolution III.</td></tr>
+          <tr><td><strong>Requirements</strong></td><td>2+ factors. Exactly 2 levels per factor.</td></tr>
+          <tr><td><strong>Run count</strong></td><td>N = smallest multiple of 4 that is &ge; k + 1 (e.g., 12 runs for up to 11 factors).</td></tr>
+          <tr><td><strong>Algorithm</strong></td><td>Constructs a Hadamard-like matrix. Extra columns beyond k factors become dummy factors for error estimation.</td></tr>
+          <tr><td><strong>Estimates</strong></td><td>Main effects only. All 2-factor interactions are partially aliased with main effects.</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ── latin_hypercube ── -->
+      <h2 id="design-latin-hypercube">latin_hypercube</h2>
+      <h4>Latin Hypercube Sampling</h4>
+      <table class="flag-table">
+        <thead><tr><th>Property</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Operation string</strong></td><td><code>"latin_hypercube"</code></td></tr>
+          <tr><td><strong>Purpose</strong></td><td>Space-filling design for exploring a continuous factor space. Good for computer experiments and metamodeling.</td></tr>
+          <tr><td><strong>Requirements</strong></td><td>1+ continuous factors with exactly 2 levels (defining the range endpoints).</td></tr>
+          <tr><td><strong>Run count</strong></td><td>Configurable via <code>lhs_samples</code>. Default: max(10, 2k).</td></tr>
+          <tr><td><strong>Algorithm</strong></td><td>Divides each factor range into n equal strata and places exactly one sample in each stratum per factor. Optimized for maximin distance criterion.</td></tr>
+          <tr><td><strong>Estimates</strong></td><td>No formal aliasing structure. Provides a response surface approximation via regression or interpolation. Not orthogonal.</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ── central_composite ── -->
+      <h2 id="design-central-composite">central_composite</h2>
+      <h4>Central Composite Design (CCD)</h4>
+      <table class="flag-table">
+        <thead><tr><th>Property</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Operation string</strong></td><td><code>"central_composite"</code></td></tr>
+          <tr><td><strong>Purpose</strong></td><td>Response Surface Methodology (RSM). Fits a full second-order (quadratic) model to find optima.</td></tr>
+          <tr><td><strong>Requirements</strong></td><td>2+ continuous factors with exactly 2 levels.</td></tr>
+          <tr><td><strong>Run count</strong></td><td>2<sup>k</sup> + 2k + n<sub>c</sub> (factorial points + star points + center points). For k=3: 8 + 6 + 6 = 20.</td></tr>
+          <tr><td><strong>Algorithm</strong></td><td>Combines a factorial core (2<sup>k</sup>), axial/star points at distance &alpha; along each axis, and center-point replicates. The &alpha; value is set to make the design rotatable (&alpha; = 2<sup>k/4</sup>).</td></tr>
+          <tr><td><strong>Estimates</strong></td><td>All main effects, all 2-factor interactions, all quadratic (squared) terms. Full second-order model.</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ── box_behnken ── -->
+      <h2 id="design-box-behnken">box_behnken</h2>
+      <h4>Box-Behnken Design</h4>
+      <table class="flag-table">
+        <thead><tr><th>Property</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Operation string</strong></td><td><code>"box_behnken"</code></td></tr>
+          <tr><td><strong>Purpose</strong></td><td>RSM design that avoids extreme corner points. Useful when corners are infeasible or dangerous.</td></tr>
+          <tr><td><strong>Requirements</strong></td><td>3+ continuous factors with exactly 2 levels.</td></tr>
+          <tr><td><strong>Run count</strong></td><td>Depends on k. For k=3: 12 + center points. For k=4: 24 + center points. Generally fewer runs than CCD.</td></tr>
+          <tr><td><strong>Algorithm</strong></td><td>Combines 2<sup>2</sup> factorials for each pair of factors while holding remaining factors at the center level. Adds center-point replicates.</td></tr>
+          <tr><td><strong>Estimates</strong></td><td>All main effects, all 2-factor interactions, all quadratic terms. Full second-order model.</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ── definitive_screening ── -->
+      <h2 id="design-definitive-screening">definitive_screening</h2>
+      <h4>Definitive Screening Design (DSD)</h4>
+      <table class="flag-table">
+        <thead><tr><th>Property</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Operation string</strong></td><td><code>"definitive_screening"</code></td></tr>
+          <tr><td><strong>Purpose</strong></td><td>Modern screening design that can detect curvature and some 2-factor interactions, unlike traditional screening designs.</td></tr>
+          <tr><td><strong>Requirements</strong></td><td>3+ factors with exactly 2 levels (continuous). Internally uses 3 levels: low, center, high.</td></tr>
+          <tr><td><strong>Run count</strong></td><td>2k + 1 runs for k factors (e.g., 13 runs for 6 factors).</td></tr>
+          <tr><td><strong>Algorithm</strong></td><td>Conference matrix construction. Each pair of columns has the property that when one factor is at its center, the other varies across all three levels.</td></tr>
+          <tr><td><strong>Estimates</strong></td><td>Main effects (unaliased with 2-factor interactions). Quadratic effects (detects curvature). Some 2-factor interactions (with k &ge; 6).</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ── taguchi ── -->
+      <h2 id="design-taguchi">taguchi</h2>
+      <h4>Taguchi Orthogonal Array</h4>
+      <table class="flag-table">
+        <thead><tr><th>Property</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Operation string</strong></td><td><code>"taguchi"</code></td></tr>
+          <tr><td><strong>Purpose</strong></td><td>Robust design methodology. Optimizes signal-to-noise (S/N) ratios to find settings that are robust to noise factors.</td></tr>
+          <tr><td><strong>Requirements</strong></td><td>2+ factors, 2+ levels each. Automatically selects the appropriate orthogonal array (L4, L8, L9, L12, L16, L18, L27, etc.).</td></tr>
+          <tr><td><strong>Run count</strong></td><td>Determined by the selected orthogonal array. Depends on factor count and level count.</td></tr>
+          <tr><td><strong>Algorithm</strong></td><td>Selects the smallest standard orthogonal array that can accommodate all factors. Assigns factors to array columns.</td></tr>
+          <tr><td><strong>Estimates</strong></td><td>Main effects. S/N ratios (larger-is-better, smaller-is-better, nominal-is-best). Limited interaction estimation depending on the array.</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ── d_optimal ── -->
+      <h2 id="design-d-optimal">d_optimal</h2>
+      <h4>D-Optimal Design</h4>
+      <table class="flag-table">
+        <thead><tr><th>Property</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Operation string</strong></td><td><code>"d_optimal"</code></td></tr>
+          <tr><td><strong>Purpose</strong></td><td>Algorithmically constructed design that maximizes the determinant of the information matrix. Useful for irregular design spaces and custom run budgets.</td></tr>
+          <tr><td><strong>Requirements</strong></td><td>2+ factors, 2+ levels each. Works with any combination of factor types.</td></tr>
+          <tr><td><strong>Run count</strong></td><td>User-specified or auto-calculated. Must be at least p (number of model parameters).</td></tr>
+          <tr><td><strong>Algorithm</strong></td><td>Fedorov coordinate-exchange algorithm. Starts from a candidate set of all possible combinations, iteratively swaps points to maximize |X'X|.</td></tr>
+          <tr><td><strong>Estimates</strong></td><td>Main effects and interactions (depending on the model specified). Optimized for the assumed model.</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ── mixture_simplex_lattice ── -->
+      <h2 id="design-mixture-lattice">mixture_simplex_lattice</h2>
+      <h4>Mixture Simplex-Lattice Design</h4>
+      <table class="flag-table">
+        <thead><tr><th>Property</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Operation string</strong></td><td><code>"mixture_simplex_lattice"</code></td></tr>
+          <tr><td><strong>Purpose</strong></td><td>Formulation experiments where components must sum to a constant (e.g., 1 or 100%). Explores the simplex design space on a regular lattice grid.</td></tr>
+          <tr><td><strong>Requirements</strong></td><td>2+ factors (mixture components). Levels define proportion increments.</td></tr>
+          <tr><td><strong>Run count</strong></td><td>C(q + m - 1, m) where q = number of components, m = lattice degree.</td></tr>
+          <tr><td><strong>Algorithm</strong></td><td>Generates all lattice points on the simplex where each component takes values 0, 1/m, 2/m, ..., 1 and all components sum to 1.</td></tr>
+          <tr><td><strong>Estimates</strong></td><td>Linear and interaction blending effects in Scheff&eacute; polynomial models.</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ── mixture_simplex_centroid ── -->
+      <h2 id="design-mixture-centroid">mixture_simplex_centroid</h2>
+      <h4>Mixture Simplex-Centroid Design</h4>
+      <table class="flag-table">
+        <thead><tr><th>Property</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Operation string</strong></td><td><code>"mixture_simplex_centroid"</code></td></tr>
+          <tr><td><strong>Purpose</strong></td><td>Formulation experiments. Uses centroid points of the simplex for a more focused exploration than the lattice design.</td></tr>
+          <tr><td><strong>Requirements</strong></td><td>2+ factors (mixture components).</td></tr>
+          <tr><td><strong>Run count</strong></td><td>2<sup>q</sup> - 1 points (vertices, edge midpoints, face centroids, overall centroid).</td></tr>
+          <tr><td><strong>Algorithm</strong></td><td>Generates all subsets of components: pure components (vertices), binary blends (edge midpoints), ternary blends (face centroids), up to the overall centroid where all components are equal.</td></tr>
+          <tr><td><strong>Estimates</strong></td><td>Full Scheff&eacute; polynomial up to the q-th degree blending terms.</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ── linear_sweep ── -->
+      <h2 id="design-linear-sweep">linear_sweep</h2>
+      <h4>Linear Parameter Sweep</h4>
+      <table class="flag-table">
+        <thead><tr><th>Property</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Operation string</strong></td><td><code>"linear_sweep"</code></td></tr>
+          <tr><td><strong>Purpose</strong></td><td>Characterize a single factor's effect across its range with evenly spaced points.</td></tr>
+          <tr><td><strong>Requirements</strong></td><td>Exactly 1 continuous factor with 2 levels (defining min and max).</td></tr>
+          <tr><td><strong>Run count</strong></td><td>Configurable via <code>sweep_points</code>. Default: auto.</td></tr>
+          <tr><td><strong>Algorithm</strong></td><td>Generates linearly spaced points from the low level to the high level.</td></tr>
+          <tr><td><strong>Estimates</strong></td><td>Response curve shape. Enables knee-point detection and saturation analysis.</td></tr>
+        </tbody>
+      </table>
+
+      <!-- ── log_sweep ── -->
+      <h2 id="design-log-sweep">log_sweep</h2>
+      <h4>Logarithmic Parameter Sweep</h4>
+      <table class="flag-table">
+        <thead><tr><th>Property</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Operation string</strong></td><td><code>"log_sweep"</code></td></tr>
+          <tr><td><strong>Purpose</strong></td><td>Characterize a single factor across a wide dynamic range with logarithmically spaced points.</td></tr>
+          <tr><td><strong>Requirements</strong></td><td>Exactly 1 continuous factor with 2 levels (both positive). Defines min and max on a log scale.</td></tr>
+          <tr><td><strong>Run count</strong></td><td>Configurable via <code>sweep_points</code>. Default: auto.</td></tr>
+          <tr><td><strong>Algorithm</strong></td><td>Generates points spaced evenly on a log<sub>10</sub> scale between the low and high levels.</td></tr>
+          <tr><td><strong>Estimates</strong></td><td>Response curve shape on a logarithmic axis. Useful for parameters spanning orders of magnitude.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <span class="callout-icon">&#x2139;</span>
+        <div class="callout-body">
+          <h4>Choosing a Design</h4>
+          <p>Start with <strong>full_factorial</strong> if you have &le; 4 factors with 2 levels. Use <strong>plackett_burman</strong> or <strong>definitive_screening</strong> to screen many factors. Move to <strong>central_composite</strong> or <strong>box_behnken</strong> for optimization. Use <strong>latin_hypercube</strong> for space-filling exploration of continuous spaces.</p>
+        </div>
+      </div>
+    </section>
+
+    <hr style="border: none; border-top: 2px solid #e5e5e5; margin: 48px 0;">
+
+    <!-- ═══════════════════════════════════════════
+         PART 4: ANALYSIS OUTPUT
+         ═══════════════════════════════════════════ -->
+    <section id="analysis">
+      <h1>Part 4: Analysis Output</h1>
+      <p>The <code>doe analyze</code> command produces statistical tables, effect estimates, and diagnostic metrics. This section documents every output structure.</p>
+
+      <h2 id="anova-table">ANOVA Table</h2>
+      <p>The Analysis of Variance table decomposes total variability into components attributable to each factor and error.</p>
+
+      <table class="flag-table">
+        <thead><tr><th>Column</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Source</strong></td><td>Factor name, interaction term (e.g., <code>A:B</code>), or <code>Error</code> / <code>Residual</code>.</td></tr>
+          <tr><td><strong>DF</strong></td><td>Degrees of freedom. For a factor with L levels: DF = L - 1. For interactions: product of individual DFs. Error DF = N - (total model DF) - 1.</td></tr>
+          <tr><td><strong>SS</strong></td><td>Sum of squares. The portion of total variability explained by this source.</td></tr>
+          <tr><td><strong>MS</strong></td><td>Mean square = SS / DF.</td></tr>
+          <tr><td><strong>F</strong></td><td>F-statistic = MS<sub>source</sub> / MS<sub>error</sub>. Measures the ratio of explained to unexplained variance.</td></tr>
+          <tr><td><strong>p-value</strong></td><td>Probability of observing the F-statistic under the null hypothesis. Values &lt; 0.05 are typically considered significant.</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="error-estimation">Error Estimation Methods</h2>
+      <p>When there are no replicates, error must be estimated by alternative methods:</p>
+
+      <table class="flag-table">
+        <thead><tr><th>Method</th><th>When Used</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Replicate error</strong></td><td>block_count &gt; 1 or center points present</td><td>Pure error from replicated runs. The gold standard.</td></tr>
+          <tr><td><strong>Pooled higher-order</strong></td><td>Full/fractional factorials without replicates</td><td>Pools the smallest effects (assumed negligible) into an error term. Uses the sum of squares from the smallest 1/3 of interaction terms.</td></tr>
+          <tr><td><strong>Lenth's PSE</strong></td><td>Unreplicated 2-level designs</td><td>Pseudo Standard Error based on the median of absolute effect estimates. Robust to active effects.</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="effect-estimates">Effect Estimates</h2>
+      <p>For each factor and response, the analysis reports:</p>
+
+      <table class="flag-table">
+        <thead><tr><th>Output</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Main effect magnitude</strong></td><td>For 2-level factors: mean(high) - mean(low). For multi-level: max(level means) - min(level means). See <a href="#formula-effects">formulas</a>.</td></tr>
+          <tr><td><strong>Standard error (SE)</strong></td><td>Estimated standard error of the effect. Computed from MS<sub>error</sub> and the design matrix.</td></tr>
+          <tr><td><strong>Confidence interval</strong></td><td>Effect &plusmn; t<sub>&alpha;/2, df</sub> &times; SE. Default &alpha; = 0.05 (95% CI).</td></tr>
+          <tr><td><strong>Contribution %</strong></td><td>100 &times; SS<sub>factor</sub> / SS<sub>total</sub>. Percentage of total variability attributable to this factor.</td></tr>
+          <tr><td><strong>Significance</strong></td><td>p-value from the F-test. Marked as significant if p &lt; 0.05.</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="interaction-effects">Interaction Effects</h2>
+      <p>Two-factor interaction effects measure how the effect of one factor depends on the level of another. Reported for designs with sufficient degrees of freedom (full factorial, CCD, Box-Behnken, etc.).</p>
+      <ul>
+        <li><strong>Interaction magnitude</strong>: half the difference between the effect of factor A at high B vs. low B.</li>
+        <li><strong>Interaction plot</strong>: non-parallel lines indicate a significant interaction.</li>
+        <li><strong>Aliasing</strong>: in fractional/PB designs, interactions may be aliased with main effects. The alias structure is reported.</li>
+      </ul>
+
+      <h2 id="summary-stats">Summary Statistics</h2>
+      <p>For each factor/level combination, the analysis computes:</p>
+      <ul>
+        <li>Mean response at each level</li>
+        <li>Standard deviation at each level (when replicates exist)</li>
+        <li>Min and max response at each level</li>
+        <li>Sample count per level</li>
+        <li>Best level (highest mean for maximize, lowest for minimize)</li>
+      </ul>
+
+      <h2 id="ordinal-trends">Ordinal Trend Analysis</h2>
+      <p>For factors with <code>"type": "ordinal"</code>, additional trend analysis is performed:</p>
+      <ul>
+        <li><strong>Monotonic trend test</strong>: determines if the response increases or decreases consistently with the ordinal levels.</li>
+        <li><strong>Trend direction</strong>: increasing, decreasing, or non-monotonic.</li>
+        <li><strong>Trend strength</strong>: Spearman rank correlation between level order and response mean.</li>
+      </ul>
+
+      <h2 id="knee-detection">Knee Point Detection</h2>
+      <p>When <code>--knee</code> is specified (or for sweep designs), the analysis identifies the point of diminishing returns:</p>
+      <ul>
+        <li><strong>Knee point location</strong>: the factor value where the response curve transitions from steep to flat.</li>
+        <li><strong>Algorithm</strong>: maximum curvature method. Finds the point where the second derivative magnitude is largest.</li>
+        <li><strong>Saturation percentage</strong>: what fraction of the total response range is achieved at the knee point.</li>
+      </ul>
+
+      <h2 id="model-diagnostics">Model Diagnostics</h2>
+      <p>When a regression model is fitted (RSM designs, LHS), the following diagnostics are reported:</p>
+
+      <table class="flag-table">
+        <thead><tr><th>Metric</th><th>Description</th><th>Ideal</th></tr></thead>
+        <tbody>
+          <tr><td><strong>R&sup2;</strong></td><td>Coefficient of determination. Proportion of variance explained by the model.</td><td>&gt; 0.80</td></tr>
+          <tr><td><strong>Adjusted R&sup2;</strong></td><td>R&sup2; penalized for number of terms. Decreases if insignificant terms are added.</td><td>&gt; 0.75</td></tr>
+          <tr><td><strong>PRESS</strong></td><td>Predicted Residual Error Sum of Squares. Leave-one-out cross-validation metric.</td><td>Small relative to SS<sub>total</sub></td></tr>
+          <tr><td><strong>Predicted R&sup2;</strong></td><td>1 - PRESS / SS<sub>total</sub>. Measures predictive ability on held-out points.</td><td>&gt; 0.70, within 0.2 of Adj R&sup2;</td></tr>
+          <tr><td><strong>Leverage (h<sub>ii</sub>)</strong></td><td>Diagonal of the hat matrix H = X(X'X)<sup>-1</sup>X'. Identifies influential runs.</td><td>&lt; 2p/n (where p = parameters, n = runs)</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <hr style="border: none; border-top: 2px solid #e5e5e5; margin: 48px 0;">
+
+    <!-- ═══════════════════════════════════════════
+         PART 5: OUTPUT FORMATS
+         ═══════════════════════════════════════════ -->
+    <section id="formats">
+      <h1>Part 5: Output Formats</h1>
+
+      <h2 id="format-result-json">Result JSON</h2>
+      <p>Each test script invocation must output a JSON file containing the measured response values. This is the contract between the test script and the analysis engine.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span>Result JSON (single run)</span></div>
+        <div class="code-body">{
+  "yield": 85.3,
+  "purity": 99.1,
+  "cost": 12.50
+}</div>
+      </div>
+
+      <ul>
+        <li>Keys must match the <code>name</code> fields in the <code>responses</code> array.</li>
+        <li>Values must be numeric (int or float).</li>
+        <li>The file is written to <code>out_directory/run_NNN.json</code> where NNN is the zero-padded run number.</li>
+        <li>If the test script fails, no result file should be written (the run is marked as failed).</li>
+      </ul>
+
+      <h2 id="format-design-matrix">Design Matrix JSON</h2>
+      <p>The <code>design_matrix.json</code> file is generated alongside the runner script. It contains the complete design in a machine-readable format.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span>design_matrix.json structure</span></div>
+        <div class="code-body">{
+  "metadata": { "name": "...", "design_type": "full_factorial", "n_runs": 8 },
+  "factors": ["temperature", "pressure", "catalyst"],
+  "runs": [
+    { "run": 1, "temperature": "80", "pressure": "2.0", "catalyst": "A" },
+    { "run": 2, "temperature": "60", "pressure": "2.0", "catalyst": "B" },
+    ...
+  ]
+}</div>
+      </div>
+
+      <h2 id="format-csv-tsv">CSV &amp; TSV Export</h2>
+      <p>The <code>doe export-data</code> command produces a flat file with one row per run.</p>
+
+      <div class="code-block">
+        <div class="code-header"><span>CSV format</span></div>
+        <div class="code-body">run,temperature,pressure,catalyst,yield,purity,cost
+1,80,2.0,A,85.3,99.1,12.50
+2,60,2.0,B,72.1,98.5,10.20
+...</div>
+      </div>
+
+      <ul>
+        <li>First column is always <code>run</code> (1-based run number in execution order).</li>
+        <li>Factor columns appear in definition order.</li>
+        <li>Response columns appear after factor columns, in definition order.</li>
+        <li>TSV format uses tab separators instead of commas.</li>
+        <li>With <code>--partial</code>, missing response values are left empty.</li>
+      </ul>
+
+      <h2 id="format-worksheet">Worksheet Formats</h2>
+      <p>The <code>doe export-worksheet</code> command produces a blank template for manual data recording.</p>
+
+      <h3>CSV Worksheet</h3>
+      <div class="code-block">
+        <div class="code-header"><span>CSV worksheet</span></div>
+        <div class="code-body">run,temperature,pressure,catalyst,yield,purity,cost
+1,80,2.0,A,,,
+2,60,2.0,B,,,
+...</div>
+      </div>
+
+      <h3>Markdown Worksheet</h3>
+      <div class="code-block">
+        <div class="code-header"><span>Markdown worksheet</span></div>
+        <div class="code-body">| run | temperature | pressure | catalyst | yield | purity | cost |
+|-----|-------------|----------|----------|-------|--------|------|
+| 1   | 80          | 2.0      | A        |       |        |      |
+| 2   | 60          | 2.0      | B        |       |        |      |
+...</div>
+      </div>
+
+      <h2 id="format-html-report">HTML Report</h2>
+      <p>The analysis HTML report (<code>doe report</code> or <code>doe analyze</code>) is a self-contained file that includes:</p>
+      <ul>
+        <li><strong>Experiment summary</strong>: metadata, design type, factor/response definitions, run count.</li>
+        <li><strong>Design matrix</strong>: full table of all runs and their factor settings.</li>
+        <li><strong>ANOVA tables</strong>: one per response variable.</li>
+        <li><strong>Effect estimates</strong>: main effects and interactions with confidence intervals.</li>
+        <li><strong>Plots</strong> (embedded as base64 PNG): Pareto chart, main effects plots, interaction plots, normal/half-normal probability plots, residual diagnostics.</li>
+        <li><strong>Optimization results</strong>: optimal factor settings for each response.</li>
+        <li><strong>Design evaluation</strong>: D-efficiency, A-efficiency, G-efficiency metrics.</li>
+      </ul>
+    </section>
+
+    <hr style="border: none; border-top: 2px solid #e5e5e5; margin: 48px 0;">
+
+    <!-- ═══════════════════════════════════════════
+         PART 6: STATISTICAL FORMULAS
+         ═══════════════════════════════════════════ -->
+    <section id="formulas">
+      <h1>Part 6: Statistical Formulas</h1>
+      <p>This section documents the key formulas used by the analysis engine. All computations follow standard DOE textbook conventions (Montgomery, Box-Hunter-Hunter).</p>
+
+      <h2 id="formula-effects">Effect Calculation</h2>
+
+      <h3>Two-level factors</h3>
+      <div class="math">
+        Effect = mean(Y<sub>high</sub>) - mean(Y<sub>low</sub>)
+      </div>
+      <p>The main effect is the difference in average response between the high (+1) and low (-1) levels, averaged over all other factors.</p>
+
+      <h3>Multi-level factors</h3>
+      <div class="math">
+        Effect = max(Y&#772;<sub>1</sub>, Y&#772;<sub>2</sub>, ..., Y&#772;<sub>L</sub>) - min(Y&#772;<sub>1</sub>, Y&#772;<sub>2</sub>, ..., Y&#772;<sub>L</sub>)
+      </div>
+      <p>For factors with more than 2 levels, the effect is the range of the level means &mdash; the maximum average response minus the minimum average response.</p>
+
+      <h3>Interaction effect (two-level)</h3>
+      <div class="math">
+        AB interaction = &frac12; [ (mean(Y<sub>A+,B+</sub>) + mean(Y<sub>A-,B-</sub>)) - (mean(Y<sub>A+,B-</sub>) + mean(Y<sub>A-,B+</sub>)) ]
+      </div>
+
+      <h2 id="formula-anova">ANOVA Decomposition</h2>
+
+      <div class="math">
+        SS<sub>total</sub> = &sum;<sub>i</sub> (Y<sub>i</sub> - Y&#772;)<sup>2</sup>
+      </div>
+
+      <div class="math">
+        SS<sub>factor</sub> = &sum;<sub>j=1</sub><sup>L</sup> n<sub>j</sub> (Y&#772;<sub>j</sub> - Y&#772;)<sup>2</sup>
+      </div>
+
+      <div class="math">
+        MS<sub>factor</sub> = SS<sub>factor</sub> / DF<sub>factor</sub>
+      </div>
+
+      <div class="math">
+        F = MS<sub>factor</sub> / MS<sub>error</sub>
+      </div>
+
+      <p>Where Y&#772;<sub>j</sub> is the mean response at level j, n<sub>j</sub> is the count at level j, and Y&#772; is the grand mean. The p-value is computed from the F-distribution with (DF<sub>factor</sub>, DF<sub>error</sub>) degrees of freedom.</p>
+
+      <h2 id="formula-lenth">Lenth's Pseudo Standard Error</h2>
+
+      <div class="math">
+        s<sub>0</sub> = 1.5 &times; median(|c<sub>1</sub>|, |c<sub>2</sub>|, ..., |c<sub>m</sub>|)
+      </div>
+
+      <div class="math">
+        PSE = 1.5 &times; median(|c<sub>i</sub>| : |c<sub>i</sub>| &lt; 2.5 &times; s<sub>0</sub>)
+      </div>
+
+      <p>Where c<sub>i</sub> are the contrast (effect) estimates. Lenth's method is used for unreplicated 2-level factorial designs where there is no independent estimate of error. The first step computes a preliminary estimate s<sub>0</sub>, then the PSE refines it by excluding effects larger than 2.5 &times; s<sub>0</sub> (likely active effects).</p>
+
+      <h2 id="formula-ci">Confidence Intervals</h2>
+
+      <div class="math">
+        CI = effect &plusmn; t<sub>&alpha;/2, df<sub>error</sub></sub> &times; SE
+      </div>
+
+      <div class="math">
+        SE = &radic;(MS<sub>error</sub> &times; (1/n<sub>+</sub> + 1/n<sub>-</sub>))
+      </div>
+
+      <p>For balanced 2-level designs: SE = &radic;(4 &times; MS<sub>error</sub> / N), where N is the total number of runs. The t-quantile uses the degrees of freedom from the error term.</p>
+
+      <h2 id="formula-d-efficiency">D-efficiency</h2>
+
+      <div class="math">
+        D-efficiency = 100 &times; (|X'X| / n)<sup>1/p</sup> / n
+      </div>
+
+      <p>Where X is the model matrix (n &times; p), n is the number of runs, and p is the number of model parameters. A D-efficiency of 100% means the design is D-optimal for the assumed model. See <a href="#evaluation">Part 7</a> for interpretation.</p>
+
+      <h2 id="formula-desirability">Desirability Functions</h2>
+
+      <h3>Individual desirability (maximize)</h3>
+      <div class="math">
+        d<sub>i</sub> = ((y<sub>i</sub> - worst) / (best - worst))<sup>s</sup>
+      </div>
+      <p>Where <code>worst</code> and <code>best</code> come from the <code>bounds</code> field on the response. The exponent s controls the shape: s = 1 (linear), s &gt; 1 (emphasis on reaching best), s &lt; 1 (diminishing returns near best). Default s = 1. Values below worst get d = 0; values above best get d = 1.</p>
+
+      <h3>Individual desirability (minimize)</h3>
+      <div class="math">
+        d<sub>i</sub> = ((worst - y<sub>i</sub>) / (worst - best))<sup>s</sup>
+      </div>
+      <p>For minimize, <code>worst</code> &gt; <code>best</code>. Values above worst get d = 0; values below best get d = 1.</p>
+
+      <h3>Overall desirability</h3>
+      <div class="math">
+        D = (&prod; d<sub>i</sub><sup>w<sub>i</sub></sup>)<sup>1 / &sum; w<sub>i</sub></sup>
+      </div>
+      <p>The weighted geometric mean of individual desirabilities. If any single d<sub>i</sub> = 0, the overall D = 0 regardless of other responses. Weights w<sub>i</sub> come from the <code>weight</code> field on each response.</p>
+    </section>
+
+    <hr style="border: none; border-top: 2px solid #e5e5e5; margin: 48px 0;">
+
+    <!-- ═══════════════════════════════════════════
+         PART 7: DESIGN EVALUATION METRICS
+         ═══════════════════════════════════════════ -->
+    <section id="evaluation">
+      <h1>Part 7: Design Evaluation Metrics</h1>
+      <p>These metrics quantify how well a design supports parameter estimation. They are reported by <code>doe info</code> and included in analysis reports.</p>
+
+      <h2 id="eval-d">D-efficiency</h2>
+
+      <div class="math">
+        D-efficiency = 100 &times; (|X'X|<sup>1/p</sup>) / n
+      </div>
+
+      <p><strong>Interpretation:</strong> D-efficiency measures the overall precision of parameter estimates. It is proportional to the p-th root of the determinant of the information matrix X'X, normalized by the number of runs. Higher values mean smaller confidence ellipsoids for the estimated coefficients.</p>
+
+      <table class="flag-table">
+        <thead><tr><th>Range</th><th>Interpretation</th></tr></thead>
+        <tbody>
+          <tr><td>90&ndash;100%</td><td>Excellent. Near-optimal for parameter estimation.</td></tr>
+          <tr><td>70&ndash;89%</td><td>Good. Suitable for most applications.</td></tr>
+          <tr><td>50&ndash;69%</td><td>Moderate. Consider augmenting the design.</td></tr>
+          <tr><td>&lt; 50%</td><td>Poor. The design may not reliably estimate all parameters.</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout info">
+        <span class="callout-icon">&#x2139;</span>
+        <div class="callout-body">
+          <p>Orthogonal designs (full factorial, Plackett-Burman) achieve 100% D-efficiency for the main-effects model. D-optimal designs maximize this metric by construction.</p>
+        </div>
+      </div>
+
+      <h2 id="eval-a">A-efficiency</h2>
+
+      <div class="math">
+        A-efficiency = 100 &times; p / trace((X'X)<sup>-1</sup>)
+      </div>
+
+      <p><strong>Interpretation:</strong> A-efficiency measures the average variance of parameter estimates. It is inversely proportional to the trace (sum of diagonal elements) of (X'X)<sup>-1</sup>. Minimizing the trace minimizes the average variance across all coefficients.</p>
+
+      <ul>
+        <li>A-efficiency focuses on <em>average</em> precision, while D-efficiency focuses on <em>overall</em> precision.</li>
+        <li>A design can have high D-efficiency but lower A-efficiency if some parameters are estimated much more precisely than others.</li>
+        <li>For orthogonal designs, A-efficiency = D-efficiency = 100%.</li>
+      </ul>
+
+      <h2 id="eval-g">G-efficiency</h2>
+
+      <div class="math">
+        G-efficiency = 100 &times; p / (n &times; max(h<sub>ii</sub>))
+      </div>
+
+      <p>Where h<sub>ii</sub> are the diagonal elements of the hat matrix H = X(X'X)<sup>-1</sup>X'.</p>
+
+      <p><strong>Interpretation:</strong> G-efficiency measures the worst-case prediction variance across the design space. It is related to the maximum leverage point. A design with high G-efficiency has relatively uniform prediction variance &mdash; no single point dominates the model.</p>
+
+      <ul>
+        <li>G-efficiency = 100% means all design points have equal leverage (balanced design).</li>
+        <li>Lower G-efficiency indicates that some regions of the factor space are predicted with much less precision than others.</li>
+        <li>Particularly important for response surface designs where prediction across the entire space matters.</li>
+      </ul>
+
+      <div class="callout warning">
+        <span class="callout-icon">&#x26A0;</span>
+        <div class="callout-body">
+          <h4>No Single Metric Is Sufficient</h4>
+          <p>Always examine D-, A-, and G-efficiency together. A design optimized for one criterion may perform poorly on another. For most practical purposes, D-efficiency above 70% with G-efficiency above 50% indicates an adequate design.</p>
+        </div>
+      </div>
+    </section>
+
+    <hr style="border: none; border-top: 2px solid #e5e5e5; margin: 48px 0;">
+
+    <!-- ═══════ NAVIGATION LINKS ═══════ -->
+    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin: 32px 0 48px; font-family: var(--sans); font-size: .9rem;">
+      <a href="guide.html">&larr; User Guide</a>
+      <a href="book.html">Theory &rarr;</a>
+    </div>
+
+  
+
+<!-- ══════════════════════════════════════════
+     PART IV: DOE THEORY
+     ══════════════════════════════════════════ -->
+<div class="part-title">
+  <div class="part-number">Part IV</div>
+  <h1>Design of Experiments</h1>
+  <div class="part-subtitle">A Practical Guide &mdash; From Theory to Automated Analysis</div>
+</div>
+
+
 
     <!-- ── Mobile TOC (shown only on small screens) ── -->
-    <nav class="mobile-toc" id="mobile-toc"></nav>
+    
 
     <!-- ═══════ PREFACE ═══════ -->
     <section id="preface">
@@ -3213,65 +5705,12 @@ Temperature = 187°C,  Catalyst = 3.7%
     <hr style="border: none; border-top: 2px solid var(--slate-200); margin: 48px 0;">
 
     <!-- ═══════ USER GUIDE ═══════ -->
-    <section id="user-guide">
-      <h1>User Guide &amp; Reference</h1>
-      <div class="chapter-subtitle">DOE Helper Tool &mdash; Software Documentation</div>
-
-      <p class="lead">The complete software documentation for the DOE Helper Tool is split across two dedicated pages that put the theory from Chapters 1&ndash;9 into practice.</p>
-
-      <h2 id="ug-guide">User Guide</h2>
-
-      <p>The <a href="guide.html"><strong>User Guide</strong></a> is a hands-on, practical walkthrough of the tool. It covers:</p>
-
-      <ul>
-        <li><strong>Getting Started</strong> &mdash; Installation and your first experiment end-to-end</li>
-        <li><strong>Core Workflow</strong> &mdash; The Plan &rarr; Design &rarr; Execute &rarr; Analyze &rarr; Optimize &rarr; Report cycle</li>
-        <li><strong>Working with Configurations</strong> &mdash; Factor types, responses, runner settings, and templates</li>
-        <li><strong>Choosing a Design</strong> &mdash; Decision guide, comparison tables, and run count estimates</li>
-        <li><strong>Running Experiments</strong> &mdash; Automated and manual execution, progress tracking, failure recovery</li>
-        <li><strong>Analyzing Results</strong> &mdash; ANOVA interpretation, Pareto charts, diagnostics, CSV export</li>
-        <li><strong>Optimization</strong> &mdash; RSM, multi-objective, steepest ascent/descent</li>
-        <li><strong>Advanced Features</strong> &mdash; Augmentation, power analysis, adaptive experimentation</li>
-        <li><strong>Best Practices</strong> &mdash; Common mistakes, replication strategy, practical tips</li>
-        <li><strong>Troubleshooting</strong> &mdash; Error messages and solutions</li>
-      </ul>
-
-      <div class="keypoint-box">
-        <h4>Start Here</h4>
-        <p>If you're new to the tool, the <a href="guide.html">User Guide</a> walks you through a complete experiment from scratch. If you already know DOE and just need the syntax, go straight to the <a href="reference.html">Technical Reference</a>.</p>
-      </div>
-
-      <h2 id="ug-reference">Technical Reference</h2>
-
-      <p>The <a href="reference.html"><strong>Technical Reference</strong></a> is the authoritative specification for every command, flag, configuration field, and formula. It covers:</p>
-
-      <ul>
-        <li><strong>CLI Reference</strong> &mdash; All 13 commands with every flag, type, and default value</li>
-        <li><strong>Configuration Schema</strong> &mdash; Complete field-by-field specification for config.json</li>
-        <li><strong>Design Types</strong> &mdash; All 13 designs with algorithms, run counts, requirements, and capabilities</li>
-        <li><strong>Analysis Output</strong> &mdash; ANOVA structure, effect estimates, diagnostics, and model metrics</li>
-        <li><strong>Output Formats</strong> &mdash; Result JSON, CSV/TSV, worksheets, and HTML report structure</li>
-        <li><strong>Statistical Formulas</strong> &mdash; Effect calculations, ANOVA, Lenth's PSE, confidence intervals, desirability</li>
-        <li><strong>Design Evaluation</strong> &mdash; D-efficiency, A-efficiency, and G-efficiency metrics</li>
-      </ul>
-
-      <h2 id="ug-quickstart">Quick Start &amp; Tutorials</h2>
-
-      <p>For the fastest path to running your first experiment, see the <a href="howto.html">Quick Start</a> page. For a broader collection of real-world scenarios &mdash; from web-server tuning to machine-learning hyperparameter search &mdash; explore the <a href="use-cases/index.html">220+ Use Cases</a>.</p>
-    </section>
+    
 
     <!-- ── Chapter Navigation ── -->
-    <div class="chapter-nav">
-      <a href="index.html">&larr; Back to Home</a>
-      <a href="guide.html">User Guide &rarr;</a>
-    </div>
+    
 
-  </main>
-</div>
+  
 
-<!-- Mobile sidebar toggle -->
-<button class="sidebar-toggle" aria-label="Toggle sidebar">&#x2630;</button>
-
-<script src="js/main.js"></script>
 </body>
 </html>
