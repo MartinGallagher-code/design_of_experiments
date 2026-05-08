@@ -78,6 +78,27 @@ def _results_dir_for(cfg) -> str:
     return cfg.out_directory or "results"
 
 
+def _resolve_results_dir(cfg, results_dir_arg: str | None) -> str:
+    """Pick the results directory for read commands.
+
+    If the user passed --results-dir, use it verbatim. Otherwise prefer
+    ``<out>/latest`` when that symlink exists (so session-aware runs are
+    picked up automatically), and fall back to ``<out>``.
+    """
+    if results_dir_arg:
+        return results_dir_arg
+    base = _results_dir_for(cfg)
+    latest = os.path.join(base, "latest")
+    if os.path.islink(latest) and os.path.isdir(latest):
+        try:
+            target = os.readlink(latest)
+        except OSError:
+            target = ""
+        print(f"Using latest session: {latest}" + (f" -> {target}" if target else ""))
+        return latest
+    return base
+
+
 def _load_or_generate(cfg, results_dir: str | None = None) -> DesignMatrix:
     """Load persisted design matrix, falling back to regeneration with a warning."""
     directory = results_dir or _results_dir_for(cfg)
@@ -117,6 +138,11 @@ def main():
     gen.add_argument("--format", choices=["sh", "py"], default="sh", help="Script format: sh (default) or py")
     gen.add_argument("--seed", type=int, default=None, help="Random seed for run order")
     gen.add_argument("--dry-run", action="store_true", help="Print design matrix without writing files")
+    gen.add_argument("--session", nargs="?", const="", default=None, metavar="PREFIX",
+                     help="Each invocation of the runner creates a fresh "
+                          "<out>/<PREFIX>-<TIMESTAMP>/ subdirectory and "
+                          "updates <out>/latest to point at it. "
+                          "Pass without an argument for timestamp-only.")
 
     # --- analyze ---
     ana = subparsers.add_parser("analyze", help="Analyze completed experiment results")
@@ -177,6 +203,8 @@ def main():
     aug.add_argument("--output", default="run_experiments_augmented.sh", help="Output script path")
     aug.add_argument("--format", choices=["sh", "py"], default="sh", help="Script format")
     aug.add_argument("--seed", type=int, default=None, help="Random seed for run order")
+    aug.add_argument("--session", nargs="?", const="", default=None, metavar="PREFIX",
+                     help="Generate a session-aware runner (see 'doe generate --session').")
 
     # --- init ---
     init = subparsers.add_parser("init", help="Create a new experiment from a built-in use case template")
@@ -202,6 +230,29 @@ def main():
     ed.add_argument("--seed", type=int, default=42, help="Random seed for run order (default: 42)")
     ed.add_argument("--partial", action="store_true", help="Include runs with missing results")
 
+    # --- scaffold-config ---
+    sfc = subparsers.add_parser(
+        "scaffold-config",
+        help="Generate a starter config.json with sample factors and option hints",
+    )
+    sfc.add_argument("--output", default="config.json", metavar="FILE",
+                     help="Output path (default: config.json)")
+    sfc.add_argument("--force", action="store_true",
+                     help="Overwrite the output file if it already exists")
+
+    # --- scaffold-test ---
+    scf = subparsers.add_parser(
+        "scaffold-test",
+        help="Generate a starter test_script prefilled from the config",
+    )
+    scf.add_argument("--config", required=True, metavar="FILE", help="Input JSON config file")
+    scf.add_argument("--language", choices=["py", "sh"], default="py",
+                     help="Language for the scaffolded test script (default: py)")
+    scf.add_argument("--output", default=None, metavar="FILE",
+                     help="Output path (default: test.py / test.sh)")
+    scf.add_argument("--force", action="store_true",
+                     help="Overwrite the output file if it already exists")
+
     # --- next-batch ---
     nb = subparsers.add_parser("next-batch", help="Generate next batch of adaptive experiment runs")
     nb.add_argument("--config", required=True, metavar="FILE", help="Input JSON config file")
@@ -213,6 +264,8 @@ def main():
     nb.add_argument("--format", choices=["sh", "py"], default="sh", help="Script format")
     nb.add_argument("--seed", type=int, default=None, help="Random seed")
     nb.add_argument("--partial", action="store_true", help="Analyze only completed runs")
+    nb.add_argument("--session", nargs="?", const="", default=None, metavar="PREFIX",
+                    help="Generate a session-aware runner (see 'doe generate --session').")
 
     args = parser.parse_args()
 
@@ -249,18 +302,25 @@ def _dispatch(args):
             _print_matrix(matrix, cfg)
         else:
             from doe.codegen import generate_script
-            generate_script(matrix, cfg, args.output, format=args.format)
+            generate_script(matrix, cfg, args.output, format=args.format,
+                            session_prefix=args.session)
             out_dir = _results_dir_for(cfg)
             _save_matrix(matrix, out_dir)
             print(f"Generated {len(matrix.runs)} runs -> {args.output}")
             print(f"Run with: bash {args.output}")
+            if args.session is not None:
+                label = args.session or "(timestamp only)"
+                print(f"Each invocation will create a new session under "
+                      f"{out_dir}/ (prefix: {label}); {out_dir}/latest will "
+                      f"track the most recent session.")
 
     elif args.command == "analyze":
         cfg = load_config(args.config)
-        matrix = _load_or_generate(cfg, results_dir=args.results_dir)
+        results_dir = _resolve_results_dir(cfg, args.results_dir)
+        matrix = _load_or_generate(cfg, results_dir=results_dir)
         try:
             from doe.analysis import analyze
-            report = analyze(matrix, cfg, results_dir=args.results_dir, no_plots=args.no_plots, partial=args.partial, detect_knee=args.knee, filter_factors=args.factor)
+            report = analyze(matrix, cfg, results_dir=results_dir, no_plots=args.no_plots, partial=args.partial, detect_knee=args.knee, filter_factors=args.factor)
         except FileNotFoundError:
             _no_results_message(cfg, matrix)
             return
@@ -274,7 +334,7 @@ def _dispatch(args):
             from doe.report import generate_report
             processed_dir = cfg.processed_directory or cfg.out_directory or "results"
             report_path = os.path.join(processed_dir, "report.html")
-            generate_report(matrix, cfg, results_dir=args.results_dir, output_path=report_path, partial=args.partial, filter_factors=args.factor)
+            generate_report(matrix, cfg, results_dir=results_dir, output_path=report_path, partial=args.partial, filter_factors=args.factor)
             print(f"\nHTML report: {report_path}")
 
     elif args.command == "info":
@@ -304,10 +364,11 @@ def _dispatch(args):
 
     elif args.command == "report":
         cfg = load_config(args.config)
-        matrix = _load_or_generate(cfg, results_dir=args.results_dir)
+        results_dir = _resolve_results_dir(cfg, args.results_dir)
+        matrix = _load_or_generate(cfg, results_dir=results_dir)
         try:
             from doe.report import generate_report
-            generate_report(matrix, cfg, results_dir=args.results_dir, output_path=args.output, partial=args.partial)
+            generate_report(matrix, cfg, results_dir=results_dir, output_path=args.output, partial=args.partial)
         except FileNotFoundError:
             _no_results_message(cfg, matrix)
             return
@@ -333,7 +394,8 @@ def _dispatch(args):
         from doe.design import augment_design
         augmented = augment_design(matrix, cfg, augment_type=args.type)
         from doe.codegen import generate_script
-        generate_script(augmented, cfg, args.output, format=args.format)
+        generate_script(augmented, cfg, args.output, format=args.format,
+                        session_prefix=args.session)
         out_dir = _results_dir_for(cfg)
         _save_matrix(augmented, out_dir)
         n_new = augmented.metadata.get("n_augmented_runs", 0)
@@ -354,9 +416,44 @@ def _dispatch(args):
         _handle_export_data(matrix, cfg, fmt=args.format, output_path=args.output,
                             partial=args.partial)
 
+    elif args.command == "scaffold-config":
+        if os.path.exists(args.output) and not args.force:
+            print(
+                f"Error: '{args.output}' already exists. "
+                f"Pass --force to overwrite or --output FILE to write elsewhere."
+            )
+            return
+        from doe.codegen import generate_config_template
+        generate_config_template(args.output)
+        print(f"Wrote starter config -> {args.output}")
+        print()
+        print("Next steps:")
+        print(f"  1. Edit {args.output} — replace sample factors / responses with your own.")
+        print(f"     Values containing ' | ' list alternatives; pick one.")
+        print(f"  2. doe scaffold-test --config {args.output}    # generates test.py")
+        print(f"  3. doe info --config {args.output}             # preview the design")
+        print(f"  4. doe generate --config {args.output}         # emit the runner script")
+
+    elif args.command == "scaffold-test":
+        cfg = load_config(args.config, strict=False)
+        default_name = "test.py" if args.language == "py" else "test.sh"
+        output_path = args.output or default_name
+        if os.path.exists(output_path) and not args.force:
+            print(
+                f"Error: '{output_path}' already exists. "
+                f"Pass --force to overwrite or --output FILE to write elsewhere."
+            )
+            return
+        from doe.codegen import generate_test_scaffold
+        generate_test_scaffold(cfg, output_path, language=args.language)
+        print(f"Wrote test scaffold -> {output_path}")
+        print("Edit the TODO block, then point your config at it:")
+        print(f'  "settings": {{ "test_script": "{output_path}" }}')
+
     elif args.command == "next-batch":
         cfg = load_config(args.config)
-        matrix = _load_or_generate(cfg, results_dir=args.results_dir)
+        results_dir = _resolve_results_dir(cfg, args.results_dir)
+        matrix = _load_or_generate(cfg, results_dir=results_dir)
         from doe.adaptive import plan_next_batch, AdaptiveConfig
         adaptive_cfg = cfg.adaptive if cfg.adaptive else AdaptiveConfig()
         if args.strategy:
@@ -366,7 +463,7 @@ def _dispatch(args):
         try:
             new_matrix, state = plan_next_batch(
                 matrix, cfg, adaptive_cfg,
-                results_dir=args.results_dir, seed=args.seed,
+                results_dir=results_dir, seed=args.seed,
             )
         except FileNotFoundError:
             _no_results_message(cfg, matrix)
@@ -376,7 +473,8 @@ def _dispatch(args):
             print(f"Completed {state.phase} phases with {state.total_runs} total runs.")
         else:
             from doe.codegen import generate_script
-            generate_script(new_matrix, cfg, args.output, format=args.format)
+            generate_script(new_matrix, cfg, args.output, format=args.format,
+                            session_prefix=args.session)
             # Merge new runs into the saved matrix so analyze sees them
             merged = _merge_matrix(matrix, new_matrix)
             out_dir = args.results_dir or _results_dir_for(cfg)
@@ -393,8 +491,14 @@ def _no_results_message(cfg, matrix):
     print()
     print(f"This experiment has {n_runs} runs that need to be completed first.")
     print(f"To run the experiment:")
-    print(f"  1. doe generate --config config.json --output {results_dir}/run.sh")
-    print(f"  2. bash {results_dir}/run.sh")
+    if not cfg.test_script:
+        print(f"  1. doe scaffold-test --config config.json   # creates test.py")
+        print(f"  2. edit test.py and add it as test_script in your config")
+        print(f"  3. doe generate --config config.json --output {results_dir}/run.sh")
+        print(f"  4. bash {results_dir}/run.sh")
+    else:
+        print(f"  1. doe generate --config config.json --output {results_dir}/run.sh")
+        print(f"  2. bash {results_dir}/run.sh")
     print()
     print(f"Or record results manually:")
     print(f"  doe record --config config.json --run 1")
@@ -406,16 +510,17 @@ def _no_results_message(cfg, matrix):
 def _run_optimize(matrix, cfg, args):
     """Run the optimize subcommand (steepest, multi, or single-response)."""
     if args.steepest:
-        from doe.analysis import _load_all_results
+        from doe.analysis import _load_all_results, _coerce_response_value
         from doe.rsm import fit_rsm, steepest_ascent as _steepest
-        results_dir = args.results_dir or cfg.out_directory or "results"
+        results_dir = _resolve_results_dir(cfg, args.results_dir)
         all_data = _load_all_results(matrix.runs, results_dir, partial=args.partial)
         for resp in cfg.responses:
             responses = {}
             for run in matrix.runs:
                 data = all_data.get(run.run_id, {})
-                if resp.name in data:
-                    responses[run.run_id] = float(data[resp.name])
+                value = _coerce_response_value(data, resp.name, run.run_id, results_dir)
+                if value is not None:
+                    responses[run.run_id] = value
             if not responses:
                 continue
             valid_runs = [r for r in matrix.runs if r.run_id in responses]
@@ -434,10 +539,12 @@ def _run_optimize(matrix, cfg, args):
                 print(f"{pt['predicted_value']:>14.4f}")
     elif args.multi:
         from doe.optimize import multi_objective
-        multi_objective(matrix, cfg, results_dir=args.results_dir, partial=args.partial)
+        results_dir = _resolve_results_dir(cfg, args.results_dir)
+        multi_objective(matrix, cfg, results_dir=results_dir, partial=args.partial)
     else:
         from doe.optimize import recommend
-        recommend(matrix, cfg, results_dir=args.results_dir, response_name=args.response, partial=args.partial)
+        results_dir = _resolve_results_dir(cfg, args.results_dir)
+        recommend(matrix, cfg, results_dir=results_dir, response_name=args.response, partial=args.partial)
 
 
 def _handle_init(args):
@@ -870,17 +977,18 @@ def _handle_power(matrix, cfg, args):
     # If sigma not provided, try to estimate from results
     if sigma is None:
         try:
-            from doe.analysis import _load_all_results
+            from doe.analysis import _load_all_results, _coerce_response_value
             from doe.rsm import fit_rsm
-            results_dir = args.results_dir or cfg.out_directory or "results"
+            results_dir = _resolve_results_dir(cfg, args.results_dir)
             all_data = _load_all_results(matrix.runs, results_dir, partial=args.partial)
             # Use first response to estimate sigma from residuals
             resp = cfg.responses[0]
             responses = {}
             for run in matrix.runs:
                 data = all_data.get(run.run_id, {})
-                if resp.name in data:
-                    responses[run.run_id] = float(data[resp.name])
+                value = _coerce_response_value(data, resp.name, run.run_id, results_dir)
+                if value is not None:
+                    responses[run.run_id] = value
             if responses:
                 valid_runs = [r for r in matrix.runs if r.run_id in responses]
                 model = fit_rsm(valid_runs, responses, matrix.factor_names, cfg.factors, model_type="linear")

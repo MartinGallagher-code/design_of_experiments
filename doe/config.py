@@ -317,3 +317,12 @@ def _validate_config(cfg: DOEConfig, strict: bool = True) -> None:
             f"Warning: test_script '{cfg.test_script}' does not exist. "
             "The generated script may not run correctly."
         )
+
+    overlap = sorted(set(f.name for f in cfg.factors) & set(cfg.fixed_factors))
+    if overlap:
+        print(
+            f"Warning: name(s) appear in both 'factors' and 'fixed_factors': "
+            f"{', '.join(overlap)}. The runner will pass each value twice and "
+            f"the design's variation will be overridden by the fixed value. "
+            f"Remove from one section."
+        )

@@ -70,7 +70,7 @@ def plan_next_batch(
         state = AdaptiveState(phase=0, total_runs=0)
 
     # Load existing results
-    from .analysis import _load_all_results
+    from .analysis import _load_all_results, _coerce_response_value
     all_data = _load_all_results(matrix.runs, results_dir, partial=True)
 
     if not all_data:
@@ -90,8 +90,9 @@ def plan_next_batch(
     responses: dict[int, float] = {}
     for run in matrix.runs:
         data = all_data.get(run.run_id, {})
-        if resp.name in data:
-            responses[run.run_id] = float(data[resp.name])
+        value = _coerce_response_value(data, resp.name, run.run_id, results_dir)
+        if value is not None:
+            responses[run.run_id] = value
 
     valid_runs = [r for r in matrix.runs if r.run_id in responses]
     if not valid_runs:
