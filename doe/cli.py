@@ -202,6 +202,19 @@ def main():
     ed.add_argument("--seed", type=int, default=42, help="Random seed for run order (default: 42)")
     ed.add_argument("--partial", action="store_true", help="Include runs with missing results")
 
+    # --- scaffold-test ---
+    scf = subparsers.add_parser(
+        "scaffold-test",
+        help="Generate a starter test_script prefilled from the config",
+    )
+    scf.add_argument("--config", required=True, metavar="FILE", help="Input JSON config file")
+    scf.add_argument("--language", choices=["py", "sh"], default="py",
+                     help="Language for the scaffolded test script (default: py)")
+    scf.add_argument("--output", default=None, metavar="FILE",
+                     help="Output path (default: test.py / test.sh)")
+    scf.add_argument("--force", action="store_true",
+                     help="Overwrite the output file if it already exists")
+
     # --- next-batch ---
     nb = subparsers.add_parser("next-batch", help="Generate next batch of adaptive experiment runs")
     nb.add_argument("--config", required=True, metavar="FILE", help="Input JSON config file")
@@ -354,6 +367,22 @@ def _dispatch(args):
         _handle_export_data(matrix, cfg, fmt=args.format, output_path=args.output,
                             partial=args.partial)
 
+    elif args.command == "scaffold-test":
+        cfg = load_config(args.config, strict=False)
+        default_name = "test.py" if args.language == "py" else "test.sh"
+        output_path = args.output or default_name
+        if os.path.exists(output_path) and not args.force:
+            print(
+                f"Error: '{output_path}' already exists. "
+                f"Pass --force to overwrite or --output FILE to write elsewhere."
+            )
+            return
+        from doe.codegen import generate_test_scaffold
+        generate_test_scaffold(cfg, output_path, language=args.language)
+        print(f"Wrote test scaffold -> {output_path}")
+        print("Edit the TODO block, then point your config at it:")
+        print(f'  "settings": {{ "test_script": "{output_path}" }}')
+
     elif args.command == "next-batch":
         cfg = load_config(args.config)
         matrix = _load_or_generate(cfg, results_dir=args.results_dir)
@@ -393,8 +422,14 @@ def _no_results_message(cfg, matrix):
     print()
     print(f"This experiment has {n_runs} runs that need to be completed first.")
     print(f"To run the experiment:")
-    print(f"  1. doe generate --config config.json --output {results_dir}/run.sh")
-    print(f"  2. bash {results_dir}/run.sh")
+    if not cfg.test_script:
+        print(f"  1. doe scaffold-test --config config.json   # creates test.py")
+        print(f"  2. edit test.py and add it as test_script in your config")
+        print(f"  3. doe generate --config config.json --output {results_dir}/run.sh")
+        print(f"  4. bash {results_dir}/run.sh")
+    else:
+        print(f"  1. doe generate --config config.json --output {results_dir}/run.sh")
+        print(f"  2. bash {results_dir}/run.sh")
     print()
     print(f"Or record results manually:")
     print(f"  doe record --config config.json --run 1")

@@ -19,27 +19,74 @@ def generate_script(
     if format not in template_map:
         raise ValueError(f"Unknown format '{format}'. Choose 'sh' or 'py'.")
 
+    env = _jinja_env()
+    template = env.get_template(template_map[format])
+    context = _build_template_context(matrix, cfg)
+    rendered = template.render(**context)
+
+    _write_executable(output_path, rendered)
+    return rendered
+
+
+def generate_test_scaffold(cfg: DOEConfig, output_path: str, language: str = "py") -> str:
+    """Generate a starter test_script for the user, prefilled from the config.
+
+    The user only has to edit the TODO block to plug in their real test.
+    """
+    template_map = {"py": "scaffold_py.j2", "sh": "scaffold_sh.j2"}
+    if language not in template_map:
+        raise ValueError(f"Unknown language '{language}'. Choose 'py' or 'sh'.")
+
+    env = _jinja_env()
+    template = env.get_template(template_map[language])
+    context = {
+        "factor_names": [f.name for f in cfg.factors],
+        "fixed_factor_names": list(cfg.fixed_factors.keys()),
+        "response_names": [r.name for r in cfg.responses],
+        "arg_style": cfg.runner.arg_style,
+        "plan_name": cfg.metadata.get("name", ""),
+    }
+    rendered = template.render(**context)
+
+    _write_executable(output_path, rendered)
+    return rendered
+
+
+def _jinja_env() -> Environment:
     env = Environment(
         loader=PackageLoader("doe", "templates"),
         keep_trailing_newline=True,
     )
     env.filters["tojson"] = _tojson
+    env.filters["py_ident"] = _py_ident
+    env.filters["sh_var"] = _sh_var
+    return env
 
-    template = env.get_template(template_map[format])
-    context = _build_template_context(matrix, cfg)
-    rendered = template.render(**context)
 
+def _write_executable(output_path: str, contents: str) -> None:
     output_dir = Path(output_path).parent
     if not output_dir.exists():
         output_dir.mkdir(parents=True, exist_ok=True)
-
     with open(output_path, "w") as f:
-        f.write(rendered)
-
+        f.write(contents)
     path = Path(output_path)
     path.chmod(path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
-    return rendered
+
+def _py_ident(name: str) -> str:
+    """Sanitize a name into a valid Python identifier."""
+    out = "".join(c if c.isalnum() or c == "_" else "_" for c in name)
+    if not out or out[0].isdigit():
+        out = "_" + out
+    return out
+
+
+def _sh_var(name: str) -> str:
+    """Sanitize a name into an uppercase shell variable name."""
+    out = "".join(c if c.isalnum() or c == "_" else "_" for c in name).upper()
+    if not out or out[0].isdigit():
+        out = "_" + out
+    return out
 
 
 def _build_template_context(matrix: DesignMatrix, cfg: DOEConfig) -> dict:

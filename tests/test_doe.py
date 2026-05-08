@@ -1915,3 +1915,205 @@ class TestAdaptiveExperimentation:
         assert cfg.adaptive.strategy == "balanced"
         assert cfg.adaptive.batch_size == 8
         assert cfg.adaptive.stopping_max_phases == 3
+
+
+class TestRunnerHelpers:
+    """Tests for doe.runner.parse_factors and doe.runner.emit."""
+
+    def test_parse_double_dash(self):
+        from doe.runner import parse_factors
+        argv = ["--threads", "8", "--batch_size", "100", "--out", "/tmp/r.json"]
+        values, out = parse_factors(["threads", "batch_size"], arg_style="double-dash", argv=argv)
+        assert values == {"threads": "8", "batch_size": "100"}
+        assert out == "/tmp/r.json"
+
+    def test_parse_double_dash_with_fixed(self):
+        from doe.runner import parse_factors
+        argv = ["--a", "1", "--b", "2", "--seed", "42", "--out", "x"]
+        values, _ = parse_factors(["a", "b"], fixed_factor_names=["seed"],
+                                  arg_style="double-dash", argv=argv)
+        assert values == {"a": "1", "b": "2"}  # fixed factors not returned
+
+    def test_parse_env(self, monkeypatch):
+        from doe.runner import parse_factors
+        monkeypatch.setenv("THREADS", "4")
+        monkeypatch.setenv("BATCH_SIZE", "32")
+        values, out = parse_factors(["threads", "batch_size"], arg_style="env",
+                                    argv=["--out", "x"])
+        assert values == {"threads": "4", "batch_size": "32"}
+        assert out == "x"
+
+    def test_parse_env_missing(self, monkeypatch):
+        from doe.runner import parse_factors
+        monkeypatch.delenv("THREADS", raising=False)
+        with pytest.raises(SystemExit):
+            parse_factors(["threads"], arg_style="env", argv=["--out", "x"])
+
+    def test_parse_positional(self):
+        from doe.runner import parse_factors
+        values, out = parse_factors(
+            ["a", "b"], fixed_factor_names=["c"],
+            arg_style="positional", argv=["1", "2", "3", "--out", "p.json"],
+        )
+        assert values == {"a": "1", "b": "2"}
+        assert out == "p.json"
+
+    def test_parse_positional_wrong_count(self):
+        from doe.runner import parse_factors
+        with pytest.raises(SystemExit):
+            parse_factors(["a", "b"], arg_style="positional",
+                          argv=["1", "--out", "p"])
+
+    def test_parse_unknown_style(self):
+        from doe.runner import parse_factors
+        with pytest.raises(ValueError):
+            parse_factors(["a"], arg_style="bogus", argv=[])
+
+    def test_emit_kwargs(self, tmp_path):
+        from doe.runner import emit
+        out = str(tmp_path / "out.json")
+        emit(out, throughput=42.0, latency=1.5)
+        data = json.loads(Path(out).read_text())
+        assert data == {"throughput": 42.0, "latency": 1.5}
+
+    def test_emit_dict(self, tmp_path):
+        from doe.runner import emit
+        out = str(tmp_path / "out.json")
+        emit(out, {"cpu-util": 0.83, "p99-latency": 12.5})
+        data = json.loads(Path(out).read_text())
+        assert data == {"cpu-util": 0.83, "p99-latency": 12.5}
+
+    def test_emit_creates_parent_dir(self, tmp_path):
+        from doe.runner import emit
+        out = str(tmp_path / "nested" / "out.json")
+        emit(out, throughput=1.0)
+        assert Path(out).exists()
+
+    def test_emit_expected_mismatch(self, tmp_path):
+        from doe.runner import emit
+        out = str(tmp_path / "out.json")
+        with pytest.raises(ValueError, match="missing"):
+            emit(out, throughput=1.0, _expected=["throughput", "latency"])
+        with pytest.raises(ValueError, match="unexpected"):
+            emit(out, througput=1.0, _expected=["throughput"])  # typo
+
+    def test_emit_non_numeric(self, tmp_path):
+        from doe.runner import emit
+        out = str(tmp_path / "out.json")
+        with pytest.raises(ValueError, match="not numeric"):
+            emit(out, throughput="oops")
+
+    def test_emit_dict_and_kwargs_conflict(self, tmp_path):
+        from doe.runner import emit
+        out = str(tmp_path / "out.json")
+        with pytest.raises(TypeError):
+            emit(out, {"a": 1}, b=2)
+
+
+class TestScaffoldTest:
+    """Tests for doe scaffold-test code generation."""
+
+    def _cfg(self, tmp_path, arg_style="double-dash", factors=None, responses=None):
+        cfg_dict = _make_config_dict(
+            factors=factors or [
+                {"name": "threads", "levels": ["1", "8"]},
+                {"name": "batch_size", "levels": ["10", "100"]},
+            ],
+            responses=responses or [
+                {"name": "throughput", "optimize": "maximize"},
+                {"name": "latency", "optimize": "minimize"},
+            ],
+            runner={"arg_style": arg_style},
+        )
+        return load_config(_write_config(tmp_path, cfg_dict), strict=False)
+
+    def test_python_scaffold_runs(self, tmp_path):
+        """Generated Python scaffold should run end-to-end and write JSON."""
+        from doe.codegen import generate_test_scaffold
+        cfg = self._cfg(tmp_path)
+        script = tmp_path / "test.py"
+        generate_test_scaffold(cfg, str(script), language="py")
+
+        out = tmp_path / "result.json"
+        env = dict(os.environ, PYTHONPATH=str(PROJECT_ROOT))
+        result = subprocess.run(
+            [sys.executable, str(script),
+             "--threads", "8", "--batch_size", "100", "--out", str(out)],
+            env=env, capture_output=True, text=True,
+        )
+        assert result.returncode == 0, result.stderr
+        data = json.loads(out.read_text())
+        assert set(data.keys()) == {"throughput", "latency"}
+
+    def test_bash_scaffold_runs(self, tmp_path):
+        from doe.codegen import generate_test_scaffold
+        cfg = self._cfg(tmp_path)
+        script = tmp_path / "test.sh"
+        generate_test_scaffold(cfg, str(script), language="sh")
+
+        out = tmp_path / "result.json"
+        result = subprocess.run(
+            ["bash", str(script),
+             "--threads", "8", "--batch_size", "100", "--out", str(out)],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, result.stderr
+        data = json.loads(out.read_text())
+        assert set(data.keys()) == {"throughput", "latency"}
+
+    def test_python_scaffold_handles_hyphenated_names(self, tmp_path):
+        """Hyphenated factor / response names must round-trip via dict-form emit."""
+        from doe.codegen import generate_test_scaffold
+        cfg = self._cfg(
+            tmp_path,
+            factors=[{"name": "batch-size", "levels": ["10", "100"]}],
+            responses=[{"name": "p99-latency", "optimize": "minimize"}],
+        )
+        script = tmp_path / "test.py"
+        generate_test_scaffold(cfg, str(script), language="py")
+        out = tmp_path / "result.json"
+        env = dict(os.environ, PYTHONPATH=str(PROJECT_ROOT))
+        result = subprocess.run(
+            [sys.executable, str(script), "--batch-size", "10", "--out", str(out)],
+            env=env, capture_output=True, text=True,
+        )
+        assert result.returncode == 0, result.stderr
+        data = json.loads(out.read_text())
+        assert "p99-latency" in data
+
+    def test_python_scaffold_positional(self, tmp_path):
+        from doe.codegen import generate_test_scaffold
+        cfg = self._cfg(tmp_path, arg_style="positional")
+        script = tmp_path / "test.py"
+        generate_test_scaffold(cfg, str(script), language="py")
+        out = tmp_path / "result.json"
+        env = dict(os.environ, PYTHONPATH=str(PROJECT_ROOT))
+        result = subprocess.run(
+            [sys.executable, str(script), "8", "100", "--out", str(out)],
+            env=env, capture_output=True, text=True,
+        )
+        assert result.returncode == 0, result.stderr
+        assert json.loads(out.read_text())["throughput"] == 0.0
+
+    def test_python_scaffold_env(self, tmp_path):
+        from doe.codegen import generate_test_scaffold
+        cfg = self._cfg(tmp_path, arg_style="env")
+        script = tmp_path / "test.py"
+        generate_test_scaffold(cfg, str(script), language="py")
+        out = tmp_path / "result.json"
+        env = dict(os.environ)
+        env["THREADS"] = "4"
+        env["BATCH_SIZE"] = "50"
+        env["PYTHONPATH"] = str(PROJECT_ROOT) + os.pathsep + env.get("PYTHONPATH", "")
+        result = subprocess.run(
+            [sys.executable, str(script), "--out", str(out)],
+            env=env, capture_output=True, text=True,
+        )
+        assert result.returncode == 0, result.stderr
+        assert json.loads(out.read_text())["throughput"] == 0.0
+
+    def test_scaffold_unknown_language(self, tmp_path):
+        from doe.codegen import generate_test_scaffold
+        cfg = self._cfg(tmp_path)
+        with pytest.raises(ValueError):
+            generate_test_scaffold(cfg, str(tmp_path / "x"), language="rust")
