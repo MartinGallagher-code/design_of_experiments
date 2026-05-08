@@ -2117,3 +2117,73 @@ class TestScaffoldTest:
         cfg = self._cfg(tmp_path)
         with pytest.raises(ValueError):
             generate_test_scaffold(cfg, str(tmp_path / "x"), language="rust")
+
+
+class TestScaffoldConfig:
+    """Tests for doe scaffold-config."""
+
+    def test_emits_valid_loadable_config(self, tmp_path, capsys):
+        """Generated template must round-trip through load_config."""
+        from doe.codegen import generate_config_template
+        path = tmp_path / "config.json"
+        generate_config_template(str(path))
+
+        cfg = load_config(str(path), strict=False)
+        assert {f.name for f in cfg.factors} == {"temperature", "pressure", "catalyst"}
+        # fixed_factors mirrors factor names with their first level
+        assert cfg.fixed_factors == {"temperature": "100", "pressure": "1", "catalyst": "A"}
+        # And the loader warns about the resulting overlap
+        out = capsys.readouterr().out
+        assert "factors" in out and "fixed_factors" in out
+
+    def test_design_generates_from_template(self, tmp_path, capsys):
+        """The default operation in the template must produce a valid design."""
+        from doe.codegen import generate_config_template
+        path = tmp_path / "config.json"
+        generate_config_template(str(path))
+        cfg = load_config(str(path), strict=False)
+        capsys.readouterr()  # drop overlap warning
+        matrix = generate_design(cfg)
+        # 2 numeric (2 levels) * 1 categorical (3 levels) = 12 runs
+        assert len(matrix.runs) == 12
+
+    def test_levels_first_entry_used_in_fixed(self, tmp_path):
+        """User asked: when a factor has multiple levels, fixed_factors uses
+        the first one. Verify by inspecting raw JSON."""
+        from doe.codegen import generate_config_template
+        path = tmp_path / "config.json"
+        generate_config_template(str(path))
+        raw = json.loads(path.read_text())
+        for factor in raw["factors"]:
+            assert raw["fixed_factors"][factor["name"]] == factor["levels"][0]
+
+    def test_help_keys_ignored_by_loader(self, tmp_path):
+        """Underscore-prefixed help keys must not become real config items."""
+        from doe.codegen import generate_config_template
+        path = tmp_path / "config.json"
+        generate_config_template(str(path))
+        cfg = load_config(str(path), strict=False)
+        # _operation_options sits next to operation but mustn't change it
+        assert cfg.operation == "full_factorial"
+        # _arg_style_options likewise
+        assert cfg.runner.arg_style == "double-dash"
+        # adaptive is gated behind '_adaptive' (disabled) — must be None
+        assert cfg.adaptive is None
+
+    def test_unicode_not_escaped(self, tmp_path):
+        from doe.codegen import generate_config_template
+        path = tmp_path / "config.json"
+        generate_config_template(str(path))
+        text = path.read_text(encoding="utf-8")
+        assert "\\u2014" not in text  # em-dash kept as literal, not escaped
+
+    def test_overlap_warning_only_when_overlapping(self, tmp_path, capsys):
+        """A clean config (no overlap) must not emit the warning."""
+        cfg_dict = _make_config_dict(
+            factors=[{"name": "A", "levels": ["1", "2"]}],
+            fixed_factors={"B": "x"},  # different name from any factor
+        )
+        path = _write_config(tmp_path, cfg_dict)
+        load_config(path, strict=False)
+        out = capsys.readouterr().out
+        assert "fixed_factors" not in out

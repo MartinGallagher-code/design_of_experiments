@@ -202,6 +202,16 @@ def main():
     ed.add_argument("--seed", type=int, default=42, help="Random seed for run order (default: 42)")
     ed.add_argument("--partial", action="store_true", help="Include runs with missing results")
 
+    # --- scaffold-config ---
+    sfc = subparsers.add_parser(
+        "scaffold-config",
+        help="Generate a starter config.json with sample factors and option hints",
+    )
+    sfc.add_argument("--output", default="config.json", metavar="FILE",
+                     help="Output path (default: config.json)")
+    sfc.add_argument("--force", action="store_true",
+                     help="Overwrite the output file if it already exists")
+
     # --- scaffold-test ---
     scf = subparsers.add_parser(
         "scaffold-test",
@@ -366,6 +376,24 @@ def _dispatch(args):
         matrix = _load_or_generate(cfg)
         _handle_export_data(matrix, cfg, fmt=args.format, output_path=args.output,
                             partial=args.partial)
+
+    elif args.command == "scaffold-config":
+        if os.path.exists(args.output) and not args.force:
+            print(
+                f"Error: '{args.output}' already exists. "
+                f"Pass --force to overwrite or --output FILE to write elsewhere."
+            )
+            return
+        from doe.codegen import generate_config_template
+        generate_config_template(args.output)
+        print(f"Wrote starter config -> {args.output}")
+        print()
+        print("Next steps:")
+        print(f"  1. Edit {args.output} — replace sample factors / responses with your own.")
+        print(f"     Values containing ' | ' list alternatives; pick one.")
+        print(f"  2. doe scaffold-test --config {args.output}    # generates test.py")
+        print(f"  3. doe info --config {args.output}             # preview the design")
+        print(f"  4. doe generate --config {args.output}         # emit the runner script")
 
     elif args.command == "scaffold-test":
         cfg = load_config(args.config, strict=False)
