@@ -14,14 +14,23 @@ def generate_script(
     cfg: DOEConfig,
     output_path: str,
     format: str = "sh",
+    session_prefix: str | None = None,
 ) -> str:
+    """Render a runner script that drives the user's test_script.
+
+    When *session_prefix* is not None, the runner creates a fresh
+    timestamped subdirectory under the configured ``out_directory`` for
+    each invocation and updates a ``latest`` symlink to point at it.
+    A *session_prefix* of "" produces a bare-timestamp subdirectory
+    (no prefix); pass a string to label the session.
+    """
     template_map = {"sh": "runner_sh.j2", "py": "runner_py.j2"}
     if format not in template_map:
         raise ValueError(f"Unknown format '{format}'. Choose 'sh' or 'py'.")
 
     env = _jinja_env()
     template = env.get_template(template_map[format])
-    context = _build_template_context(matrix, cfg)
+    context = _build_template_context(matrix, cfg, session_prefix=session_prefix)
     rendered = template.render(**context)
 
     _write_executable(output_path, rendered)
@@ -222,7 +231,11 @@ def _sh_var(name: str) -> str:
     return out
 
 
-def _build_template_context(matrix: DesignMatrix, cfg: DOEConfig) -> dict:
+def _build_template_context(
+    matrix: DesignMatrix,
+    cfg: DOEConfig,
+    session_prefix: str | None = None,
+) -> dict:
     runs_data = [
         {
             "run_id": run.run_id,
@@ -233,13 +246,16 @@ def _build_template_context(matrix: DesignMatrix, cfg: DOEConfig) -> dict:
     ]
     # Resolve to absolute paths so the generated script works from any directory
     test_script = str(Path(cfg.test_script).resolve()) if cfg.test_script else ""
-    out_directory = str(Path(cfg.out_directory or "results").resolve())
+    base_out_directory = str(Path(cfg.out_directory or "results").resolve())
     return {
         "runs": runs_data,
         "test_script": test_script,
         "fixed_factors": cfg.fixed_factors,
         "arg_style": cfg.runner.arg_style,
-        "out_directory": out_directory,
+        "base_out_directory": base_out_directory,
+        # Kept for backwards compatibility with any external templates.
+        "out_directory": base_out_directory,
+        "session_prefix": session_prefix,
         "operation": matrix.operation,
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "total_runs": len(matrix.runs),

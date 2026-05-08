@@ -2187,3 +2187,157 @@ class TestScaffoldConfig:
         load_config(path, strict=False)
         out = capsys.readouterr().out
         assert "fixed_factors" not in out
+
+
+class TestSessionRunner:
+    """Tests for --session subdirectories in generated runners."""
+
+    def _make_test_script(self, tmp_path):
+        """Write a tiny test script that just emits a constant response."""
+        script = tmp_path / "test.py"
+        script.write_text(
+            "#!/usr/bin/env python3\n"
+            "import sys\n"
+            f"sys.path.insert(0, {str(PROJECT_ROOT)!r})\n"
+            "from doe.runner import parse_factors, emit\n"
+            "factors, out = parse_factors(['x', 'y'])\n"
+            "emit(out, r=float(factors['x']) + float(factors['y']))\n"
+        )
+        script.chmod(0o755)
+        return script
+
+    def _make_cfg(self, tmp_path, test_script):
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["1", "2"]},
+                {"name": "y", "levels": ["10", "20"]},
+            ],
+            responses=[{"name": "r", "optimize": "maximize"}],
+            test_script=str(test_script),
+        )
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        return load_config(_write_config(tmp_path, cfg_dict), strict=False)
+
+    def test_no_session_unchanged(self, tmp_path):
+        """Without --session, results land directly in out_directory."""
+        from doe.codegen import generate_script
+        cfg = self._make_cfg(tmp_path, self._make_test_script(tmp_path))
+        matrix = generate_design(cfg, seed=1)
+        runner = tmp_path / "run.sh"
+        generate_script(matrix, cfg, str(runner), format="sh", session_prefix=None)
+        result = subprocess.run(["bash", str(runner)], capture_output=True, text=True)
+        assert result.returncode == 0, result.stderr
+        results_dir = tmp_path / "results"
+        assert (results_dir / "run_1.json").exists()
+        assert not (results_dir / "latest").exists()
+
+    def test_session_with_prefix(self, tmp_path):
+        """--session=baseline creates baseline-<TS>/ and a 'latest' symlink."""
+        from doe.codegen import generate_script
+        cfg = self._make_cfg(tmp_path, self._make_test_script(tmp_path))
+        matrix = generate_design(cfg, seed=1)
+        runner = tmp_path / "run.sh"
+        generate_script(matrix, cfg, str(runner), format="sh", session_prefix="baseline")
+        result = subprocess.run(["bash", str(runner)], capture_output=True, text=True)
+        assert result.returncode == 0, result.stderr
+
+        results_dir = tmp_path / "results"
+        sessions = [p for p in results_dir.iterdir()
+                    if p.is_dir() and p.name.startswith("baseline-")]
+        assert len(sessions) == 1
+        # Result files inside the session dir
+        assert (sessions[0] / "run_1.json").exists()
+        # Latest symlink points at the session
+        latest = results_dir / "latest"
+        assert latest.is_symlink()
+        assert os.readlink(str(latest)) == sessions[0].name
+        # Bare results dir is empty of run files
+        assert not (results_dir / "run_1.json").exists()
+
+    def test_session_timestamp_only(self, tmp_path):
+        """--session with empty prefix produces timestamp-only directories."""
+        from doe.codegen import generate_script
+        cfg = self._make_cfg(tmp_path, self._make_test_script(tmp_path))
+        matrix = generate_design(cfg, seed=1)
+        runner = tmp_path / "run.sh"
+        generate_script(matrix, cfg, str(runner), format="sh", session_prefix="")
+        result = subprocess.run(["bash", str(runner)], capture_output=True, text=True)
+        assert result.returncode == 0, result.stderr
+        sessions = [p for p in (tmp_path / "results").iterdir()
+                    if p.is_dir() and not p.is_symlink()]
+        assert len(sessions) == 1
+        # Name is pure timestamp (no dash prefix)
+        assert sessions[0].name[0].isdigit()
+
+    def test_session_python_runner(self, tmp_path):
+        """The Python-format runner honours sessions too."""
+        from doe.codegen import generate_script
+        cfg = self._make_cfg(tmp_path, self._make_test_script(tmp_path))
+        matrix = generate_design(cfg, seed=1)
+        runner = tmp_path / "run.py"
+        generate_script(matrix, cfg, str(runner), format="py", session_prefix="pyrun")
+        env = dict(os.environ, PYTHONPATH=str(PROJECT_ROOT))
+        result = subprocess.run([sys.executable, str(runner)], env=env,
+                                capture_output=True, text=True)
+        assert result.returncode == 0, result.stderr
+        sessions = [p for p in (tmp_path / "results").iterdir()
+                    if p.is_dir() and p.name.startswith("pyrun-")]
+        assert len(sessions) == 1
+        latest = tmp_path / "results" / "latest"
+        assert latest.is_symlink()
+
+    def test_design_matrix_copied_into_session(self, tmp_path):
+        """If design_matrix.json sits in BASE_OUT, it must be copied into
+        the session dir so analyze can find it via 'latest'."""
+        from doe.codegen import generate_script
+        from doe.cli import _save_matrix
+        cfg = self._make_cfg(tmp_path, self._make_test_script(tmp_path))
+        matrix = generate_design(cfg, seed=1)
+        # Persist matrix at the base level (what `doe generate` does)
+        _save_matrix(matrix, str(tmp_path / "results"))
+        runner = tmp_path / "run.sh"
+        generate_script(matrix, cfg, str(runner), format="sh", session_prefix="ses")
+        result = subprocess.run(["bash", str(runner)], capture_output=True, text=True)
+        assert result.returncode == 0, result.stderr
+        latest = tmp_path / "results" / "latest"
+        assert (latest / "design_matrix.json").exists()
+
+    def test_resolve_results_dir_uses_latest(self, tmp_path):
+        """_resolve_results_dir should auto-pick <out>/latest when present."""
+        from doe.cli import _resolve_results_dir
+        cfg = self._make_cfg(tmp_path, self._make_test_script(tmp_path))
+        base = Path(cfg.out_directory)
+        base.mkdir(parents=True, exist_ok=True)
+        session = base / "ses-20990101-000000"
+        session.mkdir()
+        (base / "latest").symlink_to(session.name)
+        resolved = _resolve_results_dir(cfg, None)
+        assert os.path.realpath(resolved) == str(session)
+
+    def test_resolve_results_dir_explicit_overrides_latest(self, tmp_path):
+        """An explicit --results-dir must win over auto-latest."""
+        from doe.cli import _resolve_results_dir
+        cfg = self._make_cfg(tmp_path, self._make_test_script(tmp_path))
+        base = Path(cfg.out_directory)
+        base.mkdir(parents=True, exist_ok=True)
+        (base / "latest").symlink_to(".")
+        explicit = str(tmp_path / "elsewhere")
+        assert _resolve_results_dir(cfg, explicit) == explicit
+
+    def test_subsequent_sessions_update_latest(self, tmp_path):
+        """A second invocation must repoint 'latest' at the newer session."""
+        from doe.codegen import generate_script
+        cfg = self._make_cfg(tmp_path, self._make_test_script(tmp_path))
+        matrix = generate_design(cfg, seed=1)
+        runner = tmp_path / "run.sh"
+        generate_script(matrix, cfg, str(runner), format="sh", session_prefix="s")
+        for _ in range(2):
+            result = subprocess.run(["bash", str(runner)], capture_output=True, text=True)
+            assert result.returncode == 0, result.stderr
+            # Distinct timestamps require a 1-second gap on second-resolution clocks.
+            import time; time.sleep(1.05)
+        sessions = sorted(p.name for p in (tmp_path / "results").iterdir()
+                          if p.is_dir() and p.name.startswith("s-"))
+        assert len(sessions) == 2
+        latest_target = os.readlink(str(tmp_path / "results" / "latest"))
+        assert latest_target == sessions[-1]
