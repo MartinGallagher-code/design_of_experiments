@@ -21,6 +21,29 @@ def _numeric_sort_key(x):
         return (1, x)
 
 
+def _coerce_response_value(data: dict, resp_name: str, run_id: int, results_dir: str):
+    """Return a float response value, or None if missing/blank.
+
+    Raises ValueError with a clear pointer to the offending file when the
+    stored value is present but cannot be parsed as a number.
+    """
+    if resp_name not in data:
+        return None
+    raw = data[resp_name]
+    if raw is None:
+        return None
+    if isinstance(raw, str) and raw.strip() == "":
+        return None
+    try:
+        return float(raw)
+    except (TypeError, ValueError):
+        path = os.path.join(results_dir, f"run_{run_id}.json")
+        raise ValueError(
+            f"Invalid value for response '{resp_name}' in '{path}': {raw!r}. "
+            f"Expected a number. Edit the file or re-record the run."
+        ) from None
+
+
 def analyze(
     matrix: DesignMatrix,
     cfg: DOEConfig,
@@ -63,10 +86,11 @@ def analyze(
 
         for run in matrix.runs:
             data = all_data.get(run.run_id, {})
-            if resp.name in data:
-                responses[run.run_id] = float(data[resp.name])
-            else:
+            value = _coerce_response_value(data, resp.name, run.run_id, results_dir)
+            if value is None:
                 missing_keys.append(run.run_id)
+            else:
+                responses[run.run_id] = value
 
         if missing_keys:
             print(

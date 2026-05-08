@@ -406,7 +406,7 @@ def _no_results_message(cfg, matrix):
 def _run_optimize(matrix, cfg, args):
     """Run the optimize subcommand (steepest, multi, or single-response)."""
     if args.steepest:
-        from doe.analysis import _load_all_results
+        from doe.analysis import _load_all_results, _coerce_response_value
         from doe.rsm import fit_rsm, steepest_ascent as _steepest
         results_dir = args.results_dir or cfg.out_directory or "results"
         all_data = _load_all_results(matrix.runs, results_dir, partial=args.partial)
@@ -414,8 +414,9 @@ def _run_optimize(matrix, cfg, args):
             responses = {}
             for run in matrix.runs:
                 data = all_data.get(run.run_id, {})
-                if resp.name in data:
-                    responses[run.run_id] = float(data[resp.name])
+                value = _coerce_response_value(data, resp.name, run.run_id, results_dir)
+                if value is not None:
+                    responses[run.run_id] = value
             if not responses:
                 continue
             valid_runs = [r for r in matrix.runs if r.run_id in responses]
@@ -870,7 +871,7 @@ def _handle_power(matrix, cfg, args):
     # If sigma not provided, try to estimate from results
     if sigma is None:
         try:
-            from doe.analysis import _load_all_results
+            from doe.analysis import _load_all_results, _coerce_response_value
             from doe.rsm import fit_rsm
             results_dir = args.results_dir or cfg.out_directory or "results"
             all_data = _load_all_results(matrix.runs, results_dir, partial=args.partial)
@@ -879,8 +880,9 @@ def _handle_power(matrix, cfg, args):
             responses = {}
             for run in matrix.runs:
                 data = all_data.get(run.run_id, {})
-                if resp.name in data:
-                    responses[run.run_id] = float(data[resp.name])
+                value = _coerce_response_value(data, resp.name, run.run_id, results_dir)
+                if value is not None:
+                    responses[run.run_id] = value
             if responses:
                 valid_runs = [r for r in matrix.runs if r.run_id in responses]
                 model = fit_rsm(valid_runs, responses, matrix.factor_names, cfg.factors, model_type="linear")
