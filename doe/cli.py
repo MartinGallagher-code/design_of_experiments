@@ -26,7 +26,9 @@ def _save_matrix(matrix: DesignMatrix, directory: str) -> str:
         "operation": matrix.operation,
         "metadata": matrix.metadata,
         "runs": [
-            {"run_id": r.run_id, "block_id": r.block_id, "factor_values": r.factor_values}
+            {"run_id": r.run_id, "block_id": r.block_id,
+             "factor_values": r.factor_values,
+             "whole_plot_id": r.whole_plot_id}
             for r in matrix.runs
         ],
     }
@@ -47,6 +49,7 @@ def _load_matrix(directory: str) -> DesignMatrix | None:
             run_id=r["run_id"],
             block_id=r["block_id"],
             factor_values=r["factor_values"],
+            whole_plot_id=r.get("whole_plot_id", 0),
         )
         for r in data["runs"]
     ]
@@ -168,6 +171,10 @@ def main():
                      help="Skip the quadratic RSM refit (and therefore the "
                           "Model Adequacy and Stationary Point sections). "
                           "Useful on large designs where analyze is slow.")
+    ana.add_argument("--cv-folds", type=int, default=None, metavar="K",
+                     help="Number of cross-validation folds for the response "
+                          "surface (default: min(n, 5); set to n for "
+                          "leave-one-out).")
 
     # --- info ---
     info = subparsers.add_parser("info", help="Show design info without generating anything")
@@ -269,6 +276,8 @@ def main():
                      help="Session directories in chronological order (oldest first).")
     trd.add_argument("--csv", default=None, metavar="DIR",
                      help="Also export the trend tables to this directory")
+    trd.add_argument("--html", default=None, metavar="FILE",
+                     help="Also write a self-contained HTML trend page")
 
     # --- scaffold-config ---
     sfc = subparsers.add_parser(
@@ -364,7 +373,7 @@ def _dispatch(args):
         matrix = _load_or_generate(cfg, results_dir=results_dir)
         try:
             from doe.analysis import analyze
-            report = analyze(matrix, cfg, results_dir=results_dir, no_plots=args.no_plots, partial=args.partial, detect_knee=args.knee, filter_factors=args.factor, fit_rsm=not args.no_rsm)
+            report = analyze(matrix, cfg, results_dir=results_dir, no_plots=args.no_plots, partial=args.partial, detect_knee=args.knee, filter_factors=args.factor, fit_rsm=not args.no_rsm, cv_folds=args.cv_folds)
         except FileNotFoundError:
             _no_results_message(cfg, matrix)
             return
@@ -470,6 +479,10 @@ def _dispatch(args):
             paths = export_trend_csv(report, args.csv)
             for p in paths:
                 print(f"CSV exported: {p}")
+        if args.html:
+            from doe.trend import export_trend_html
+            export_trend_html(report, args.html)
+            print(f"HTML report: {args.html}")
 
     elif args.command == "compare":
         cfg = load_config(args.config, strict=False)
@@ -1308,7 +1321,13 @@ def _print_report(report):
             if anova.total_row:
                 tot = anova.total_row
                 print(f"{tot.source:<25} {tot.df:>4} {tot.ss:>12.4f} {tot.ms:>12.4f}")
-            if anova.error_method == "lenth":
+            if anova.error_method == "split_plot":
+                print(
+                    "  Note: split-plot ANOVA — whole-plot factor is tested "
+                    "against whole-plot error; all other factors and "
+                    "interactions are tested against subplot error."
+                )
+            elif anova.error_method == "lenth":
                 print("  Note: Error estimated using Lenth's pseudo-standard-error (unreplicated design)")
             elif anova.error_method == "replicates":
                 print("  Note: Error term is pure error (replicated runs).")
@@ -1386,6 +1405,16 @@ def _print_report(report):
         if analysis.achieved_power:
             _print_achieved_power(analysis.achieved_power,
                                   header_prefix=f"Achieved Power: {resp_name}")
+
+        if analysis.cross_validation:
+            cv = analysis.cross_validation
+            print(f"\n=== Cross-Validation ({cv.model_type}, k={cv.k}): {resp_name} ===")
+            for note in cv.notes:
+                print(f"  Note: {note}")
+            if cv.r_squared_cv == cv.r_squared_cv:  # not NaN
+                print(f"  RMSE_cv = {cv.rmse:.4f}")
+                print(f"  MAE_cv  = {cv.mae:.4f}")
+                print(f"  R²_cv   = {cv.r_squared_cv:.4f}")
 
     if report.knee_point_results:
         print(f"\n=== Knee-Point / Saturation Detection ===")

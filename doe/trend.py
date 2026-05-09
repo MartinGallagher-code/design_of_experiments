@@ -285,6 +285,168 @@ def _trend_for_response(
     )
 
 
+def export_trend_html(report: TrendReport, output_path: str) -> str:
+    """Render the trend report as a self-contained HTML page.
+
+    Reuses the same CSS as ``doe report`` / ``doe compare`` so the look
+    is consistent. One collapsible block per response, with the
+    per-session means table, intercept-drift summary, and per-factor
+    slope-drift table.
+    """
+    import datetime
+    import html as _html
+    from .report import _CSS
+
+    def fmt_p(p):
+        return "&mdash;" if p is None else f"{p:.4f}"
+
+    def _anchor(name: str) -> str:
+        out = []
+        for ch in name.strip().lower():
+            if ch.isalnum():
+                out.append(ch)
+            elif ch in (" ", "-", "_", "."):
+                out.append("-")
+        cleaned = "".join(out).strip("-")
+        while "--" in cleaned:
+            cleaned = cleaned.replace("--", "-")
+        return cleaned or "section"
+
+    sections: list[str] = []
+
+    # Summary block
+    notes_html = ""
+    if report.notes:
+        items = "".join(f"<li>{_html.escape(n)}</li>" for n in report.notes)
+        notes_html = f'  <ul class="muted">{items}</ul>\n'
+    session_rows = ""
+    for i, (d, n) in enumerate(zip(report.session_dirs, report.n_runs_per_session)):
+        session_rows += (
+            f'      <tr><td class="mono">{i}</td>'
+            f'<td class="mono">{_html.escape(d)}</td>'
+            f'<td class="mono">{n}</td></tr>\n'
+        )
+    sections.append(
+        '<details open id="trend-summary">\n'
+        '  <summary><h2>Trend Summary</h2></summary>\n'
+        '  <div class="section-body">\n'
+        f'  <table class="info-table">\n'
+        f'    <tr><th>Sessions</th><td class="mono">{len(report.session_dirs)}</td></tr>\n'
+        f'    <tr><th>Factors</th><td>{_html.escape(", ".join(report.factor_names))}</td></tr>\n'
+        f'    <tr><th>Matched in every session</th><td class="mono">{report.n_matched_runs}</td></tr>\n'
+        '  </table>\n'
+        '  <h3>Sessions (chronological)</h3>\n'
+        '  <table class="data-table">\n'
+        '    <thead><tr><th>Index</th><th>Path</th><th>Runs</th></tr></thead>\n'
+        f'    <tbody>\n{session_rows}    </tbody>\n'
+        '  </table>\n'
+        f'  {notes_html}'
+        '  </div>\n'
+        '</details>\n'
+    )
+
+    # Per-response block
+    for tr in report.responses:
+        anchor = _anchor(tr.response_name)
+        if tr.n_matched_runs == 0:
+            note_items = "".join(f"<li>{_html.escape(n)}</li>" for n in tr.notes)
+            sections.append(
+                f'<details open id="trend-{anchor}">\n'
+                f'  <summary><h2>Response: {_html.escape(tr.response_name)}</h2></summary>\n'
+                f'  <div class="section-body">\n'
+                f'  <ul class="muted">{note_items}</ul>\n'
+                '  </div>\n</details>\n'
+            )
+            continue
+
+        means_rows = ""
+        for i, mean in enumerate(tr.per_session_means):
+            means_rows += (
+                f'      <tr><td class="mono">{i}</td>'
+                f'<td class="mono">{mean:.4f}</td></tr>\n'
+            )
+        means_table = (
+            '  <h3>Per-Session Means</h3>\n'
+            '  <table class="data-table">\n'
+            '    <thead><tr><th>Session</th><th>Mean</th></tr></thead>\n'
+            f'    <tbody>\n{means_rows}    </tbody>\n'
+            '  </table>\n'
+        )
+
+        intercept_html = ""
+        if tr.intercept_drift_per_session == tr.intercept_drift_per_session:
+            sig = (' style="color:#0a7;font-weight:bold;"'
+                   if tr.intercept_drift_p is not None and tr.intercept_drift_p < 0.05
+                   else "")
+            intercept_html = (
+                '  <table class="info-table">\n'
+                f'    <tr{sig}><th>Intercept drift / session</th>'
+                f'<td class="mono">{tr.intercept_drift_per_session:+.4f}</td>'
+                f'<td class="mono">p = {fmt_p(tr.intercept_drift_p)}</td></tr>\n'
+                '  </table>\n'
+            )
+
+        slope_html = ""
+        if tr.slope_drift:
+            slope_rows = ""
+            for entry in tr.slope_drift:
+                sig = (' style="color:#0a7;font-weight:bold;"'
+                       if entry.p_value is not None and entry.p_value < 0.05
+                       else "")
+                slope_rows += (
+                    f'      <tr{sig}><td>{_html.escape(entry.factor_name)}</td>'
+                    f'<td class="mono">{entry.slope_drift_per_session:+.4f}</td>'
+                    f'<td class="mono">{fmt_p(entry.p_value)}</td></tr>\n'
+                )
+            slope_html = (
+                '  <h3>Slope Drift / Session</h3>\n'
+                '  <p class="muted">Change in main-effect size per session step.</p>\n'
+                '  <table class="data-table">\n'
+                '    <thead><tr><th>Factor</th><th>Shift</th><th>p</th></tr></thead>\n'
+                f'    <tbody>\n{slope_rows}    </tbody>\n'
+                '  </table>\n'
+            )
+
+        note_html = ""
+        if tr.notes:
+            items = "".join(f"<li>{_html.escape(n)}</li>" for n in tr.notes)
+            note_html = f'  <ul class="muted">{items}</ul>\n'
+
+        sections.append(
+            f'<details open id="trend-{anchor}">\n'
+            f'  <summary><h2>Response: {_html.escape(tr.response_name)}</h2></summary>\n'
+            f'  <div class="section-body">\n'
+            f'{means_table}'
+            f'{intercept_html}'
+            f'{slope_html}'
+            f'{note_html}'
+            '  </div>\n</details>\n'
+        )
+
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    page = (
+        '<!DOCTYPE html>\n<html lang="en">\n<head>\n'
+        '  <meta charset="utf-8">\n'
+        '  <title>DOE Trend</title>\n'
+        f'  <style>{_CSS}</style>\n'
+        '</head>\n<body>\n'
+        '<header>\n'
+        '  <h1>Multi-Session Trend</h1>\n'
+        f'  <p class="timestamp">Generated: {_html.escape(timestamp)}</p>\n'
+        '</header>\n'
+        + "\n".join(sections)
+        + '\n<footer><p>Generated by DOE Helper Tool — doe trend</p></footer>\n'
+        '</body>\n</html>\n'
+    )
+
+    out_dir = os.path.dirname(output_path)
+    if out_dir:
+        os.makedirs(out_dir, exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as fh:
+        fh.write(page)
+    return output_path
+
+
 def export_trend_csv(report: TrendReport, output_dir: str) -> list[str]:
     import csv
     os.makedirs(output_dir, exist_ok=True)

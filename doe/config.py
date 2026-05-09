@@ -18,6 +18,7 @@ SUPPORTED_OPERATIONS = {
     "mixture_simplex_centroid",
     "linear_sweep",
     "log_sweep",
+    "split_plot",
 }
 
 
@@ -54,6 +55,7 @@ def load_config(path: str, strict: bool = True) -> DOEConfig:
         sweep_points=settings.get("sweep_points", 0),
         min_resolution=int(settings.get("min_resolution", 0)),
         replicate_center=int(settings.get("replicate_center", 0)),
+        whole_plot_replicates=max(1, int(settings.get("whole_plot_replicates", 1))),
         metadata=metadata,
         runner=runner,
         adaptive=adaptive,
@@ -78,6 +80,7 @@ def _parse_factors(raw: list) -> list[Factor]:
                 description=item.get("description", ""),
                 unit=item.get("unit", ""),
                 dtype=item.get("dtype", ""),
+                role=item.get("role", "subplot"),
             ))
         elif isinstance(item, list):
             # legacy array format: ["name", "val1", "val2", ...]
@@ -187,6 +190,21 @@ def _validate_config(cfg: DOEConfig, strict: bool = True) -> None:
 
     if cfg.block_count < 1:
         raise ValueError(f"block_count must be >= 1, got {cfg.block_count}")
+
+    if cfg.operation == "split_plot":
+        whole_plot_factors = [f for f in cfg.factors if f.role == "whole_plot"]
+        subplot_factors = [f for f in cfg.factors if f.role != "whole_plot"]
+        if len(whole_plot_factors) != 1:
+            raise ValueError(
+                f"split_plot requires exactly one factor with role='whole_plot', "
+                f"got {len(whole_plot_factors)}: "
+                f"{[f.name for f in whole_plot_factors]}"
+            )
+        if not subplot_factors:
+            raise ValueError(
+                "split_plot requires at least one subplot factor "
+                "(role='subplot' or unset)."
+            )
 
     if cfg.operation == "plackett_burman":
         for f in cfg.factors:
