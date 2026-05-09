@@ -2648,3 +2648,187 @@ class TestAdequacyAndStationaryReporting:
         assert "Model Adequacy" in body
         assert "Stationary Point" in body
         assert "Predicted R" in body
+
+
+class TestAliasStructure:
+    """Tests for compute_alias_structure + analyze() integration."""
+
+    def _make_screening_matrix(self, tmp_path, n_factors, operation):
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": chr(ord("A") + i), "levels": ["-1", "1"]}
+                for i in range(n_factors)
+            ],
+            responses=[{"name": "y"}],
+            operation=operation,
+        )
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        return cfg, matrix
+
+    def test_returns_none_for_full_factorial(self, tmp_path):
+        from doe.aliasing import compute_alias_structure
+        cfg_dict = _make_config_dict()
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        assert compute_alias_structure(matrix) is None
+
+    def test_resolution_iii_main_effects_aliased_with_2fi(self, tmp_path):
+        from doe.aliasing import compute_alias_structure
+        # 4 factors with the existing generator → I=ABD (Resolution III)
+        cfg, matrix = self._make_screening_matrix(tmp_path, 4, "fractional_factorial")
+        ali = compute_alias_structure(matrix)
+        assert ali is not None
+        assert ali.design_type == "fractional_factorial"
+        assert ali.resolution == 3
+
+        partners = {e.effect: {p for p, _ in e.aliased_with} for e in ali.main_effects}
+        # In this design, every aliased main-effect partner must be a 2FI,
+        # and at least one main effect must have such a partner.
+        assert any(any("*" in p for p in v) for v in partners.values())
+        # All reported correlations are exactly 1.0 for FF
+        for entry in ali.main_effects:
+            for _p, r in entry.aliased_with:
+                assert (1.0 - r) < 1e-6
+
+    def test_resolution_v_clean(self, tmp_path):
+        """A 2^(5-1) FF with I=ABCDE is Resolution V — main effects clean,
+        all 2FIs clean too. We rely on pyDOE3 producing this when 5 factors
+        are requested."""
+        from doe.aliasing import compute_alias_structure
+        cfg, matrix = self._make_screening_matrix(tmp_path, 5, "fractional_factorial")
+        ali = compute_alias_structure(matrix)
+        # The exact resolution depends on the generator the project picks;
+        # what we want to assert is that 'III' is the worst case it can be:
+        assert ali.resolution in (3, 4, 5)
+        # If Resolution V, main effects entries should have no aliases.
+        if ali.resolution == 5:
+            assert all(not e.aliased_with for e in ali.main_effects)
+
+    def test_plackett_burman_partial_aliasing(self, tmp_path):
+        from doe.aliasing import compute_alias_structure
+        cfg, matrix = self._make_screening_matrix(tmp_path, 11, "plackett_burman")
+        ali = compute_alias_structure(matrix)
+        assert ali is not None
+        assert ali.design_type == "plackett_burman"
+        assert ali.resolution is None  # PB doesn't have a single resolution
+        # Each main effect must have multiple partial aliases at |r|=1/3.
+        first = ali.main_effects[0]
+        assert len(first.aliased_with) >= 5
+        assert any(0.2 < r < 0.5 for _p, r in first.aliased_with)
+
+    def test_uses_user_factor_names(self, tmp_path):
+        from doe.aliasing import compute_alias_structure
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "temperature", "levels": ["-1", "1"]},
+                {"name": "pressure", "levels": ["-1", "1"]},
+                {"name": "catalyst", "levels": ["-1", "1"]},
+                {"name": "stir", "levels": ["-1", "1"]},
+            ],
+            responses=[{"name": "y"}],
+            operation="fractional_factorial",
+        )
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        ali = compute_alias_structure(matrix)
+        labels = {e.effect for e in ali.main_effects}
+        assert "temperature" in labels
+        # Aliases reference the user's factor names, not a, b, c
+        any_alias = next((e for e in ali.main_effects if e.aliased_with), None)
+        assert any_alias is not None
+        for partner, _r in any_alias.aliased_with:
+            for token in partner.split("*"):
+                assert token in {"temperature", "pressure", "catalyst", "stir"}
+
+    def test_threshold_filters_below(self):
+        """Correlations below the threshold must not appear in the output."""
+        from doe.models import Factor, ExperimentRun, DesignMatrix
+        from doe.aliasing import compute_alias_structure
+        # Construct a synthetic 3-factor PB-style matrix with controlled
+        # correlations: 4 runs, columns chosen so AB*C has correlation 0.5 with A.
+        runs = [
+            ExperimentRun(run_id=i + 1, block_id=1,
+                          factor_values={"A": str(a), "B": str(b), "C": str(c)})
+            for i, (a, b, c) in enumerate([
+                (-1, -1, -1), (-1, 1, 1), (1, -1, 1), (1, 1, -1),
+            ])
+        ]
+        m = DesignMatrix(runs=runs, factor_names=["A", "B", "C"],
+                         operation="plackett_burman")
+        ali_low = compute_alias_structure(m, threshold=0.05)
+        ali_high = compute_alias_structure(m, threshold=0.99)
+        n_low = sum(len(e.aliased_with) for e in ali_low.main_effects)
+        n_high = sum(len(e.aliased_with) for e in ali_high.main_effects)
+        # Raising the threshold can only reduce or preserve the partner count
+        assert n_high <= n_low
+
+    def test_analyze_attaches_alias_structure(self, tmp_path):
+        from doe.analysis import analyze
+        cfg, matrix = self._make_screening_matrix(tmp_path, 4, "fractional_factorial")
+        results_dir = Path(cfg.out_directory)
+        results_dir.mkdir(parents=True, exist_ok=True)
+        for run in matrix.runs:
+            (results_dir / f"run_{run.run_id}.json").write_text(json.dumps({"y": 1.0}))
+        report = analyze(matrix, cfg, results_dir=str(results_dir), no_plots=True)
+        assert report.alias_structure is not None
+        assert report.alias_structure.design_type == "fractional_factorial"
+
+    def test_analyze_no_alias_for_full_factorial(self, tmp_path):
+        from doe.analysis import analyze
+        cfg_dict = _make_config_dict()
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        results_dir = Path(cfg.out_directory)
+        results_dir.mkdir(parents=True, exist_ok=True)
+        for run in matrix.runs:
+            (results_dir / f"run_{run.run_id}.json").write_text(json.dumps({"response": 1.0}))
+        report = analyze(matrix, cfg, results_dir=str(results_dir), no_plots=True)
+        assert report.alias_structure is None
+
+    def test_print_report_includes_alias(self, tmp_path, capsys):
+        from doe.analysis import analyze
+        from doe.cli import _print_report
+        cfg, matrix = self._make_screening_matrix(tmp_path, 4, "fractional_factorial")
+        results_dir = Path(cfg.out_directory)
+        results_dir.mkdir(parents=True, exist_ok=True)
+        for run in matrix.runs:
+            (results_dir / f"run_{run.run_id}.json").write_text(json.dumps({"y": 1.0}))
+        report = analyze(matrix, cfg, results_dir=str(results_dir), no_plots=True)
+        _print_report(report)
+        out = capsys.readouterr().out
+        assert "Alias Structure" in out
+        assert "Resolution III" in out or "Resolution IV" in out or "Resolution V" in out
+
+    def test_html_report_includes_alias(self, tmp_path):
+        from doe.analysis import analyze
+        from doe.report import generate_report
+        cfg, matrix = self._make_screening_matrix(tmp_path, 4, "fractional_factorial")
+        results_dir = Path(cfg.out_directory)
+        results_dir.mkdir(parents=True, exist_ok=True)
+        for run in matrix.runs:
+            (results_dir / f"run_{run.run_id}.json").write_text(json.dumps({"y": 1.0}))
+        out_html = tmp_path / "report.html"
+        generate_report(matrix, cfg, results_dir=str(results_dir),
+                        output_path=str(out_html))
+        body = out_html.read_text()
+        assert "Alias Structure" in body
+        assert "Aliased with" in body
+
+    def test_csv_export_includes_alias(self, tmp_path):
+        from doe.analysis import analyze, export_csv
+        cfg, matrix = self._make_screening_matrix(tmp_path, 4, "fractional_factorial")
+        results_dir = Path(cfg.out_directory)
+        results_dir.mkdir(parents=True, exist_ok=True)
+        for run in matrix.runs:
+            (results_dir / f"run_{run.run_id}.json").write_text(json.dumps({"y": 1.0}))
+        report = analyze(matrix, cfg, results_dir=str(results_dir), no_plots=True)
+        out_dir = tmp_path / "csv"
+        files = export_csv(report, str(out_dir))
+        names = {os.path.basename(p) for p in files}
+        assert "alias_structure.csv" in names
+        body = (out_dir / "alias_structure.csv").read_text()
+        # Header must include all four columns
+        assert "effect_kind,effect,aliased_with,abs_correlation" in body

@@ -1082,7 +1082,40 @@ def _print_matrix(matrix, cfg=None):
         print("".join(v.ljust(col_w) for v in row))
 
 
+def _print_alias_structure(alias):
+    label = alias.design_type.replace("_", " ").title()
+    if alias.resolution is not None:
+        label += f" (Resolution {'I' * alias.resolution})"
+    print(f"\n=== Alias Structure: {label} ===")
+    for note in alias.notes:
+        print(f"  Note: {note}")
+
+    def _section(title, entries):
+        if not entries:
+            return
+        any_partner = any(e.aliased_with for e in entries)
+        if not any_partner:
+            return
+        print(f"\n  {title}")
+        print(f"  {'Effect':<14}  Aliased with")
+        print(f"  {'-' * 14}  {'-' * 60}")
+        for e in entries:
+            if not e.aliased_with:
+                continue
+            partners = ", ".join(
+                f"{p}" + ("" if (1.0 - r) < 1e-6 else f" ({r:.2f})")
+                for p, r in e.aliased_with
+            )
+            print(f"  {e.effect:<14}  {partners}")
+
+    _section("Main effects", alias.main_effects)
+    _section("Two-factor interactions", alias.two_factor_interactions)
+
+
 def _print_report(report):
+    if report.alias_structure:
+        _print_alias_structure(report.alias_structure)
+
     for resp_name, analysis in report.results_by_response.items():
         print(f"\n=== Main Effects: {resp_name} ===")
         print(f"{'Factor':<20} {'Effect':>10} {'Std Error':>12} {'% Contribution':>16}")

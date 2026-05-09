@@ -7,7 +7,7 @@ import os
 import numpy as np
 
 from .models import (
-    AnalysisReport, AnovaRow, AnovaTable, DesignMatrix, DOEConfig,
+    AliasStructure, AnalysisReport, AnovaRow, AnovaTable, DesignMatrix, DOEConfig,
     EffectResult, ExperimentRun, InteractionEffect, KneePointResult,
     OrdinalTrendResult, ResponseAnalysis,
 )
@@ -209,6 +209,14 @@ def analyze(
             except ImportError:
                 print("Warning: matplotlib not available; skipping plots.")
 
+    # Alias / confounding structure for screening designs
+    alias_structure = None
+    try:
+        from .aliasing import compute_alias_structure
+        alias_structure = compute_alias_structure(matrix, factor_names=factor_names)
+    except Exception:
+        pass
+
     return AnalysisReport(
         results_by_response=results_by_response,
         pareto_chart_paths=pareto_chart_paths,
@@ -219,6 +227,7 @@ def analyze(
         knee_point_results=knee_point_results,
         knee_point_plot_paths=knee_point_plot_paths,
         ordinal_trend_plot_paths=ordinal_trend_plot_paths,
+        alias_structure=alias_structure,
     )
 
 
@@ -1246,6 +1255,24 @@ def export_csv(report: AnalysisReport, output_dir: str) -> list[str]:
     """Export analysis results to CSV files. Returns list of created file paths."""
     os.makedirs(output_dir, exist_ok=True)
     created = []
+
+    if report.alias_structure is not None:
+        alias_path = os.path.join(output_dir, "alias_structure.csv")
+        with open(alias_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["effect_kind", "effect", "aliased_with", "abs_correlation"])
+            for entry in report.alias_structure.main_effects:
+                if not entry.aliased_with:
+                    writer.writerow(["main", entry.effect, "", ""])
+                    continue
+                for partner, corr in entry.aliased_with:
+                    writer.writerow(["main", entry.effect, partner, f"{corr:.6f}"])
+            for entry in report.alias_structure.two_factor_interactions:
+                if not entry.aliased_with:
+                    continue
+                for partner, corr in entry.aliased_with:
+                    writer.writerow(["two_factor", entry.effect, partner, f"{corr:.6f}"])
+        created.append(alias_path)
 
     for resp_name, analysis in report.results_by_response.items():
         safe = resp_name.replace("/", "_").replace(" ", "_")
