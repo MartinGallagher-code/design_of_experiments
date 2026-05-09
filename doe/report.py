@@ -578,6 +578,9 @@ def _build_results(report, pareto_images, effects_images, rsm_images=None,
         # --- Achieved power ---
         achieved_html = _achieved_power_html(analysis.achieved_power)
 
+        # --- Cross-validation ---
+        cv_html = _cross_validation_html(analysis.cross_validation)
+
         sections.append(
             f'<details open id="results-{_anchor_id(resp_name)}">\n'
             f'  <summary><h2>Results: {safe_name}</h2></summary>\n'
@@ -589,6 +592,7 @@ def _build_results(report, pareto_images, effects_images, rsm_images=None,
             f'{adequacy_html}'
             f'{stationary_html}'
             f'{achieved_html}'
+            f'{cv_html}'
             f'{plots_html}'
             f'{rsm_html}'
             f'  </div>\n'
@@ -689,6 +693,33 @@ def _stationary_point_html(sp) -> str:
         f'{location_rows}'
         '    </tbody>\n'
         '  </table>\n'
+    )
+
+
+def _cross_validation_html(cv) -> str:
+    if cv is None:
+        return ""
+    notes_html = ""
+    if cv.notes:
+        items = "".join(f"<li>{html.escape(n)}</li>" for n in cv.notes)
+        notes_html = f'  <ul class="muted">{items}</ul>\n'
+    if cv.r_squared_cv != cv.r_squared_cv:  # NaN -> only notes
+        return (
+            '  <h3>Cross-Validation</h3>\n'
+            f'{notes_html}'
+        )
+    return (
+        '  <h3>Cross-Validation</h3>\n'
+        '  <table class="data-table">\n'
+        '    <thead><tr><th>Metric</th><th>Value</th></tr></thead>\n'
+        '    <tbody>\n'
+        f'      <tr><td>Model</td><td class="mono">{html.escape(cv.model_type)}, k={cv.k}, n={cv.n_observations}</td></tr>\n'
+        f'      <tr><td>RMSE<sub>cv</sub></td><td class="mono">{cv.rmse:.4f}</td></tr>\n'
+        f'      <tr><td>MAE<sub>cv</sub></td><td class="mono">{cv.mae:.4f}</td></tr>\n'
+        f'      <tr><td>R²<sub>cv</sub></td><td class="mono">{cv.r_squared_cv:.4f}</td></tr>\n'
+        '    </tbody>\n'
+        '  </table>\n'
+        f'{notes_html}'
     )
 
 

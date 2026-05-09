@@ -11,6 +11,7 @@ class Factor:
     description: str = ""
     unit: str = ""
     dtype: str = ""             # "" (auto) | "int" | "float"
+    role: str = "subplot"       # subplot (easy-to-change, default) | whole_plot (hard-to-change)
 
 
 @dataclass
@@ -43,6 +44,7 @@ class DOEConfig:
     sweep_points: int = 0                    # 0 = auto: use lhs_samples or default 8
     min_resolution: int = 0                  # 0 = auto (max within smallest run budget); 3/4/5+ = pin
     replicate_center: int = 0                # N center-point replicates per block (numeric factors only)
+    whole_plot_replicates: int = 1           # split-plot: replicates of each whole-plot (HTC) level
     metadata: dict = field(default_factory=dict)
     runner: RunnerConfig = field(default_factory=RunnerConfig)
     adaptive: object = None                  # AdaptiveConfig | None
@@ -53,6 +55,7 @@ class ExperimentRun:
     run_id: int
     block_id: int
     factor_values: dict[str, str]
+    whole_plot_id: int = 0      # split-plot: which whole plot this run belongs to (0 = N/A)
 
 
 @dataclass
@@ -156,6 +159,28 @@ class ModelAdequacy:
 
 
 @dataclass
+class CrossValidationFold:
+    """One fold of a k-fold cross-validation pass."""
+    fold_index: int
+    held_out_run_ids: list[int] = field(default_factory=list)
+    predictions: list[float] = field(default_factory=list)
+    actuals: list[float] = field(default_factory=list)
+
+
+@dataclass
+class CrossValidation:
+    """k-fold cross-validation summary for the analyze() RSM fit."""
+    model_type: str            # "linear" | "quadratic"
+    k: int                     # number of folds (n for leave-one-out)
+    n_observations: int
+    rmse: float
+    mae: float
+    r_squared_cv: float        # 1 - SS_pred_err / SS_total
+    folds: list[CrossValidationFold] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)
+
+
+@dataclass
 class StationaryPoint:
     """Characterization of the stationary point of a quadratic RSM."""
     nature: str                                    # "maximum" | "minimum" | "saddle" | "ridge" | "rising_ridge" | "flat"
@@ -201,6 +226,7 @@ class ResponseAnalysis:
     model_adequacy: ModelAdequacy | None = None
     stationary_point: StationaryPoint | None = None
     achieved_power: AchievedPower | None = None
+    cross_validation: CrossValidation | None = None
 
 
 @dataclass

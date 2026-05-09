@@ -50,6 +50,8 @@ def generate_design(cfg: DOEConfig, seed: int | None = None) -> DesignMatrix:
         base_runs = _linear_sweep(cfg)
     elif cfg.operation == "log_sweep":
         base_runs = _log_sweep(cfg)
+    elif cfg.operation == "split_plot":
+        base_runs = _split_plot(cfg)
     else:
         raise ValueError(f"Unknown operation: {cfg.operation}")
 
@@ -62,8 +64,12 @@ def generate_design(cfg: DOEConfig, seed: int | None = None) -> DesignMatrix:
             runs, cfg.factors, n_center_replicates, cfg.block_count,
         )
 
-    # LHS already incorporates randomness via seed; all others randomize here
-    if cfg.operation != "latin_hypercube":
+    # LHS already incorporates randomness via seed; all others randomize here.
+    # Split-plot designs are randomised within each whole plot only — global
+    # shuffling would break the whole-plot structure.
+    if cfg.operation == "split_plot":
+        runs = _randomize_within_whole_plots(runs, seed=seed)
+    elif cfg.operation != "latin_hypercube":
         runs = _randomize_run_order(runs, seed=seed)
 
     factor_names = [f.name for f in cfg.factors]
@@ -424,6 +430,56 @@ def _box_behnken(cfg: DOEConfig) -> list[ExperimentRun]:
     return runs
 
 
+def _split_plot(cfg: DOEConfig) -> list[ExperimentRun]:
+    """Generate a split-plot design.
+
+    Exactly one factor must carry ``role='whole_plot'`` (the hard-to-change
+    factor). For each level of the whole-plot factor — repeated
+    ``cfg.whole_plot_replicates`` times — every combination of the
+    subplot (easy-to-change) factors is run inside a single whole plot.
+    Whole plots are randomised at outer order and subplot runs at inner.
+
+    Returned runs carry both ``whole_plot_id`` (1..n_whole_plots) and a
+    ``block_id`` of 1; the block subsystem stays orthogonal so users can
+    still ask for explicit blocks of split-plot designs by setting
+    ``block_count > 1`` (each whole plot is then replicated per block).
+    """
+    whole_plot_factors = [f for f in cfg.factors if f.role == "whole_plot"]
+    subplot_factors = [f for f in cfg.factors if f.role != "whole_plot"]
+    htc = whole_plot_factors[0]
+
+    # All combinations of subplot factor levels (full factorial inside the plot)
+    subplot_combos: list[dict[str, str]] = [{}]
+    for f in subplot_factors:
+        next_combos: list[dict[str, str]] = []
+        for combo in subplot_combos:
+            for lv in f.levels:
+                merged = dict(combo)
+                merged[f.name] = lv
+                next_combos.append(merged)
+        subplot_combos = next_combos
+
+    n_replicates = max(1, int(getattr(cfg, "whole_plot_replicates", 1) or 1))
+
+    runs: list[ExperimentRun] = []
+    run_id = 1
+    whole_plot_id = 1
+    for htc_level in htc.levels:
+        for _replicate in range(n_replicates):
+            for sub in subplot_combos:
+                fv = {htc.name: htc_level}
+                fv.update(sub)
+                runs.append(ExperimentRun(
+                    run_id=run_id,
+                    block_id=1,
+                    factor_values=fv,
+                    whole_plot_id=whole_plot_id,
+                ))
+                run_id += 1
+            whole_plot_id += 1
+    return runs
+
+
 def _add_center_point_replicates(
     runs: list[ExperimentRun],
     factors: list[Factor],
@@ -484,6 +540,7 @@ def _apply_blocks(base_runs: list[ExperimentRun], block_count: int) -> list[Expe
                     run_id=run_id,
                     block_id=block_id,
                     factor_values=dict(base.factor_values),
+                    whole_plot_id=base.whole_plot_id,
                 )
             )
             run_id += 1
@@ -1017,6 +1074,34 @@ def evaluate_design(matrix: DesignMatrix, cfg: DOEConfig) -> dict:
         metrics["g_efficiency"] = 0.0
 
     return metrics
+
+
+def _randomize_within_whole_plots(
+    runs: list[ExperimentRun],
+    seed: int | None = None,
+) -> list[ExperimentRun]:
+    """Shuffle runs only within each whole plot. Whole-plot order itself
+    is preserved so the user runs all subplots of one HTC setting before
+    switching to the next."""
+    rng = random.Random(seed)
+    by_plot: dict[int, list[ExperimentRun]] = {}
+    plot_order: list[int] = []
+    for run in runs:
+        if run.whole_plot_id not in by_plot:
+            plot_order.append(run.whole_plot_id)
+            by_plot[run.whole_plot_id] = []
+        by_plot[run.whole_plot_id].append(run)
+
+    result: list[ExperimentRun] = []
+    run_id = 1
+    for wp in plot_order:
+        plot_runs = by_plot[wp]
+        rng.shuffle(plot_runs)
+        for r in plot_runs:
+            r.run_id = run_id
+            run_id += 1
+        result.extend(plot_runs)
+    return result
 
 
 def _randomize_run_order(runs: list[ExperimentRun], seed: int | None = None) -> list[ExperimentRun]:

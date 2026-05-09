@@ -3670,3 +3670,268 @@ class TestNoRsmFlag:
         ra = report.results_by_response["r"]
         assert ra.model_adequacy is not None
         assert ra.stationary_point is not None
+
+
+class TestCrossValidation:
+    """Tests for compute_cross_validation and analyze() integration."""
+
+    def _quad_runs_and_factors(self):
+        """A noiseless 3-factor central-composite-style design."""
+        from doe.models import Factor, ExperimentRun, DesignMatrix
+        coords = []
+        for x in (-1, 1):
+            for y in (-1, 1):
+                for z in (-1, 1):
+                    coords.append((x, y, z))
+        a = 1.682
+        coords += [(-a, 0, 0), (a, 0, 0), (0, -a, 0),
+                   (0, a, 0), (0, 0, -a), (0, 0, a)]
+        coords += [(0, 0, 0)] * 3
+        runs = [
+            ExperimentRun(run_id=i + 1, block_id=1,
+                          factor_values={"x": str(x), "y": str(y), "z": str(z)})
+            for i, (x, y, z) in enumerate(coords)
+        ]
+        factors = [Factor(name=n, levels=["-1", "1"], type="continuous")
+                   for n in ("x", "y", "z")]
+        return runs, factors
+
+    def test_perfect_quadratic_fits_perfectly(self):
+        """A noiseless quadratic surface should give R^2_cv near 1."""
+        from doe.rsm import compute_cross_validation
+        runs, factors = self._quad_runs_and_factors()
+        responses = {
+            r.run_id: 5 - float(r.factor_values["x"]) ** 2
+                       - float(r.factor_values["y"]) ** 2
+                       - 0.5 * float(r.factor_values["z"]) ** 2
+            for r in runs
+        }
+        cv = compute_cross_validation(
+            runs, responses, ["x", "y", "z"], factors,
+            model_type="quadratic", k_folds=5, seed=0,
+        )
+        assert cv is not None
+        assert cv.r_squared_cv > 0.99
+        assert cv.rmse < 0.1
+        assert cv.mae < 0.1
+        # Folds populated with predictions and actuals of equal length.
+        for fold in cv.folds:
+            assert len(fold.predictions) == len(fold.actuals)
+
+    def test_skips_when_training_fold_too_small(self):
+        """Quadratic on n=8 with k=4 leaves too few training rows for the
+        full quadratic — the helper must surface a 'skipped' note rather
+        than raise."""
+        from doe.rsm import compute_cross_validation
+        from doe.models import Factor, ExperimentRun
+        runs = [
+            ExperimentRun(run_id=i + 1, block_id=1,
+                          factor_values={"x": str(x), "y": str(y), "z": str(z)})
+            for i, (x, y, z) in enumerate(
+                [(-1,-1,-1),(-1,-1,1),(-1,1,-1),(-1,1,1),
+                 (1,-1,-1),(1,-1,1),(1,1,-1),(1,1,1)]
+            )
+        ]
+        factors = [Factor(name=n, levels=["-1", "1"], type="continuous")
+                   for n in ("x", "y", "z")]
+        responses = {r.run_id: 1.0 for r in runs}
+        cv = compute_cross_validation(
+            runs, responses, ["x", "y", "z"], factors,
+            model_type="quadratic", k_folds=4, seed=0,
+        )
+        # Either returns None or a CV with notes; just make sure it
+        # doesn't blow up.
+        if cv is not None:
+            assert any("Skipped" in n for n in cv.notes) or cv.r_squared_cv == cv.r_squared_cv
+
+    def test_analyze_attaches_cv(self, tmp_path):
+        from doe.analysis import analyze
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "z", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r"}],
+            operation="central_composite",
+        )
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        rd = Path(cfg.out_directory)
+        rd.mkdir(parents=True, exist_ok=True)
+        for run in matrix.runs:
+            x = float(run.factor_values["x"])
+            y = float(run.factor_values["y"])
+            z = float(run.factor_values["z"])
+            (rd / f"run_{run.run_id}.json").write_text(json.dumps({
+                "r": -(x ** 2) - (y ** 2) - 0.5 * z ** 2 + 4
+            }))
+        report = analyze(matrix, cfg, results_dir=str(rd), no_plots=True)
+        cv = report.results_by_response["r"].cross_validation
+        assert cv is not None
+        assert cv.k >= 2
+        assert cv.r_squared_cv > 0.9
+
+    def test_no_cv_when_rsm_disabled(self, tmp_path):
+        from doe.analysis import analyze
+        cfg_dict = _make_config_dict()
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        rd = Path(cfg.out_directory)
+        rd.mkdir(parents=True, exist_ok=True)
+        for run in matrix.runs:
+            (rd / f"run_{run.run_id}.json").write_text(json.dumps({"response": 1.0}))
+        report = analyze(matrix, cfg, results_dir=str(rd),
+                         no_plots=True, fit_rsm=False)
+        ra = report.results_by_response["response"]
+        assert ra.cross_validation is None
+
+
+class TestSplitPlot:
+    """Tests for the split_plot operation and split-plot ANOVA."""
+
+    def _make_cfg(self, tmp_path, whole_plot_replicates=2):
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "oven", "levels": ["100", "200"],
+                 "type": "continuous", "role": "whole_plot"},
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r"}],
+            operation="split_plot",
+        )
+        cfg_dict["settings"]["whole_plot_replicates"] = whole_plot_replicates
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        return load_config(_write_config(tmp_path, cfg_dict), strict=False)
+
+    def test_generates_correct_run_count(self, tmp_path):
+        cfg = self._make_cfg(tmp_path, whole_plot_replicates=3)
+        matrix = generate_design(cfg, seed=1)
+        # 2 HTC levels × 3 reps × 4 subplot combos = 24
+        assert len(matrix.runs) == 24
+
+    def test_whole_plot_ids_assigned(self, tmp_path):
+        cfg = self._make_cfg(tmp_path, whole_plot_replicates=2)
+        matrix = generate_design(cfg, seed=1)
+        plot_ids = sorted({r.whole_plot_id for r in matrix.runs})
+        # 2 HTC levels × 2 reps = 4 whole plots
+        assert plot_ids == [1, 2, 3, 4]
+
+    def test_htc_held_constant_within_plot(self, tmp_path):
+        cfg = self._make_cfg(tmp_path, whole_plot_replicates=2)
+        matrix = generate_design(cfg, seed=1)
+        from collections import defaultdict
+        by_plot = defaultdict(set)
+        for r in matrix.runs:
+            by_plot[r.whole_plot_id].add(r.factor_values["oven"])
+        for plot_id, levels in by_plot.items():
+            assert len(levels) == 1, (
+                f"Whole plot {plot_id} has multiple HTC levels: {levels}"
+            )
+
+    def test_invalid_config_no_htc_factor(self, tmp_path):
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r"}],
+            operation="split_plot",
+        )
+        with pytest.raises(ValueError, match="role='whole_plot'"):
+            load_config(_write_config(tmp_path, cfg_dict), strict=False)
+
+    def test_split_plot_anova_two_error_terms(self, tmp_path):
+        from doe.analysis import analyze
+        cfg = self._make_cfg(tmp_path, whole_plot_replicates=3)
+        matrix = generate_design(cfg, seed=1)
+        rd = Path(cfg.out_directory)
+        rd.mkdir(parents=True, exist_ok=True)
+        import random
+        random.seed(0)
+        plot_offset = {}
+        for run in matrix.runs:
+            if run.whole_plot_id not in plot_offset:
+                plot_offset[run.whole_plot_id] = random.gauss(0, 0.5)
+        for run in matrix.runs:
+            htc = float(run.factor_values["oven"])
+            x = float(run.factor_values["x"])
+            y = float(run.factor_values["y"])
+            val = (
+                0.05 * (htc - 150) + 2 * x + y
+                + plot_offset[run.whole_plot_id]
+                + random.gauss(0, 0.1)
+            )
+            (rd / f"run_{run.run_id}.json").write_text(json.dumps({"r": val}))
+        report = analyze(matrix, cfg, results_dir=str(rd),
+                         no_plots=True, fit_rsm=False)
+        anova = report.results_by_response["r"].anova_table
+        assert anova is not None
+        assert anova.error_method == "split_plot"
+        sources = [row.source for row in anova.rows]
+        # HTC factor row labelled (whole-plot)
+        assert any("(whole-plot)" in s for s in sources)
+        # Whole-Plot Error row present with df > 0
+        wp_err = next(r for r in anova.rows if r.source == "Whole-Plot Error")
+        assert wp_err.df >= 1
+        # Subplot factors x, y appear
+        assert "x" in sources
+        assert "y" in sources
+        # The error_row carries subplot error
+        assert anova.error_row.source == "Subplot Error"
+
+
+class TestTrendHtml:
+    """Tests for the doe trend HTML output."""
+
+    def test_html_export_contains_sections(self, tmp_path):
+        from doe.trend import trend_sessions, export_trend_html
+        from doe.models import ExperimentRun, DesignMatrix
+        # Build 3 sessions of a 2x2 design with linear drift.
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r"}],
+            operation="full_factorial",
+        )
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        rd = Path(cfg.out_directory)
+        rd.mkdir(parents=True, exist_ok=True)
+        sessions = []
+        for k in range(3):
+            d = rd / f"sess-{k}"
+            d.mkdir(parents=True, exist_ok=True)
+            (d / "design_matrix.json").write_text(json.dumps({
+                "factor_names": matrix.factor_names,
+                "operation": matrix.operation,
+                "metadata": matrix.metadata,
+                "runs": [
+                    {"run_id": r.run_id, "block_id": r.block_id,
+                     "factor_values": r.factor_values}
+                    for r in matrix.runs
+                ],
+            }))
+            for run in matrix.runs:
+                x = float(run.factor_values["x"])
+                y = float(run.factor_values["y"])
+                (d / f"run_{run.run_id}.json").write_text(json.dumps({
+                    "r": x + y + 0.3 * k,
+                }))
+            sessions.append(str(d))
+        report = trend_sessions(cfg, sessions)
+        out_html = tmp_path / "trend.html"
+        export_trend_html(report, str(out_html))
+        body = out_html.read_text()
+        assert "Trend Summary" in body
+        assert 'id="trend-summary"' in body
+        assert "Per-Session Means" in body
+        assert "Intercept drift" in body
+        # Ensure CSS reuse and link rendering (>0 anchors)
+        assert 'class="data-table"' in body

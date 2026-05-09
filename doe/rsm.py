@@ -8,6 +8,7 @@ from itertools import combinations
 import numpy as np
 
 from .models import (
+    CrossValidation, CrossValidationFold,
     DesignMatrix, DOEConfig, ExperimentRun, Factor,
     ModelAdequacy, StationaryPoint,
 )
@@ -440,6 +441,138 @@ def compute_model_adequacy(
         high_influence_run_ids=high_influence,
         notes=notes,
     )
+
+
+def compute_cross_validation(
+    runs: list[ExperimentRun],
+    responses: dict[int, float],
+    factor_names: list[str],
+    factors: list,
+    model_type: str = "linear",
+    k_folds: int | None = None,
+    seed: int | None = None,
+) -> CrossValidation | None:
+    """k-fold cross-validation for the same RSM that ``analyze`` fits.
+
+    Each fold trains on (n - n/k) runs and predicts the held-out runs.
+    Aggregated RMSE / MAE / R²_cv plus the per-fold predicted-vs-actual
+    table go into the returned ``CrossValidation`` so downstream surfaces
+    (printout, HTML, CSV) can render them.
+
+    Returns ``None`` if there isn't enough data for at least 2 folds with
+    1+ training observation each. ``k_folds=None`` chooses ``min(n, 5)``;
+    pass ``k_folds=n`` for true leave-one-out (which usually matches the
+    PRESS-based predicted_r_squared up to numeric noise).
+    """
+    valid_runs = [r for r in runs if r.run_id in responses]
+    n = len(valid_runs)
+    if n < 4:
+        return None
+
+    if k_folds is None:
+        k_folds = min(n, 5)
+    k_folds = max(2, min(k_folds, n))
+
+    # Trial fit just to discover the parameter count and bail out if the
+    # design can't support the requested model on a *training* subset.
+    full_model = fit_rsm(valid_runs, responses, factor_names, factors,
+                         model_type=model_type)
+    n_params = len(full_model.coefficients)
+    # Each fold trains on roughly (k-1)/k of n. Need at least n_params + 1.
+    min_train = n - (n // k_folds + (1 if n % k_folds else 0))
+    if min_train <= n_params:
+        return CrossValidation(
+            model_type=model_type, k=k_folds, n_observations=n,
+            rmse=float("nan"), mae=float("nan"), r_squared_cv=float("nan"),
+            notes=[
+                f"Skipped: training fold size {min_train} <= parameters {n_params}. "
+                "Use --no-rsm or supply more runs."
+            ],
+        )
+
+    rng = _np.random.default_rng(seed)
+    indices = _np.arange(n)
+    rng.shuffle(indices)
+    fold_assignments = _np.array_split(indices, k_folds)
+
+    grand_mean = float(_np.mean([responses[r.run_id] for r in valid_runs]))
+    ss_total = float(_np.sum(
+        (_np.array([responses[r.run_id] for r in valid_runs]) - grand_mean) ** 2
+    ))
+
+    fold_records: list[CrossValidationFold] = []
+    pred_errs_squared = 0.0
+    abs_errs_total = 0.0
+    n_predicted = 0
+    for fold_idx, holdout_idx in enumerate(fold_assignments):
+        train_runs = [valid_runs[i] for i in indices if i not in set(holdout_idx)]
+        test_runs = [valid_runs[i] for i in holdout_idx]
+        if not train_runs or not test_runs:
+            continue
+        try:
+            train_model = fit_rsm(train_runs, responses, factor_names, factors,
+                                   model_type=model_type)
+        except Exception:
+            continue
+        # Predict each test run via the model's prediction in coded space.
+        coefs = train_model.coefficients
+        preds: list[float] = []
+        actuals: list[float] = []
+        held_ids: list[int] = []
+        for run in test_runs:
+            x = _np.array([
+                _encode_factor_value(run.factor_values[f], _factor_lookup(factors)[f])
+                for f in factor_names
+            ])
+            pred = coefs.get("intercept", 0.0)
+            for i, fname in enumerate(factor_names):
+                pred += coefs.get(fname, 0.0) * x[i]
+            if model_type == "quadratic":
+                for i, fi in enumerate(factor_names):
+                    for j in range(i + 1, len(factor_names)):
+                        fj = factor_names[j]
+                        cross_key = coefs.get(f"{fi}*{fj}",
+                                              coefs.get(f"{fj}*{fi}", 0.0))
+                        pred += cross_key * x[i] * x[j]
+                    pred += coefs.get(f"{fi}^2", 0.0) * x[i] ** 2
+            actual = float(responses[run.run_id])
+            preds.append(float(pred))
+            actuals.append(actual)
+            held_ids.append(run.run_id)
+            err = pred - actual
+            pred_errs_squared += err * err
+            abs_errs_total += abs(err)
+            n_predicted += 1
+        fold_records.append(CrossValidationFold(
+            fold_index=fold_idx,
+            held_out_run_ids=held_ids,
+            predictions=preds,
+            actuals=actuals,
+        ))
+
+    if n_predicted == 0:
+        return None
+    rmse = float(_np.sqrt(pred_errs_squared / n_predicted))
+    mae = abs_errs_total / n_predicted
+    r_squared_cv = 1.0 - pred_errs_squared / ss_total if ss_total > 0 else 0.0
+
+    return CrossValidation(
+        model_type=model_type,
+        k=k_folds,
+        n_observations=n,
+        rmse=rmse,
+        mae=mae,
+        r_squared_cv=float(r_squared_cv),
+        folds=fold_records,
+    )
+
+
+def _factor_lookup(factors: list) -> dict:
+    return {f.name: f for f in factors}
+
+
+# numpy already imported at module top
+_np = np
 
 
 def characterize_stationary_point(

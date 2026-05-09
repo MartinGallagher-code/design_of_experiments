@@ -7,7 +7,8 @@ import os
 import numpy as np
 
 from .models import (
-    AliasStructure, AnalysisReport, AnovaRow, AnovaTable, DesignMatrix, DOEConfig,
+    AliasStructure, AnalysisReport, AnovaRow, AnovaTable,
+    CrossValidation, DesignMatrix, DOEConfig,
     EffectResult, ExperimentRun, InteractionEffect, KneePointResult,
     OrdinalTrendResult, ResponseAnalysis,
 )
@@ -54,6 +55,7 @@ def analyze(
     detect_knee: bool = False,
     filter_factors: list[str] | None = None,
     fit_rsm: bool = True,
+    cv_folds: int | None = None,
 ) -> AnalysisReport:
     results_dir = results_dir or cfg.out_directory or "results"
     processed_dir = cfg.processed_directory or results_dir
@@ -108,11 +110,18 @@ def analyze(
         interactions = _compute_interaction_effects(valid_runs, responses, factor_names)
         summary_stats = _compute_summary_stats(valid_runs, responses, factor_names)
 
-        # ANOVA table
+        # ANOVA table — split-plot designs need a two-error path
         anova_table = None
         if len(valid_runs) > len(factor_names):
             try:
-                anova_table = _compute_anova(valid_runs, responses, factor_names, cfg.factors)
+                if cfg.operation == "split_plot":
+                    anova_table = _compute_split_plot_anova(
+                        valid_runs, responses, factor_names, cfg.factors,
+                    )
+                else:
+                    anova_table = _compute_anova(
+                        valid_runs, responses, factor_names, cfg.factors,
+                    )
             except Exception:
                 pass  # graceful fallback if ANOVA fails
 
@@ -143,8 +152,14 @@ def analyze(
             model_adequacy, stationary_point = _compute_model_adequacy_and_stationary(
                 valid_runs, responses, factor_names, cfg.factors,
             )
+            cross_validation = _compute_cross_validation_safe(
+                valid_runs, responses, factor_names, cfg.factors,
+                model_adequacy.model_type if model_adequacy else "linear",
+                k_folds=cv_folds,
+            )
         else:
             model_adequacy, stationary_point = None, None
+            cross_validation = None
 
         # Achieved-power retrospective from the actual residual MS.
         achieved_power_result = None
@@ -170,6 +185,7 @@ def analyze(
             model_adequacy=model_adequacy,
             stationary_point=stationary_point,
             achieved_power=achieved_power_result,
+            cross_validation=cross_validation,
         )
 
         if not no_plots:
@@ -346,6 +362,26 @@ def _compute_model_adequacy_and_stationary(
     return adequacy, stationary
 
 
+def _compute_cross_validation_safe(
+    runs: list[ExperimentRun],
+    responses: dict[int, float],
+    factor_names: list[str],
+    factors: list,
+    model_type: str,
+    k_folds: int | None,
+) -> CrossValidation | None:
+    """Wrapper that swallows failures so analyze() always returns the rest."""
+    try:
+        from .rsm import compute_cross_validation
+        return compute_cross_validation(
+            runs=runs, responses=responses,
+            factor_names=factor_names, factors=factors,
+            model_type=model_type, k_folds=k_folds,
+        )
+    except Exception:
+        return None
+
+
 def _compute_main_effects(
     runs: list[ExperimentRun],
     responses: dict[int, float],
@@ -494,6 +530,187 @@ def _compute_summary_stats(
                 "max": max(vals),
             }
     return stats
+
+
+def _compute_split_plot_anova(
+    runs: list[ExperimentRun],
+    responses: dict[int, float],
+    factor_names: list[str],
+    factors: list,
+) -> AnovaTable:
+    """Two-error-term ANOVA for split-plot designs.
+
+    Whole-plot stratum: tests the hard-to-change (whole_plot) factor
+    against between-whole-plot variation. Subplot stratum: tests every
+    other factor (and HTC×subplot interactions) against within-whole-plot
+    residual variation.
+
+    The HTC factor F-test uses ``MS_whole_plot_error``, every other
+    factor uses ``MS_subplot_error`` — pulling either out of the same
+    pooled denominator (as the standard ANOVA path does) would give the
+    HTC test more df than it actually has and inflate the false-positive
+    rate.
+    """
+    try:
+        from scipy.stats import f as f_dist
+        _has_scipy = True
+    except ImportError:
+        _has_scipy = False
+
+    valid_runs = [r for r in runs if r.run_id in responses]
+    n = len(valid_runs)
+    y = np.array([responses[r.run_id] for r in valid_runs])
+    grand_mean = float(np.mean(y))
+    ss_total = float(np.sum((y - grand_mean) ** 2))
+
+    htc_factor = next((f for f in factors if f.role == "whole_plot"), None)
+    if htc_factor is None:
+        # Shouldn't happen — config validation prevents this — but degrade
+        # gracefully to the standard pooled ANOVA.
+        return _compute_anova(runs, responses, factor_names, factors)
+
+    subplot_names = [f for f in factor_names if f != htc_factor.name]
+
+    # Whole-plot SS = sum over whole plots of n_p * (mean_p - grand_mean)^2.
+    by_plot: dict[int, list[float]] = {}
+    plot_htc: dict[int, str] = {}
+    for r in valid_runs:
+        by_plot.setdefault(r.whole_plot_id, []).append(responses[r.run_id])
+        plot_htc[r.whole_plot_id] = r.factor_values[htc_factor.name]
+    plot_ids = sorted(by_plot.keys())
+    plot_means = {pid: sum(vals) / len(vals) for pid, vals in by_plot.items()}
+    ss_plots = sum(
+        len(by_plot[pid]) * (plot_means[pid] - grand_mean) ** 2 for pid in plot_ids
+    )
+    df_plots = len(plot_ids) - 1
+
+    # SS for the HTC factor (between HTC level means, weighted by run count).
+    htc_levels = sorted({plot_htc[p] for p in plot_ids}, key=_numeric_sort_key)
+    htc_means: dict[str, float] = {}
+    for level in htc_levels:
+        vals = [
+            responses[r.run_id]
+            for r in valid_runs if r.factor_values[htc_factor.name] == level
+        ]
+        htc_means[level] = sum(vals) / len(vals) if vals else grand_mean
+    ss_htc = sum(
+        sum(1 for r in valid_runs if r.factor_values[htc_factor.name] == lv)
+        * (htc_means[lv] - grand_mean) ** 2
+        for lv in htc_levels
+    )
+    df_htc = max(0, len(htc_levels) - 1)
+
+    # Whole-plot error = between whole plots within an HTC level.
+    ss_wp_error = max(0.0, ss_plots - ss_htc)
+    df_wp_error = max(0, df_plots - df_htc)
+    ms_wp_error = ss_wp_error / df_wp_error if df_wp_error > 0 else 0.0
+
+    # Subplot stratum: every other factor, computed as in _compute_anova
+    # using level means against the grand mean.
+    rows: list[AnovaRow] = []
+    if df_htc > 0:
+        ms_htc = ss_htc / df_htc
+        f_htc = ms_htc / ms_wp_error if ms_wp_error > 0 else None
+        p_htc = None
+        if f_htc is not None and _has_scipy and df_wp_error > 0:
+            p_htc = float(f_dist.sf(f_htc, df_htc, df_wp_error))
+        rows.append(AnovaRow(
+            source=f"{htc_factor.name} (whole-plot)",
+            df=df_htc, ss=ss_htc, ms=ms_htc,
+            f_value=f_htc, p_value=p_htc,
+        ))
+
+    # Whole-plot error row, surfaced explicitly.
+    rows.append(AnovaRow(
+        source="Whole-Plot Error",
+        df=df_wp_error, ss=ss_wp_error, ms=ms_wp_error,
+    ))
+
+    # Subplot main effects + HTC×subplot interactions
+    ss_subplot_terms = 0.0
+    for fname in subplot_names:
+        levels = sorted({r.factor_values[fname] for r in valid_runs}, key=_numeric_sort_key)
+        df_f = max(0, len(levels) - 1)
+        ss_f = 0.0
+        for lv in levels:
+            vals = [responses[r.run_id]
+                    for r in valid_runs if r.factor_values[fname] == lv]
+            if vals:
+                ss_f += len(vals) * (sum(vals) / len(vals) - grand_mean) ** 2
+        ms_f = ss_f / df_f if df_f > 0 else 0.0
+        ss_subplot_terms += ss_f
+        rows.append(AnovaRow(
+            source=fname, df=df_f, ss=ss_f, ms=ms_f,
+        ))
+
+    # HTC × each-subplot interaction
+    for fname in subplot_names:
+        if df_htc <= 0:
+            continue
+        levels_a = sorted({r.factor_values[htc_factor.name] for r in valid_runs}, key=_numeric_sort_key)
+        levels_b = sorted({r.factor_values[fname] for r in valid_runs}, key=_numeric_sort_key)
+        ss_ab_total = 0.0
+        for la in levels_a:
+            for lb in levels_b:
+                cell = [responses[r.run_id] for r in valid_runs
+                        if r.factor_values[htc_factor.name] == la
+                        and r.factor_values[fname] == lb]
+                if cell:
+                    ss_ab_total += len(cell) * (sum(cell) / len(cell) - grand_mean) ** 2
+
+        ss_a = sum(
+            sum(1 for r in valid_runs if r.factor_values[htc_factor.name] == la)
+            * (htc_means[la] - grand_mean) ** 2
+            for la in levels_a
+        )
+        ss_b_levels = {}
+        for lb in levels_b:
+            vals = [responses[r.run_id]
+                    for r in valid_runs if r.factor_values[fname] == lb]
+            ss_b_levels[lb] = (
+                len(vals) * (sum(vals) / len(vals) - grand_mean) ** 2 if vals else 0.0
+            )
+        ss_b = sum(ss_b_levels.values())
+
+        ss_int = max(0.0, ss_ab_total - ss_a - ss_b)
+        df_int = df_htc * max(0, len(levels_b) - 1)
+        ms_int = ss_int / df_int if df_int > 0 else 0.0
+        ss_subplot_terms += ss_int
+        rows.append(AnovaRow(
+            source=f"{htc_factor.name}*{fname}",
+            df=df_int, ss=ss_int, ms=ms_int,
+        ))
+
+    # Subplot error = total residual after removing whole-plot stratum
+    # plus subplot terms.
+    ss_sp_error = max(0.0, ss_total - ss_plots - ss_subplot_terms)
+    df_sp_error = max(0, n - 1 - df_plots - sum(r.df for r in rows[2:]))  # skip HTC + WP-error rows
+    ms_sp_error = ss_sp_error / df_sp_error if df_sp_error > 0 else 0.0
+
+    # F-tests for subplot terms
+    if ms_sp_error > 0:
+        for row in rows:
+            if row.source in (f"{htc_factor.name} (whole-plot)", "Whole-Plot Error"):
+                continue
+            row.f_value = row.ms / ms_sp_error
+            if _has_scipy and df_sp_error > 0:
+                row.p_value = float(f_dist.sf(row.f_value, row.df, df_sp_error))
+
+    error_row = AnovaRow(
+        source="Subplot Error",
+        df=df_sp_error, ss=ss_sp_error, ms=ms_sp_error,
+    )
+    total_row = AnovaRow(
+        source="Total",
+        df=n - 1, ss=ss_total, ms=ss_total / (n - 1) if n > 1 else 0.0,
+    )
+
+    return AnovaTable(
+        rows=rows,
+        error_row=error_row,
+        total_row=total_row,
+        error_method="split_plot",
+    )
 
 
 def _compute_anova(
@@ -1396,6 +1613,30 @@ def export_csv(report: AnalysisReport, output_dir: str) -> list[str]:
                     writer.writerow(["per_factor", entry.factor_name, entry.n_levels,
                                      entry.power_at_delta, mde])
             created.append(ap_path)
+
+        # Cross-validation CSV: summary header + per-fold predicted-vs-actual
+        if analysis.cross_validation:
+            cv = analysis.cross_validation
+            cv_path = os.path.join(output_dir, f"cross_validation_{safe}.csv")
+            with open(cv_path, "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow(["scope", "fold", "run_id", "predicted", "actual", "absolute_error"])
+                writer.writerow(["__summary__", "", "", "", "", ""])
+                writer.writerow(["model_type", "", "", cv.model_type, "", ""])
+                writer.writerow(["k", "", "", cv.k, "", ""])
+                writer.writerow(["n_observations", "", "", cv.n_observations, "", ""])
+                writer.writerow(["rmse_cv", "", "", cv.rmse, "", ""])
+                writer.writerow(["mae_cv", "", "", cv.mae, "", ""])
+                writer.writerow(["r_squared_cv", "", "", cv.r_squared_cv, "", ""])
+                for fold in cv.folds:
+                    for run_id, pred, actual in zip(
+                        fold.held_out_run_ids, fold.predictions, fold.actuals,
+                    ):
+                        writer.writerow([
+                            "fold", fold.fold_index, run_id, pred, actual,
+                            abs(pred - actual),
+                        ])
+            created.append(cv_path)
 
         # Stationary point CSV
         if analysis.stationary_point:
