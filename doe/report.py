@@ -105,12 +105,14 @@ def generate_report(
     optimization_html = _build_optimization(optimization_data, cfg)
     design_matrix_html = _build_design_matrix(matrix)
     alias_structure_html = _build_alias_structure(report.alias_structure)
+    toc_html = _build_table_of_contents(report, cfg)
     footer_html = _build_footer()
 
     page = _HTML_TEMPLATE.format(
         title=plan_name,
         css=_CSS,
         header=header_html,
+        toc=toc_html,
         design_summary=design_summary_html,
         alias_structure=alias_structure_html,
         results=results_html,
@@ -175,7 +177,7 @@ def _build_design_summary(matrix: DesignMatrix, cfg: DOEConfig) -> str:
         )
 
     return (
-        '<details open>\n'
+        '<details open id="design-summary">\n'
         '  <summary><h2>Design Summary</h2></summary>\n'
         '  <div class="section-body">\n'
         '  <table class="info-table">\n'
@@ -350,7 +352,7 @@ def _build_optimization(opt_data, cfg) -> str:
         )
 
         sections.append(
-            f'<details open>\n'
+            f'<details open id="optimization-{_anchor_id(opt["response_name"])}">\n'
             f'  <summary><h2>Optimization: {safe_name}{unit} ({direction})</h2></summary>\n'
             f'  <div class="section-body">\n'
             f'{best_html}'
@@ -573,8 +575,11 @@ def _build_results(report, pareto_images, effects_images, rsm_images=None,
         # --- Stationary point ---
         stationary_html = _stationary_point_html(analysis.stationary_point)
 
+        # --- Achieved power ---
+        achieved_html = _achieved_power_html(analysis.achieved_power)
+
         sections.append(
-            f'<details open>\n'
+            f'<details open id="results-{_anchor_id(resp_name)}">\n'
             f'  <summary><h2>Results: {safe_name}</h2></summary>\n'
             f'  <div class="section-body">\n'
             f'{main_effects_html}'
@@ -583,6 +588,7 @@ def _build_results(report, pareto_images, effects_images, rsm_images=None,
             f'{summary_html}'
             f'{adequacy_html}'
             f'{stationary_html}'
+            f'{achieved_html}'
             f'{plots_html}'
             f'{rsm_html}'
             f'  </div>\n'
@@ -686,6 +692,42 @@ def _stationary_point_html(sp) -> str:
     )
 
 
+def _achieved_power_html(ap) -> str:
+    if ap is None:
+        return ""
+    summary = (
+        f'  <p class="muted">'
+        f'n = {ap.n_runs}, df<sub>error</sub> = {ap.df_error}, '
+        f'σ = {ap.sigma:.4f} (residual MS = {ap.residual_ms:.4f}), '
+        f'α = {ap.alpha}, δ = {ap.delta:.4f}, target power = {ap.target_power}'
+        f'</p>\n'
+    )
+    rows = ""
+    for entry in ap.per_factor:
+        flag = ' style="color:#c00;font-weight:bold;"' if entry.power_at_delta < 0.8 else ""
+        mde_str = "&infin;" if entry.mde_at_target == float("inf") else f"{entry.mde_at_target:.4f}"
+        rows += (
+            f'      <tr{flag}>'
+            f'<td>{html.escape(entry.factor_name)}</td>'
+            f'<td class="mono">{entry.n_levels}</td>'
+            f'<td class="mono">{entry.power_at_delta:.3f}</td>'
+            f'<td class="mono">{mde_str}</td>'
+            f'</tr>\n'
+        )
+    return (
+        '  <h3>Achieved Power</h3>\n'
+        f'{summary}'
+        '  <table class="data-table">\n'
+        '    <thead><tr><th>Factor</th><th>Levels</th>'
+        f'<th>Power @ δ={ap.delta:.4g}</th>'
+        f'<th>MDE @ {int(ap.target_power*100)}% power</th></tr></thead>\n'
+        '    <tbody>\n'
+        f'{rows}'
+        '    </tbody>\n'
+        '  </table>\n'
+    )
+
+
 def _build_alias_structure(alias) -> str:
     if alias is None:
         return ""
@@ -728,7 +770,7 @@ def _build_alias_structure(alias) -> str:
     body += _section("Main Effects", alias.main_effects)
     body += _section("Two-Factor Interactions", alias.two_factor_interactions)
     return (
-        '<details>\n'
+        '<details id="alias-structure">\n'
         f'  <summary><h2>Alias Structure: {html.escape(label)}</h2></summary>\n'
         '  <div class="section-body">\n'
         f'{notes_html}'
@@ -754,7 +796,7 @@ def _build_design_matrix(matrix: DesignMatrix) -> str:
         rows += f"      <tr>{cells}</tr>\n"
 
     return (
-        '<details>\n'
+        '<details id="design-matrix">\n'
         '  <summary><h2>Design Matrix</h2></summary>\n'
         '  <div class="section-body">\n'
         '  <table class="data-table">\n'
@@ -765,6 +807,50 @@ def _build_design_matrix(matrix: DesignMatrix) -> str:
         '  </table>\n'
         '  </div>\n'
         '</details>\n'
+    )
+
+
+def _anchor_id(name: str) -> str:
+    """Convert a response/factor name into a URL-safe anchor id."""
+    out = []
+    for ch in name.strip().lower():
+        if ch.isalnum():
+            out.append(ch)
+        elif ch in (" ", "-", "_", "."):
+            out.append("-")
+    cleaned = "".join(out).strip("-")
+    while "--" in cleaned:
+        cleaned = cleaned.replace("--", "-")
+    return cleaned or "section"
+
+
+def _build_table_of_contents(report, cfg) -> str:
+    """Build a sticky navigation block linking to each top-level section."""
+    items: list[tuple[str, str]] = [("design-summary", "Design Summary")]
+
+    if report.alias_structure is not None:
+        items.append(("alias-structure", "Alias Structure"))
+
+    for resp_name in report.results_by_response:
+        items.append((f"results-{_anchor_id(resp_name)}", f"Results: {resp_name}"))
+
+    for resp in cfg.responses:
+        if resp.optimize in ("maximize", "minimize"):
+            items.append(
+                (f"optimization-{_anchor_id(resp.name)}", f"Optimization: {resp.name}")
+            )
+
+    items.append(("design-matrix", "Design Matrix"))
+
+    links = "\n".join(
+        f'    <a href="#{html.escape(anchor)}">{html.escape(label)}</a>'
+        for anchor, label in items
+    )
+    return (
+        '<nav class="toc" aria-label="Section navigation">\n'
+        '  <strong>Jump to:</strong>\n'
+        f'{links}\n'
+        '</nav>\n'
     )
 
 
@@ -815,6 +901,34 @@ header .timestamp {
   margin: 4px 0 0 0;
   font-size: 0.9em;
   color: #888;
+}
+nav.toc {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 0;
+  margin: 0 0 16px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  font-size: 0.92em;
+}
+nav.toc strong {
+  color: #666;
+  margin-right: 4px;
+}
+nav.toc a {
+  color: var(--accent);
+  text-decoration: none;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+nav.toc a:hover {
+  background: var(--bg-alt);
+  text-decoration: underline;
 }
 details {
   margin-bottom: 20px;
@@ -919,6 +1033,7 @@ _HTML_TEMPLATE = """\
 </head>
 <body>
 {header}
+{toc}
 {design_summary}
 {alias_structure}
 {results}

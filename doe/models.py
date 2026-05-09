@@ -168,6 +168,27 @@ class StationaryPoint:
 
 
 @dataclass
+class AchievedPowerEntry:
+    factor_name: str
+    n_levels: int
+    power_at_delta: float       # power at the chosen delta
+    mde_at_target: float        # minimum detectable effect at target_power
+
+
+@dataclass
+class AchievedPower:
+    """Post-hoc statistical power, computed from the actual residual MS."""
+    n_runs: int
+    df_error: int
+    residual_ms: float
+    sigma: float                # sqrt(residual_ms)
+    alpha: float
+    delta: float                # the effect size used to report power_at_delta
+    target_power: float         # the power level used to back out MDE
+    per_factor: list[AchievedPowerEntry] = field(default_factory=list)
+
+
+@dataclass
 class ResponseAnalysis:
     response_name: str
     effects: list[EffectResult]
@@ -177,6 +198,7 @@ class ResponseAnalysis:
     ordinal_trends: list[OrdinalTrendResult] = field(default_factory=list)
     model_adequacy: ModelAdequacy | None = None
     stationary_point: StationaryPoint | None = None
+    achieved_power: AchievedPower | None = None
 
 
 @dataclass

@@ -193,6 +193,102 @@ def _decode_coded_value(code: float, factor) -> str:
     return f"{center + code * half_range:.6g}"
 
 
+def _best_generator_choice(
+    base_letters: list[str],
+    interactions: list[str],
+    n_extra: int,
+    factor_names: list[str],
+) -> list[str]:
+    """Pick generators for the extra factors that maximise the design's resolution.
+
+    Searches over candidate combinations of interaction terms (drawn from
+    *interactions*, already ordered longest-first), constructs the implied
+    fractional factorial via pyDOE3, and scores it by computing the minimum
+    correlation magnitude between every (main effect, 2FI) pair and between
+    distinct 2FIs. The combination with the lowest such correlation — i.e.
+    the highest resolution — wins. Ties are broken by preferring assignments
+    that came earlier (longer-order interactions first).
+
+    The search space is bounded: we cap the number of candidates considered
+    per ``r`` to keep this tractable for designs up to ~12 factors, which
+    is well past the practical use case for fractional factorials.
+    """
+    import pyDOE3
+    from itertools import combinations as _combinations
+
+    # All candidate combinations of size n_extra from the interaction pool.
+    # The pool is already sorted longest-first, so iterating in itertools
+    # order naturally prefers higher-order interactions.
+    pool = interactions[:]
+    if n_extra >= len(pool):
+        return pool[:n_extra]
+
+    # Cap candidate count to avoid blow-up on large pools.
+    MAX_CANDIDATES = 200
+    candidates: list[tuple[str, ...]] = []
+    for combo in _combinations(pool, n_extra):
+        candidates.append(combo)
+        if len(candidates) >= MAX_CANDIDATES:
+            break
+
+    base_runs_per_candidate = []
+    for combo in candidates:
+        gen_string = " ".join(list(base_letters) + list(combo))
+        try:
+            mat = pyDOE3.fracfact(gen_string)
+        except Exception:
+            continue
+        base_runs_per_candidate.append((combo, mat))
+
+    if not base_runs_per_candidate:
+        # Fall back to the longest-first greedy assignment
+        return pool[:n_extra]
+
+    # Score each candidate by the maximum |correlation| seen between any
+    # main effect and any 2FI, and any two distinct 2FIs. The lower this
+    # value, the higher the resolution.
+    n_factors = len(factor_names)
+    best_score = float("inf")
+    best_combo = base_runs_per_candidate[0][0]
+    for combo, mat in base_runs_per_candidate:
+        score = _alias_score(mat[:, :n_factors])
+        if score < best_score - 1e-9:
+            best_score = score
+            best_combo = combo
+    return list(best_combo)
+
+
+def _alias_score(coded_design) -> float:
+    """Maximum absolute correlation between (ME, 2FI) and (2FI, 2FI) pairs.
+
+    A score of 0 means a clean Resolution-V or higher design; 1.0 means
+    full aliasing somewhere (Resolution III). Smaller is better.
+    """
+    import numpy as np
+    from itertools import combinations as _combinations
+
+    n, k = coded_design.shape
+    if k < 2:
+        return 0.0
+
+    twofi_pairs = list(_combinations(range(k), 2))
+    twofi = np.column_stack([coded_design[:, a] * coded_design[:, b]
+                             for a, b in twofi_pairs])
+    cols = np.column_stack([coded_design, twofi])
+    norms = np.linalg.norm(cols, axis=0)
+    if not np.all(norms > 0):
+        return 1.0
+    R = np.abs((cols.T @ cols) / np.outer(norms, norms))
+    np.fill_diagonal(R, 0.0)
+
+    # ME-vs-2FI block: rows 0..k-1, cols k..end
+    me_2fi = float(R[:k, k:].max()) if R[:k, k:].size else 0.0
+    # 2FI-vs-2FI block: rows k..end, cols k..end
+    twofi_block = R[k:, k:]
+    twofi_max = float(twofi_block.max()) if twofi_block.size else 0.0
+    return max(me_2fi, twofi_max)
+
+
 def _fractional_factorial(cfg: DOEConfig) -> list[ExperimentRun]:
     try:
         import pyDOE3
@@ -223,15 +319,23 @@ def _fractional_factorial(cfg: DOEConfig) -> list[ExperimentRun]:
     base_letters = [chr(ord('a') + i) for i in range(k)]
     gen_parts = list(base_letters)  # base factors
 
-    # Generate aliases for additional factors from 2-factor interactions and higher
+    # Pick interactions to alias the additional factors with so that the
+    # resulting design has the *highest* resolution available within the
+    # current run budget. Earlier code greedily took the lowest-order
+    # interactions, which biases towards Resolution III. We instead build
+    # all candidate interactions ordered longest-first and search the small
+    # search space for the assignment that maximises the min-correlation
+    # across main effects and 2-factor interactions.
     if n_factors > k:
-        interactions = []
-        for r in range(2, k + 1):
+        interactions: list[str] = []
+        for r in range(k, 1, -1):
             for combo in combinations(base_letters, r):
                 interactions.append("".join(combo))
-            if len(interactions) >= n_factors - k:
-                break
-        gen_parts.extend(interactions[: n_factors - k])
+
+        n_extra = n_factors - k
+        gen_parts.extend(_best_generator_choice(
+            base_letters, interactions, n_extra, [f.name for f in cfg.factors],
+        ))
 
     gen_string = " ".join(gen_parts)
     matrix = pyDOE3.fracfact(gen_string)

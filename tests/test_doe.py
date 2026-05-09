@@ -2649,6 +2649,137 @@ class TestAdequacyAndStationaryReporting:
         assert "Stationary Point" in body
         assert "Predicted R" in body
 
+    def test_html_report_has_table_of_contents(self, tmp_path):
+        """Sticky nav with anchor links to each top-level section."""
+        from doe.analysis import analyze
+        from doe.report import generate_report
+        cfg, matrix, results_dir = self._setup(tmp_path)
+        out_html = tmp_path / "report.html"
+        generate_report(matrix, cfg, results_dir=str(results_dir),
+                        output_path=str(out_html))
+        body = out_html.read_text()
+        assert 'class="toc"' in body
+        # Anchor target IDs are rendered for each top-level section
+        assert 'id="design-summary"' in body
+        assert 'id="design-matrix"' in body
+        # Each TOC link's href points at an id present in the document
+        import re
+        hrefs = set(re.findall(r'<a href="#([^"]+)"', body))
+        ids = set(re.findall(r'id="([a-z0-9\-]+)"', body))
+        # Every nav link must resolve to an existing id on the page
+        nav_block = body.split('class="toc"', 1)[1].split('</nav>', 1)[0]
+        nav_hrefs = set(re.findall(r'href="#([^"]+)"', nav_block))
+        assert nav_hrefs <= ids
+        assert len(nav_hrefs) >= 3  # at least Design Summary / Results / Design Matrix
+
+    def test_html_report_has_achieved_power(self, tmp_path):
+        from doe.analysis import analyze
+        from doe.report import generate_report
+        cfg, matrix, results_dir = self._setup(tmp_path)
+        out_html = tmp_path / "report.html"
+        generate_report(matrix, cfg, results_dir=str(results_dir),
+                        output_path=str(out_html))
+        body = out_html.read_text()
+        assert "Achieved Power" in body
+        assert "MDE" in body
+
+
+class TestAchievedPower:
+    """Tests for doe.power.achieved_power and analyze() integration."""
+
+    def _matrix_and_factors(self):
+        from doe.models import Factor, ExperimentRun, DesignMatrix
+        # Tiny 2^3 design — 8 runs, 3 two-level factors.
+        runs = []
+        rid = 1
+        for a in (-1, 1):
+            for b in (-1, 1):
+                for c in (-1, 1):
+                    runs.append(ExperimentRun(
+                        run_id=rid, block_id=1,
+                        factor_values={"a": str(a), "b": str(b), "c": str(c)},
+                    ))
+                    rid += 1
+        factors = [Factor(name=n, levels=["-1", "1"], type="continuous")
+                   for n in ("a", "b", "c")]
+        matrix = DesignMatrix(runs=runs, factor_names=["a", "b", "c"],
+                              operation="full_factorial")
+        return matrix, factors
+
+    def test_zero_residual_ms_clamps_to_full_power(self):
+        from doe.power import achieved_power
+        matrix, factors = self._matrix_and_factors()
+        ap = achieved_power(matrix=matrix, factors=factors,
+                            residual_ms=0.0, df_error=4)
+        assert ap is not None
+        for entry in ap.per_factor:
+            assert entry.power_at_delta == 1.0
+            assert entry.mde_at_target == 0.0
+
+    def test_returns_none_when_df_error_zero(self):
+        from doe.power import achieved_power
+        matrix, factors = self._matrix_and_factors()
+        ap = achieved_power(matrix=matrix, factors=factors,
+                            residual_ms=1.0, df_error=0)
+        assert ap is None
+
+    def test_mde_is_monotonic_in_target_power(self):
+        from doe.power import mde_for_factor
+        # Higher target_power → larger MDE
+        m1 = mde_for_factor(n_runs=16, n_levels=2, df_error=8,
+                            sigma=1.0, target_power=0.5)
+        m2 = mde_for_factor(n_runs=16, n_levels=2, df_error=8,
+                            sigma=1.0, target_power=0.8)
+        m3 = mde_for_factor(n_runs=16, n_levels=2, df_error=8,
+                            sigma=1.0, target_power=0.95)
+        assert m1 < m2 < m3
+
+    def test_power_increases_with_delta(self):
+        from doe.power import power_for_factor
+        p_low = power_for_factor(n_runs=16, n_levels=2, df_error=8,
+                                 delta=0.5, sigma=1.0)
+        p_high = power_for_factor(n_runs=16, n_levels=2, df_error=8,
+                                  delta=2.0, sigma=1.0)
+        assert p_low < p_high
+        assert 0.0 <= p_low <= 1.0 and 0.0 <= p_high <= 1.0
+
+    def test_default_delta_is_two_sigma(self):
+        from doe.power import achieved_power
+        matrix, factors = self._matrix_and_factors()
+        ap = achieved_power(matrix=matrix, factors=factors,
+                            residual_ms=4.0, df_error=4)  # sigma = 2
+        assert abs(ap.delta - 4.0) < 1e-9  # 2 * sigma
+
+    def test_analyze_attaches_achieved_power(self, tmp_path):
+        from doe.analysis import analyze
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "a", "levels": ["-1", "1"]},
+                {"name": "b", "levels": ["-1", "1"]},
+                {"name": "c", "levels": ["-1", "1"]},
+            ],
+            responses=[{"name": "y"}],
+        )
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        results_dir = Path(cfg.out_directory)
+        results_dir.mkdir(parents=True, exist_ok=True)
+        # Construct a real signal so ANOVA's residual MS is non-zero.
+        import random
+        random.seed(0)
+        for run in matrix.runs:
+            a = float(run.factor_values["a"])
+            b = float(run.factor_values["b"])
+            c = float(run.factor_values["c"])
+            y = 2.0 + 1.5 * a + 0.5 * b + 0.0 * c + random.gauss(0, 0.5)
+            (results_dir / f"run_{run.run_id}.json").write_text(json.dumps({"y": y}))
+        report = analyze(matrix, cfg, results_dir=str(results_dir), no_plots=True)
+        ra = report.results_by_response["y"]
+        assert ra.achieved_power is not None
+        assert ra.achieved_power.df_error >= 1
+        assert len(ra.achieved_power.per_factor) == 3
+
 
 class TestAliasStructure:
     """Tests for compute_alias_structure + analyze() integration."""
@@ -2676,8 +2807,9 @@ class TestAliasStructure:
 
     def test_resolution_iii_main_effects_aliased_with_2fi(self, tmp_path):
         from doe.aliasing import compute_alias_structure
-        # 4 factors with the existing generator → I=ABD (Resolution III)
-        cfg, matrix = self._make_screening_matrix(tmp_path, 4, "fractional_factorial")
+        # 7 factors in 8 runs: must be Resolution III — there is not
+        # enough room for any cleaner design.
+        cfg, matrix = self._make_screening_matrix(tmp_path, 7, "fractional_factorial")
         ali = compute_alias_structure(matrix)
         assert ali is not None
         assert ali.design_type == "fractional_factorial"
@@ -2691,6 +2823,17 @@ class TestAliasStructure:
         for entry in ali.main_effects:
             for _p, r in entry.aliased_with:
                 assert (1.0 - r) < 1e-6
+
+    def test_resolution_iv_picked_when_achievable(self, tmp_path):
+        """A 2^(4-1) FF in 8 runs has a Resolution IV option (I = ABCD).
+        The generator search should pick it over the Resolution III variant."""
+        from doe.aliasing import compute_alias_structure
+        cfg, matrix = self._make_screening_matrix(tmp_path, 4, "fractional_factorial")
+        ali = compute_alias_structure(matrix)
+        assert ali is not None
+        assert ali.resolution == 4
+        # Main effects must therefore be clean of two-factor interactions.
+        assert all(not e.aliased_with for e in ali.main_effects)
 
     def test_resolution_v_clean(self, tmp_path):
         """A 2^(5-1) FF with I=ABCDE is Resolution V — main effects clean,
@@ -2720,13 +2863,10 @@ class TestAliasStructure:
 
     def test_uses_user_factor_names(self, tmp_path):
         from doe.aliasing import compute_alias_structure
+        names = ["temperature", "pressure", "catalyst", "stir", "humidity",
+                 "ph", "feed_rate"]
         cfg_dict = _make_config_dict(
-            factors=[
-                {"name": "temperature", "levels": ["-1", "1"]},
-                {"name": "pressure", "levels": ["-1", "1"]},
-                {"name": "catalyst", "levels": ["-1", "1"]},
-                {"name": "stir", "levels": ["-1", "1"]},
-            ],
+            factors=[{"name": n, "levels": ["-1", "1"]} for n in names],
             responses=[{"name": "y"}],
             operation="fractional_factorial",
         )
@@ -2735,12 +2875,13 @@ class TestAliasStructure:
         ali = compute_alias_structure(matrix)
         labels = {e.effect for e in ali.main_effects}
         assert "temperature" in labels
-        # Aliases reference the user's factor names, not a, b, c
+        # 7 factors in 8 runs is unavoidably Resolution III, so at least one
+        # main effect must be aliased with a 2FI.
         any_alias = next((e for e in ali.main_effects if e.aliased_with), None)
         assert any_alias is not None
         for partner, _r in any_alias.aliased_with:
             for token in partner.split("*"):
-                assert token in {"temperature", "pressure", "catalyst", "stir"}
+                assert token in set(names)
 
     def test_threshold_filters_below(self):
         """Correlations below the threshold must not appear in the output."""
