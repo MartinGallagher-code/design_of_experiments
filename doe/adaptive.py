@@ -127,6 +127,11 @@ def plan_next_batch(
         new_runs = _explore_strategy(
             valid_runs, cfg, matrix, adaptive_cfg.batch_size, rng, max_run_id,
         )
+    elif adaptive_cfg.strategy == "model_guided":
+        new_runs = _model_guided_strategy(
+            valid_runs, responses, resp, cfg, matrix,
+            adaptive_cfg.batch_size, rng, max_run_id,
+        )
     else:  # balanced
         half = adaptive_cfg.batch_size // 2
         refine_n = max(1, half)
@@ -181,6 +186,172 @@ def _check_stopping(
             )
 
     return False, ""
+
+
+def _model_guided_strategy(
+    valid_runs, responses, resp, cfg, matrix, batch_size, rng, start_run_id,
+) -> list[ExperimentRun]:
+    """Pick a batch combining model-optimum and max-uncertainty candidates.
+
+    Fits a quadratic RSM on the existing results (linear if the design
+    can't support quadratic), finds the predicted optimum via
+    ``optimize_surface``, and adds runs at points with the highest
+    leverage-scaled prediction variance — i.e. the locations the current
+    model is least sure about. Uses no new dependencies (the GP-style
+    acquisition functions of full Bayesian optimization are out of
+    scope; this is a pragmatic surrogate that uses what we already
+    compute).
+    """
+    from .rsm import fit_rsm, optimize_surface
+
+    factor_names = matrix.factor_names
+    runs: list[ExperimentRun] = []
+    run_id = start_run_id
+    if not valid_runs:
+        return runs
+
+    # Pick model order based on whether we have enough runs for quadratic.
+    n = len(valid_runs)
+    k = len(factor_names)
+    n_quad_params = 1 + 2 * k + k * (k - 1) // 2
+    model_type = "quadratic" if n >= n_quad_params + 1 else "linear"
+
+    try:
+        model = fit_rsm(valid_runs, responses, factor_names, cfg.factors,
+                        model_type=model_type)
+    except Exception:
+        # Fall back to refine if the fit fails outright.
+        return _refine_strategy(
+            valid_runs, responses, cfg, matrix, batch_size, rng, start_run_id,
+        )
+
+    # 1) Model-predicted optimum
+    opt_runs: list[ExperimentRun] = []
+    try:
+        opt = optimize_surface(model, factor_names, cfg.factors,
+                               direction=resp.optimize)
+        if opt.get("optimal_settings"):
+            run_id += 1
+            opt_runs.append(ExperimentRun(
+                run_id=run_id, block_id=1,
+                factor_values=dict(opt["optimal_settings"]),
+            ))
+    except Exception:
+        pass
+
+    n_remaining = max(0, batch_size - len(opt_runs))
+
+    # 2) Max-uncertainty candidates: sample many random points in coded space,
+    # score each by predicted variance proxy = (x' (X'X)^-1 x), and pick the
+    # ones with the largest values that are also distant from each other.
+    try:
+        X_existing = _coded_matrix(valid_runs, factor_names, cfg.factors,
+                                   model_type=model_type)
+        XtX_inv = _safe_pinv(X_existing.T @ X_existing)
+    except Exception:
+        XtX_inv = None
+
+    if n_remaining and XtX_inv is not None:
+        n_candidates = max(200, n_remaining * 50)
+        candidate_coded = rng.uniform(-1.0, 1.0, size=(n_candidates, k))
+        # Build candidate design rows in the same coded basis as X_existing.
+        candidate_X = _build_candidate_X(candidate_coded, model_type, k)
+        leverages = np.einsum("ij,jk,ik->i", candidate_X, XtX_inv, candidate_X)
+        order = np.argsort(-leverages)
+        chosen_idx: list[int] = []
+        chosen_coded: list[np.ndarray] = []
+        # Greedy: pick top-leverage points but enforce a minimum spacing
+        # so we don't waste the batch on a single high-uncertainty cluster.
+        for idx in order:
+            cand = candidate_coded[idx]
+            if all(np.linalg.norm(cand - other) > 0.4 for other in chosen_coded):
+                chosen_idx.append(int(idx))
+                chosen_coded.append(cand)
+                if len(chosen_idx) >= n_remaining:
+                    break
+        # If spacing was too aggressive, top up with remaining best leverages.
+        if len(chosen_idx) < n_remaining:
+            for idx in order:
+                if int(idx) in chosen_idx:
+                    continue
+                chosen_idx.append(int(idx))
+                if len(chosen_idx) >= n_remaining:
+                    break
+        for idx in chosen_idx:
+            run_id += 1
+            opt_runs.append(_decoded_run(
+                run_id=run_id,
+                coded=candidate_coded[idx],
+                factor_names=factor_names,
+                factors=cfg.factors,
+            ))
+
+    # If we still don't have a full batch (e.g. on tiny designs), pad with
+    # explore-style runs.
+    while len(opt_runs) < batch_size:
+        max_id = max((r.run_id for r in opt_runs), default=start_run_id)
+        opt_runs.extend(_explore_strategy(
+            valid_runs, cfg, matrix, batch_size - len(opt_runs), rng, max_id,
+        ))
+
+    return opt_runs[:batch_size]
+
+
+def _coded_matrix(runs, factor_names, factors, model_type):
+    """Build the same coded design matrix the RSM fitter uses (no intercept-stripping)."""
+    from .rsm import _build_design_matrix
+    X, _names = _build_design_matrix(runs, factor_names, factors, model_type=model_type)
+    return X
+
+
+def _build_candidate_X(candidate_coded, model_type, k):
+    """Construct the design-row matrix for candidate coded points so we can
+    apply the same X'X^-1 used to score leverage."""
+    n = candidate_coded.shape[0]
+    cols = [np.ones((n, 1))]
+    cols.append(candidate_coded)
+    if model_type == "quadratic":
+        # Interaction columns
+        for i in range(k):
+            for j in range(i + 1, k):
+                cols.append((candidate_coded[:, i] * candidate_coded[:, j]).reshape(-1, 1))
+        # Squared columns
+        for i in range(k):
+            cols.append((candidate_coded[:, i] ** 2).reshape(-1, 1))
+    return np.hstack(cols)
+
+
+def _safe_pinv(M):
+    return np.linalg.pinv(M)
+
+
+def _decoded_run(run_id, coded, factor_names, factors):
+    factor_map = {f.name: f for f in factors}
+    factor_values: dict[str, str] = {}
+    for i, fname in enumerate(factor_names):
+        f = factor_map[fname]
+        cv = float(coded[i])
+        if f.type in ("continuous", "ordinal"):
+            try:
+                low = float(f.levels[0])
+                high = float(f.levels[1])
+                center = (low + high) / 2.0
+                half_range = (high - low) / 2.0
+                factor_values[fname] = f"{center + cv * half_range:.6g}"
+                continue
+            except (ValueError, IndexError):
+                pass
+        # Categorical: snap to nearest level
+        sorted_levels = sorted(f.levels)
+        if len(sorted_levels) == 2:
+            factor_values[fname] = sorted_levels[1] if cv > 0 else sorted_levels[0]
+        else:
+            half_range = (len(sorted_levels) - 1) / 2.0
+            center = (len(sorted_levels) - 1) / 2.0
+            idx = int(round(center + cv * half_range))
+            idx = max(0, min(len(sorted_levels) - 1, idx))
+            factor_values[fname] = sorted_levels[idx]
+    return ExperimentRun(run_id=run_id, block_id=1, factor_values=factor_values)
 
 
 def _refine_strategy(

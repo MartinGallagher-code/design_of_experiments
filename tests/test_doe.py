@@ -3935,3 +3935,243 @@ class TestTrendHtml:
         assert "Intercept drift" in body
         # Ensure CSS reuse and link rendering (>0 anchors)
         assert 'class="data-table"' in body
+
+
+class TestConstraints:
+    """Tests for constraint expressions filtering generated runs."""
+
+    def test_filter_simple_inequality(self, tmp_path):
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["0", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["0", "1"], "type": "continuous"},
+                {"name": "z", "levels": ["0", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r"}],
+            operation="full_factorial",
+        )
+        cfg_dict["constraints"] = ["x + y + z <= 1.5"]
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        # Only rows where x+y+z <= 1.5 survive (4 of 8)
+        assert len(matrix.runs) == 4
+        for run in matrix.runs:
+            x, y, z = (float(run.factor_values[f]) for f in ("x", "y", "z"))
+            assert x + y + z <= 1.5
+
+    def test_filter_categorical_implication(self, tmp_path):
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "catalyst", "levels": ["A", "B"], "type": "categorical"},
+                {"name": "temp", "levels": ["100", "200"], "type": "continuous"},
+            ],
+            responses=[{"name": "r"}],
+            operation="full_factorial",
+        )
+        # If catalyst is 'A' temperature must be <= 150 (i.e. drop catalyst=A & temp=200)
+        cfg_dict["constraints"] = ["catalyst != 'A' or temp <= 150"]
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        assert len(matrix.runs) == 3
+        forbidden = [r for r in matrix.runs
+                     if r.factor_values["catalyst"] == "A"
+                     and float(r.factor_values["temp"]) > 150]
+        assert not forbidden
+
+    def test_renumbered_after_filter(self, tmp_path):
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["0", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["0", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r"}],
+            operation="full_factorial",
+        )
+        cfg_dict["constraints"] = ["x + y <= 0.5"]
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        ids = [r.run_id for r in matrix.runs]
+        assert ids == sorted(ids)
+        # Run IDs are dense starting at 1
+        assert ids == list(range(1, len(ids) + 1))
+
+    def test_all_filtered_raises(self, tmp_path):
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["0", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r"}],
+            operation="full_factorial",
+        )
+        cfg_dict["constraints"] = ["x > 100"]
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        with pytest.raises(ValueError, match="filtered out"):
+            generate_design(cfg, seed=1)
+
+    def test_disallowed_syntax_rejected(self, tmp_path):
+        from doe.constraints import parse_constraint, ConstraintError
+        with pytest.raises(ConstraintError):
+            parse_constraint("__import__('os').system('ls')")
+        with pytest.raises(ConstraintError):
+            parse_constraint("x.attr <= 1")  # attribute access banned
+
+    def test_unknown_factor_raises_at_evaluate(self, tmp_path):
+        from doe.constraints import parse_constraint, evaluate_constraint, ConstraintError
+        tree = parse_constraint("nonexistent <= 1")
+        with pytest.raises(ConstraintError, match="unknown factor"):
+            evaluate_constraint(tree, {"x": "1"}, "nonexistent <= 1")
+
+
+class TestArchive:
+    """Tests for doe.archive.archive_session."""
+
+    def test_archive_round_trip(self, tmp_path):
+        from doe.archive import archive_session
+        # Build a minimal session directory
+        session = tmp_path / "session-a"
+        session.mkdir()
+        (session / "design_matrix.json").write_text('{"runs": []}')
+        (session / "run_1.json").write_text('{"r": 1.0}')
+        (session / "run_2.json").write_text('{"r": 2.0}')
+        config_path = tmp_path / "config.json"
+        config_path.write_text('{"factors": []}')
+        out = tmp_path / "out.tar.gz"
+        manifest = archive_session(
+            session_dir=str(session),
+            output_path=str(out),
+            config_path=str(config_path),
+        )
+        assert out.exists()
+        # Manifest carries 4 file records (3 session files + 1 config)
+        assert len(manifest["files"]) == 4
+        # Verify the tarball contains manifest.json and the bundled files
+        import tarfile
+        with tarfile.open(str(out)) as tar:
+            names = set(tar.getnames())
+        assert "manifest.json" in names
+        assert "session/run_1.json" in names
+        assert "config/config.json" in names
+
+    def test_archive_includes_extras(self, tmp_path):
+        from doe.archive import archive_session
+        session = tmp_path / "session-b"
+        session.mkdir()
+        (session / "run_1.json").write_text('{"r": 1.0}')
+        report = tmp_path / "report.html"
+        report.write_text("<html></html>")
+        out = tmp_path / "out.tar.gz"
+        manifest = archive_session(
+            session_dir=str(session),
+            output_path=str(out),
+            extras=[str(report)],
+        )
+        names = {fr["arcname"] for fr in manifest["files"]}
+        assert "extras/report.html" in names
+
+    def test_missing_session_raises(self, tmp_path):
+        from doe.archive import archive_session
+        with pytest.raises(FileNotFoundError):
+            archive_session(
+                session_dir=str(tmp_path / "does-not-exist"),
+                output_path=str(tmp_path / "out.tar.gz"),
+            )
+
+
+class TestServeIndex:
+    """Tests for doe.serve.serve (index rendering only — actually starting
+    a server in-process is disruptive)."""
+
+    def test_index_lists_sessions_with_reports(self):
+        from doe.serve import _render_index
+        body = _render_index([
+            ("baseline-20260101", "report.html"),
+            ("compare-pair", "compare.html"),
+            ("raw-no-report", None),
+        ])
+        assert "baseline-20260101" in body
+        assert 'href="baseline-20260101/report.html"' in body
+        assert 'href="compare-pair/compare.html"' in body
+        assert "no report" in body
+        assert "raw-no-report" in body
+
+    def test_empty_index_handled(self):
+        from doe.serve import _render_index
+        body = _render_index([])
+        assert "No session subdirectories" in body
+
+
+class TestModelGuidedStrategy:
+    """Tests for the new 'model_guided' adaptive strategy."""
+
+    def _setup(self, tmp_path):
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "z", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r", "optimize": "maximize"}],
+            operation="central_composite",
+        )
+        cfg_dict["adaptive"] = {
+            "strategy": "model_guided", "batch_size": 4,
+            "stopping_max_phases": 5,
+        }
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        rd = Path(cfg.out_directory)
+        rd.mkdir(parents=True, exist_ok=True)
+        # Synthesize a quadratic surface so the RSM fit picks the right optimum.
+        for run in matrix.runs:
+            x, y, z = (float(run.factor_values[k]) for k in ("x", "y", "z"))
+            (rd / f"run_{run.run_id}.json").write_text(json.dumps({
+                "r": -(x - 0.3) ** 2 - (y + 0.2) ** 2 - 0.5 * z * z + 5,
+            }))
+        return cfg, matrix
+
+    def test_emits_requested_batch_size(self, tmp_path):
+        from doe.adaptive import plan_next_batch, AdaptiveConfig
+        cfg, matrix = self._setup(tmp_path)
+        adaptive_cfg = AdaptiveConfig(strategy="model_guided", batch_size=4,
+                                      stopping_max_phases=5)
+        new_matrix, state = plan_next_batch(
+            matrix, cfg, adaptive_cfg,
+            results_dir=cfg.out_directory, seed=0,
+        )
+        assert not state.should_stop
+        assert len(new_matrix.runs) == 4
+
+    def test_first_run_is_near_predicted_optimum(self, tmp_path):
+        from doe.adaptive import plan_next_batch, AdaptiveConfig
+        cfg, matrix = self._setup(tmp_path)
+        adaptive_cfg = AdaptiveConfig(strategy="model_guided", batch_size=4,
+                                      stopping_max_phases=5)
+        new_matrix, _state = plan_next_batch(
+            matrix, cfg, adaptive_cfg,
+            results_dir=cfg.out_directory, seed=0,
+        )
+        # The first run is the model-predicted optimum.
+        first = new_matrix.runs[0]
+        x = float(first.factor_values["x"])
+        y = float(first.factor_values["y"])
+        # True optimum is at (0.3, -0.2); allow generous tolerance
+        # because the central composite design has limited range.
+        assert abs(x - 0.3) < 0.3
+        assert abs(y + 0.2) < 0.3
+
+    def test_remaining_batch_within_design_region(self, tmp_path):
+        from doe.adaptive import plan_next_batch, AdaptiveConfig
+        cfg, matrix = self._setup(tmp_path)
+        adaptive_cfg = AdaptiveConfig(strategy="model_guided", batch_size=4,
+                                      stopping_max_phases=5)
+        new_matrix, _state = plan_next_batch(
+            matrix, cfg, adaptive_cfg,
+            results_dir=cfg.out_directory, seed=0,
+        )
+        for run in new_matrix.runs:
+            for f in ("x", "y", "z"):
+                v = float(run.factor_values[f])
+                # Allow a small margin for predicted-optimum points that
+                # might land slightly outside the [-1,1] coded box.
+                assert -2.0 <= v <= 2.0

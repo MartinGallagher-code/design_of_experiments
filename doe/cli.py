@@ -279,6 +279,33 @@ def main():
     trd.add_argument("--html", default=None, metavar="FILE",
                      help="Also write a self-contained HTML trend page")
 
+    # --- archive ---
+    arc = subparsers.add_parser(
+        "archive",
+        help="Bundle a session directory into a reproducible tar.gz with a manifest",
+    )
+    arc.add_argument("--session", required=True, metavar="DIR",
+                     help="Session directory (e.g. results/baseline-20260101)")
+    arc.add_argument("--output", required=True, metavar="FILE",
+                     help="Output archive path (e.g. baseline.tar.gz)")
+    arc.add_argument("--config", default=None, metavar="FILE",
+                     help="Optional config file to embed alongside the session")
+    arc.add_argument("--extra", action="append", default=[], metavar="FILE",
+                     help="Extra file(s) to embed (HTML report, CSV exports, etc.). "
+                          "Repeat the flag to add more than one.")
+
+    # --- serve ---
+    srv = subparsers.add_parser(
+        "serve",
+        help="Browse session results from a localhost web page",
+    )
+    srv.add_argument("--root", default="results", metavar="DIR",
+                     help="Directory containing session subdirectories (default: results)")
+    srv.add_argument("--host", default="127.0.0.1",
+                     help="Bind address (default: 127.0.0.1)")
+    srv.add_argument("--port", type=int, default=8000,
+                     help="Bind port (default: 8000)")
+
     # --- scaffold-config ---
     sfc = subparsers.add_parser(
         "scaffold-config",
@@ -468,6 +495,24 @@ def _dispatch(args):
         matrix = _load_or_generate(cfg)
         _handle_export_data(matrix, cfg, fmt=args.format, output_path=args.output,
                             partial=args.partial)
+
+    elif args.command == "serve":
+        from doe.serve import serve
+        serve(root=args.root, host=args.host, port=args.port)
+
+    elif args.command == "archive":
+        from doe.archive import archive_session
+        manifest = archive_session(
+            session_dir=args.session,
+            output_path=args.output,
+            config_path=args.config,
+            extras=args.extra,
+        )
+        print(f"Wrote archive -> {args.output}")
+        print(f"  files     : {len(manifest['files'])}")
+        print(f"  session   : {manifest['session_dir']}")
+        if manifest['config_path']:
+            print(f"  config    : {manifest['config_path']}")
 
     elif args.command == "trend":
         cfg = load_config(args.config, strict=False)

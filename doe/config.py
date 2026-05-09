@@ -56,6 +56,7 @@ def load_config(path: str, strict: bool = True) -> DOEConfig:
         min_resolution=int(settings.get("min_resolution", 0)),
         replicate_center=int(settings.get("replicate_center", 0)),
         whole_plot_replicates=max(1, int(settings.get("whole_plot_replicates", 1))),
+        constraints=list(raw.get("constraints", []) or []),
         metadata=metadata,
         runner=runner,
         adaptive=adaptive,
