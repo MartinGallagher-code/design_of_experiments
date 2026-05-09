@@ -53,6 +53,7 @@ def analyze(
     partial: bool = False,
     detect_knee: bool = False,
     filter_factors: list[str] | None = None,
+    fit_rsm: bool = True,
 ) -> AnalysisReport:
     results_dir = results_dir or cfg.out_directory or "results"
     processed_dir = cfg.processed_directory or results_dir
@@ -135,10 +136,15 @@ def analyze(
                 knee_point_results[resp.name] = knee_results
 
         # Model adequacy + stationary-point characterization. Quadratic where
-        # the design supports it, linear otherwise.
-        model_adequacy, stationary_point = _compute_model_adequacy_and_stationary(
-            valid_runs, responses, factor_names, cfg.factors,
-        )
+        # the design supports it, linear otherwise.  Skipped when the caller
+        # passed fit_rsm=False (e.g. on big designs where the quadratic refit
+        # dominates analyze() runtime).
+        if fit_rsm:
+            model_adequacy, stationary_point = _compute_model_adequacy_and_stationary(
+                valid_runs, responses, factor_names, cfg.factors,
+            )
+        else:
+            model_adequacy, stationary_point = None, None
 
         # Achieved-power retrospective from the actual residual MS.
         achieved_power_result = None
@@ -516,12 +522,19 @@ def _compute_anova(
     grand_mean = np.mean(y)
     ss_total = float(np.sum((y - grand_mean) ** 2))
 
-    # Detect replicates (runs with identical factor settings)
+    # Detect replicates (runs with identical factor settings).
+    # When the design has multiple blocks, a "pure-error replicate" must
+    # match on BOTH block_id and factor settings — otherwise block-induced
+    # variation contaminates the pure-error estimate.
     from collections import Counter
+    has_blocks_for_replicates = len({r.block_id for r in valid_runs}) > 1
     setting_counts = Counter()
     setting_responses: dict[tuple, list[float]] = {}
     for run in valid_runs:
-        key = tuple(run.factor_values[f] for f in factor_names)
+        if has_blocks_for_replicates:
+            key = (run.block_id,) + tuple(run.factor_values[f] for f in factor_names)
+        else:
+            key = tuple(run.factor_values[f] for f in factor_names)
         setting_counts[key] += 1
         setting_responses.setdefault(key, []).append(responses[run.run_id])
 
@@ -534,6 +547,25 @@ def _compute_anova(
     # Build X column by column, compute sequential SS
     anova_rows: list[AnovaRow] = []
 
+    # Block effect: when the design was split into more than one block,
+    # absorb that variance into its own ANOVA term so it doesn't leak
+    # into the residual MS used as the F-test denominator.
+    block_ids = sorted({r.block_id for r in valid_runs})
+    ss_block = 0.0
+    if len(block_ids) > 1:
+        block_groups: dict[int, list[float]] = {}
+        for run in valid_runs:
+            block_groups.setdefault(run.block_id, []).append(responses[run.run_id])
+        for vals in block_groups.values():
+            if vals:
+                block_mean = sum(vals) / len(vals)
+                ss_block += len(vals) * (block_mean - grand_mean) ** 2
+        df_block = len(block_ids) - 1
+        ms_block = ss_block / df_block if df_block > 0 else 0.0
+        anova_rows.append(AnovaRow(
+            source="Block", df=df_block, ss=ss_block, ms=ms_block,
+        ))
+
     # Identify factor levels for each factor
     factor_level_map: dict[str, list[str]] = {}
     for fname in factor_names:
@@ -542,8 +574,10 @@ def _compute_anova(
             levels.add(run.factor_values[fname])
         factor_level_map[fname] = sorted(levels)
 
-    # Compute SS for each main effect factor
-    ss_model = 0.0
+    # Compute SS for each main effect factor. Start ss_model at the block
+    # SS so the residual error is computed correctly when a block term
+    # is present.
+    ss_model = ss_block
     for fname in factor_names:
         levels = factor_level_map[fname]
         df_factor = len(levels) - 1

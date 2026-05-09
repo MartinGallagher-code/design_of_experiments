@@ -147,6 +147,12 @@ def main():
                      help="For fractional_factorial designs: minimum required "
                           "resolution (3 / 4 / 5+). Bumps run count when "
                           "necessary. Overrides settings.min_resolution.")
+    gen.add_argument("--replicate-center", type=int, default=None, metavar="N",
+                     dest="replicate_center",
+                     help="Append N center-point runs to each block for a "
+                          "pure-error / lack-of-fit estimate. Requires at "
+                          "least one factor with two numeric levels. "
+                          "Overrides settings.replicate_center.")
 
     # --- analyze ---
     ana = subparsers.add_parser("analyze", help="Analyze completed experiment results")
@@ -158,6 +164,10 @@ def main():
     ana.add_argument("--partial", action="store_true", help="Analyze only completed runs, skipping missing results")
     ana.add_argument("--knee", action="store_true", help="Detect saturation/knee points in response curves")
     ana.add_argument("--factor", nargs="+", metavar="NAME", help="Analyze only the specified factor(s)")
+    ana.add_argument("--no-rsm", action="store_true",
+                     help="Skip the quadratic RSM refit (and therefore the "
+                          "Model Adequacy and Stationary Point sections). "
+                          "Useful on large designs where analyze is slow.")
 
     # --- info ---
     info = subparsers.add_parser("info", help="Show design info without generating anything")
@@ -249,6 +259,17 @@ def main():
     cmp.add_argument("--html", default=None, metavar="FILE",
                      help="Also write a self-contained HTML comparison page")
 
+    # --- trend ---
+    trd = subparsers.add_parser(
+        "trend",
+        help="Multi-session trend analysis (regression across N >= 2 sessions)",
+    )
+    trd.add_argument("--config", required=True, metavar="FILE", help="Input JSON config file")
+    trd.add_argument("--sessions", required=True, nargs="+", metavar="DIR",
+                     help="Session directories in chronological order (oldest first).")
+    trd.add_argument("--csv", default=None, metavar="DIR",
+                     help="Also export the trend tables to this directory")
+
     # --- scaffold-config ---
     sfc = subparsers.add_parser(
         "scaffold-config",
@@ -318,6 +339,8 @@ def _dispatch(args):
         cfg = load_config(args.config)
         if args.resolution is not None:
             cfg.min_resolution = int(args.resolution)
+        if args.replicate_center is not None:
+            cfg.replicate_center = int(args.replicate_center)
         matrix = generate_design(cfg, seed=args.seed)
         if args.dry_run:
             _print_matrix(matrix, cfg)
@@ -341,7 +364,7 @@ def _dispatch(args):
         matrix = _load_or_generate(cfg, results_dir=results_dir)
         try:
             from doe.analysis import analyze
-            report = analyze(matrix, cfg, results_dir=results_dir, no_plots=args.no_plots, partial=args.partial, detect_knee=args.knee, filter_factors=args.factor)
+            report = analyze(matrix, cfg, results_dir=results_dir, no_plots=args.no_plots, partial=args.partial, detect_knee=args.knee, filter_factors=args.factor, fit_rsm=not args.no_rsm)
         except FileNotFoundError:
             _no_results_message(cfg, matrix)
             return
@@ -436,6 +459,17 @@ def _dispatch(args):
         matrix = _load_or_generate(cfg)
         _handle_export_data(matrix, cfg, fmt=args.format, output_path=args.output,
                             partial=args.partial)
+
+    elif args.command == "trend":
+        cfg = load_config(args.config, strict=False)
+        from doe.trend import trend_sessions
+        report = trend_sessions(cfg, args.sessions)
+        _print_trend_report(report)
+        if args.csv:
+            from doe.trend import export_trend_csv
+            paths = export_trend_csv(report, args.csv)
+            for p in paths:
+                print(f"CSV exported: {p}")
 
     elif args.command == "compare":
         cfg = load_config(args.config, strict=False)
@@ -1092,6 +1126,44 @@ def _print_matrix(matrix, cfg=None):
     for run in matrix.runs:
         row = [str(run.run_id), str(run.block_id)] + [run.factor_values[f] for f in matrix.factor_names]
         print("".join(v.ljust(col_w) for v in row))
+
+
+def _print_trend_report(report):
+    print(f"\n=== Trend ({len(report.session_dirs)} sessions) ===")
+    print(f"  Factors : {', '.join(report.factor_names)}")
+    print(f"  Sessions:")
+    for i, (d, n) in enumerate(zip(report.session_dirs, report.n_runs_per_session)):
+        print(f"    [{i}] {d}  ({n} run(s))")
+    print(f"  Matched in every session: {report.n_matched_runs} run(s)")
+    for note in report.notes:
+        print(f"  Note: {note}")
+
+    for tr in report.responses:
+        print(f"\n=== Response: {tr.response_name} ===")
+        if tr.n_matched_runs == 0:
+            for note in tr.notes:
+                print(f"  {note}")
+            continue
+
+        print(f"  {'Session':<10} {'Mean':>14}")
+        print(f"  {'-' * 10} {'-' * 14}")
+        for i, mean in enumerate(tr.per_session_means):
+            print(f"  [{i}]{'':<7} {mean:>14.4f}")
+
+        if tr.intercept_drift_per_session == tr.intercept_drift_per_session:  # not NaN
+            p_str = "—" if tr.intercept_drift_p is None else f"{tr.intercept_drift_p:.4f}"
+            sig = " *" if tr.intercept_drift_p is not None and tr.intercept_drift_p < 0.05 else ""
+            print(f"\n  Intercept drift / session: {tr.intercept_drift_per_session:+.4f}   p={p_str}{sig}")
+        if tr.slope_drift:
+            print(f"\n  Slope drift / session (change in main-effect size per session step):")
+            print(f"    {'Factor':<20} {'shift/sess':>12} {'p-value':>10}")
+            print(f"    {'-' * 20} {'-' * 12} {'-' * 10}")
+            for e in tr.slope_drift:
+                p_disp = "—" if e.p_value is None else f"{e.p_value:.4f}"
+                sig = " *" if e.p_value is not None and e.p_value < 0.05 else ""
+                print(f"    {e.factor_name:<20} {e.slope_drift_per_session:>+12.4f} {p_disp:>10}{sig}")
+        for note in tr.notes:
+            print(f"  Note: {note}")
 
 
 def _print_compare_report(report):

@@ -55,6 +55,13 @@ def generate_design(cfg: DOEConfig, seed: int | None = None) -> DesignMatrix:
 
     runs = _apply_blocks(base_runs, cfg.block_count)
 
+    # Insert center-point replicates per block (when requested and feasible)
+    n_center_replicates = max(0, int(getattr(cfg, "replicate_center", 0) or 0))
+    if n_center_replicates > 0:
+        runs = _add_center_point_replicates(
+            runs, cfg.factors, n_center_replicates, cfg.block_count,
+        )
+
     # LHS already incorporates randomness via seed; all others randomize here
     if cfg.operation != "latin_hypercube":
         runs = _randomize_run_order(runs, seed=seed)
@@ -415,6 +422,56 @@ def _box_behnken(cfg: DOEConfig) -> list[ExperimentRun]:
             factor_values[factor_names[j]] = f"{center + code * half_range:.6g}"
         runs.append(ExperimentRun(run_id=i + 1, block_id=1, factor_values=factor_values))
     return runs
+
+
+def _add_center_point_replicates(
+    runs: list[ExperimentRun],
+    factors: list[Factor],
+    n_per_block: int,
+    block_count: int,
+) -> list[ExperimentRun]:
+    """Append N center-point runs to each block.
+
+    A center point sits at the numeric midpoint of every factor with
+    exactly 2 numeric levels. Factors with non-numeric levels or more
+    than 2 levels keep their first level (deterministic but not the
+    classical "0" coded centre — not all factor types have a meaningful
+    centre). Bails out with a no-op when no factor has a numeric range,
+    since center points would be indistinguishable from the corners.
+    """
+    centre_values: dict[str, str] = {}
+    has_numeric_range = False
+    for f in factors:
+        if len(f.levels) == 2:
+            try:
+                low = float(f.levels[0])
+                high = float(f.levels[1])
+                mid = (low + high) / 2.0
+                # Format without trailing zeros / scientific notation noise.
+                centre_values[f.name] = f"{mid:g}"
+                has_numeric_range = True
+                continue
+            except (TypeError, ValueError):
+                pass
+        # Fallback: keep the first level for non-numeric / multi-level factors.
+        centre_values[f.name] = f.levels[0] if f.levels else ""
+
+    if not has_numeric_range:
+        # Every factor is categorical or single-level — center points
+        # would just duplicate corner runs.  Skip silently.
+        return runs
+
+    next_id = max((r.run_id for r in runs), default=0) + 1
+    out = list(runs)
+    for block_id in range(1, max(1, block_count) + 1):
+        for _ in range(n_per_block):
+            out.append(ExperimentRun(
+                run_id=next_id,
+                block_id=block_id,
+                factor_values=dict(centre_values),
+            ))
+            next_id += 1
+    return out
 
 
 def _apply_blocks(base_runs: list[ExperimentRun], block_count: int) -> list[ExperimentRun]:

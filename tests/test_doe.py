@@ -3369,3 +3369,304 @@ class TestReplicateAnova:
         assert anova.error_row is not None
         assert abs(anova.error_row.ss - anova.pure_error_row.ss) < 1e-9
         assert anova.error_row.df == anova.pure_error_row.df
+
+
+class TestBlockEffect:
+    """Tests for ANOVA Block row when block_count > 1."""
+
+    def _setup(self, tmp_path, block_count=3, block_offsets=None, noise=0.05):
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r"}],
+            operation="full_factorial",
+            block_count=block_count,
+        )
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        results_dir = Path(cfg.out_directory)
+        results_dir.mkdir(parents=True, exist_ok=True)
+        block_offsets = block_offsets or {1: 0.0, 2: 1.5, 3: -2.0, 4: 0.7}
+        import random
+        random.seed(0)
+        for run in matrix.runs:
+            x = float(run.factor_values["x"])
+            y = float(run.factor_values["y"])
+            val = 2 * x + y + block_offsets.get(run.block_id, 0.0) + random.gauss(0, noise)
+            (results_dir / f"run_{run.run_id}.json").write_text(json.dumps({"r": val}))
+        return cfg, matrix, str(results_dir)
+
+    def test_block_row_inserted(self, tmp_path):
+        from doe.analysis import analyze
+        cfg, matrix, rd = self._setup(tmp_path, block_count=3)
+        report = analyze(matrix, cfg, results_dir=rd, no_plots=True, fit_rsm=False)
+        anova = report.results_by_response["r"].anova_table
+        assert anova is not None
+        block_rows = [row for row in anova.rows if row.source == "Block"]
+        assert len(block_rows) == 1
+        assert block_rows[0].df == 2  # 3 blocks - 1
+        assert block_rows[0].ss > 0
+
+    def test_no_block_row_when_single_block(self, tmp_path):
+        from doe.analysis import analyze
+        cfg, matrix, rd = self._setup(tmp_path, block_count=1)
+        report = analyze(matrix, cfg, results_dir=rd, no_plots=True, fit_rsm=False)
+        anova = report.results_by_response["r"].anova_table
+        assert anova is not None
+        assert all(row.source != "Block" for row in anova.rows)
+
+    def test_pure_error_grouped_by_block_setting(self, tmp_path):
+        """With block-induced offsets, pure error must NOT include block variance."""
+        from doe.analysis import analyze
+        cfg, matrix, rd = self._setup(tmp_path, block_count=3,
+                                       block_offsets={1: 0.0, 2: 1.5, 3: -2.0},
+                                       noise=0.05)
+        report = analyze(matrix, cfg, results_dir=rd, no_plots=True, fit_rsm=False)
+        anova = report.results_by_response["r"].anova_table
+        # Each (block, factor settings) cell has exactly one observation in
+        # this design, so pure-error df = 0 -> falls back to pooled error.
+        assert anova.error_method == "pooled"
+        # MS_error should be close to the noise variance (0.05^2 ≈ 0.0025)
+        # rather than dominated by block offsets (~2^2 = 4).
+        assert anova.error_row.ms < 0.1
+
+
+class TestCenterPointReplicates:
+    """Tests for --replicate-center / settings.replicate_center."""
+
+    def test_center_points_appended(self, tmp_path):
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r"}],
+            operation="full_factorial",
+        )
+        cfg_dict["settings"]["replicate_center"] = 3
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        # 4 corner runs + 3 center points = 7
+        assert len(matrix.runs) == 7
+        center_runs = [r for r in matrix.runs
+                       if r.factor_values["x"] == "0" and r.factor_values["y"] == "0"]
+        assert len(center_runs) == 3
+
+    def test_center_points_per_block(self, tmp_path):
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r"}],
+            operation="full_factorial",
+            block_count=2,
+        )
+        cfg_dict["settings"]["replicate_center"] = 2
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        # 4 corners × 2 blocks + 2 centers × 2 blocks = 12
+        assert len(matrix.runs) == 12
+        from collections import Counter
+        per_block = Counter()
+        for r in matrix.runs:
+            if r.factor_values["x"] == "0" and r.factor_values["y"] == "0":
+                per_block[r.block_id] += 1
+        assert per_block == {1: 2, 2: 2}
+
+    def test_no_center_points_for_categorical_only(self, tmp_path):
+        """If no factor has a numeric range, replicate_center is a no-op."""
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "color", "levels": ["red", "blue"], "type": "categorical"},
+                {"name": "shape", "levels": ["square", "circle"], "type": "categorical"},
+            ],
+            responses=[{"name": "r"}],
+            operation="full_factorial",
+        )
+        cfg_dict["settings"]["replicate_center"] = 3
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        # Just the 4 corners; no centers added
+        assert len(matrix.runs) == 4
+
+    def test_replicates_enable_pure_error(self, tmp_path):
+        from doe.analysis import analyze
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r"}],
+            operation="full_factorial",
+        )
+        cfg_dict["settings"]["replicate_center"] = 4
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        results_dir = Path(cfg.out_directory)
+        results_dir.mkdir(parents=True, exist_ok=True)
+        import random
+        random.seed(0)
+        for run in matrix.runs:
+            x = float(run.factor_values["x"])
+            y = float(run.factor_values["y"])
+            val = 2 * x + y + random.gauss(0, 0.1)
+            (results_dir / f"run_{run.run_id}.json").write_text(json.dumps({"r": val}))
+        report = analyze(matrix, cfg, results_dir=str(results_dir),
+                         no_plots=True, fit_rsm=False)
+        anova = report.results_by_response["r"].anova_table
+        assert anova.error_method == "replicates"
+        assert anova.pure_error_row is not None
+        assert anova.pure_error_row.df == 3  # 4 center-point reps - 1
+
+
+class TestTrendSessions:
+    """Tests for doe.trend.trend_sessions."""
+
+    def _build_sessions(self, tmp_path, fns, factors=None, response_name="r"):
+        """Generate a 2x2 design and write `len(fns)` sessions whose
+        responses come from the given functions."""
+        from doe.config import load_config
+        cfg_dict = _make_config_dict(
+            factors=factors or [
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": response_name, "optimize": "maximize"}],
+            operation="full_factorial",
+        )
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        rd = Path(cfg.out_directory)
+        rd.mkdir(parents=True, exist_ok=True)
+        session_dirs: list[str] = []
+        for i, fn in enumerate(fns):
+            d = rd / f"session-{i}"
+            d.mkdir(parents=True, exist_ok=True)
+            (d / "design_matrix.json").write_text(json.dumps({
+                "factor_names": matrix.factor_names,
+                "operation": matrix.operation,
+                "metadata": matrix.metadata,
+                "runs": [
+                    {"run_id": r.run_id, "block_id": r.block_id,
+                     "factor_values": r.factor_values}
+                    for r in matrix.runs
+                ],
+            }))
+            for run in matrix.runs:
+                vals = [float(run.factor_values[f]) for f in matrix.factor_names]
+                (d / f"run_{run.run_id}.json").write_text(json.dumps({
+                    response_name: float(fn(*vals)),
+                }))
+            session_dirs.append(str(d))
+        return cfg, session_dirs
+
+    def test_intercept_drift_detected(self, tmp_path):
+        from doe.trend import trend_sessions
+        # Drift of +0.5 per session, no slope change
+        cfg, sessions = self._build_sessions(
+            tmp_path,
+            [
+                lambda x, y, k=k: 2 * x + y + 0.5 * k for k in range(4)
+            ],
+        )
+        report = trend_sessions(cfg, sessions)
+        tr = report.responses[0]
+        assert abs(tr.intercept_drift_per_session - 0.5) < 1e-6
+        # Slope drifts ~0
+        for entry in tr.slope_drift:
+            assert abs(entry.slope_drift_per_session) < 1e-6
+
+    def test_per_session_means_recorded(self, tmp_path):
+        from doe.trend import trend_sessions
+        cfg, sessions = self._build_sessions(
+            tmp_path,
+            [lambda x, y: 1.0, lambda x, y: 2.0, lambda x, y: 3.0],
+        )
+        report = trend_sessions(cfg, sessions)
+        means = report.responses[0].per_session_means
+        assert abs(means[0] - 1.0) < 1e-9
+        assert abs(means[1] - 2.0) < 1e-9
+        assert abs(means[2] - 3.0) < 1e-9
+
+    def test_requires_two_sessions(self, tmp_path):
+        from doe.trend import trend_sessions
+        cfg, sessions = self._build_sessions(tmp_path, [lambda x, y: 1.0])
+        with pytest.raises(ValueError, match="at least two"):
+            trend_sessions(cfg, sessions)
+
+    def test_csv_export(self, tmp_path):
+        from doe.trend import trend_sessions, export_trend_csv
+        cfg, sessions = self._build_sessions(
+            tmp_path,
+            [lambda x, y, k=k: x + y + 0.2 * k for k in range(3)],
+        )
+        report = trend_sessions(cfg, sessions)
+        out_dir = tmp_path / "csv"
+        files = export_trend_csv(report, str(out_dir))
+        names = {os.path.basename(p) for p in files}
+        assert "trend_summary.csv" in names
+        assert "trend_means_r.csv" in names
+        assert "trend_slopes_r.csv" in names
+
+
+class TestNoRsmFlag:
+    """Tests for the --no-rsm flag on doe analyze."""
+
+    def test_skips_model_adequacy_when_disabled(self, tmp_path):
+        from doe.analysis import analyze
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r"}],
+            operation="full_factorial",
+        )
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        rd = Path(cfg.out_directory)
+        rd.mkdir(parents=True, exist_ok=True)
+        for run in matrix.runs:
+            (rd / f"run_{run.run_id}.json").write_text(json.dumps({"r": 1.0}))
+        report = analyze(matrix, cfg, results_dir=str(rd),
+                         no_plots=True, fit_rsm=False)
+        ra = report.results_by_response["r"]
+        assert ra.model_adequacy is None
+        assert ra.stationary_point is None
+        # Other analyses unchanged
+        assert ra.effects is not None and len(ra.effects) > 0
+
+    def test_default_still_fits_rsm(self, tmp_path):
+        from doe.analysis import analyze
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "z", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r"}],
+            operation="central_composite",
+        )
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        rd = Path(cfg.out_directory)
+        rd.mkdir(parents=True, exist_ok=True)
+        for run in matrix.runs:
+            x = float(run.factor_values["x"])
+            y = float(run.factor_values["y"])
+            z = float(run.factor_values["z"])
+            (rd / f"run_{run.run_id}.json").write_text(json.dumps({
+                "r": -(x ** 2) - (y ** 2) - 0.5 * z ** 2 + 4
+            }))
+        report = analyze(matrix, cfg, results_dir=str(rd), no_plots=True)
+        ra = report.results_by_response["r"]
+        assert ra.model_adequacy is not None
+        assert ra.stationary_point is not None
