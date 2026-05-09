@@ -1,5 +1,6 @@
 # Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+import os
 import stat
 from datetime import datetime, timezone
 from pathlib import Path
@@ -16,6 +17,8 @@ def generate_script(
     format: str = "sh",
     session_prefix: str | None = None,
     parallel_workers: int = 1,
+    executor: str = "local",
+    slurm_options: dict | None = None,
 ) -> str:
     """Render a runner script that drives the user's test_script.
 
@@ -25,12 +28,24 @@ def generate_script(
     A *session_prefix* of "" produces a bare-timestamp subdirectory
     (no prefix); pass a string to label the session.
 
-    When *parallel_workers* > 1 the format is forced to a Python
-    ``concurrent.futures.ThreadPoolExecutor``-based runner which submits
-    runs in parallel. Use this when each test_script invocation is
-    independent and bounded I/O.
+    When *parallel_workers* > 1 (with the default ``local`` executor) the
+    format is forced to a Python ``concurrent.futures.ThreadPoolExecutor``-
+    based runner which submits runs in parallel.
+
+    When *executor* is ``"slurm"`` the output is an ``sbatch`` array
+    submission script. ``slurm_options`` may include keys
+    ``partition``, ``time``, ``cpus_per_task``, ``mem``,
+    ``max_concurrent``, ``job_name``, ``log_dir``, and
+    ``extra_directives`` (a list of raw ``#SBATCH`` arguments).
     """
-    if parallel_workers > 1:
+    if executor not in ("local", "slurm"):
+        raise ValueError(
+            f"Unknown executor '{executor}'. Choose 'local' or 'slurm'."
+        )
+
+    if executor == "slurm":
+        template_name = "runner_slurm.j2"
+    elif parallel_workers > 1:
         template_name = "runner_parallel_py.j2"
     else:
         template_map = {"sh": "runner_sh.j2", "py": "runner_py.j2"}
@@ -42,10 +57,35 @@ def generate_script(
     template = env.get_template(template_name)
     context = _build_template_context(matrix, cfg, session_prefix=session_prefix)
     context["parallel_workers"] = parallel_workers
+    if executor == "slurm":
+        opts = slurm_options or {}
+        plan_name = cfg.metadata.get("name") or "doe"
+        log_dir = opts.get("log_dir") or os.path.join(
+            os.path.dirname(output_path) or ".", "slurm-logs",
+        )
+        context.update({
+            "slurm_script_basename": os.path.basename(output_path),
+            "slurm_job_name": opts.get("job_name", _slurm_safe_job_name(plan_name)),
+            "slurm_partition": opts.get("partition", ""),
+            "slurm_time": opts.get("time", ""),
+            "slurm_cpus_per_task": opts.get("cpus_per_task", 0) or 0,
+            "slurm_mem": opts.get("mem", ""),
+            "slurm_max_concurrent": opts.get("max_concurrent", 0) or 0,
+            "slurm_log_dir": log_dir,
+            "slurm_extra_directives": list(opts.get("extra_directives", []) or []),
+        })
+
     rendered = template.render(**context)
 
     _write_executable(output_path, rendered)
     return rendered
+
+
+def _slurm_safe_job_name(name: str) -> str:
+    """Sanitise a string into a Slurm-friendly job name (alphanumeric + dash)."""
+    cleaned = "".join(ch if ch.isalnum() or ch in "-_" else "-"
+                      for ch in name).strip("-")
+    return cleaned[:32] or "doe"
 
 
 def generate_test_scaffold(cfg: DOEConfig, output_path: str, language: str = "py") -> str:

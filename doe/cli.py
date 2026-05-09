@@ -161,6 +161,20 @@ def main():
                           "test_script invocations concurrently. N=1 (default) "
                           "uses the standard sequential runner. Use this when "
                           "each test invocation is independent and bounded I/O.")
+    gen.add_argument("--executor", choices=["local", "slurm"], default="local",
+                     help="Runner backend (default: local). 'slurm' emits an "
+                          "sbatch --array submission script.")
+    gen.add_argument("--slurm-partition", default=None, metavar="NAME",
+                     help="Slurm partition (only with --executor slurm)")
+    gen.add_argument("--slurm-time", default=None, metavar="HH:MM:SS",
+                     help="Wall-time per array task (only with --executor slurm)")
+    gen.add_argument("--slurm-cpus-per-task", type=int, default=None, metavar="N",
+                     help="CPUs per array task (only with --executor slurm)")
+    gen.add_argument("--slurm-mem", default=None, metavar="SIZE",
+                     help="Memory per task, e.g. '4G' (only with --executor slurm)")
+    gen.add_argument("--slurm-max-concurrent", type=int, default=None, metavar="N",
+                     help="Cap concurrently running array tasks via 'array=1-N%%K' "
+                          "(only with --executor slurm)")
 
     # --- analyze ---
     ana = subparsers.add_parser("analyze", help="Analyze completed experiment results")
@@ -299,6 +313,41 @@ def main():
                      help="Extra file(s) to embed (HTML report, CSV exports, etc.). "
                           "Repeat the flag to add more than one.")
 
+    # --- suggest ---
+    sg = subparsers.add_parser(
+        "suggest",
+        help="Recommend a DOE design given factor count, run budget, and goal",
+    )
+    sg.add_argument("--factors", type=int, required=True, metavar="N",
+                    help="Number of factors")
+    sg.add_argument("--responses", type=int, default=1, metavar="M",
+                    help="Number of responses (default: 1)")
+    sg.add_argument("--budget", type=int, required=True, metavar="K",
+                    help="Maximum runs you can afford")
+    sg.add_argument("--goal", choices=["screening", "response_surface", "optimization"],
+                    default="screening",
+                    help="What you're trying to learn (default: screening)")
+    sg.add_argument("--categorical", type=int, default=0, metavar="N",
+                    help="Number of categorical factors (rest are treated as continuous)")
+
+    # --- sensitivity ---
+    sens = subparsers.add_parser(
+        "sensitivity",
+        help="Compute Sobol indices on the fitted RSM (variance-based sensitivity)",
+    )
+    sens.add_argument("--config", required=True, metavar="FILE", help="Input JSON config file")
+    sens.add_argument("--results-dir", default=None, help="Override out_directory from config")
+    sens.add_argument("--response", default=None,
+                      help="Compute indices for this response only (default: every response)")
+    sens.add_argument("--n-samples", type=int, default=512, metavar="N",
+                      help="Saltelli base sample count N. Total evaluations = N*(k+2). "
+                           "Default 512.")
+    sens.add_argument("--csv", default=None, metavar="FILE",
+                      help="Optional CSV output path")
+    sens.add_argument("--seed", type=int, default=42)
+    sens.add_argument("--partial", action="store_true",
+                      help="Analyse only completed runs, skipping missing results")
+
     # --- calibrate ---
     cal = subparsers.add_parser(
         "calibrate",
@@ -424,9 +473,20 @@ def _dispatch(args):
             _print_matrix(matrix, cfg)
         else:
             from doe.codegen import generate_script
-            generate_script(matrix, cfg, args.output, format=args.format,
-                            session_prefix=args.session,
-                            parallel_workers=max(1, args.parallel))
+            slurm_options = {
+                "partition": args.slurm_partition,
+                "time": args.slurm_time,
+                "cpus_per_task": args.slurm_cpus_per_task,
+                "mem": args.slurm_mem,
+                "max_concurrent": args.slurm_max_concurrent,
+            }
+            generate_script(
+                matrix, cfg, args.output, format=args.format,
+                session_prefix=args.session,
+                parallel_workers=max(1, args.parallel),
+                executor=args.executor,
+                slurm_options=slurm_options,
+            )
             out_dir = _results_dir_for(cfg)
             _save_matrix(matrix, out_dir)
             print(f"Generated {len(matrix.runs)} runs -> {args.output}")
@@ -538,6 +598,56 @@ def _dispatch(args):
         matrix = _load_or_generate(cfg)
         _handle_export_data(matrix, cfg, fmt=args.format, output_path=args.output,
                             partial=args.partial)
+
+    elif args.command == "suggest":
+        from doe.suggest import suggest
+        kinds = ["categorical"] * args.categorical + (
+            ["continuous"] * (args.factors - args.categorical)
+        )
+        recommendation = suggest(
+            n_factors=args.factors, n_responses=args.responses,
+            budget=args.budget, goal=args.goal, factor_kinds=kinds,
+        )
+        print("\n=== Suggestion ===")
+        print(f"  operation        : {recommendation.operation}")
+        print(f"  estimated runs   : {recommendation.estimated_runs}")
+        if recommendation.block_count > 1:
+            print(f"  block_count      : {recommendation.block_count}")
+        if recommendation.replicate_center:
+            print(f"  replicate_center : {recommendation.replicate_center}")
+        if recommendation.min_resolution:
+            print(f"  min_resolution   : {recommendation.min_resolution}")
+        if recommendation.adaptive_strategy:
+            print(f"  adaptive.strategy: {recommendation.adaptive_strategy}")
+        for line in recommendation.rationale:
+            print(f"  - {line}")
+        for note in recommendation.notes:
+            print(f"  Note: {note}")
+        print()
+        print("  Sketch this into your config:")
+        snippet = (
+            '    "settings": {\n'
+            f'      "operation": "{recommendation.operation}",\n'
+        )
+        if recommendation.block_count > 1:
+            snippet += f'      "block_count": {recommendation.block_count},\n'
+        if recommendation.replicate_center:
+            snippet += f'      "replicate_center": {recommendation.replicate_center},\n'
+        if recommendation.min_resolution:
+            snippet += f'      "min_resolution": {recommendation.min_resolution},\n'
+        snippet += '      ...\n    }'
+        if recommendation.adaptive_strategy:
+            snippet += (
+                ',\n    "adaptive": { "strategy": "'
+                + recommendation.adaptive_strategy + '", "batch_size": 4 }'
+            )
+        print(snippet)
+
+    elif args.command == "sensitivity":
+        cfg = load_config(args.config, strict=False)
+        results_dir = _resolve_results_dir(cfg, args.results_dir)
+        matrix = _load_or_generate(cfg, results_dir=results_dir)
+        _handle_sensitivity(matrix, cfg, results_dir, args)
 
     elif args.command == "calibrate":
         cfg = load_config(args.config, strict=False)
@@ -1172,6 +1282,110 @@ def _format_markdown_worksheet(columns, rows, matrix, cfg, multiple_blocks):
     lines.append("")
 
     return "\n".join(lines)
+
+
+def _handle_sensitivity(matrix, cfg, results_dir, args):
+    """Sobol sensitivity on the fitted RSM, per requested response."""
+    from doe.analysis import _load_all_results, _coerce_response_value
+    from doe.rsm import fit_rsm
+    from doe.sensitivity import sobol_indices, make_rsm_predictor
+    import csv
+
+    factor_names = matrix.factor_names
+    factor_map = {f.name: f for f in cfg.factors}
+
+    # Numeric factors with a 2-element numeric range
+    numeric_names: list[str] = []
+    bounds: list[tuple[float, float]] = []
+    for fname in factor_names:
+        f = factor_map[fname]
+        if f.type not in ("continuous", "ordinal"):
+            continue
+        try:
+            low = float(f.levels[0])
+            high = float(f.levels[1])
+        except (TypeError, ValueError, IndexError):
+            continue
+        if low == high:
+            continue
+        numeric_names.append(fname)
+        bounds.append((min(low, high), max(low, high)))
+    if not numeric_names:
+        print("No numeric factors with a usable range; nothing to analyse.")
+        return
+
+    target_responses = (
+        [r for r in cfg.responses if r.name == args.response]
+        if args.response else list(cfg.responses)
+    )
+    if not target_responses:
+        print(f"Response '{args.response}' not found in config.")
+        return
+
+    all_data = _load_all_results(matrix.runs, results_dir, partial=args.partial)
+    n = len(matrix.runs)
+    k = len(numeric_names)
+    n_quad_params = 1 + 2 * k + k * (k - 1) // 2
+    model_type = "quadratic" if n >= n_quad_params + 1 else "linear"
+
+    csv_rows: list[tuple] = []
+    for resp in target_responses:
+        responses: dict[int, float] = {}
+        for run in matrix.runs:
+            data = all_data.get(run.run_id, {})
+            value = _coerce_response_value(data, resp.name, run.run_id, results_dir)
+            if value is not None:
+                responses[run.run_id] = value
+        if len(responses) < n_quad_params + 1:
+            print(f"\n=== Sensitivity: {resp.name} ===")
+            print(f"  Skipped: not enough observations to fit a {model_type} surrogate.")
+            continue
+        valid_runs = [r for r in matrix.runs if r.run_id in responses]
+        try:
+            model = fit_rsm(valid_runs, responses, numeric_names,
+                             [factor_map[n_] for n_ in numeric_names],
+                             model_type=model_type)
+        except Exception as e:
+            print(f"\n=== Sensitivity: {resp.name} ===")
+            print(f"  Skipped: surrogate fit failed ({e}).")
+            continue
+
+        predictor = make_rsm_predictor(model.coefficients, numeric_names, bounds)
+        result = sobol_indices(
+            predictor=predictor,
+            factor_names=numeric_names,
+            bounds=bounds,
+            response_name=resp.name,
+            n_base_samples=max(8, args.n_samples),
+            seed=args.seed,
+        )
+
+        print(f"\n=== Sensitivity: {resp.name} ===")
+        for note in result.notes:
+            print(f"  Note: {note}")
+        if not result.indices:
+            continue
+        print(f"  Surrogate: {model_type}, evaluations: {result.n_evaluations}")
+        print(f"  {'Factor':<24} {'S_i (first order)':>18} "
+              f"{'S_T (total)':>14} {'interaction':>12}")
+        print(f"  {'-' * 24} {'-' * 18} {'-' * 14} {'-' * 12}")
+        for entry in result.indices:
+            print(f"  {entry.factor_name:<24} {entry.first_order:>18.4f} "
+                  f"{entry.total_order:>14.4f} {entry.interaction_share:>12.4f}")
+            csv_rows.append((
+                resp.name, entry.factor_name, entry.first_order,
+                entry.total_order, entry.interaction_share,
+            ))
+
+    if args.csv and csv_rows:
+        os.makedirs(os.path.dirname(args.csv) or ".", exist_ok=True)
+        with open(args.csv, "w", newline="") as fh:
+            writer = csv.writer(fh)
+            writer.writerow(["response", "factor", "first_order", "total_order",
+                              "interaction_share"])
+            for row in csv_rows:
+                writer.writerow(row)
+        print(f"\nCSV exported: {args.csv}")
 
 
 def _handle_power(matrix, cfg, args):
