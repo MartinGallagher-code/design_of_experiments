@@ -294,6 +294,26 @@ def main():
                      help="Extra file(s) to embed (HTML report, CSV exports, etc.). "
                           "Repeat the flag to add more than one.")
 
+    # --- simulate ---
+    sim = subparsers.add_parser(
+        "simulate",
+        help="Run a Python function over the design matrix instead of an external script",
+    )
+    sim.add_argument("--config", required=True, metavar="FILE", help="Input JSON config file")
+    sim.add_argument("--func", required=True, metavar="TARGET",
+                     help="Python target as 'module:function' or 'path/to/file.py:function'. "
+                          "The function takes a dict[str, str] of factor values and returns "
+                          "a dict[str, float] of response values.")
+    sim.add_argument("--results-dir", default=None, metavar="DIR",
+                     help="Override out_directory from config")
+    sim.add_argument("--session", nargs="?", const="", default=None, metavar="PREFIX",
+                     help="Write results into a session subdirectory (same semantics as "
+                          "'doe generate --session').")
+    sim.add_argument("--overwrite", action="store_true",
+                     help="Re-evaluate runs whose result file already exists")
+    sim.add_argument("--seed", type=int, default=42,
+                     help="Random seed for design generation (default: 42)")
+
     # --- serve ---
     srv = subparsers.add_parser(
         "serve",
@@ -495,6 +515,17 @@ def _dispatch(args):
         matrix = _load_or_generate(cfg)
         _handle_export_data(matrix, cfg, fmt=args.format, output_path=args.output,
                             partial=args.partial)
+
+    elif args.command == "simulate":
+        cfg = load_config(args.config, strict=False)
+        matrix = _load_or_generate(cfg, results_dir=args.results_dir)
+        from doe.simulate import simulate
+        simulate(
+            matrix, cfg, func=args.func,
+            output_dir=args.results_dir,
+            session_prefix=args.session,
+            overwrite=args.overwrite,
+        )
 
     elif args.command == "serve":
         from doe.serve import serve

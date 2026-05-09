@@ -17,6 +17,7 @@ import itertools
 from pathlib import Path
 from unittest.mock import patch
 
+import numpy as np
 import pytest
 
 # Ensure project root is importable
@@ -4175,3 +4176,254 @@ class TestModelGuidedStrategy:
                 # Allow a small margin for predicted-optimum points that
                 # might land slightly outside the [-1,1] coded box.
                 assert -2.0 <= v <= 2.0
+
+
+class TestSimulate:
+    """Tests for doe.simulate.simulate."""
+
+    def _make_setup(self, tmp_path, n_responses=1):
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": f"r{i}"} for i in range(n_responses)],
+            operation="full_factorial",
+        )
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        return cfg, matrix
+
+    def test_callable_func_writes_results(self, tmp_path):
+        from doe.simulate import simulate
+        cfg, matrix = self._make_setup(tmp_path)
+        def f(factors):
+            x, y = float(factors["x"]), float(factors["y"])
+            return {"r0": x + y + 0.5}
+        out = simulate(matrix, cfg, func=f)
+        results_dir = Path(out)
+        assert (results_dir / "run_1.json").exists()
+        for run in matrix.runs:
+            payload = json.loads((results_dir / f"run_{run.run_id}.json").read_text())
+            x, y = float(run.factor_values["x"]), float(run.factor_values["y"])
+            assert abs(payload["r0"] - (x + y + 0.5)) < 1e-9
+
+    def test_skips_existing(self, tmp_path):
+        from doe.simulate import simulate
+        cfg, matrix = self._make_setup(tmp_path)
+        results_dir = Path(cfg.out_directory)
+        results_dir.mkdir(parents=True, exist_ok=True)
+        # Pre-write run_1 so simulate skips it
+        (results_dir / "run_1.json").write_text(json.dumps({"r0": 99.0}))
+        def f(factors):
+            return {"r0": 1.0}
+        simulate(matrix, cfg, func=f)
+        # run_1 should retain the pre-existing payload
+        assert json.loads((results_dir / "run_1.json").read_text())["r0"] == 99.0
+
+    def test_overwrite_replaces_existing(self, tmp_path):
+        from doe.simulate import simulate
+        cfg, matrix = self._make_setup(tmp_path)
+        results_dir = Path(cfg.out_directory)
+        results_dir.mkdir(parents=True, exist_ok=True)
+        (results_dir / "run_1.json").write_text(json.dumps({"r0": 99.0}))
+        def f(factors):
+            return {"r0": 1.0}
+        simulate(matrix, cfg, func=f, overwrite=True)
+        assert json.loads((results_dir / "run_1.json").read_text())["r0"] == 1.0
+
+    def test_missing_response_raises(self, tmp_path):
+        from doe.simulate import simulate
+        cfg, matrix = self._make_setup(tmp_path, n_responses=2)
+        def f(factors):
+            return {"r0": 1.0}  # forgot r1
+        with pytest.raises(ValueError, match="did not return"):
+            simulate(matrix, cfg, func=f)
+
+    def test_target_string_resolves_file_path(self, tmp_path):
+        from doe.simulate import simulate
+        cfg, matrix = self._make_setup(tmp_path)
+        sim_path = tmp_path / "sim.py"
+        sim_path.write_text(
+            "def sim(factors):\n"
+            "    return {'r0': float(factors['x']) + float(factors['y'])}\n"
+        )
+        out = simulate(matrix, cfg, func=f"{sim_path}:sim")
+        results = list(Path(out).glob("run_*.json"))
+        assert len(results) == 4
+
+    def test_session_subdirectory(self, tmp_path):
+        from doe.simulate import simulate
+        cfg, matrix = self._make_setup(tmp_path)
+        def f(factors):
+            return {"r0": 1.0}
+        out = simulate(matrix, cfg, func=f, session_prefix="run-a")
+        out_path = Path(out)
+        assert out_path.name.startswith("run-a-")
+        assert (out_path / "run_1.json").exists()
+        assert (Path(cfg.out_directory) / "latest").is_symlink()
+
+    def test_invalid_target_format(self, tmp_path):
+        from doe.simulate import simulate
+        cfg, matrix = self._make_setup(tmp_path)
+        with pytest.raises(ValueError, match="module:function"):
+            simulate(matrix, cfg, func="just_a_module")
+
+
+class TestIntegerFactors:
+    """Tests for Factor.dtype='int' rounding in decode paths."""
+
+    def test_format_factor_value_rounds_int(self):
+        from doe.models import Factor
+        from doe.rsm import _format_factor_value
+        f = Factor(name="threads", levels=["1", "64"],
+                   type="continuous", dtype="int")
+        assert _format_factor_value(f, 3.7) == "4"
+        assert _format_factor_value(f, 17.4) == "17"
+        assert _format_factor_value(f, 100.0) == "64"  # clamps to high
+        assert _format_factor_value(f, -5.0) == "1"   # clamps to low
+
+    def test_format_factor_value_keeps_float(self):
+        from doe.models import Factor
+        from doe.rsm import _format_factor_value
+        f = Factor(name="temp", levels=["100", "200"], type="continuous")
+        # Default dtype="" → continues to use %.6g formatting
+        assert _format_factor_value(f, 123.45678) == "123.457"
+
+    def test_optimize_surface_returns_integers_for_int_factor(self, tmp_path):
+        """Fit a quadratic and ask for the optimum; the int-typed factor
+        must come out as a string of an integer."""
+        from doe.models import Factor, ExperimentRun
+        from doe.rsm import fit_rsm, optimize_surface
+        # 2x2 with center: int factor 'threads' (1..64) and float 'temp'
+        factors = [
+            Factor(name="threads", levels=["1", "64"],
+                   type="continuous", dtype="int"),
+            Factor(name="temp", levels=["100", "200"], type="continuous"),
+        ]
+        runs = []
+        rid = 1
+        for t in (1, 32, 64):
+            for tmp in (100, 150, 200):
+                runs.append(ExperimentRun(
+                    run_id=rid, block_id=1,
+                    factor_values={"threads": str(t), "temp": str(tmp)},
+                ))
+                rid += 1
+        responses = {}
+        for r in runs:
+            tv = float(r.factor_values["threads"])
+            tmp = float(r.factor_values["temp"])
+            # Surface peaked near threads=20, temp=150
+            responses[r.run_id] = -(tv - 20) ** 2 / 100 - (tmp - 150) ** 2 / 1000 + 5
+        model = fit_rsm(runs, responses, ["threads", "temp"], factors,
+                        model_type="quadratic")
+        opt = optimize_surface(model, ["threads", "temp"], factors,
+                               direction="maximize")
+        threads_val = opt["optimal_settings"]["threads"]
+        # Must be an integer string with no decimal point
+        assert "." not in threads_val
+        assert int(threads_val) == int(threads_val)  # parseable as int
+
+
+class TestBayesianStrategy:
+    """Tests for the GP-based 'bayesian' adaptive strategy."""
+
+    def _setup(self, tmp_path):
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-2", "2"], "type": "continuous"},
+                {"name": "y", "levels": ["-2", "2"], "type": "continuous"},
+            ],
+            responses=[{"name": "r", "optimize": "maximize"}],
+            operation="central_composite",
+        )
+        cfg_dict["adaptive"] = {
+            "strategy": "bayesian", "batch_size": 4,
+            "stopping_max_phases": 5,
+        }
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        rd = Path(cfg.out_directory)
+        rd.mkdir(parents=True, exist_ok=True)
+        # Quadratic surface peaked at (0.5, -0.3)
+        for run in matrix.runs:
+            x = float(run.factor_values["x"])
+            y = float(run.factor_values["y"])
+            (rd / f"run_{run.run_id}.json").write_text(json.dumps({
+                "r": -(x - 0.5) ** 2 - (y + 0.3) ** 2 + 5,
+            }))
+        return cfg, matrix
+
+    def test_gp_fit_and_predict_round_trip(self):
+        from doe.bo import fit_gp, predict
+        rng = np.random.default_rng(0)
+        X = rng.uniform(-1, 1, size=(20, 2))
+        y = -X[:, 0] ** 2 - X[:, 1] ** 2 + 4
+        gp = fit_gp(X, y, seed=0)
+        # Predict at the training points: posterior mean ≈ y
+        mean, var = predict(gp, X)
+        assert np.max(np.abs(mean - y)) < 0.5
+        assert np.all(var >= 0)
+
+    def test_expected_improvement_nonnegative(self):
+        from doe.bo import fit_gp, expected_improvement
+        rng = np.random.default_rng(0)
+        X = rng.uniform(-1, 1, size=(15, 2))
+        y = X[:, 0] + X[:, 1]
+        gp = fit_gp(X, y, seed=0)
+        candidates = rng.uniform(-1, 1, size=(50, 2))
+        ei = expected_improvement(gp, candidates, best_y=float(np.max(y)),
+                                  direction="maximize")
+        assert ei.shape == (50,)
+        assert np.all(ei >= 0)
+
+    def test_bayesian_strategy_emits_batch(self, tmp_path):
+        from doe.adaptive import plan_next_batch, AdaptiveConfig
+        cfg, matrix = self._setup(tmp_path)
+        ac = AdaptiveConfig(strategy="bayesian", batch_size=4,
+                            stopping_max_phases=5)
+        new_matrix, state = plan_next_batch(
+            matrix, cfg, ac,
+            results_dir=cfg.out_directory, seed=0,
+        )
+        assert not state.should_stop
+        assert len(new_matrix.runs) == 4
+
+    def test_bayesian_clusters_near_optimum(self, tmp_path):
+        """With enough training data on a smooth quadratic, EI should
+        place at least one batch member within ±0.7 of the true
+        optimum (0.5, -0.3) in each axis."""
+        from doe.adaptive import plan_next_batch, AdaptiveConfig
+        cfg, matrix = self._setup(tmp_path)
+        ac = AdaptiveConfig(strategy="bayesian", batch_size=4,
+                            stopping_max_phases=5)
+        new_matrix, _state = plan_next_batch(
+            matrix, cfg, ac,
+            results_dir=cfg.out_directory, seed=0,
+        )
+        close_to_opt = [
+            r for r in new_matrix.runs
+            if abs(float(r.factor_values["x"]) - 0.5) < 0.7
+            and abs(float(r.factor_values["y"]) - (-0.3)) < 0.7
+        ]
+        assert len(close_to_opt) >= 1, (
+            f"Expected at least one BO pick near (0.5, -0.3), got "
+            f"{[(r.factor_values['x'], r.factor_values['y']) for r in new_matrix.runs]}"
+        )
+
+    def test_propose_batch_respects_size(self):
+        from doe.bo import fit_gp, propose_batch
+        rng = np.random.default_rng(0)
+        X = rng.uniform(-1, 1, size=(10, 2))
+        y = -X[:, 0] ** 2 - X[:, 1] ** 2
+        gp = fit_gp(X, y, seed=0)
+        bounds = np.tile([-1.0, 1.0], (2, 1))
+        batch = propose_batch(gp, bounds, batch_size=5, direction="maximize",
+                              seed=0)
+        assert batch.shape == (5, 2)
+        # All chosen points lie inside the bounds
+        assert np.all(batch >= -1.0 - 1e-9)
+        assert np.all(batch <= 1.0 + 1e-9)

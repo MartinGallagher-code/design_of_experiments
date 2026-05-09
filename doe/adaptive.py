@@ -132,6 +132,11 @@ def plan_next_batch(
             valid_runs, responses, resp, cfg, matrix,
             adaptive_cfg.batch_size, rng, max_run_id,
         )
+    elif adaptive_cfg.strategy == "bayesian":
+        new_runs = _bayesian_strategy(
+            valid_runs, responses, resp, cfg, matrix,
+            adaptive_cfg.batch_size, max_run_id, seed=seed,
+        )
     else:  # balanced
         half = adaptive_cfg.batch_size // 2
         refine_n = max(1, half)
@@ -186,6 +191,103 @@ def _check_stopping(
             )
 
     return False, ""
+
+
+def _bayesian_strategy(
+    valid_runs, responses, resp, cfg, matrix, batch_size, start_run_id,
+    seed: int | None = None,
+) -> list[ExperimentRun]:
+    """Use a GP surrogate + Expected Improvement to pick the next batch.
+
+    Encodes existing runs to coded ``[-1, 1]`` space (numeric factors)
+    and skips factors without a numeric range — those don't fit the GP
+    cleanly and would need a separate kernel; the user can keep them
+    fixed or set them via ``fixed_factors``.
+
+    Falls back to ``model_guided`` if the GP fit fails outright.
+    """
+    from .bo import fit_gp, propose_batch
+
+    factor_names = matrix.factor_names
+    factor_map = {f.name: f for f in cfg.factors}
+
+    # Identify numeric factors with a usable range
+    numeric_names: list[str] = []
+    bounds_natural: list[tuple[float, float]] = []
+    for fname in factor_names:
+        f = factor_map[fname]
+        if f.type not in ("continuous", "ordinal"):
+            continue
+        try:
+            low = float(f.levels[0])
+            high = float(f.levels[1])
+        except (TypeError, ValueError, IndexError):
+            continue
+        if low == high:
+            continue
+        numeric_names.append(fname)
+        bounds_natural.append((min(low, high), max(low, high)))
+
+    if not numeric_names or len(valid_runs) < 2:
+        # Cannot fit a GP — fall back to the leverage-based picker.
+        return _model_guided_strategy(
+            valid_runs, responses, resp, cfg, matrix,
+            batch_size, np.random.default_rng(seed), start_run_id,
+        )
+
+    # Encode training X into coded space and y in original units.
+    X_train = np.zeros((len(valid_runs), len(numeric_names)))
+    y_train = np.zeros(len(valid_runs))
+    for i, run in enumerate(valid_runs):
+        for j, fname in enumerate(numeric_names):
+            low, high = bounds_natural[j]
+            try:
+                v = float(run.factor_values[fname])
+            except (TypeError, ValueError):
+                v = (low + high) / 2.0
+            X_train[i, j] = 2.0 * (v - low) / (high - low) - 1.0
+        y_train[i] = float(responses[run.run_id])
+
+    try:
+        gp = fit_gp(X_train, y_train, seed=seed)
+    except Exception:
+        return _model_guided_strategy(
+            valid_runs, responses, resp, cfg, matrix,
+            batch_size, np.random.default_rng(seed), start_run_id,
+        )
+
+    bounds = np.tile([-1.0, 1.0], (len(numeric_names), 1))
+    try:
+        proposed = propose_batch(
+            gp, bounds, batch_size,
+            direction=resp.optimize, seed=seed,
+        )
+    except Exception:
+        return _model_guided_strategy(
+            valid_runs, responses, resp, cfg, matrix,
+            batch_size, np.random.default_rng(seed), start_run_id,
+        )
+
+    from .rsm import _format_factor_value
+    runs: list[ExperimentRun] = []
+    run_id = start_run_id
+    for coded_row in proposed:
+        run_id += 1
+        factor_values: dict[str, str] = {}
+        for j, fname in enumerate(numeric_names):
+            low, high = bounds_natural[j]
+            decoded = low + (coded_row[j] + 1.0) / 2.0 * (high - low)
+            factor_values[fname] = _format_factor_value(factor_map[fname], decoded)
+        # Fill in non-numeric / fixed factors at their first level
+        for fname in factor_names:
+            if fname in factor_values:
+                continue
+            f = factor_map[fname]
+            factor_values[fname] = f.levels[0] if f.levels else ""
+        runs.append(ExperimentRun(
+            run_id=run_id, block_id=1, factor_values=factor_values,
+        ))
+    return runs
 
 
 def _model_guided_strategy(
@@ -337,7 +439,10 @@ def _decoded_run(run_id, coded, factor_names, factors):
                 high = float(f.levels[1])
                 center = (low + high) / 2.0
                 half_range = (high - low) / 2.0
-                factor_values[fname] = f"{center + cv * half_range:.6g}"
+                from .rsm import _format_factor_value
+                factor_values[fname] = _format_factor_value(
+                    f, center + cv * half_range,
+                )
                 continue
             except (ValueError, IndexError):
                 pass
@@ -383,7 +488,8 @@ def _refine_strategy(
                     new_low = max(low, best_val - half_range)
                     new_high = min(high, best_val + half_range)
                     new_val = rng.uniform(new_low, new_high)
-                    factor_values[fname] = f"{new_val:.6g}"
+                    from .rsm import _format_factor_value
+                    factor_values[fname] = _format_factor_value(factor, new_val)
                     continue
                 except ValueError:
                     pass
@@ -449,7 +555,8 @@ def _explore_strategy(
                 low = float(factor.levels[0])
                 high = float(factor.levels[1])
                 val = low + best_candidate[j] * (high - low)
-                factor_values[fname] = f"{val:.6g}"
+                from .rsm import _format_factor_value
+                factor_values[fname] = _format_factor_value(factor, val)
             except ValueError:
                 idx = int(best_candidate[j] * len(factor.levels))
                 idx = min(idx, len(factor.levels) - 1)
