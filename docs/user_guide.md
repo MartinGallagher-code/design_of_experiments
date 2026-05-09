@@ -246,6 +246,7 @@ Archives include a `manifest.json` with SHA-256 sums for every entry.
 
 ## Reference
 
+- [`cookbook.md`](cookbook.md) — short recipes for the most common questions ("I have replicates and want lack-of-fit", etc.).
 - [`commands.md`](commands.md) — CLI command reference.
 - [`strategies.md`](strategies.md) — when to pick which adaptive strategy.
 - [`config.md`](config.md) — every config key with defaults.

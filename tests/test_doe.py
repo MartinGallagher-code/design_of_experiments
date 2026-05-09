@@ -5388,3 +5388,141 @@ class TestBranchedAdaptiveState:
         # Confirm the file is at the BASE level, not in a session subdir
         assert (Path(out_directory) / "adaptive_state.json").exists()
         assert not (Path(out_directory) / "v1" / "adaptive_state.json").exists()
+
+
+class TestFilterRuns:
+    """Tests for `doe analyze --filter-runs`."""
+
+    def _setup(self, tmp_path):
+        from doe.config import load_config
+        from doe.design import generate_design
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r"}],
+            operation="full_factorial",
+        )
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        rd = Path(cfg.out_directory)
+        rd.mkdir(parents=True, exist_ok=True)
+        # 3 corners + 1 outlier at run 1
+        for i, run in enumerate(matrix.runs):
+            x = float(run.factor_values["x"])
+            y = float(run.factor_values["y"])
+            val = x + y
+            if i == 0:
+                val += 100.0  # outlier
+            (rd / f"run_{run.run_id}.json").write_text(json.dumps({"r": val}))
+        return cfg, matrix
+
+    def test_excluding_outlier_changes_main_effect(self, tmp_path):
+        from doe.analysis import analyze
+        cfg, matrix = self._setup(tmp_path)
+        report_with = analyze(matrix, cfg, results_dir=cfg.out_directory,
+                               no_plots=True, fit_rsm=False)
+        report_without = analyze(matrix, cfg, results_dir=cfg.out_directory,
+                                  no_plots=True, fit_rsm=False,
+                                  exclude_run_ids=[matrix.runs[0].run_id])
+        # The outlier inflates one corner — its presence drives the main
+        # effects toward zero on this 4-run design. Removing it should
+        # change at least one main-effect value.
+        with_effect = next(e.main_effect for e in report_with.results_by_response["r"].effects)
+        without_effect = next(e.main_effect for e in report_without.results_by_response["r"].effects)
+        assert abs(with_effect - without_effect) > 1.0
+
+    def test_excluded_runs_metadata(self, tmp_path):
+        from doe.analysis import analyze
+        cfg, matrix = self._setup(tmp_path)
+        rid = matrix.runs[0].run_id
+        report = analyze(matrix, cfg, results_dir=cfg.out_directory,
+                         no_plots=True, fit_rsm=False, exclude_run_ids=[rid])
+        # Effects table should reflect the smaller filtered design;
+        # the original matrix object isn't mutated.
+        assert report.results_by_response["r"].summary_stats
+        assert len(matrix.runs) == 4  # caller's matrix unchanged
+
+    def test_unknown_id_raises(self, tmp_path):
+        from doe.analysis import analyze
+        cfg, matrix = self._setup(tmp_path)
+        with pytest.raises(ValueError, match="Unknown run id"):
+            analyze(matrix, cfg, results_dir=cfg.out_directory,
+                    no_plots=True, fit_rsm=False, exclude_run_ids=[999])
+
+    def test_excluding_all_raises(self, tmp_path):
+        from doe.analysis import analyze
+        cfg, matrix = self._setup(tmp_path)
+        all_ids = [r.run_id for r in matrix.runs]
+        with pytest.raises(ValueError, match="every run"):
+            analyze(matrix, cfg, results_dir=cfg.out_directory,
+                    no_plots=True, fit_rsm=False, exclude_run_ids=all_ids)
+
+
+class TestInitTemplateRationale:
+    """Tests for the inferred-goal rationale printed by `doe init --template`."""
+
+    def test_rationale_inferred_for_box_behnken_template(self, tmp_path, capsys):
+        from doe.cli import _print_template_rationale
+        # Minimal Box-Behnken-shaped config to mimic the reactor_optimization template
+        out_dir = tmp_path / "demo"
+        out_dir.mkdir()
+        cfg_path = out_dir / "config.json"
+        cfg_path.write_text(json.dumps({
+            "metadata": {"name": "demo"},
+            "factors": [
+                {"name": f, "levels": ["-1", "1"], "type": "continuous"}
+                for f in ("a", "b", "c")
+            ],
+            "responses": [{"name": "y", "optimize": "maximize"}],
+            "settings": {
+                "operation": "box_behnken",
+                "out_directory": "results",
+                "test_script": "",
+            },
+        }))
+        info = {
+            "name": "Demo", "operation": "box_behnken",
+            "n_factors": 3, "n_responses": 1,
+        }
+        _print_template_rationale(str(out_dir), info)
+        out = capsys.readouterr().out
+        assert "Inferred goal: response_surface" in out
+        assert "box_behnken" in out
+
+    def test_rationale_handles_missing_config(self, tmp_path, capsys):
+        """Should not raise even if the config can't be loaded — bails silently."""
+        from doe.cli import _print_template_rationale
+        info = {"name": "x", "operation": "?", "n_factors": 0, "n_responses": 0}
+        _print_template_rationale(str(tmp_path / "does-not-exist"), info)
+        # No stdout means the helper bailed cleanly (no rationale to show)
+        out = capsys.readouterr().out
+        assert "Inferred goal" not in out
+
+    def test_rationale_screening_path(self, tmp_path, capsys):
+        from doe.cli import _print_template_rationale
+        out_dir = tmp_path / "screen"
+        out_dir.mkdir()
+        cfg_path = out_dir / "config.json"
+        cfg_path.write_text(json.dumps({
+            "metadata": {"name": "demo"},
+            "factors": [
+                {"name": f"f{i}", "levels": ["-1", "1"], "type": "continuous"}
+                for i in range(7)
+            ],
+            "responses": [{"name": "y", "optimize": "maximize"}],
+            "settings": {
+                "operation": "plackett_burman",
+                "out_directory": "results",
+                "test_script": "",
+            },
+        }))
+        info = {
+            "name": "Screen", "operation": "plackett_burman",
+            "n_factors": 7, "n_responses": 1,
+        }
+        _print_template_rationale(str(out_dir), info)
+        out = capsys.readouterr().out
+        assert "Inferred goal: screening" in out

@@ -54,6 +54,7 @@ def analyze(
     partial: bool = False,
     detect_knee: bool = False,
     filter_factors: list[str] | None = None,
+    exclude_run_ids: list[int] | None = None,
     fit_rsm: bool = True,
     cv_folds: int | None = None,
 ) -> AnalysisReport:
@@ -61,6 +62,31 @@ def analyze(
     processed_dir = cfg.processed_directory or results_dir
 
     all_data = _load_all_results(matrix.runs, results_dir, partial=partial)
+
+    # Apply run-id exclusion filter (used to drop outliers without editing
+    # the on-disk result files). Exclusions apply to every response and
+    # every analysis path that iterates matrix.runs below.
+    excluded = set(exclude_run_ids or [])
+    if excluded:
+        unknown = excluded - {r.run_id for r in matrix.runs}
+        if unknown:
+            raise ValueError(
+                f"Unknown run id(s) in exclude_run_ids: {sorted(unknown)}. "
+                f"Available run ids: {sorted(r.run_id for r in matrix.runs)}"
+            )
+        # Build a filtered matrix; keep the original metadata for context.
+        from .models import DesignMatrix as _DesignMatrix
+        kept = [r for r in matrix.runs if r.run_id not in excluded]
+        if not kept:
+            raise ValueError(
+                "exclude_run_ids removed every run; nothing left to analyse."
+            )
+        matrix = _DesignMatrix(
+            runs=kept,
+            factor_names=matrix.factor_names,
+            operation=matrix.operation,
+            metadata={**matrix.metadata, "excluded_run_ids": sorted(excluded)},
+        )
 
     # Apply factor filter
     factor_names = matrix.factor_names

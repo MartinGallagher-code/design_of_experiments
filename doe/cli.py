@@ -186,6 +186,9 @@ def main():
     ana.add_argument("--partial", action="store_true", help="Analyze only completed runs, skipping missing results")
     ana.add_argument("--knee", action="store_true", help="Detect saturation/knee points in response curves")
     ana.add_argument("--factor", nargs="+", metavar="NAME", help="Analyze only the specified factor(s)")
+    ana.add_argument("--filter-runs", nargs="+", type=int, default=None, metavar="ID",
+                     help="Exclude these run IDs from the analysis (e.g. flagged outliers). "
+                          "The on-disk result files are left unchanged.")
     ana.add_argument("--no-rsm", action="store_true",
                      help="Skip the quadratic RSM refit (and therefore the "
                           "Model Adequacy and Stationary Point sections). "
@@ -525,7 +528,9 @@ def _dispatch(args):
         matrix = _load_or_generate(cfg, results_dir=results_dir)
         try:
             from doe.analysis import analyze
-            report = analyze(matrix, cfg, results_dir=results_dir, no_plots=args.no_plots, partial=args.partial, detect_knee=args.knee, filter_factors=args.factor, fit_rsm=not args.no_rsm, cv_folds=args.cv_folds)
+            report = analyze(matrix, cfg, results_dir=results_dir, no_plots=args.no_plots, partial=args.partial, detect_knee=args.knee, filter_factors=args.factor, exclude_run_ids=args.filter_runs, fit_rsm=not args.no_rsm, cv_folds=args.cv_folds)
+            if args.filter_runs:
+                print(f"\nNote: excluded run IDs from analysis: {sorted(args.filter_runs)}")
         except FileNotFoundError:
             _no_results_message(cfg, matrix)
             return
@@ -1121,6 +1126,13 @@ def _handle_init(args):
     print(f"  Name: {info['name']}")
     print(f"  Design: {info['operation'].replace('_', ' ')}")
     print(f"  Factors: {info['n_factors']}, Responses: {info['n_responses']}")
+
+    # Inferred rationale: re-run the suggester against the template's
+    # shape so the user sees *why* this operation fits. Stays a soft
+    # commentary — we don't ask the user for a budget; we infer it from
+    # the template's actual run count.
+    _print_template_rationale(out_dir, info)
+
     print()
     print(f"Next steps:")
     print(f"  cd {out_dir}")
@@ -1128,6 +1140,83 @@ def _handle_init(args):
     print(f"  doe generate --config config.json --output results/run.sh")
     print(f"  bash results/run.sh")
     print(f"  doe analyze --config config.json")
+
+
+def _print_template_rationale(out_dir: str, info: dict) -> None:
+    """Print a 'why this design?' commentary using the suggester.
+
+    Loads the template's config to get factor kinds + response count,
+    estimates a budget by generating the design and counting runs,
+    classifies the goal heuristically (screening / RSM / optimization),
+    and prints the suggester's rationale alongside what the template
+    actually picked. The two may differ on edge cases — that's
+    informative either way.
+    """
+    try:
+        from doe.config import load_config
+        from doe.design import generate_design
+        from doe.suggest import suggest, GOALS
+    except Exception:
+        return
+
+    cfg_path = os.path.join(out_dir, "config.json")
+    if not os.path.isfile(cfg_path):
+        return
+    try:
+        cfg = load_config(cfg_path, strict=False)
+        matrix = generate_design(cfg)
+    except Exception:
+        return
+
+    n_factors = len(cfg.factors)
+    if n_factors == 0:
+        return
+    n_responses = max(1, len(cfg.responses))
+    factor_kinds = [
+        "categorical" if f.type == "categorical" else "continuous"
+        for f in cfg.factors
+    ]
+    actual_runs = len(matrix.runs)
+
+    # Goal heuristic: screening if a 2-level pure-screening op, RSM if
+    # an obviously-RSM op, otherwise optimization.
+    op = cfg.operation
+    if op in ("plackett_burman", "fractional_factorial"):
+        goal = "screening"
+    elif op in (
+        "central_composite", "box_behnken", "definitive_screening",
+        "mixture_simplex_lattice", "mixture_simplex_centroid",
+    ):
+        goal = "response_surface"
+    elif op in ("latin_hypercube", "d_optimal", "linear_sweep", "log_sweep"):
+        goal = "optimization"
+    else:
+        goal = "screening"
+
+    try:
+        suggestion = suggest(
+            n_factors=n_factors, n_responses=n_responses,
+            budget=actual_runs, goal=goal, factor_kinds=factor_kinds,
+        )
+    except Exception:
+        return
+
+    print()
+    print(f"  Inferred goal: {goal}")
+    if suggestion.operation == op:
+        print(f"  Why '{op}'?")
+    else:
+        print(
+            f"  Note: the suggester would have picked '{suggestion.operation}' "
+            f"({suggestion.estimated_runs} runs) for "
+            f"{n_factors} factor(s) with budget {actual_runs}, goal '{goal}'."
+        )
+        print(f"  '{op}' rationale (as configured):")
+    for line in suggestion.rationale:
+        print(f"    - {line}")
+    if suggestion.notes:
+        for note in suggestion.notes:
+            print(f"    Note: {note}")
 
 
 def _handle_record(matrix, cfg, run_arg):
