@@ -35,6 +35,29 @@ class RSMModel:
     diagnostics: ModelDiagnostics | None = None
 
 
+def _format_factor_value(factor, decoded_value: float) -> str:
+    """Format a decoded numeric value for the factor.
+
+    Honors ``factor.dtype == 'int'`` by rounding to the nearest integer
+    and clamping to the original level range (or whatever min/max the
+    user supplied). Continuous factors fall back to ``%.6g`` formatting,
+    matching the long-standing behaviour for non-integer factors.
+    """
+    dtype = (getattr(factor, "dtype", "") or "").lower()
+    if dtype == "int":
+        try:
+            low = int(round(float(factor.levels[0])))
+            high = int(round(float(factor.levels[-1])))
+        except (TypeError, ValueError, IndexError):
+            low, high = None, None
+        rounded = int(round(decoded_value))
+        if low is not None and high is not None:
+            lo, hi = (low, high) if low <= high else (high, low)
+            rounded = max(lo, min(hi, rounded))
+        return str(rounded)
+    return f"{decoded_value:.6g}"
+
+
 def _encode_factor_value(value: str, factor) -> float:
     """Encode a factor value as a numeric value for regression.
 
@@ -273,7 +296,9 @@ def optimize_surface(
                 high = float(factor.levels[1])
                 center = (low + high) / 2.0
                 half_range = (high - low) / 2.0
-                optimal_settings[fname] = f"{center + coded_val * half_range:.6g}"
+                optimal_settings[fname] = _format_factor_value(
+                    factor, center + coded_val * half_range,
+                )
             except ValueError:
                 optimal_settings[fname] = f"{coded_val:.4f}"
         else:
@@ -706,7 +731,9 @@ def _decode_settings(
                 high = float(factor.levels[1])
                 center = (low + high) / 2.0
                 half_range = (high - low) / 2.0
-                out[fname] = f"{center + coded_val * half_range:.6g}"
+                out[fname] = _format_factor_value(
+                    factor, center + coded_val * half_range,
+                )
             except (ValueError, IndexError):
                 out[fname] = f"{coded_val:.4f}"
         else:
@@ -769,7 +796,9 @@ def steepest_ascent(
                     high = float(factor.levels[1])
                     center = (low + high) / 2.0
                     half_range = (high - low) / 2.0
-                    settings[fname] = f"{center + coded_val * half_range:.6g}"
+                    settings[fname] = _format_factor_value(
+                        factor, center + coded_val * half_range,
+                    )
                 except ValueError:
                     settings[fname] = f"{coded_val:.4f}"
             else:
