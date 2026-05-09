@@ -143,6 +143,10 @@ def main():
                           "<out>/<PREFIX>-<TIMESTAMP>/ subdirectory and "
                           "updates <out>/latest to point at it. "
                           "Pass without an argument for timestamp-only.")
+    gen.add_argument("--resolution", type=int, default=None, metavar="N",
+                     help="For fractional_factorial designs: minimum required "
+                          "resolution (3 / 4 / 5+). Bumps run count when "
+                          "necessary. Overrides settings.min_resolution.")
 
     # --- analyze ---
     ana = subparsers.add_parser("analyze", help="Analyze completed experiment results")
@@ -242,6 +246,8 @@ def main():
                      help="Candidate session directory (e.g. results/latest)")
     cmp.add_argument("--csv", default=None, metavar="DIR",
                      help="Also export the comparison tables to this directory")
+    cmp.add_argument("--html", default=None, metavar="FILE",
+                     help="Also write a self-contained HTML comparison page")
 
     # --- scaffold-config ---
     sfc = subparsers.add_parser(
@@ -310,6 +316,8 @@ def _dispatch(args):
     """Dispatch to the appropriate subcommand handler."""
     if args.command == "generate":
         cfg = load_config(args.config)
+        if args.resolution is not None:
+            cfg.min_resolution = int(args.resolution)
         matrix = generate_design(cfg, seed=args.seed)
         if args.dry_run:
             _print_matrix(matrix, cfg)
@@ -439,6 +447,10 @@ def _dispatch(args):
             paths = export_compare_csv(report, args.csv)
             for p in paths:
                 print(f"CSV exported: {p}")
+        if args.html:
+            from doe.compare import export_compare_html
+            export_compare_html(report, args.html)
+            print(f"HTML report: {args.html}")
 
     elif args.command == "scaffold-config":
         if os.path.exists(args.output) and not args.force:
@@ -1121,6 +1133,23 @@ def _print_compare_report(report):
             if any_flipped:
                 print(f"    * = sign flipped between sessions")
 
+        if rc.decomposition:
+            dc = rc.decomposition
+            print(f"\n  Δ decomposition (regression on pooled matched runs):")
+            for note in dc.notes:
+                print(f"    Note: {note}")
+            if dc.df_error >= 1:
+                p_str = "—" if dc.intercept_shift_p is None else f"{dc.intercept_shift_p:.4f}"
+                sig = " *" if dc.intercept_shift_p is not None and dc.intercept_shift_p < 0.05 else ""
+                print(f"    Intercept shift (uniform):  {dc.intercept_shift:+.4f}   p={p_str}{sig}")
+                if dc.slope_shifts:
+                    print(f"    {'Factor':<20} {'slope shift':>12} {'p-value':>10}")
+                    print(f"    {'-' * 20} {'-' * 12} {'-' * 10}")
+                    for fname, shift, p in dc.slope_shifts:
+                        p_disp = "—" if p is None else f"{p:.4f}"
+                        sig = " *" if p is not None and p < 0.05 else ""
+                        print(f"    {fname:<20} {shift:>+12.4f} {p_disp:>10}{sig}")
+
 
 def math_isfinite(x):
     import math
@@ -1209,6 +1238,14 @@ def _print_report(report):
                 print(f"{tot.source:<25} {tot.df:>4} {tot.ss:>12.4f} {tot.ms:>12.4f}")
             if anova.error_method == "lenth":
                 print("  Note: Error estimated using Lenth's pseudo-standard-error (unreplicated design)")
+            elif anova.error_method == "replicates":
+                print("  Note: Error term is pure error (replicated runs).")
+                if anova.lack_of_fit_row and anova.lack_of_fit_row.p_value is not None:
+                    p = anova.lack_of_fit_row.p_value
+                    if p < 0.05:
+                        print(f"        Lack-of-fit p={p:.4f} < 0.05 — the model is missing structure; consider higher-order terms.")
+                    else:
+                        print(f"        Lack-of-fit p={p:.4f} ≥ 0.05 — model has no detectable lack of fit.")
 
         if analysis.interactions:
             print(f"\n=== Interaction Effects: {resp_name} ===")

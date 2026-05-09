@@ -17,7 +17,7 @@ from typing import Iterable
 
 from .models import (
     ComparisonReport, ResponseComparison, PerRunDelta, EffectDelta,
-    DesignMatrix, ExperimentRun, DOEConfig,
+    DeltaDecomposition, DesignMatrix, ExperimentRun, DOEConfig,
 )
 
 
@@ -225,6 +225,9 @@ def _compare_response(
     effect_deltas = _compute_effect_deltas(
         per_run=per_run, factor_names=factor_names,
     )
+    decomposition = _decompose_delta(
+        per_run=per_run, factor_names=factor_names,
+    )
 
     return ResponseComparison(
         response_name=resp_name,
@@ -239,6 +242,7 @@ def _compare_response(
         cohens_d=d,
         per_run=per_run,
         effect_deltas=effect_deltas,
+        decomposition=decomposition,
     )
 
 
@@ -327,6 +331,141 @@ def _sort_key(value: str):
         return (1, value)
 
 
+def _decompose_delta(
+    per_run: list[PerRunDelta],
+    factor_names: list[str],
+) -> DeltaDecomposition | None:
+    """Fit y = β0 + βs·s + Σ βi·xi + Σ γi·s·xi on the pooled matched data.
+
+    s = -1 for baseline, +1 for candidate. xi is each factor's coded value
+    in [-1, +1]. βs (intercept-shift coefficient) maps to a uniform 2·βs
+    shift in mean response between sessions. γi (per-factor session
+    interaction) maps to a 2·γi change in main-effect size.
+
+    Returns None when the design isn't a 2-level layout (every factor
+    must show exactly two distinct levels among matched runs) — the
+    helper would otherwise have to encode multi-level factors with extra
+    decisions out of scope here.
+    """
+    try:
+        import numpy as np
+    except ImportError:
+        return None
+
+    if not per_run:
+        return None
+
+    factor_values_by_key: dict[str, dict[str, str]] = {}
+    for r in per_run:
+        kv: dict[str, str] = {}
+        for token in r.run_key.split(";"):
+            if "=" in token:
+                name, val = token.split("=", 1)
+                kv[name] = val
+        factor_values_by_key[r.run_key] = kv
+
+    levels_per_factor: dict[str, list[str]] = {}
+    for fname in factor_names:
+        levels = sorted(
+            {fvs[fname] for fvs in factor_values_by_key.values() if fname in fvs},
+            key=_sort_key,
+        )
+        if len(levels) != 2:
+            return DeltaDecomposition(
+                n_observations=2 * len(per_run),
+                df_error=0,
+                intercept_shift=0.0,
+                intercept_shift_p=None,
+                notes=[
+                    f"Decomposition skipped: factor '{fname}' has "
+                    f"{len(levels)} distinct level(s) in matched runs (need 2)."
+                ],
+            )
+        levels_per_factor[fname] = levels
+
+    # Build the pooled design matrix X and response y.
+    n_runs = len(per_run)
+    n_obs = 2 * n_runs
+    n_factors = len(factor_names)
+    n_params = 1 + 1 + n_factors + n_factors  # intercept, s, mains, s*mains
+    X = np.zeros((n_obs, n_params))
+    y = np.zeros(n_obs)
+    for i, r in enumerate(per_run):
+        x_coded = []
+        for fname in factor_names:
+            low, _high = levels_per_factor[fname]
+            v = factor_values_by_key[r.run_key].get(fname)
+            x_coded.append(-1.0 if v == low else 1.0)
+        for s, val in ((-1.0, r.baseline_value), (1.0, r.candidate_value)):
+            row_idx = 2 * i + (0 if s < 0 else 1)
+            X[row_idx, 0] = 1.0
+            X[row_idx, 1] = s
+            for j, xi in enumerate(x_coded):
+                X[row_idx, 2 + j] = xi
+                X[row_idx, 2 + n_factors + j] = s * xi
+            y[row_idx] = val
+
+    df_error = n_obs - n_params
+    if df_error < 1:
+        return DeltaDecomposition(
+            n_observations=n_obs, df_error=df_error,
+            intercept_shift=0.0, intercept_shift_p=None,
+            notes=["Decomposition skipped: not enough runs for the regression."],
+        )
+
+    try:
+        beta, *_ = np.linalg.lstsq(X, y, rcond=None)
+    except np.linalg.LinAlgError:
+        return DeltaDecomposition(
+            n_observations=n_obs, df_error=df_error,
+            intercept_shift=0.0, intercept_shift_p=None,
+            notes=["Decomposition skipped: regression failed (singular matrix)."],
+        )
+    residuals = y - X @ beta
+    sse = float(np.sum(residuals ** 2))
+    mse = sse / df_error if df_error > 0 else 0.0
+
+    try:
+        cov = mse * np.linalg.pinv(X.T @ X)
+    except np.linalg.LinAlgError:
+        cov = None
+    if cov is None:
+        se = [None] * n_params
+    else:
+        se = [float(s) if s > 0 else None for s in np.sqrt(np.diag(cov))]
+
+    def _pvalue(b: float, s: float | None) -> float | None:
+        if s is None or s == 0 or df_error <= 0:
+            return None
+        try:
+            from scipy import stats as _stats
+            return float(2.0 * (1.0 - _stats.t.cdf(abs(b / s), df=df_error)))
+        except Exception:
+            return None
+
+    # With s ∈ {-1, +1} and x_i ∈ {-1, +1}:
+    #   mean_candidate - mean_baseline = 2·β_s     (uniform offset)
+    #   effect_candidate - effect_baseline = 4·γ_i (change in main-effect size)
+    # The factor of 4 on γ_i comes from "main effect = mean(x=+1) - mean(x=-1)
+    # = 2·β_i + 2·γ_i·s", so the candidate-minus-baseline difference is 4·γ_i.
+    intercept_shift = 2.0 * float(beta[1])
+    intercept_p = _pvalue(float(beta[1]), se[1])
+
+    slope_shifts: list[tuple[str, float, float | None]] = []
+    for j, fname in enumerate(factor_names):
+        idx = 2 + n_factors + j
+        gamma = float(beta[idx])
+        slope_shifts.append((fname, 4.0 * gamma, _pvalue(gamma, se[idx])))
+
+    return DeltaDecomposition(
+        n_observations=n_obs,
+        df_error=df_error,
+        intercept_shift=intercept_shift,
+        intercept_shift_p=intercept_p,
+        slope_shifts=slope_shifts,
+    )
+
+
 def export_compare_csv(report: ComparisonReport, output_dir: str) -> list[str]:
     """Write the comparison tables to CSV. Returns the list of file paths."""
     import csv
@@ -382,4 +521,242 @@ def export_compare_csv(report: ComparisonReport, output_dir: str) -> list[str]:
                     ])
             created.append(effects_path)
 
+        if rc.decomposition and rc.decomposition.df_error >= 1:
+            decomp_path = os.path.join(output_dir, f"compare_decomposition_{safe}.csv")
+            dc = rc.decomposition
+            with open(decomp_path, "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow(["term", "shift", "p_value"])
+                writer.writerow([
+                    "intercept_shift", dc.intercept_shift,
+                    dc.intercept_shift_p if dc.intercept_shift_p is not None else "",
+                ])
+                for fname, shift, p in dc.slope_shifts:
+                    writer.writerow([f"slope_shift_{fname}", shift,
+                                     p if p is not None else ""])
+            created.append(decomp_path)
+
     return created
+
+
+def export_compare_html(report: ComparisonReport, output_path: str) -> str:
+    """Render a self-contained HTML page for the comparison report.
+
+    Reuses the same CSS as ``doe report`` so the look-and-feel is
+    consistent. Each response gets its own collapsible block with a
+    summary table, a paired-test row, and the per-factor effect-delta
+    table; flipped signs are highlighted in red.
+    """
+    import datetime
+    import html as _html
+    from .report import _CSS  # reuse the report stylesheet
+
+    def fmt_optional(v, fmt=".4f"):
+        if v is None or (isinstance(v, float) and (v != v)):  # NaN check
+            return "&mdash;"
+        if isinstance(v, float) and not _isfinite(v):
+            return "&infin;"
+        return format(v, fmt) if isinstance(v, float) else _html.escape(str(v))
+
+    sections: list[str] = []
+
+    # Header / summary
+    notes_html = ""
+    if report.notes:
+        items = "".join(f"<li>{_html.escape(n)}</li>" for n in report.notes)
+        notes_html = f'<ul class="muted">{items}</ul>\n'
+
+    sections.append(
+        f'<details open id="compare-summary">\n'
+        f'  <summary><h2>Comparison Summary</h2></summary>\n'
+        f'  <div class="section-body">\n'
+        f'  <table class="info-table">\n'
+        f'    <tr><th>Baseline</th><td class="mono">{_html.escape(report.baseline_dir)}</td></tr>\n'
+        f'    <tr><th>Candidate</th><td class="mono">{_html.escape(report.candidate_dir)}</td></tr>\n'
+        f'    <tr><th>Factors</th><td>{_html.escape(", ".join(report.factor_names))}</td></tr>\n'
+        f'    <tr><th>Runs (B / C / matched)</th>'
+        f'<td class="mono">{report.n_baseline_runs} / {report.n_candidate_runs} / {report.n_matched_runs}</td></tr>\n'
+        f'  </table>\n'
+        f'  {notes_html}'
+        f'  </div>\n'
+        f'</details>\n'
+    )
+
+    for rc in report.responses:
+        anchor = _anchor_id_local(rc.response_name)
+        title = f"Response: {_html.escape(rc.response_name)}"
+        if rc.n_matched == 0:
+            body = "  <p class=\"muted\">" + "; ".join(_html.escape(n) for n in rc.notes) + "</p>\n"
+            sections.append(
+                f'<details open id="compare-{anchor}">\n'
+                f'  <summary><h2>{title}</h2></summary>\n'
+                f'  <div class="section-body">\n{body}  </div>\n</details>\n'
+            )
+            continue
+
+        sig_class = ""
+        if rc.paired_p_value is not None and rc.paired_p_value < 0.05:
+            sig_class = ' style="color:#0a7;font-weight:bold;"'
+        paired_row = ""
+        if rc.paired_t_stat is not None:
+            paired_row = (
+                f'      <tr{sig_class}><td>Paired t-test</td>'
+                f'<td class="mono">t = {fmt_optional(rc.paired_t_stat, ".3f")}, '
+                f'p = {fmt_optional(rc.paired_p_value, ".4f")}, '
+                f"Cohen's d = {fmt_optional(rc.cohens_d, '+.3f')}</td></tr>\n"
+            )
+
+        summary_table = (
+            '  <table class="data-table">\n'
+            '    <thead><tr><th>Metric</th><th>Value</th></tr></thead>\n'
+            '    <tbody>\n'
+            f'      <tr><td>Matched runs</td><td class="mono">{rc.n_matched}</td></tr>\n'
+            f'      <tr><td>Baseline mean</td><td class="mono">{rc.baseline_mean:.4f}</td></tr>\n'
+            f'      <tr><td>Candidate mean</td><td class="mono">{rc.candidate_mean:.4f}</td></tr>\n'
+            f'      <tr><td>Δ mean</td><td class="mono">{rc.mean_delta:+.4f}</td></tr>\n'
+            f'{paired_row}'
+            '    </tbody>\n'
+            '  </table>\n'
+        )
+
+        # Per-factor effect deltas
+        effect_rows = ""
+        for e in rc.effect_deltas:
+            flag_class = ' style="color:#c00;font-weight:bold;"' if e.flipped_sign else ''
+            flag_marker = '✱' if e.flipped_sign else ''
+            effect_rows += (
+                f'      <tr{flag_class}>'
+                f'<td>{_html.escape(e.factor_name)}</td>'
+                f'<td class="mono">{e.baseline_effect:+.4f}</td>'
+                f'<td class="mono">{e.candidate_effect:+.4f}</td>'
+                f'<td class="mono">{e.delta:+.4f}</td>'
+                f'<td class="mono">{flag_marker}</td>'
+                f'</tr>\n'
+            )
+        effects_table = ""
+        if effect_rows:
+            effects_table = (
+                '  <h3>Main-Effect Changes</h3>\n'
+                '  <table class="data-table">\n'
+                '    <thead><tr><th>Factor</th><th>Baseline</th>'
+                '<th>Candidate</th><th>Δ</th><th>Sign flip?</th></tr></thead>\n'
+                '    <tbody>\n'
+                f'{effect_rows}'
+                '    </tbody>\n'
+                '  </table>\n'
+            )
+
+        # Δ decomposition (regression-based)
+        decomp_html = ""
+        if rc.decomposition:
+            dc = rc.decomposition
+            if dc.df_error >= 1:
+                p_intercept = fmt_optional(dc.intercept_shift_p, ".4f")
+                shift_class = ' style="color:#0a7;font-weight:bold;"' if (
+                    dc.intercept_shift_p is not None and dc.intercept_shift_p < 0.05
+                ) else ""
+                rows = (
+                    f'      <tr{shift_class}><td>Intercept shift</td>'
+                    f'<td class="mono">{dc.intercept_shift:+.4f}</td>'
+                    f'<td class="mono">{p_intercept}</td></tr>\n'
+                )
+                for fname, shift, p in dc.slope_shifts:
+                    p_disp = fmt_optional(p, ".4f")
+                    sig_class = ' style="color:#0a7;font-weight:bold;"' if (
+                        p is not None and p < 0.05
+                    ) else ""
+                    rows += (
+                        f'      <tr{sig_class}><td>{_html.escape(fname)}</td>'
+                        f'<td class="mono">{shift:+.4f}</td>'
+                        f'<td class="mono">{p_disp}</td></tr>\n'
+                    )
+                decomp_html = (
+                    '  <h3>Δ Decomposition</h3>\n'
+                    '  <p class="muted">Regression of pooled matched runs: '
+                    'y ~ session + Σ x<sub>i</sub> + Σ session·x<sub>i</sub>. '
+                    'Intercept shift = uniform offset; slope shifts = per-factor '
+                    'effect-size change between sessions.</p>\n'
+                    '  <table class="data-table">\n'
+                    '    <thead><tr><th>Term</th><th>Shift</th><th>p</th></tr></thead>\n'
+                    '    <tbody>\n'
+                    f'{rows}'
+                    '    </tbody>\n'
+                    '  </table>\n'
+                )
+            elif dc.notes:
+                decomp_html = (
+                    '  <h3>Δ Decomposition</h3>\n'
+                    '  <p class="muted">' + "; ".join(_html.escape(n) for n in dc.notes) + '</p>\n'
+                )
+
+        # Per-run paired deltas (collapsed by default)
+        run_rows = ""
+        for r in rc.per_run:
+            run_rows += (
+                f'      <tr><td class="mono">{_html.escape(r.run_key)}</td>'
+                f'<td class="mono">{r.baseline_value:.4f}</td>'
+                f'<td class="mono">{r.candidate_value:.4f}</td>'
+                f'<td class="mono">{r.delta:+.4f}</td></tr>\n'
+            )
+        runs_table = (
+            '  <details><summary>Per-run paired deltas</summary>\n'
+            '  <table class="data-table">\n'
+            '    <thead><tr><th>Run</th><th>Baseline</th>'
+            '<th>Candidate</th><th>Δ</th></tr></thead>\n'
+            '    <tbody>\n'
+            f'{run_rows}'
+            '    </tbody>\n'
+            '  </table>\n  </details>\n'
+        )
+
+        sections.append(
+            f'<details open id="compare-{anchor}">\n'
+            f'  <summary><h2>{title}</h2></summary>\n'
+            f'  <div class="section-body">\n'
+            f'{summary_table}'
+            f'{effects_table}'
+            f'{decomp_html}'
+            f'{runs_table}'
+            f'  </div>\n'
+            f'</details>\n'
+        )
+
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    page = (
+        '<!DOCTYPE html>\n<html lang="en">\n<head>\n'
+        '  <meta charset="utf-8">\n'
+        '  <title>DOE Comparison</title>\n'
+        f'  <style>{_CSS}</style>\n'
+        '</head>\n<body>\n'
+        '<header>\n'
+        '  <h1>Session Comparison</h1>\n'
+        f'  <p class="timestamp">Generated: {_html.escape(timestamp)}</p>\n'
+        '</header>\n'
+        + "\n".join(sections)
+        + '\n<footer><p>Generated by DOE Helper Tool — doe compare</p></footer>\n'
+        '</body>\n</html>\n'
+    )
+
+    output_dir = os.path.dirname(output_path)
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+    with open(output_path, "w", encoding="utf-8") as fh:
+        fh.write(page)
+    return output_path
+
+
+def _isfinite(x: float) -> bool:
+    return x == x and x not in (float("inf"), float("-inf"))
+
+
+def _anchor_id_local(name: str) -> str:
+    out = []
+    for ch in name.strip().lower():
+        if ch.isalnum():
+            out.append(ch)
+        elif ch in (" ", "-", "_", "."):
+            out.append("-")
+    cleaned = "".join(out).strip("-")
+    while "--" in cleaned:
+        cleaned = cleaned.replace("--", "-")
+    return cleaned or "section"

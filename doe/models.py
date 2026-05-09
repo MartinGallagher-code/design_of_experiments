@@ -41,6 +41,7 @@ class DOEConfig:
     out_directory: str
     lhs_samples: int = 0                    # 0 = auto: max(10, 2 * n_factors)
     sweep_points: int = 0                    # 0 = auto: use lhs_samples or default 8
+    min_resolution: int = 0                  # 0 = auto (max within smallest run budget); 3/4/5+ = pin
     metadata: dict = field(default_factory=dict)
     runner: RunnerConfig = field(default_factory=RunnerConfig)
     adaptive: object = None                  # AdaptiveConfig | None
@@ -260,6 +261,23 @@ class EffectDelta:
 
 
 @dataclass
+class DeltaDecomposition:
+    """Results of regressing y ~ session + Σ x_i + Σ session*x_i.
+
+    Splits the candidate-vs-baseline delta into a uniform intercept shift
+    and per-factor slope (effect-size) changes, with p-values from the
+    pooled regression. Approximates the existing mean_delta and per-factor
+    EffectDelta numbers, but with proper standard errors.
+    """
+    n_observations: int
+    df_error: int
+    intercept_shift: float
+    intercept_shift_p: float | None
+    slope_shifts: list[tuple[str, float, float | None]] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)
+
+
+@dataclass
 class ResponseComparison:
     response_name: str
     n_baseline: int
@@ -273,6 +291,7 @@ class ResponseComparison:
     cohens_d: float | None = None
     per_run: list[PerRunDelta] = field(default_factory=list)
     effect_deltas: list[EffectDelta] = field(default_factory=list)
+    decomposition: DeltaDecomposition | None = None
     notes: list[str] = field(default_factory=list)
 
 
