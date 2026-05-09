@@ -238,7 +238,7 @@ def main():
     # --- augment ---
     aug = subparsers.add_parser("augment", help="Augment an existing design with additional runs")
     aug.add_argument("--config", required=True, metavar="FILE", help="Input JSON config file")
-    aug.add_argument("--type", required=True, choices=["fold_over", "star_points", "center_points"],
+    aug.add_argument("--type", required=True, choices=["fold_over", "star_points", "center_points", "d_optimal"],
                      help="Type of augmentation")
     aug.add_argument("--output", default="run_experiments_augmented.sh", help="Output script path")
     aug.add_argument("--format", choices=["sh", "py"], default="sh", help="Script format")
@@ -357,6 +357,8 @@ def main():
                            "Default 512.")
     sens.add_argument("--csv", default=None, metavar="FILE",
                       help="Optional CSV output path")
+    sens.add_argument("--html", default=None, metavar="FILE",
+                      help="Optional self-contained HTML report with stacked-bar plots")
     sens.add_argument("--seed", type=int, default=42)
     sens.add_argument("--partial", action="store_true",
                       help="Analyse only completed runs, skipping missing results")
@@ -437,7 +439,10 @@ def main():
     nb = subparsers.add_parser("next-batch", help="Generate next batch of adaptive experiment runs")
     nb.add_argument("--config", required=True, metavar="FILE", help="Input JSON config file")
     nb.add_argument("--results-dir", default=None, help="Override out_directory from config")
-    nb.add_argument("--strategy", choices=["refine", "explore", "balanced"], default=None,
+    nb.add_argument("--strategy",
+                    choices=["refine", "explore", "balanced",
+                             "model_guided", "bayesian", "multi_objective"],
+                    default=None,
                     help="Override strategy from config")
     nb.add_argument("--batch-size", type=int, default=None, help="Override batch size from config")
     nb.add_argument("--output", default="run_next_batch.sh", help="Output script path")
@@ -446,6 +451,10 @@ def main():
     nb.add_argument("--partial", action="store_true", help="Analyze only completed runs")
     nb.add_argument("--session", nargs="?", const="", default=None, metavar="PREFIX",
                     help="Generate a session-aware runner (see 'doe generate --session').")
+    nb.add_argument("--state-name", default=None, metavar="NAME",
+                    help="Branch the adaptive trajectory by writing state to "
+                         "'adaptive_state_<NAME>.json' under cfg.out_directory. "
+                         "Default state file persists across --session switches.")
 
     args = parser.parse_args()
 
@@ -798,6 +807,7 @@ def _dispatch(args):
             new_matrix, state = plan_next_batch(
                 matrix, cfg, adaptive_cfg,
                 results_dir=results_dir, seed=args.seed,
+                state_name=args.state_name,
             )
         except FileNotFoundError:
             _no_results_message(cfg, matrix)
@@ -1492,6 +1502,7 @@ def _handle_sensitivity(matrix, cfg, results_dir, args):
     model_type = "quadratic" if n >= n_quad_params + 1 else "linear"
 
     csv_rows: list[tuple] = []
+    html_results: list = []
     for resp in target_responses:
         responses: dict[int, float] = {}
         for run in matrix.runs:
@@ -1522,6 +1533,7 @@ def _handle_sensitivity(matrix, cfg, results_dir, args):
             n_base_samples=max(8, args.n_samples),
             seed=args.seed,
         )
+        html_results.append(result)
 
         print(f"\n=== Sensitivity: {resp.name} ===")
         for note in result.notes:
@@ -1549,6 +1561,10 @@ def _handle_sensitivity(matrix, cfg, results_dir, args):
             for row in csv_rows:
                 writer.writerow(row)
         print(f"\nCSV exported: {args.csv}")
+    if args.html and html_results:
+        from doe.sensitivity import export_sensitivity_html
+        export_sensitivity_html(html_results, args.html)
+        print(f"HTML report: {args.html}")
 
 
 def _handle_power(matrix, cfg, args):
