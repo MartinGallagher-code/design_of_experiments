@@ -14,7 +14,6 @@ Two ways to use this module:
   and uses the same primitives.
 """
 
-from dataclasses import dataclass
 
 from .models import AchievedPower, AchievedPowerEntry
 

@@ -9,8 +9,7 @@ import numpy as np
 
 from .models import (
     CrossValidation, CrossValidationFold,
-    DesignMatrix, DOEConfig, ExperimentRun, Factor,
-    ModelAdequacy, StationaryPoint,
+    ExperimentRun, ModelAdequacy, StationaryPoint,
 )
 
 

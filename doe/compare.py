@@ -13,11 +13,11 @@ are matched on the intersection with a warning.
 import json
 import math
 import os
-from typing import Iterable
+from collections.abc import Iterable
 
 from .models import (
     ComparisonReport, ResponseComparison, PerRunDelta, EffectDelta,
-    DeltaDecomposition, DesignMatrix, ExperimentRun, DOEConfig,
+    DeltaDecomposition, ExperimentRun, DOEConfig,
 )
 
 

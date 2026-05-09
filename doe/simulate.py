@@ -22,9 +22,10 @@ import json
 import os
 import shutil
 import sys
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
-from .models import DesignMatrix, DOEConfig, ExperimentRun
+from .models import DesignMatrix, DOEConfig
 
 
 def simulate(

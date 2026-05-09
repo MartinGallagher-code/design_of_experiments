@@ -4,14 +4,11 @@
 
 import base64
 import html
-import io
-import json
 import os
 from datetime import datetime
 
 from .models import DesignMatrix, DOEConfig
 from .analysis import analyze, _load_all_results, _compute_main_effects
-from .design import generate_design
 from .rsm import fit_rsm
 
 
@@ -22,6 +19,7 @@ def generate_report(
     output_path: str = "report.html",
     partial: bool = False,
     filter_factors: list[str] | None = None,
+    include_paths: list[str] | None = None,
 ) -> str:
     """Run analysis and generate a self-contained HTML report.
 
@@ -108,6 +106,8 @@ def generate_report(
     toc_html = _build_table_of_contents(report, cfg)
     footer_html = _build_footer()
 
+    extras_html = _build_extras_section(include_paths)
+
     page = _HTML_TEMPLATE.format(
         title=plan_name,
         css=_CSS,
@@ -117,6 +117,7 @@ def generate_report(
         alias_structure=alias_structure_html,
         results=results_html,
         optimization=optimization_html,
+        extras=extras_html,
         design_matrix=design_matrix_html,
         footer=footer_html,
     )
@@ -885,6 +886,53 @@ def _build_table_of_contents(report, cfg) -> str:
     )
 
 
+def _build_extras_section(include_paths: list[str] | None) -> str:
+    """Inline the body of one or more pre-rendered HTML files as new
+    sections of the master report.
+
+    Each path is read, its ``<body>`` content is extracted (or the whole
+    file if no `<body>` tags are found), and the result is wrapped in a
+    `<details>` block titled with the file's basename. ``<style>`` blocks
+    inside the embedded HTML are stripped — the master report's CSS
+    already covers them.
+    """
+    if not include_paths:
+        return ""
+
+    import re
+    out: list[str] = []
+    for path in include_paths:
+        if not os.path.isfile(path):
+            out.append(
+                f'<details>\n  <summary><h2>Included: {html.escape(path)}</h2></summary>\n'
+                f'  <div class="section-body">\n'
+                f'  <p class="muted">File not found: {html.escape(path)}.</p>\n'
+                f'  </div>\n</details>\n'
+            )
+            continue
+        with open(path, encoding="utf-8") as fh:
+            body = fh.read()
+        m = re.search(r"<body[^>]*>(.*?)</body>", body, flags=re.DOTALL | re.IGNORECASE)
+        if m:
+            body = m.group(1)
+        # Strip <style>...</style>, <header>...</header>, and <footer>...</footer>:
+        # the master report already has CSS / header / footer, and the embedded
+        # ones would duplicate or conflict.
+        body = re.sub(r"<style[^>]*>.*?</style>", "", body, flags=re.DOTALL | re.IGNORECASE)
+        body = re.sub(r"<header[^>]*>.*?</header>", "", body, flags=re.DOTALL | re.IGNORECASE)
+        body = re.sub(r"<footer[^>]*>.*?</footer>", "", body, flags=re.DOTALL | re.IGNORECASE)
+        title = html.escape(os.path.basename(path))
+        anchor = _anchor_id("extra-" + os.path.basename(path))
+        out.append(
+            f'<details open id="{anchor}">\n'
+            f'  <summary><h2>Included: {title}</h2></summary>\n'
+            f'  <div class="section-body">\n'
+            f'{body}\n'
+            f'  </div>\n</details>\n'
+        )
+    return "\n".join(out)
+
+
 def _build_footer() -> str:
     return (
         '<footer>\n'
@@ -1069,6 +1117,7 @@ _HTML_TEMPLATE = """\
 {alias_structure}
 {results}
 {optimization}
+{extras}
 {design_matrix}
 {footer}
 </body>

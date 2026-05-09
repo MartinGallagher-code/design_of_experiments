@@ -20,7 +20,7 @@ import argparse
 import json
 import os
 import sys
-from typing import Iterable
+from collections.abc import Iterable
 
 
 _VALID_STYLES = ("double-dash", "env", "positional")

@@ -16,7 +16,6 @@ dependency).
 """
 
 from dataclasses import dataclass, field
-from typing import Iterable
 
 import numpy as np
 
@@ -148,8 +147,6 @@ def export_sensitivity_html(
     """
     import datetime
     import html as _html
-    import io
-    import base64
     import os
     from .report import _CSS
 

@@ -1,6 +1,12 @@
 # Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    # Forward reference for the Scheffé mixture-model dataclass; lives in
+    # doe/mixture.py to avoid pulling numpy at import time.
+    from .mixture import ScheffeModel  # noqa: F401
 
 
 @dataclass
