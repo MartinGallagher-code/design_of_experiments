@@ -15,6 +15,7 @@ def generate_script(
     output_path: str,
     format: str = "sh",
     session_prefix: str | None = None,
+    parallel_workers: int = 1,
 ) -> str:
     """Render a runner script that drives the user's test_script.
 
@@ -23,14 +24,24 @@ def generate_script(
     each invocation and updates a ``latest`` symlink to point at it.
     A *session_prefix* of "" produces a bare-timestamp subdirectory
     (no prefix); pass a string to label the session.
+
+    When *parallel_workers* > 1 the format is forced to a Python
+    ``concurrent.futures.ThreadPoolExecutor``-based runner which submits
+    runs in parallel. Use this when each test_script invocation is
+    independent and bounded I/O.
     """
-    template_map = {"sh": "runner_sh.j2", "py": "runner_py.j2"}
-    if format not in template_map:
-        raise ValueError(f"Unknown format '{format}'. Choose 'sh' or 'py'.")
+    if parallel_workers > 1:
+        template_name = "runner_parallel_py.j2"
+    else:
+        template_map = {"sh": "runner_sh.j2", "py": "runner_py.j2"}
+        if format not in template_map:
+            raise ValueError(f"Unknown format '{format}'. Choose 'sh' or 'py'.")
+        template_name = template_map[format]
 
     env = _jinja_env()
-    template = env.get_template(template_map[format])
+    template = env.get_template(template_name)
     context = _build_template_context(matrix, cfg, session_prefix=session_prefix)
+    context["parallel_workers"] = parallel_workers
     rendered = template.render(**context)
 
     _write_executable(output_path, rendered)

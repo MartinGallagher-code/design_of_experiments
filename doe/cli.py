@@ -156,6 +156,11 @@ def main():
                           "pure-error / lack-of-fit estimate. Requires at "
                           "least one factor with two numeric levels. "
                           "Overrides settings.replicate_center.")
+    gen.add_argument("--parallel", type=int, default=1, metavar="N",
+                     help="Emit a thread-pool Python runner that submits N "
+                          "test_script invocations concurrently. N=1 (default) "
+                          "uses the standard sequential runner. Use this when "
+                          "each test invocation is independent and bounded I/O.")
 
     # --- analyze ---
     ana = subparsers.add_parser("analyze", help="Analyze completed experiment results")
@@ -294,6 +299,23 @@ def main():
                      help="Extra file(s) to embed (HTML report, CSV exports, etc.). "
                           "Repeat the flag to add more than one.")
 
+    # --- calibrate ---
+    cal = subparsers.add_parser(
+        "calibrate",
+        help="Fit free parameters in a parametric simulator to observed data",
+    )
+    cal.add_argument("--config", required=True, metavar="FILE", help="Input JSON config file")
+    cal.add_argument("--func", required=True, metavar="TARGET",
+                     help="Parametric simulator as 'module:function' or 'path.py:function'")
+    cal.add_argument("--params", required=True, nargs="+", metavar="SPEC",
+                     help="Parameter specs as 'name:low:high' or 'name:initial:low:high'.")
+    cal.add_argument("--observed", required=True, metavar="DIR",
+                     help="Session directory holding the observed (real-world) results")
+    cal.add_argument("--report", default=None, metavar="FILE",
+                     help="Optional path to write the JSON calibration report")
+    cal.add_argument("--seed", type=int, default=42,
+                     help="Random seed for design generation (default: 42)")
+
     # --- simulate ---
     sim = subparsers.add_parser(
         "simulate",
@@ -403,7 +425,8 @@ def _dispatch(args):
         else:
             from doe.codegen import generate_script
             generate_script(matrix, cfg, args.output, format=args.format,
-                            session_prefix=args.session)
+                            session_prefix=args.session,
+                            parallel_workers=max(1, args.parallel))
             out_dir = _results_dir_for(cfg)
             _save_matrix(matrix, out_dir)
             print(f"Generated {len(matrix.runs)} runs -> {args.output}")
@@ -515,6 +538,35 @@ def _dispatch(args):
         matrix = _load_or_generate(cfg)
         _handle_export_data(matrix, cfg, fmt=args.format, output_path=args.output,
                             partial=args.partial)
+
+    elif args.command == "calibrate":
+        cfg = load_config(args.config, strict=False)
+        matrix = _load_or_generate(cfg)
+        from doe.calibrate import (
+            calibrate, parse_param_spec, load_observed,
+            write_calibration_report,
+        )
+        param_specs = [parse_param_spec(s) for s in args.params]
+        observed = load_observed(args.observed, matrix.runs)
+        result = calibrate(matrix.runs, observed, args.func, param_specs)
+        print("\n=== Calibration ===")
+        print(f"  RMSE before: {result.rmse_before:.4f}")
+        print(f"  RMSE after : {result.rmse_after:.4f}"
+              f"   ({'converged' if result.converged else 'did not converge'},"
+              f" {result.n_iterations} iterations)")
+        print("  Fitted parameters:")
+        for name, value in result.fitted_params.items():
+            low, high = result.bounds[name]
+            initial = result.initial_params[name]
+            print(f"    {name:<20} = {value:.6g}   (init {initial:.6g}, "
+                  f"bounds [{low:.4g}, {high:.4g}])")
+        if result.per_response_rmse:
+            print("  Per-response RMSE:")
+            for resp_name, rmse in result.per_response_rmse.items():
+                print(f"    {resp_name:<20} = {rmse:.4f}")
+        if args.report:
+            write_calibration_report(result, args.report)
+            print(f"  Report -> {args.report}")
 
     elif args.command == "simulate":
         cfg = load_config(args.config, strict=False)

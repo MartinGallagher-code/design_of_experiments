@@ -4427,3 +4427,288 @@ class TestBayesianStrategy:
         # All chosen points lie inside the bounds
         assert np.all(batch >= -1.0 - 1e-9)
         assert np.all(batch <= 1.0 + 1e-9)
+
+
+class TestMultiObjectiveBO:
+    """Tests for is_pareto_front and propose_batch_multi_objective."""
+
+    def test_pareto_front_basic(self):
+        from doe.bo import is_pareto_front
+        # Two-objective: maximise both
+        Y = np.array([
+            [1.0, 1.0],   # dominated
+            [3.0, 2.0],   # on front
+            [2.0, 3.0],   # on front
+            [3.0, 3.0],   # dominates everything else above on front
+        ])
+        front = is_pareto_front(Y, ["maximize", "maximize"])
+        assert front.tolist() == [False, False, False, True]
+
+    def test_pareto_front_minimize(self):
+        from doe.bo import is_pareto_front
+        Y = np.array([
+            [1.0, 5.0],   # on front (min y0)
+            [4.0, 1.0],   # on front (min y1)
+            [2.0, 3.0],   # on front
+            [5.0, 5.0],   # dominated
+        ])
+        front = is_pareto_front(Y, ["minimize", "minimize"])
+        assert front.tolist() == [True, True, True, False]
+
+    def test_pareto_front_mixed_directions(self):
+        from doe.bo import is_pareto_front
+        # Maximise y0, minimise y1 — typical "max yield, min cost"
+        Y = np.array([
+            [10.0, 5.0],  # on front
+            [9.0, 7.0],   # dominated by [10, 5]
+            [8.0, 3.0],   # on front
+            [10.0, 3.0],  # dominates the others on the front
+        ])
+        front = is_pareto_front(Y, ["maximize", "minimize"])
+        assert front[3] is np.True_ or front[3] == True
+        assert front[1] == False
+
+    def test_propose_batch_multi_objective_runs(self):
+        from doe.bo import fit_gp, propose_batch_multi_objective
+        rng = np.random.default_rng(0)
+        X = rng.uniform(-1, 1, size=(20, 2))
+        y1 = -(X[:, 0] - 0.4) ** 2 - X[:, 1] ** 2 + 4
+        y2 = (X[:, 0] - 0.4) ** 2 + X[:, 1] ** 2 + 1  # cost (minimize)
+        gp1 = fit_gp(X, y1, seed=0)
+        gp2 = fit_gp(X, y2, seed=0)
+        bounds = np.tile([-1.0, 1.0], (2, 1))
+        batch = propose_batch_multi_objective(
+            [gp1, gp2], bounds, batch_size=4,
+            directions=["maximize", "minimize"], seed=0,
+        )
+        assert batch.shape == (4, 2)
+        assert np.all(batch >= -1.0 - 1e-9)
+        assert np.all(batch <= 1.0 + 1e-9)
+
+    def test_multi_objective_strategy_emits_batch(self, tmp_path):
+        from doe.adaptive import plan_next_batch, AdaptiveConfig
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[
+                {"name": "yield_", "optimize": "maximize"},
+                {"name": "cost", "optimize": "minimize"},
+            ],
+            operation="central_composite",
+        )
+        cfg_dict["adaptive"] = {
+            "strategy": "multi_objective", "batch_size": 4,
+            "stopping_max_phases": 5,
+        }
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        rd = Path(cfg.out_directory)
+        rd.mkdir(parents=True, exist_ok=True)
+        for run in matrix.runs:
+            x = float(run.factor_values["x"])
+            y = float(run.factor_values["y"])
+            (rd / f"run_{run.run_id}.json").write_text(json.dumps({
+                "yield_": -(x - 0.4) ** 2 - y ** 2 + 4,
+                "cost": (x - 0.4) ** 2 + y ** 2 + 1,
+            }))
+        ac = AdaptiveConfig(strategy="multi_objective", batch_size=4,
+                            stopping_max_phases=5)
+        new_matrix, state = plan_next_batch(
+            matrix, cfg, ac, results_dir=cfg.out_directory, seed=0,
+        )
+        assert not state.should_stop
+        assert len(new_matrix.runs) == 4
+
+
+class TestHeteroscedasticGP:
+    """Tests for fit_gp(noise_per_point=...) and replicate-derived variance."""
+
+    def test_noise_per_point_mismatch_shape_raises(self):
+        from doe.bo import fit_gp
+        rng = np.random.default_rng(0)
+        X = rng.uniform(-1, 1, size=(5, 2))
+        y = X[:, 0] + X[:, 1]
+        with pytest.raises(ValueError, match="noise_per_point shape"):
+            fit_gp(X, y, noise_per_point=np.zeros(3))
+
+    def test_high_noise_widens_posterior_variance(self):
+        from doe.bo import fit_gp, predict
+        rng = np.random.default_rng(0)
+        X = rng.uniform(-1, 1, size=(10, 2))
+        y = X[:, 0] + X[:, 1]
+        # Fit twice: once with no noise, once with large per-point noise.
+        gp_clean = fit_gp(X, y, seed=0)
+        gp_noisy = fit_gp(X, y, seed=0, noise_per_point=np.ones(10))
+        _, var_clean = predict(gp_clean, X)
+        _, var_noisy = predict(gp_noisy, X)
+        # Noisy fit should have strictly larger predictive variance at the
+        # training points (they're treated as uncertain, not pinned).
+        assert np.all(var_noisy >= var_clean - 1e-6)
+        assert np.mean(var_noisy) > np.mean(var_clean)
+
+    def test_per_point_noise_from_replicates(self):
+        from doe.adaptive import _per_point_noise_from_replicates
+        from doe.models import ExperimentRun
+        runs = [
+            ExperimentRun(run_id=1, block_id=1, factor_values={"x": "0", "y": "0"}),
+            ExperimentRun(run_id=2, block_id=1, factor_values={"x": "0", "y": "0"}),
+            ExperimentRun(run_id=3, block_id=1, factor_values={"x": "0", "y": "0"}),
+            ExperimentRun(run_id=4, block_id=1, factor_values={"x": "1", "y": "1"}),
+        ]
+        responses = {1: 1.0, 2: 1.5, 3: 2.0, 4: 5.0}
+        noise = _per_point_noise_from_replicates(runs, responses, ["x", "y"])
+        assert noise is not None
+        # The 3 replicates at (0,0) get the same variance:
+        assert noise[0] == noise[1] == noise[2]
+        # Variance of [1.0, 1.5, 2.0] with ddof=1 is 0.25
+        assert abs(noise[0] - 0.25) < 1e-9
+        # Singleton run gets the pooled variance (=0.25 here, only one group)
+        assert abs(noise[3] - 0.25) < 1e-9
+
+    def test_returns_none_without_replicates(self):
+        from doe.adaptive import _per_point_noise_from_replicates
+        from doe.models import ExperimentRun
+        runs = [
+            ExperimentRun(run_id=1, block_id=1, factor_values={"x": "0"}),
+            ExperimentRun(run_id=2, block_id=1, factor_values={"x": "1"}),
+        ]
+        assert _per_point_noise_from_replicates(runs, {1: 1.0, 2: 2.0}, ["x"]) is None
+
+
+class TestCalibrate:
+    """Tests for doe.calibrate.calibrate."""
+
+    def test_recovers_known_parameter(self, tmp_path):
+        from doe.calibrate import calibrate, CalibrationParam
+        from doe.models import ExperimentRun
+        runs = [
+            ExperimentRun(run_id=i + 1, block_id=1,
+                          factor_values={"x": str(x)})
+            for i, x in enumerate([-1, -0.5, 0, 0.5, 1])
+        ]
+        # True process: y = 2.5 * x + 0.3 (no noise)
+        observed = {r.run_id: {"y": 2.5 * float(r.factor_values["x"]) + 0.3}
+                    for r in runs}
+        def sim(factors, *, slope=1.0, intercept=0.0):
+            return {"y": slope * float(factors["x"]) + intercept}
+        params = [
+            CalibrationParam(name="slope", initial=1.0, low=-5.0, high=5.0),
+            CalibrationParam(name="intercept", initial=0.0, low=-2.0, high=2.0),
+        ]
+        result = calibrate(runs, observed, sim, params)
+        assert abs(result.fitted_params["slope"] - 2.5) < 1e-3
+        assert abs(result.fitted_params["intercept"] - 0.3) < 1e-3
+        # RMSE should improve dramatically
+        assert result.rmse_after < 1e-3
+        assert result.rmse_after < result.rmse_before
+
+    def test_per_response_rmse(self, tmp_path):
+        from doe.calibrate import calibrate, CalibrationParam
+        from doe.models import ExperimentRun
+        runs = [
+            ExperimentRun(run_id=i + 1, block_id=1,
+                          factor_values={"x": str(x)})
+            for i, x in enumerate([0, 1, 2])
+        ]
+        observed = {
+            r.run_id: {"y": float(r.factor_values["x"]),
+                       "z": float(r.factor_values["x"]) + 1}
+            for r in runs
+        }
+        def sim(factors, *, slope=0.5):
+            return {"y": slope * float(factors["x"]),
+                    "z": slope * float(factors["x"]) + 1}
+        params = [CalibrationParam(name="slope", initial=0.5, low=0.0, high=5.0)]
+        result = calibrate(runs, observed, sim, params)
+        assert "y" in result.per_response_rmse
+        assert "z" in result.per_response_rmse
+
+    def test_param_spec_parsing(self):
+        from doe.calibrate import parse_param_spec
+        # name:low:high
+        p1 = parse_param_spec("noise:0.0:1.0")
+        assert p1.name == "noise" and p1.low == 0.0 and p1.high == 1.0
+        assert p1.initial == 0.5
+        # name:initial:low:high
+        p2 = parse_param_spec("alpha:0.3:0.0:1.0")
+        assert p2.initial == 0.3 and p2.low == 0.0 and p2.high == 1.0
+        with pytest.raises(ValueError):
+            parse_param_spec("just_a_name")
+        with pytest.raises(ValueError):
+            parse_param_spec("alpha:1.0:0.0")  # reversed bounds
+
+    def test_load_observed_and_no_data_raises(self, tmp_path):
+        from doe.calibrate import load_observed
+        from doe.models import ExperimentRun
+        runs = [ExperimentRun(run_id=1, block_id=1, factor_values={"x": "0"})]
+        with pytest.raises(FileNotFoundError):
+            load_observed(str(tmp_path / "nope"), runs)
+        # Empty session dir → also raises
+        empty = tmp_path / "empty"
+        empty.mkdir()
+        with pytest.raises(FileNotFoundError, match="No usable"):
+            load_observed(str(empty), runs)
+
+
+class TestParallelRunner:
+    """Tests for the --parallel runner emission."""
+
+    def test_parallel_template_renders(self, tmp_path):
+        from doe.codegen import generate_script
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r"}],
+            operation="full_factorial",
+            test_script="./test.py",
+        )
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        out = tmp_path / "run.py"
+        rendered = generate_script(matrix, cfg, str(out), format="py",
+                                    parallel_workers=4)
+        assert "ThreadPoolExecutor" in rendered
+        assert "PARALLEL_WORKERS = 4" in rendered
+
+    def test_parallel_runner_executes(self, tmp_path):
+        """End-to-end: emit a parallel runner that calls a tiny test
+        script and verify all run_*.json files appear."""
+        from doe.codegen import generate_script
+        # Tiny test script that always emits {"r": 1.0}
+        test_script = tmp_path / "test.py"
+        test_script.write_text(
+            "#!/usr/bin/env python3\n"
+            "import sys, json\n"
+            "out = sys.argv[sys.argv.index('--out') + 1]\n"
+            "with open(out, 'w') as f:\n"
+            "    json.dump({'r': 1.0}, f)\n"
+        )
+        test_script.chmod(0o755)
+
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r"}],
+            operation="full_factorial",
+            test_script=str(test_script),
+        )
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        runner = tmp_path / "run.py"
+        generate_script(matrix, cfg, str(runner), format="py", parallel_workers=2)
+        result = subprocess.run(
+            [sys.executable, str(runner)],
+            capture_output=True, text=True,
+        )
+        assert result.returncode == 0, result.stderr
+        results_dir = Path(cfg.out_directory)
+        for run in matrix.runs:
+            assert (results_dir / f"run_{run.run_id}.json").exists()

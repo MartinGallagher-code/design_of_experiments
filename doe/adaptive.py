@@ -137,6 +137,11 @@ def plan_next_batch(
             valid_runs, responses, resp, cfg, matrix,
             adaptive_cfg.batch_size, max_run_id, seed=seed,
         )
+    elif adaptive_cfg.strategy == "multi_objective":
+        new_runs = _multi_objective_strategy(
+            valid_runs, results_dir, cfg, matrix,
+            adaptive_cfg.batch_size, max_run_id, seed=seed,
+        )
     else:  # balanced
         half = adaptive_cfg.batch_size // 2
         refine_n = max(1, half)
@@ -191,6 +196,195 @@ def _check_stopping(
             )
 
     return False, ""
+
+
+def _per_point_noise_from_replicates(
+    valid_runs, responses, factor_names: list[str],
+) -> np.ndarray | None:
+    """Estimate variance per training point from replicate scatter.
+
+    For each unique factor-setting tuple with k > 1 observations, compute
+    the unbiased sample variance ``Var = sum((y - mean)^2) / (k - 1)`` and
+    assign it to every replicate of that setting. Singletons fall back to
+    the pooled variance across all replicate groups (or zero if there
+    are no replicates at all → returns ``None`` so fit_gp uses a single
+    homoscedastic σ_n²).
+    """
+    from collections import defaultdict
+    groups: dict[tuple, list[int]] = defaultdict(list)
+    for i, run in enumerate(valid_runs):
+        key = tuple(run.factor_values.get(f, "") for f in factor_names)
+        groups[key].append(i)
+
+    has_replicate = any(len(idxs) > 1 for idxs in groups.values())
+    if not has_replicate:
+        return None
+
+    n = len(valid_runs)
+    noise = np.zeros(n)
+    pooled_sq_dev = 0.0
+    pooled_df = 0
+    group_var: dict[tuple, float] = {}
+    for key, idxs in groups.items():
+        if len(idxs) <= 1:
+            continue
+        vals = np.asarray([float(responses[valid_runs[i].run_id]) for i in idxs])
+        mean = vals.mean()
+        sq_dev = float(np.sum((vals - mean) ** 2))
+        var = sq_dev / (len(idxs) - 1)
+        group_var[key] = var
+        pooled_sq_dev += sq_dev
+        pooled_df += len(idxs) - 1
+    pooled_var = pooled_sq_dev / pooled_df if pooled_df > 0 else 0.0
+
+    for key, idxs in groups.items():
+        if key in group_var:
+            for i in idxs:
+                noise[i] = group_var[key]
+        else:
+            for i in idxs:
+                noise[i] = pooled_var
+    return noise
+
+
+def _multi_objective_strategy(
+    valid_runs, results_dir, cfg, matrix, batch_size, start_run_id,
+    seed: int | None = None,
+) -> list[ExperimentRun]:
+    """Multi-objective BO across every response in ``cfg.responses``.
+
+    Fits one GP per response and picks the batch via random Tchebycheff
+    scalarisations of expected improvement. Falls back to ``model_guided``
+    on the first response if the multi-objective fit fails (e.g. the
+    user only declared one response, or there's not enough data per
+    response).
+    """
+    from .bo import fit_gp, propose_batch_multi_objective
+    from .analysis import _load_all_results, _coerce_response_value
+
+    if len(cfg.responses) < 2:
+        # Reuse the single-response BO path for mono-objective cases.
+        responses_first = {r.run_id: float for r in valid_runs}  # placeholder
+        return _bayesian_strategy(
+            valid_runs,
+            _load_response_dict(matrix, results_dir, cfg.responses[0].name),
+            cfg.responses[0], cfg, matrix,
+            batch_size, start_run_id, seed=seed,
+        )
+
+    factor_names = matrix.factor_names
+    factor_map = {f.name: f for f in cfg.factors}
+
+    # Numeric factor selection (same gate as _bayesian_strategy)
+    numeric_names: list[str] = []
+    bounds_natural: list[tuple[float, float]] = []
+    for fname in factor_names:
+        f = factor_map[fname]
+        if f.type not in ("continuous", "ordinal"):
+            continue
+        try:
+            low = float(f.levels[0])
+            high = float(f.levels[1])
+        except (TypeError, ValueError, IndexError):
+            continue
+        if low == high:
+            continue
+        numeric_names.append(fname)
+        bounds_natural.append((min(low, high), max(low, high)))
+
+    if not numeric_names:
+        return _model_guided_strategy(
+            valid_runs,
+            _load_response_dict(matrix, results_dir, cfg.responses[0].name),
+            cfg.responses[0], cfg, matrix,
+            batch_size, np.random.default_rng(seed), start_run_id,
+        )
+
+    # Build the shared X matrix once
+    X_train = np.zeros((len(valid_runs), len(numeric_names)))
+    for i, run in enumerate(valid_runs):
+        for j, fname in enumerate(numeric_names):
+            low, high = bounds_natural[j]
+            try:
+                v = float(run.factor_values[fname])
+            except (TypeError, ValueError):
+                v = (low + high) / 2.0
+            X_train[i, j] = 2.0 * (v - low) / (high - low) - 1.0
+
+    gps = []
+    directions = []
+    for resp in cfg.responses:
+        responses = _load_response_dict(matrix, results_dir, resp.name)
+        # Restrict to runs that have a value for *this* response.
+        usable_idx = [i for i, run in enumerate(valid_runs)
+                      if run.run_id in responses]
+        if len(usable_idx) < 2:
+            return _bayesian_strategy(
+                valid_runs,
+                _load_response_dict(matrix, results_dir, cfg.responses[0].name),
+                cfg.responses[0], cfg, matrix,
+                batch_size, start_run_id, seed=seed,
+            )
+        X_resp = X_train[usable_idx]
+        y_resp = np.asarray(
+            [responses[valid_runs[i].run_id] for i in usable_idx], dtype=float,
+        )
+        try:
+            gp = fit_gp(X_resp, y_resp, seed=seed)
+        except Exception:
+            return _bayesian_strategy(
+                valid_runs,
+                _load_response_dict(matrix, results_dir, cfg.responses[0].name),
+                cfg.responses[0], cfg, matrix,
+                batch_size, start_run_id, seed=seed,
+            )
+        gps.append(gp)
+        directions.append(resp.optimize)
+
+    bounds = np.tile([-1.0, 1.0], (len(numeric_names), 1))
+    try:
+        proposed = propose_batch_multi_objective(
+            gps, bounds, batch_size, directions, seed=seed,
+        )
+    except Exception:
+        return _bayesian_strategy(
+            valid_runs,
+            _load_response_dict(matrix, results_dir, cfg.responses[0].name),
+            cfg.responses[0], cfg, matrix,
+            batch_size, start_run_id, seed=seed,
+        )
+
+    from .rsm import _format_factor_value
+    runs: list[ExperimentRun] = []
+    run_id = start_run_id
+    for coded_row in proposed:
+        run_id += 1
+        factor_values: dict[str, str] = {}
+        for j, fname in enumerate(numeric_names):
+            low, high = bounds_natural[j]
+            decoded = low + (coded_row[j] + 1.0) / 2.0 * (high - low)
+            factor_values[fname] = _format_factor_value(factor_map[fname], decoded)
+        for fname in factor_names:
+            if fname in factor_values:
+                continue
+            f = factor_map[fname]
+            factor_values[fname] = f.levels[0] if f.levels else ""
+        runs.append(ExperimentRun(
+            run_id=run_id, block_id=1, factor_values=factor_values,
+        ))
+    return runs
+
+
+def _load_response_dict(matrix, results_dir, response_name) -> dict[int, float]:
+    from .analysis import _load_all_results, _coerce_response_value
+    all_data = _load_all_results(matrix.runs, results_dir, partial=True)
+    out: dict[int, float] = {}
+    for run in matrix.runs:
+        data = all_data.get(run.run_id, {})
+        v = _coerce_response_value(data, response_name, run.run_id, results_dir)
+        if v is not None:
+            out[run.run_id] = v
+    return out
 
 
 def _bayesian_strategy(
@@ -248,8 +442,13 @@ def _bayesian_strategy(
             X_train[i, j] = 2.0 * (v - low) / (high - low) - 1.0
         y_train[i] = float(responses[run.run_id])
 
+    # Estimate per-point noise from replicates: any (factor_values) seen more
+    # than once contributes its sample variance to every replicate's diagonal
+    # entry. Singletons get the empirical pooled variance as a fallback.
+    noise = _per_point_noise_from_replicates(valid_runs, responses, factor_names)
+
     try:
-        gp = fit_gp(X_train, y_train, seed=seed)
+        gp = fit_gp(X_train, y_train, seed=seed, noise_per_point=noise)
     except Exception:
         return _model_guided_strategy(
             valid_runs, responses, resp, cfg, matrix,
