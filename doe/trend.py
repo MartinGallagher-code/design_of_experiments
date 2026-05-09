@@ -372,6 +372,7 @@ def export_trend_html(report: TrendReport, output_path: str) -> str:
             f'    <tbody>\n{means_rows}    </tbody>\n'
             '  </table>\n'
         )
+        means_plot = _render_means_lineplot(tr)
 
         intercept_html = ""
         if tr.intercept_drift_per_session == tr.intercept_drift_per_session:
@@ -417,6 +418,7 @@ def export_trend_html(report: TrendReport, output_path: str) -> str:
             f'  <summary><h2>Response: {_html.escape(tr.response_name)}</h2></summary>\n'
             f'  <div class="section-body">\n'
             f'{means_table}'
+            f'{means_plot}'
             f'{intercept_html}'
             f'{slope_html}'
             f'{note_html}'
@@ -445,6 +447,49 @@ def export_trend_html(report: TrendReport, output_path: str) -> str:
     with open(output_path, "w", encoding="utf-8") as fh:
         fh.write(page)
     return output_path
+
+
+def _render_means_lineplot(tr) -> str:
+    """Inline a per-session-mean line plot as base64 PNG. Returns "" if
+    matplotlib isn't available."""
+    try:
+        import io
+        import base64
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+    except Exception:
+        return ""
+    if not tr.per_session_means:
+        return ""
+    xs = list(range(len(tr.per_session_means)))
+    fig, ax = plt.subplots(figsize=(6.5, 2.6))
+    ax.plot(xs, tr.per_session_means, marker="o", color="steelblue",
+            linewidth=1.4)
+    if tr.intercept_drift_per_session == tr.intercept_drift_per_session:
+        # Overlay the regression line implied by intercept-drift.
+        if len(tr.per_session_means) >= 2:
+            base = tr.per_session_means[0]
+            line = [base + i * tr.intercept_drift_per_session for i in xs]
+            ax.plot(xs, line, linestyle="--", color="#c33", linewidth=1.0,
+                    label=f"drift slope {tr.intercept_drift_per_session:+.3f}/session")
+            ax.legend(loc="best", fontsize=8, frameon=False)
+    ax.set_xlabel("Session index (chronological)")
+    ax.set_ylabel(f"Mean {tr.response_name}")
+    ax.set_title(f"Per-session mean — {tr.response_name}")
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    fig.tight_layout()
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=110)
+    plt.close(fig)
+    encoded = base64.b64encode(buf.getvalue()).decode("ascii")
+    return (
+        f'  <div class="plot">\n'
+        f'    <img alt="Per-session mean trend" '
+        f'src="data:image/png;base64,{encoded}">\n'
+        f'  </div>\n'
+    )
 
 
 def export_trend_csv(report: TrendReport, output_dir: str) -> list[str]:

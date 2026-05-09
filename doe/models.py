@@ -228,6 +228,7 @@ class ResponseAnalysis:
     stationary_point: StationaryPoint | None = None
     achieved_power: AchievedPower | None = None
     cross_validation: CrossValidation | None = None
+    scheffe_model: "ScheffeModel | None" = None
 
 
 @dataclass
