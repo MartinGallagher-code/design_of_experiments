@@ -41,6 +41,7 @@ def plan_next_batch(
     adaptive_cfg: AdaptiveConfig,
     results_dir: str | None = None,
     seed: int | None = None,
+    state_name: str | None = None,
 ) -> tuple[DesignMatrix, AdaptiveState]:
     """Analyse existing results and generate the next batch of runs.
 
@@ -64,8 +65,11 @@ def plan_next_batch(
     """
     results_dir = results_dir or cfg.out_directory or "results"
 
-    # Load adaptive state
-    state = _load_state(results_dir)
+    # Adaptive state lives at the BASE level (not in any rotating session
+    # subdirectory) so phase history survives `--session` switches. The
+    # caller can branch trajectories via state_name → adaptive_state_<name>.json.
+    state_dir = cfg.out_directory or results_dir
+    state = _load_state(state_dir, state_name=state_name)
     if state is None:
         state = AdaptiveState(phase=0, total_runs=0)
 
@@ -111,7 +115,7 @@ def plan_next_batch(
     if should_stop:
         state.should_stop = True
         state.stop_reason = stop_reason
-        _save_state(state, results_dir)
+        _save_state(state, state_dir, state_name=state_name)
         return DesignMatrix(runs=[], factor_names=matrix.factor_names,
                            operation="adaptive", metadata={}), state
 
@@ -159,7 +163,7 @@ def plan_next_batch(
         "n_runs": len(new_runs),
         "strategy": adaptive_cfg.strategy,
     })
-    _save_state(state, results_dir)
+    _save_state(state, state_dir, state_name=state_name)
 
     new_matrix = DesignMatrix(
         runs=new_runs,
@@ -871,9 +875,19 @@ def _explore_strategy(
     return runs
 
 
-def _load_state(results_dir: str) -> AdaptiveState | None:
-    """Load adaptive state from JSON file."""
-    path = os.path.join(results_dir, "adaptive_state.json")
+def _state_filename(state_name: str | None) -> str:
+    if not state_name:
+        return "adaptive_state.json"
+    safe = "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in state_name)
+    safe = safe.strip("_") or "state"
+    return f"adaptive_state_{safe}.json"
+
+
+def _load_state(
+    results_dir: str, state_name: str | None = None,
+) -> AdaptiveState | None:
+    """Load adaptive state from ``adaptive_state[_<name>].json`` in *results_dir*."""
+    path = os.path.join(results_dir, _state_filename(state_name))
     if not os.path.exists(path):
         return None
     with open(path) as f:
@@ -887,9 +901,11 @@ def _load_state(results_dir: str) -> AdaptiveState | None:
     )
 
 
-def _save_state(state: AdaptiveState, results_dir: str) -> None:
-    """Save adaptive state to JSON file."""
+def _save_state(
+    state: AdaptiveState, results_dir: str, state_name: str | None = None,
+) -> None:
+    """Save adaptive state to ``adaptive_state[_<name>].json`` in *results_dir*."""
     os.makedirs(results_dir, exist_ok=True)
-    path = os.path.join(results_dir, "adaptive_state.json")
+    path = os.path.join(results_dir, _state_filename(state_name))
     with open(path, "w") as f:
         json.dump(asdict(state), f, indent=2)

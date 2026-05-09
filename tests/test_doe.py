@@ -5191,3 +5191,200 @@ class TestTrendPlotEmbedding:
         body = out_html.read_text()
         assert "Per-session mean trend" in body or 'class="plot"' in body
         assert 'src="data:image/png;base64,' in body
+
+
+class TestDOptimalAugment:
+    """Tests for `doe augment --type d_optimal`."""
+
+    def _existing_design(self, tmp_path, n=4):
+        from doe.config import load_config
+        from doe.design import generate_design
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "z", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r"}],
+            operation="fractional_factorial",
+        )
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        return cfg, matrix
+
+    def test_augment_appends_d_optimal_runs(self, tmp_path):
+        from doe.design import augment_design
+        cfg, matrix = self._existing_design(tmp_path)
+        # cfg.lhs_samples acts as the "augmentation count" knob for d_optimal.
+        cfg.lhs_samples = 3
+        augmented = augment_design(matrix, cfg, augment_type="d_optimal")
+        assert len(augmented.runs) == len(matrix.runs) + 3
+        # All new runs use valid level values for each factor
+        for run in augmented.runs[len(matrix.runs):]:
+            for fname in matrix.factor_names:
+                v = run.factor_values[fname]
+                # Either an original level or an inserted midpoint
+                assert v in {"-1", "0", "1"}
+        # Augmented metadata sets n_augmented_runs = 3
+        assert augmented.metadata["n_augmented_runs"] == 3
+
+    def test_default_augment_count(self, tmp_path):
+        from doe.design import augment_design
+        cfg, matrix = self._existing_design(tmp_path)
+        # cfg.lhs_samples = 0 (default) → max(4, n_factors+1) = 4 for k=3
+        augmented = augment_design(matrix, cfg, augment_type="d_optimal")
+        assert augmented.metadata["n_augmented_runs"] >= 4
+
+    def test_d_optimal_increases_information(self, tmp_path):
+        """Augmenting with D-optimal should produce a det(X'X) at least as
+        large as a random pick of the same size. Approximate: compare to
+        the existing det."""
+        import numpy as np
+        from doe.design import augment_design
+        from doe.rsm import _build_design_matrix
+        cfg, matrix = self._existing_design(tmp_path)
+        cfg.lhs_samples = 4
+        augmented = augment_design(matrix, cfg, augment_type="d_optimal")
+
+        X_before, _ = _build_design_matrix(
+            list(matrix.runs), matrix.factor_names, cfg.factors,
+            model_type="linear",
+        )
+        X_after, _ = _build_design_matrix(
+            list(augmented.runs), augmented.factor_names, cfg.factors,
+            model_type="linear",
+        )
+        det_before = np.linalg.det(X_before.T @ X_before)
+        det_after = np.linalg.det(X_after.T @ X_after)
+        assert det_after >= det_before
+
+    def test_invalid_type_raises(self, tmp_path):
+        from doe.design import augment_design
+        cfg, matrix = self._existing_design(tmp_path)
+        with pytest.raises(ValueError, match="Unknown augment_type"):
+            augment_design(matrix, cfg, augment_type="bogus")
+
+
+class TestSensitivityHtml:
+    """Tests for the new doe.sensitivity HTML output."""
+
+    def test_html_export_contains_stacked_bar(self, tmp_path):
+        from doe.sensitivity import (
+            sobol_indices, make_rsm_predictor, export_sensitivity_html,
+        )
+        coefs = {"intercept": 0.0, "x": 2.0, "y": 3.0}
+        pred = make_rsm_predictor(
+            coefs, factor_names=["x", "y"],
+            bounds=[(-1.0, 1.0), (-1.0, 1.0)],
+        )
+        result = sobol_indices(
+            pred, factor_names=["x", "y"], bounds=[(-1.0, 1.0), (-1.0, 1.0)],
+            response_name="yield", n_base_samples=64, seed=0,
+        )
+        out = tmp_path / "sens.html"
+        export_sensitivity_html([result], str(out))
+        body = out.read_text()
+        assert "Sobol Sensitivity" in body
+        # Inline PNG present
+        assert 'src="data:image/png;base64,' in body
+        assert "yield" in body
+
+    def test_html_handles_empty_indices(self, tmp_path):
+        from doe.sensitivity import SensitivityResult, export_sensitivity_html
+        result = SensitivityResult(
+            response_name="constant_resp",
+            n_base_samples=64, n_evaluations=128,
+            indices=[],
+            notes=["surrogate is constant"],
+        )
+        out = tmp_path / "empty.html"
+        export_sensitivity_html([result], str(out))
+        body = out.read_text()
+        assert "constant_resp" in body
+        assert "constant" in body
+
+
+class TestBranchedAdaptiveState:
+    """Tests for the BASE-level state file + --state-name branching."""
+
+    def test_state_filename_default(self):
+        from doe.adaptive import _state_filename
+        assert _state_filename(None) == "adaptive_state.json"
+
+    def test_state_filename_with_name(self):
+        from doe.adaptive import _state_filename
+        assert _state_filename("trial-A") == "adaptive_state_trial-A.json"
+
+    def test_state_filename_sanitises(self):
+        """Disallowed characters become underscores."""
+        from doe.adaptive import _state_filename
+        assert _state_filename("my path/with weird chars") == \
+            "adaptive_state_my_path_with_weird_chars.json"
+        # Empty after sanitisation -> falls back to 'state'
+        assert _state_filename("///") == "adaptive_state_state.json"
+
+    def test_branching_isolates_phase_history(self, tmp_path):
+        from doe.adaptive import _save_state, _load_state, AdaptiveState
+        results_dir = str(tmp_path / "results")
+        _save_state(AdaptiveState(phase=3, total_runs=12), results_dir)
+        _save_state(AdaptiveState(phase=1, total_runs=4),
+                    results_dir, state_name="branch-A")
+        # Default state untouched
+        default = _load_state(results_dir)
+        assert default.phase == 3
+        # Named state has its own phase
+        branch = _load_state(results_dir, state_name="branch-A")
+        assert branch.phase == 1
+
+    def test_state_persists_across_sessions(self, tmp_path):
+        """plan_next_batch reads/writes state at cfg.out_directory, not at
+        the (potentially rotating) <results-dir>/latest target."""
+        from doe.adaptive import (
+            plan_next_batch, AdaptiveConfig, AdaptiveState, _save_state, _load_state,
+        )
+        from doe.config import load_config
+        from doe.design import generate_design
+
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r", "optimize": "maximize"}],
+            operation="full_factorial",
+        )
+        out_directory = str(tmp_path / "results")
+        cfg_dict["settings"]["out_directory"] = out_directory
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+
+        # Two "session" subdirs each holding the same factor-result data.
+        for sess_name in ("v1", "v2"):
+            session_dir = Path(out_directory) / sess_name
+            session_dir.mkdir(parents=True, exist_ok=True)
+            for run in matrix.runs:
+                x = float(run.factor_values["x"])
+                y = float(run.factor_values["y"])
+                (session_dir / f"run_{run.run_id}.json").write_text(
+                    json.dumps({"r": x + y})
+                )
+
+        ac = AdaptiveConfig(strategy="refine", batch_size=2,
+                            stopping_max_phases=10)
+        _, state1 = plan_next_batch(
+            matrix, cfg, ac,
+            results_dir=str(Path(out_directory) / "v1"), seed=0,
+        )
+        # Force a fresh in-memory call against the second "session"; the
+        # state file should still live at out_directory and reflect
+        # state1.phase + 1.
+        _, state2 = plan_next_batch(
+            matrix, cfg, ac,
+            results_dir=str(Path(out_directory) / "v2"), seed=0,
+        )
+        assert state2.phase > state1.phase
+
+        # Confirm the file is at the BASE level, not in a session subdir
+        assert (Path(out_directory) / "adaptive_state.json").exists()
+        assert not (Path(out_directory) / "v1" / "adaptive_state.json").exists()

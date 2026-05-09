@@ -769,6 +769,95 @@ def _d_optimal(cfg: DOEConfig) -> list[ExperimentRun]:
     return design_to_runs(current_design)
 
 
+def _d_optimal_augment(
+    existing_runs: list[ExperimentRun],
+    cfg: DOEConfig,
+    n_new: int,
+    max_run_id: int,
+    max_block_id: int,
+) -> list[ExperimentRun]:
+    """Pick *n_new* candidate rows that maximise det(X'X) for the pooled
+    design. Existing rows are kept fixed; new rows come from a candidate
+    set of corner + midpoint level combinations.
+
+    Uses coordinate exchange: start from a random subset, then for each
+    new row try every candidate and pick the one that gives the largest
+    determinant. Iterate until no swap improves the score.
+    """
+    import numpy as np
+    from .rsm import _build_design_matrix
+
+    factor_names = [f.name for f in cfg.factors]
+
+    # Same enrichment as _d_optimal: 2-level continuous factors get a midpoint.
+    enriched_levels = []
+    for f in cfg.factors:
+        if f.type in ("continuous", "ordinal") and len(f.levels) == 2:
+            try:
+                low = float(f.levels[0])
+                high = float(f.levels[1])
+                mid = (low + high) / 2.0
+                enriched_levels.append([f"{low:g}", f"{mid:g}", f"{high:g}"])
+                continue
+            except (TypeError, ValueError):
+                pass
+        enriched_levels.append(list(f.levels))
+    candidates = list(itertools.product(*enriched_levels))
+
+    rng = np.random.default_rng(42)
+
+    def runs_for(combos: list[tuple]) -> list[ExperimentRun]:
+        out: list[ExperimentRun] = []
+        rid = max_run_id
+        for combo in combos:
+            rid += 1
+            out.append(ExperimentRun(
+                run_id=rid, block_id=max_block_id + 1,
+                factor_values=dict(zip(factor_names, combo)),
+            ))
+        return out
+
+    def score(extra_combos: list[tuple]) -> float:
+        pooled = list(existing_runs) + runs_for(extra_combos)
+        try:
+            X, _ = _build_design_matrix(pooled, factor_names, cfg.factors,
+                                          model_type="linear")
+            return float(np.linalg.det(X.T @ X))
+        except Exception:
+            return 0.0
+
+    if not candidates:
+        return list(existing_runs)
+    if len(candidates) <= n_new:
+        return list(existing_runs) + runs_for(list(candidates))
+
+    # Initial: random subset
+    init_idx = rng.choice(len(candidates), size=n_new, replace=False)
+    current = [candidates[int(i)] for i in init_idx]
+    best_score = score(current)
+
+    improved = True
+    iteration = 0
+    while improved and iteration < 200:
+        improved = False
+        iteration += 1
+        for slot in range(n_new):
+            saved = current[slot]
+            for cand in candidates:
+                if cand == saved:
+                    continue
+                trial = list(current)
+                trial[slot] = cand
+                s = score(trial)
+                if s > best_score * (1 + 1e-9):
+                    current = trial
+                    best_score = s
+                    improved = True
+                    break
+
+    return list(existing_runs) + runs_for(current)
+
+
 def augment_design(
     existing_matrix: DesignMatrix,
     cfg: DOEConfig,
@@ -871,8 +960,22 @@ def augment_design(
                 factor_values=vals,
             ))
 
+    elif augment_type == "d_optimal":
+        # Append N D-optimal runs that maximise det(X'X) for the *pooled*
+        # design (existing rows treated as fixed, new rows chosen by
+        # coordinate exchange from a candidate set of corner+midpoint
+        # combinations). Defaults to 4 new runs; override via
+        # cfg.lhs_samples (reused as a "how many augmentation runs?" knob).
+        n_new = cfg.lhs_samples if cfg.lhs_samples > 0 else max(4, len(cfg.factors) + 1)
+        new_runs = _d_optimal_augment(existing_runs, cfg, n_new, max_run_id, max_block_id)
+        max_block_id = max(r.block_id for r in new_runs)
+        max_run_id = max(r.run_id for r in new_runs)
+
     else:
-        raise ValueError(f"Unknown augment_type: {augment_type}. Choose from: fold_over, star_points, center_points")
+        raise ValueError(
+            f"Unknown augment_type: {augment_type}. Choose from: "
+            "fold_over, star_points, center_points, d_optimal"
+        )
 
     return DesignMatrix(
         runs=new_runs,

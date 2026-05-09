@@ -11,25 +11,61 @@ A Python CLI tool that automates the creation and analysis of experimental desig
 
 The project includes **221 worked use cases** spanning HPC, cloud infrastructure, networking, food science, agriculture, manufacturing, sports, and many more domains — each with a full configuration, simulated results, and analysis walkthrough. Browse them on the [project website](https://doehelper.com/).
 
+## Documentation
+
+- **[User guide](docs/user_guide.md)** — five-step workflow tour from first config to a finished report.
+- **[Command reference](docs/commands.md)** — one-line-per-subcommand cheat sheet.
+- **[Adaptive strategies](docs/strategies.md)** — when to pick `refine` / `bayesian` / `multi_objective` etc.
+- **[Config reference](docs/config.md)** — every recognised JSON key, default, and constraint.
+
 ## Features
 
-- **Multiple design strategies**: Full-factorial, Fractional Factorial, Plackett-Burman, Latin Hypercube, Central Composite, Box-Behnken, Definitive Screening, Taguchi, D-optimal, and Mixture designs
-- **ANOVA tables**: Full analysis of variance with F-tests, p-values, and Lenth's pseudo-standard-error for unreplicated designs
-- **Multi-response analysis**: Analyze multiple response variables per experiment with per-response optimization direction
-- **Main effects & interaction effects**: Compute main effects, two-factor interactions, confidence intervals, and summary statistics
-- **Model diagnostics**: Residual plots, normal probability plots, leverage analysis, PRESS statistic, and predicted R²
-- **Visualization**: Pareto charts, main effects plots, normal/half-normal probability plots, model diagnostic panels, and 3D response surface plots
-- **True surface optimization**: Find the actual optimum of fitted RSM surfaces using scipy.optimize (L-BFGS-B with multi-start)
-- **Steepest ascent/descent**: Generate follow-up experiment pathways along the gradient direction
-- **Power analysis**: Compute statistical power for each factor to guide sample size decisions
-- **Design evaluation**: D-efficiency, A-efficiency, and G-efficiency metrics
-- **Design augmentation**: Extend existing designs with fold-over, star points, or center points
-- **Alias structure analysis**: Display confounding patterns for fractional factorial designs
-- **Runner script generation**: Bash or Python scripts with three argument styles (double-dash, env, positional)
-- **Blocking & randomization**: Statistically correct within-block randomization
-- **CSV export**: Export analysis results to CSV for further processing
-- **HTML reports**: Self-contained interactive reports with embedded plots and ANOVA tables
-- **Error recovery**: Generated runner scripts handle per-run failures gracefully
+### Bootstrap & scaffolding
+- **`doe init --factors N --budget K --goal screening|response_surface|optimization`** writes a working starter `config.json` (with `--with-test` it also scaffolds `test.py`).
+- **`doe suggest`** explains the design choice for any factor count + budget.
+- **`doe scaffold-config`** drops an annotated `config.json` with `_<key>_options` showing the alternatives; **`doe scaffold-test`** writes a test-script stub matching the configured `arg_style`.
+- **`doe init --template <name>`** extracts one of the built-in use-case templates.
+
+### Design generation
+- 14 design strategies: full-factorial, fractional factorial (with `--resolution N` to bump run count until the requested resolution is achievable), Plackett-Burman, Latin Hypercube, central composite, Box-Behnken, definitive screening, Taguchi, D-optimal (with interior-point candidate set), mixture simplex-lattice / centroid, linear / log sweep, **split-plot** with role-based whole-plot / subplot factors.
+- **Constraints**: filter generated runs through Python expressions like `"x + y <= 1"` parsed with an AST allow-list.
+- **Blocking & centre-point replication**: `block_count`, `replicate_center N` per block.
+- **Integer factors**: `Factor.dtype: "int"` rounds and clamps recommended setpoints from every optimiser.
+- **Runner backends**: bash (`--format sh`), Python (`--format py`), parallel thread-pool (`--parallel N`), Slurm sbatch array (`--executor slurm` with full `--slurm-{partition,time,cpus-per-task,mem,max-concurrent}` plumbing).
+- **Sessions**: `--session [PREFIX]` writes each runner invocation to `<out>/<PREFIX>-<TIMESTAMP>/` and updates `<out>/latest`.
+
+### Running
+- **`doe simulate --func module:fn`** drives the design directly from a Python function — no shell.
+- **`doe record --run N`** enters results interactively.
+- **`doe status`** shows progress.
+
+### Analysis
+- **ANOVA**: five error paths chosen automatically (pooled / replicates / Lenth's PSE for unreplicated / split-plot two-error / blocked).
+- **Main effects**, two-factor interactions, ordinal trend decomposition (linear + quadratic for >2-level factors).
+- **Model adequacy**: PRESS / predicted R², Shapiro-Wilk normality, Durbin-Watson, run-order drift, leverage and Cook's distance with the `F(0.5, p, n-p)` cutoff.
+- **Stationary point** classification from Hessian eigenvalues — maximum / minimum / saddle / ridge / rising_ridge with the indeterminate axis surfaced.
+- **Achieved power** from the actual residual MS — per-factor power and minimum detectable effect.
+- **Cross-validation**: k-fold predicted-vs-actual with RMSE / MAE / R²<sub>cv</sub>.
+- **Alias structure** for fractional-factorial / Plackett-Burman.
+- **Scheffé canonical form** for mixture designs.
+- **Knee-point detection** for saturating curves.
+- **Sobol sensitivity** (`doe sensitivity`) — first-order and total-order indices on the fitted RSM via Saltelli sampling.
+
+### Optimisation & iteration
+- **`doe optimize`** — true surface optimum (L-BFGS-B with multi-start), multi-objective desirability, steepest ascent / descent.
+- **`doe next-batch`** — six adaptive strategies: `refine`, `explore`, `balanced`, `model_guided` (RSM optimum + max-leverage), `bayesian` (numpy-only Gaussian process + Expected Improvement, q-EI via constant-liar fantasising, mixed numeric + one-hot categorical encoder, heteroscedastic noise from replicate scatter), `multi_objective` (per-response GPs + random Tchebycheff scalarisation).
+- **`doe calibrate`** fits free parameters in a parametric simulator to observed data.
+
+### Comparing & reporting
+- **`doe compare --baseline DIR --candidate DIR`** — paired-run delta + Cohen's d, per-factor effect delta with sign-flip flag, intercept-shift vs slope-shift decomposition, embedded delta dotplot.
+- **`doe trend --sessions DIR1 DIR2 …`** — multi-session regression with per-session means and per-step intercept / slope drift; embedded line plot.
+- **`doe report`** — self-contained interactive HTML with sticky table-of-contents and embedded plots.
+- **`doe archive`** — bundles a session into a tarball with a SHA-256 manifest.
+- **`doe serve --root results/`** — stdlib HTTP localhost browser for sessions.
+
+### Power & quality
+- **`doe power`** — prospective power analysis (`--sigma`, `--delta`) plus the post-hoc achieved-power block in every `doe analyze`.
+- **D-efficiency / A-efficiency / G-efficiency** metrics in `doe info`.
 
 ## Installation
 
@@ -60,49 +96,61 @@ pip install -e ".[dev]"
 
 ## Quick Start
 
+The five-step workflow:
+
 ```bash
-# List available built-in templates
-doe init --list
+# 1. Bootstrap a config + a starter test.py from your situation.
+doe init --factors 3 --budget 30 --goal response_surface --with-test
 
-# Create a new experiment from a template
-doe init --template reactor_optimization
+# 2. Edit the placeholder factor / response names and the TODO block in test.py.
 
-# Preview the design matrix (no files written)
-doe generate --config config.json --dry-run
+# 3. Generate the runner script (with optional sessions + parallelism).
+doe generate --config config.json --session baseline --parallel 4
 
-# Generate a runner script
-doe generate --config config.json --output run.sh --seed 42
+# 4. Run the experiments.
+bash run_experiments.sh
 
-# Run the experiments
-bash run.sh
-
-# Analyze results (with ANOVA, plots, and diagnostics)
+# 5. Analyse — produces a console report plus self-contained HTML.
 doe analyze --config config.json
-
-# Export analysis results to CSV
-doe analyze --config config.json --csv results/csv
-
-# Show design summary with evaluation metrics
-doe info --config config.json
-
-# Get optimization recommendations (with true surface optimization)
-doe optimize --config config.json
-
-# Multi-objective optimization using desirability functions
-doe optimize --config config.json --multi
-
-# Show steepest ascent/descent pathway
-doe optimize --config config.json --steepest
-
-# Compute statistical power for each factor
-doe power --config config.json --sigma 2.0 --delta 5.0
-
-# Augment an existing design with fold-over runs
-doe augment --config config.json --type fold_over
-
-# Generate an interactive HTML report
-doe report --config config.json --output report.html
 ```
+
+Other things you can do once you have results:
+
+```bash
+# Recommend a design without committing to it
+doe suggest --factors 7 --budget 12 --goal screening
+
+# Iterate with Bayesian optimisation on a GP surrogate
+doe next-batch --config config.json     # uses cfg.adaptive.strategy
+bash run_next_batch.sh
+
+# Browse sessions on localhost
+doe serve --root results/
+
+# Variance-based sensitivity over the fitted surrogate
+doe sensitivity --config config.json --n-samples 1024 --csv sobol.csv
+
+# Bundle a session for sharing or filing with a regulator
+doe archive --session results/baseline --output baseline.tar.gz \
+            --config config.json --extra results/report.html
+
+# Compare two sessions, or trend-fit across N sessions
+doe compare --config config.json --baseline results/v1 --candidate results/latest --html compare.html
+doe trend   --config config.json --sessions results/v1 results/v2 results/v3 --html trend.html
+
+# Calibrate a parametric simulator against observed data
+doe calibrate --config config.json --func sim.py:simulate \
+              --params slope:-5:5 intercept:-2:2 --observed results/baseline
+```
+
+Or extract one of the built-in use-case templates:
+
+```bash
+doe init --list
+doe init --template reactor_optimization
+```
+
+For the full step-by-step tour see **[docs/user_guide.md](docs/user_guide.md)**.
 
 ## Configuration
 
