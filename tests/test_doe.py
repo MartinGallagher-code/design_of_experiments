@@ -3205,3 +3205,167 @@ class TestCompareSessions:
         # Sanity: paired t-test is meaningful when deltas are constant +1
         rc = report.responses[0]
         assert rc.mean_delta - 1.0 < 1e-9
+
+    def test_html_export(self, tmp_path):
+        from doe.compare import compare_sessions, export_compare_html
+        cfg, _, b, c = self._build_two_sessions(
+            tmp_path,
+            baseline_fn=lambda x, y: x + y,
+            candidate_fn=lambda x, y: x + y + 1.5,
+        )
+        report = compare_sessions(cfg, b, c)
+        out_html = tmp_path / "compare.html"
+        export_compare_html(report, str(out_html))
+        body = out_html.read_text()
+        assert "Comparison Summary" in body
+        assert "Response: r" in body or "Response: r" in body
+        assert 'class="data-table"' in body
+        assert "Δ Decomposition" in body or "Δ" in body
+
+    def test_decomposition_isolates_uniform_shift(self, tmp_path):
+        """When candidate = baseline + 5, intercept_shift should pick up
+        the shift while slope_shifts stay statistically null."""
+        from doe.compare import compare_sessions
+        cfg, _, b, c = self._build_two_sessions(
+            tmp_path,
+            baseline_fn=lambda x, y: 10 + 3 * x + y,
+            candidate_fn=lambda x, y: 10 + 3 * x + y + 5.0,
+        )
+        report = compare_sessions(cfg, b, c)
+        rc = report.responses[0]
+        assert rc.decomposition is not None
+        dc = rc.decomposition
+        assert abs(dc.intercept_shift - 5.0) < 1e-6
+        # All slope shifts ~0 because the candidate slopes match the baseline
+        for fname, shift, _p in dc.slope_shifts:
+            assert abs(shift) < 1e-6, f"{fname} slope shift was {shift}"
+
+    def test_decomposition_picks_up_slope_change(self, tmp_path):
+        """Reversing one factor's effect → slope shift = 4·γ ≈ effect_delta."""
+        from doe.compare import compare_sessions
+        cfg, _, b, c = self._build_two_sessions(
+            tmp_path,
+            baseline_fn=lambda x, y: 10 + 3 * x + y,
+            candidate_fn=lambda x, y: 10 - 3 * x + y,
+        )
+        report = compare_sessions(cfg, b, c)
+        rc = report.responses[0]
+        dc = rc.decomposition
+        # Find the per-factor effect delta and the slope shift; they
+        # should match (within numerical tolerance) for two-level designs.
+        effect_x = next(e for e in rc.effect_deltas if e.factor_name == "x")
+        slope_x = next(s for s in dc.slope_shifts if s[0] == "x")[1]
+        assert abs(slope_x - effect_x.delta) < 1e-6
+        # x slope flipped from +3 to -3 → effect goes from +6 to -6 → delta = -12
+        assert abs(slope_x - (-12.0)) < 1e-6
+
+    def test_decomposition_skipped_for_multilevel(self, tmp_path):
+        """Multi-level factors are out-of-scope for the v1 regression."""
+        from doe.compare import compare_sessions
+        cfg, _, b, c = self._build_two_sessions(
+            tmp_path,
+            baseline_fn=lambda x, y, z: x + y + z,
+            candidate_fn=lambda x, y, z: x + y + z + 1.0,
+            factors=[
+                {"name": "x", "levels": ["-1", "0", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "z", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+        )
+        report = compare_sessions(cfg, b, c)
+        rc = report.responses[0]
+        assert rc.decomposition is not None
+        # df_error = 0 signals the regression was skipped, but the notes
+        # explain why.
+        assert rc.decomposition.df_error == 0
+        assert any("Decomposition skipped" in n for n in rc.decomposition.notes)
+
+
+class TestFFResolutionKnob:
+    """Tests for the `--resolution N` / cfg.min_resolution knob."""
+
+    def _make_cfg(self, tmp_path, n_factors, min_resolution=0):
+        cfg_dict = _make_config_dict(
+            factors=[{"name": chr(ord("A") + i), "levels": ["-1", "1"]}
+                     for i in range(n_factors)],
+            responses=[{"name": "y"}],
+            operation="fractional_factorial",
+        )
+        cfg_dict["settings"]["min_resolution"] = min_resolution
+        return load_config(_write_config(tmp_path, cfg_dict), strict=False)
+
+    def test_default_picks_higher_resolution_when_free(self, tmp_path):
+        from doe.aliasing import compute_alias_structure
+        cfg = self._make_cfg(tmp_path, 4)  # min_resolution=0 (auto)
+        matrix = generate_design(cfg, seed=1)
+        ali = compute_alias_structure(matrix)
+        # 2^(4-1) has a Resolution IV option (I=ABCD) — auto must pick it.
+        assert ali.resolution >= 4
+
+    def test_pin_resolution_v_bumps_run_count(self, tmp_path):
+        from doe.aliasing import compute_alias_structure
+        small = generate_design(self._make_cfg(tmp_path, 4, 0), seed=1)
+        big = generate_design(self._make_cfg(tmp_path, 4, 5), seed=1)
+        ali_small = compute_alias_structure(small)
+        ali_big = compute_alias_structure(big)
+        assert ali_big.resolution >= 5
+        # And the pinned design should be at least as large as the free one
+        assert len(big.runs) >= len(small.runs)
+
+    def test_pin_unachievable_falls_back_to_full_factorial(self, tmp_path):
+        # Asking for resolution that doesn't exist → fall back to full-factorial-style
+        cfg = self._make_cfg(tmp_path, 3, min_resolution=99)
+        matrix = generate_design(cfg, seed=1)
+        # 3 factors, full factorial = 8 runs
+        assert len(matrix.runs) == 8
+
+
+class TestReplicateAnova:
+    """End-to-end test that pure-error / lack-of-fit rows fill in when
+    the design has true replicates."""
+
+    def test_pure_error_row_populated(self, tmp_path):
+        from doe.analysis import analyze
+        from doe.models import ExperimentRun, DesignMatrix
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r"}],
+            operation="full_factorial",
+        )
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        # Append 3 replicated runs at the (-1, -1) corner so we have pure error.
+        replicate_id_start = max(r.run_id for r in matrix.runs) + 1
+        rep_runs = [
+            ExperimentRun(run_id=replicate_id_start + i, block_id=1,
+                          factor_values={"x": "-1", "y": "-1"})
+            for i in range(3)
+        ]
+        all_runs = list(matrix.runs) + rep_runs
+        matrix = DesignMatrix(runs=all_runs, factor_names=matrix.factor_names,
+                              operation=matrix.operation, metadata=matrix.metadata)
+
+        results_dir = Path(cfg.out_directory)
+        results_dir.mkdir(parents=True, exist_ok=True)
+        import random
+        random.seed(0)
+        for run in all_runs:
+            x = float(run.factor_values["x"])
+            y = float(run.factor_values["y"])
+            val = 1.0 + 2 * x + y + random.gauss(0, 0.1)
+            (results_dir / f"run_{run.run_id}.json").write_text(json.dumps({"r": val}))
+
+        report = analyze(matrix, cfg, results_dir=str(results_dir), no_plots=True)
+        anova = report.results_by_response["r"].anova_table
+        assert anova is not None
+        assert anova.error_method == "replicates"
+        assert anova.pure_error_row is not None
+        assert anova.pure_error_row.df > 0
+        # Error row must mirror pure-error (no longer the stale pooled SS)
+        assert anova.error_row is not None
+        assert abs(anova.error_row.ss - anova.pure_error_row.ss) < 1e-9
+        assert anova.error_row.df == anova.pure_error_row.df

@@ -662,7 +662,11 @@ def _compute_anova(
             source="Pure Error", df=df_pure_error,
             ss=ss_pure_error, ms=ms_pure_error,
         )
+        # F-tests of model terms use pure error as the denominator: keep
+        # the headline Error row coherent with that choice.
         ms_error = ms_pure_error
+        df_error = df_pure_error
+        ss_error = ss_pure_error
         error_method = "replicates"
     elif df_error > 0:
         ms_error = ss_error / df_error

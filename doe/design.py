@@ -244,18 +244,57 @@ def _best_generator_choice(
         # Fall back to the longest-first greedy assignment
         return pool[:n_extra]
 
-    # Score each candidate by the maximum |correlation| seen between any
-    # main effect and any 2FI, and any two distinct 2FIs. The lower this
-    # value, the higher the resolution.
+    # Score each candidate lexicographically by:
+    #   1. max |correlation| between a main effect and a 2FI  (lower -> higher resolution)
+    #   2. max |correlation| between two distinct 2FIs        (tie-breaker)
+    # This separates Resolution III, IV, and V cleanly.
     n_factors = len(factor_names)
-    best_score = float("inf")
+    best_key: tuple[float, float] = (float("inf"), float("inf"))
     best_combo = base_runs_per_candidate[0][0]
     for combo, mat in base_runs_per_candidate:
-        score = _alias_score(mat[:, :n_factors])
-        if score < best_score - 1e-9:
-            best_score = score
+        me_2fi, twofi = _resolution_diagnostics(mat[:, :n_factors])
+        key = (me_2fi, twofi)
+        if key < best_key:
+            best_key = key
             best_combo = combo
     return list(best_combo)
+
+
+def _design_resolution(coded_design) -> int:
+    """Estimate the resolution of a 2-level coded design.
+
+    Resolution III: main effects fully aliased with at least one 2FI.
+    Resolution IV : main effects clean of 2FIs, but 2FIs aliased in pairs.
+    Resolution V+ : all 2FIs orthogonal to each other.
+    """
+    score_me_2fi, score_2fi_2fi = _resolution_diagnostics(coded_design)
+    if score_me_2fi > 1.0 - 1e-6:
+        return 3
+    if score_2fi_2fi > 1.0 - 1e-6:
+        return 4
+    return 5
+
+
+def _resolution_diagnostics(coded_design):
+    """Return (max |corr| ME-vs-2FI, max |corr| between 2FIs)."""
+    import numpy as np
+    from itertools import combinations as _combinations
+    n, k = coded_design.shape
+    if k < 2:
+        return 0.0, 0.0
+    twofi_pairs = list(_combinations(range(k), 2))
+    twofi = np.column_stack([coded_design[:, a] * coded_design[:, b]
+                             for a, b in twofi_pairs])
+    cols = np.column_stack([coded_design, twofi])
+    norms = np.linalg.norm(cols, axis=0)
+    if not np.all(norms > 0):
+        return 1.0, 1.0
+    R = np.abs((cols.T @ cols) / np.outer(norms, norms))
+    np.fill_diagonal(R, 0.0)
+    me_2fi = float(R[:k, k:].max()) if R[:k, k:].size else 0.0
+    twofi_block = R[k:, k:]
+    twofi_max = float(twofi_block.max()) if twofi_block.size else 0.0
+    return me_2fi, twofi_max
 
 
 def _alias_score(coded_design) -> float:
@@ -263,30 +302,11 @@ def _alias_score(coded_design) -> float:
 
     A score of 0 means a clean Resolution-V or higher design; 1.0 means
     full aliasing somewhere (Resolution III). Smaller is better.
+    Kept as a public helper for compatibility; new code should use
+    ``_resolution_diagnostics`` for finer-grained comparisons.
     """
-    import numpy as np
-    from itertools import combinations as _combinations
-
-    n, k = coded_design.shape
-    if k < 2:
-        return 0.0
-
-    twofi_pairs = list(_combinations(range(k), 2))
-    twofi = np.column_stack([coded_design[:, a] * coded_design[:, b]
-                             for a, b in twofi_pairs])
-    cols = np.column_stack([coded_design, twofi])
-    norms = np.linalg.norm(cols, axis=0)
-    if not np.all(norms > 0):
-        return 1.0
-    R = np.abs((cols.T @ cols) / np.outer(norms, norms))
-    np.fill_diagonal(R, 0.0)
-
-    # ME-vs-2FI block: rows 0..k-1, cols k..end
-    me_2fi = float(R[:k, k:].max()) if R[:k, k:].size else 0.0
-    # 2FI-vs-2FI block: rows k..end, cols k..end
-    twofi_block = R[k:, k:]
-    twofi_max = float(twofi_block.max()) if twofi_block.size else 0.0
-    return max(me_2fi, twofi_max)
+    me_2fi, twofi = _resolution_diagnostics(coded_design)
+    return max(me_2fi, twofi)
 
 
 def _fractional_factorial(cfg: DOEConfig) -> list[ExperimentRun]:
@@ -299,47 +319,54 @@ def _fractional_factorial(cfg: DOEConfig) -> list[ExperimentRun]:
         )
 
     n_factors = len(cfg.factors)
-    # Build generator string for a 2^(n-p) Resolution III design.
-    # First k base factors get single-letter generators; remaining factors
-    # are aliased as interactions of the base factors.
     from itertools import combinations
 
-    # Determine minimum k base factors such that we can generate enough
-    # columns: k base + interactions of base factors >= n_factors
-    k = n_factors  # default: no fractionation
+    factor_names = [f.name for f in cfg.factors]
+    min_res = max(0, int(getattr(cfg, "min_resolution", 0) or 0))
+
+    # Determine the smallest k whose run budget supports the user's
+    # min_resolution (or just enough columns when min_resolution is 0).
+    # We try increasing k and search generator combinations; the first
+    # k that satisfies the resolution target wins.
+    matrix = None
+    gen_string = ""
     for candidate_k in range(2, n_factors + 1):
-        # Count available columns: candidate_k base + all interactions of order >= 2
-        n_interactions = 0
-        for r in range(2, candidate_k + 1):
-            n_interactions += len(list(combinations(range(candidate_k), r)))
-        if candidate_k + n_interactions >= n_factors:
-            k = candidate_k
-            break
+        # Need candidate_k + interactions >= n_factors columns
+        n_interactions = sum(
+            len(list(combinations(range(candidate_k), r)))
+            for r in range(2, candidate_k + 1)
+        )
+        if candidate_k + n_interactions < n_factors:
+            continue
 
-    base_letters = [chr(ord('a') + i) for i in range(k)]
-    gen_parts = list(base_letters)  # base factors
-
-    # Pick interactions to alias the additional factors with so that the
-    # resulting design has the *highest* resolution available within the
-    # current run budget. Earlier code greedily took the lowest-order
-    # interactions, which biases towards Resolution III. We instead build
-    # all candidate interactions ordered longest-first and search the small
-    # search space for the assignment that maximises the min-correlation
-    # across main effects and 2-factor interactions.
-    if n_factors > k:
+        base_letters = [chr(ord('a') + i) for i in range(candidate_k)]
         interactions: list[str] = []
-        for r in range(k, 1, -1):
+        for r in range(candidate_k, 1, -1):
             for combo in combinations(base_letters, r):
                 interactions.append("".join(combo))
 
-        n_extra = n_factors - k
-        gen_parts.extend(_best_generator_choice(
-            base_letters, interactions, n_extra, [f.name for f in cfg.factors],
-        ))
+        if n_factors == candidate_k:
+            extras: list[str] = []
+        else:
+            extras = _best_generator_choice(
+                base_letters, interactions, n_factors - candidate_k, factor_names,
+            )
 
-    gen_string = " ".join(gen_parts)
-    matrix = pyDOE3.fracfact(gen_string)
-    factor_names = [f.name for f in cfg.factors]
+        gen_string = " ".join(base_letters + extras)
+        candidate_matrix = pyDOE3.fracfact(gen_string)
+        candidate_resolution = _design_resolution(candidate_matrix[:, :n_factors])
+
+        # Either no minimum was requested, or this k achieves it.
+        if min_res == 0 or candidate_resolution >= min_res:
+            matrix = candidate_matrix
+            break
+
+    if matrix is None:
+        # min_resolution not achievable even with k = n_factors (full factorial).
+        # Fall back to full factorial (the user gets Resolution >> requested).
+        base_letters = [chr(ord('a') + i) for i in range(n_factors)]
+        gen_string = " ".join(base_letters)
+        matrix = pyDOE3.fracfact(gen_string)
 
     # Compute alias structure
     try:
