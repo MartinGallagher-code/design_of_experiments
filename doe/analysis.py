@@ -134,6 +134,12 @@ def analyze(
             if knee_results:
                 knee_point_results[resp.name] = knee_results
 
+        # Model adequacy + stationary-point characterization. Quadratic where
+        # the design supports it, linear otherwise.
+        model_adequacy, stationary_point = _compute_model_adequacy_and_stationary(
+            valid_runs, responses, factor_names, cfg.factors,
+        )
+
         results_by_response[resp.name] = ResponseAnalysis(
             response_name=resp.name,
             effects=effects,
@@ -141,6 +147,8 @@ def analyze(
             interactions=interactions,
             anova_table=anova_table,
             ordinal_trends=ordinal_trends,
+            model_adequacy=model_adequacy,
+            stationary_point=stationary_point,
         )
 
         if not no_plots:
@@ -258,6 +266,54 @@ def _load_all_results(runs: list[ExperimentRun], results_dir: str, partial: bool
             f"Expected in: {results_dir}"
         )
     return result_data
+
+
+def _compute_model_adequacy_and_stationary(
+    runs: list[ExperimentRun],
+    responses: dict[int, float],
+    factor_names: list[str],
+    factors: list,
+):
+    """Fit an RSM (quadratic where supported, linear otherwise) and compute
+    model-adequacy diagnostics and stationary-point characterization.
+
+    Returns ``(ModelAdequacy | None, StationaryPoint | None)``. Failures
+    are swallowed so analyze() always returns the rest of the report.
+    """
+    try:
+        from .rsm import (
+            fit_rsm, compute_model_adequacy, characterize_stationary_point,
+        )
+    except Exception:
+        return None, None
+
+    n = len(runs)
+    k = len(factor_names)
+    # Quadratic model has 1 + k + k*(k-1)/2 + k parameters.
+    n_quad_params = 1 + 2 * k + k * (k - 1) // 2
+    model_type = "quadratic" if n >= n_quad_params + 1 else "linear"
+
+    try:
+        model = fit_rsm(runs, responses, factor_names, factors, model_type=model_type)
+    except Exception:
+        return None, None
+
+    run_order = [r.run_id for r in runs]
+    try:
+        adequacy = compute_model_adequacy(model, run_ids_in_order=run_order)
+    except Exception:
+        adequacy = None
+
+    stationary = None
+    if model_type == "quadratic":
+        try:
+            stationary = characterize_stationary_point(
+                model, factor_names, factors,
+            )
+        except Exception:
+            stationary = None
+
+    return adequacy, stationary
 
 
 def _compute_main_effects(
@@ -1212,5 +1268,51 @@ def export_csv(report: AnalysisReport, output_dir: str) -> list[str]:
                 for level, s in sorted(levels.items(), key=lambda item: _numeric_sort_key(item[0])):
                     writer.writerow([factor, level, s["n"], s["mean"], s["std"], s["min"], s["max"]])
         created.append(stats_path)
+
+        # Model adequacy CSV (one row per response that has it)
+        if analysis.model_adequacy:
+            ma = analysis.model_adequacy
+            adequacy_path = os.path.join(output_dir, f"model_adequacy_{safe}.csv")
+            with open(adequacy_path, "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow(["metric", "value"])
+                writer.writerow(["model_type", ma.model_type])
+                writer.writerow(["n_observations", ma.n_observations])
+                writer.writerow(["n_parameters", ma.n_parameters])
+                writer.writerow(["r_squared", ma.r_squared])
+                writer.writerow(["adj_r_squared", ma.adj_r_squared])
+                writer.writerow(["predicted_r_squared", ma.predicted_r_squared])
+                writer.writerow(["press", ma.press])
+                writer.writerow(["shapiro_w", ma.shapiro_w if ma.shapiro_w is not None else ""])
+                writer.writerow(["shapiro_p", ma.shapiro_p if ma.shapiro_p is not None else ""])
+                writer.writerow(["durbin_watson", ma.durbin_watson if ma.durbin_watson is not None else ""])
+                writer.writerow(["runorder_drift_slope", ma.runorder_drift_slope if ma.runorder_drift_slope is not None else ""])
+                writer.writerow(["runorder_drift_p", ma.runorder_drift_p if ma.runorder_drift_p is not None else ""])
+                writer.writerow(["max_leverage", ma.max_leverage])
+                writer.writerow(["leverage_threshold", ma.leverage_threshold])
+                writer.writerow(["high_leverage_run_ids", ";".join(str(r) for r in ma.high_leverage_run_ids)])
+                writer.writerow(["max_cooks_distance", ma.max_cooks_distance])
+                writer.writerow(["cooks_threshold", ma.cooks_threshold])
+                writer.writerow(["high_influence_run_ids", ";".join(str(r) for r in ma.high_influence_run_ids)])
+            created.append(adequacy_path)
+
+        # Stationary point CSV
+        if analysis.stationary_point:
+            sp = analysis.stationary_point
+            sp_path = os.path.join(output_dir, f"stationary_point_{safe}.csv")
+            with open(sp_path, "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow(["metric", "value"])
+                writer.writerow(["nature", sp.nature])
+                writer.writerow(["predicted_value", sp.predicted_value])
+                writer.writerow(["inside_design_region", sp.inside_design_region])
+                writer.writerow(["eigenvalues", ";".join(f"{v:.6g}" for v in sp.eigenvalues)])
+                for fname in sp.factor_order:
+                    writer.writerow([f"coded[{fname}]", sp.coded_location.get(fname, 0.0)])
+                    writer.writerow([f"natural[{fname}]", sp.natural_location.get(fname, "")])
+                if sp.ridge_direction:
+                    for fname, v in sp.ridge_direction.items():
+                        writer.writerow([f"ridge_axis[{fname}]", v])
+            created.append(sp_path)
 
     return created

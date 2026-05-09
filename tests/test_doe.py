@@ -2334,10 +2334,317 @@ class TestSessionRunner:
         for _ in range(2):
             result = subprocess.run(["bash", str(runner)], capture_output=True, text=True)
             assert result.returncode == 0, result.stderr
-            # Distinct timestamps require a 1-second gap on second-resolution clocks.
             import time; time.sleep(1.05)
         sessions = sorted(p.name for p in (tmp_path / "results").iterdir()
                           if p.is_dir() and p.name.startswith("s-"))
         assert len(sessions) == 2
         latest_target = os.readlink(str(tmp_path / "results" / "latest"))
         assert latest_target == sessions[-1]
+
+
+class TestModelAdequacy:
+    """Tests for compute_model_adequacy + integration into analyze()."""
+
+    def _ccd_factors_and_runs(self):
+        from doe.models import Factor, ExperimentRun
+        # 3-factor central composite design (small) so a quadratic fits.
+        factors = [
+            Factor(name=name, levels=["-1", "1"], type="continuous")
+            for name in ("x", "y", "z")
+        ]
+        coords = []
+        # 2^3 corners
+        for x in (-1, 1):
+            for y in (-1, 1):
+                for z in (-1, 1):
+                    coords.append((x, y, z))
+        # Axial points
+        a = 1.682
+        coords += [(-a, 0, 0), (a, 0, 0), (0, -a, 0), (0, a, 0), (0, 0, -a), (0, 0, a)]
+        # Centre points
+        for _ in range(3):
+            coords.append((0, 0, 0))
+        runs = [
+            ExperimentRun(run_id=i + 1, block_id=1,
+                          factor_values={"x": str(x), "y": str(y), "z": str(z)})
+            for i, (x, y, z) in enumerate(coords)
+        ]
+        factor_names = ["x", "y", "z"]
+        return factors, factor_names, runs
+
+    def _fit(self, runs, factor_names, factors, fn, model_type="quadratic"):
+        from doe.rsm import fit_rsm
+        responses = {r.run_id: fn(*[float(r.factor_values[f]) for f in factor_names])
+                     for r in runs}
+        model = fit_rsm(runs, responses, factor_names, factors, model_type=model_type)
+        return model, responses
+
+    def test_press_q2_near_perfect_fit(self):
+        """Quadratic fit on a noiseless quadratic surface gives R²≈1, Q²≈1."""
+        from doe.rsm import compute_model_adequacy
+        factors, names, runs = self._ccd_factors_and_runs()
+        model, _ = self._fit(runs, names, factors,
+                             lambda x, y, z: 5 - x*x - y*y - 0.5*z*z + 0.1*x*y)
+        ma = compute_model_adequacy(model, run_ids_in_order=[r.run_id for r in runs])
+        assert ma is not None
+        assert ma.r_squared > 0.99999
+        assert ma.predicted_r_squared > 0.99
+        assert ma.press < 1e-6
+        # Perfect-fit residuals are degenerate; we just confirm the field
+        # populates and is finite.
+        assert ma.durbin_watson is not None
+        assert 0.0 <= ma.durbin_watson <= 4.0
+
+    def test_shapiro_runs(self):
+        """Even on noisy data the Shapiro-Wilk fields populate."""
+        import random
+        from doe.rsm import compute_model_adequacy
+        factors, names, runs = self._ccd_factors_and_runs()
+        random.seed(1)
+        def noisy(x, y, z):
+            return 5 - x*x - y*y - 0.5*z*z + random.gauss(0, 0.1)
+        model, _ = self._fit(runs, names, factors, noisy)
+        ma = compute_model_adequacy(model, run_ids_in_order=[r.run_id for r in runs])
+        assert ma.shapiro_w is not None
+        assert 0 < ma.shapiro_w <= 1
+        assert ma.shapiro_p is not None
+        assert 0 <= ma.shapiro_p <= 1
+
+    def test_cooks_flags_outlier(self):
+        """Inject a single bad data point and expect Cook's distance to flag it."""
+        from doe.rsm import compute_model_adequacy
+        factors, names, runs = self._ccd_factors_and_runs()
+        model, responses = self._fit(runs, names, factors,
+                                     lambda x, y, z: 5 - x*x - y*y - 0.5*z*z)
+        # Refit with the first run perturbed
+        responses[runs[0].run_id] += 50.0  # huge outlier
+        from doe.rsm import fit_rsm
+        model = fit_rsm(runs, responses, names, factors, model_type="quadratic")
+        ma = compute_model_adequacy(model, run_ids_in_order=[r.run_id for r in runs])
+        assert runs[0].run_id in ma.high_influence_run_ids
+        assert ma.max_cooks_distance > ma.cooks_threshold
+
+    def test_durbin_watson_picks_up_drift(self):
+        """A monotonic trend across run order → low Durbin-Watson."""
+        from doe.rsm import compute_model_adequacy, fit_rsm
+        factors, names, runs = self._ccd_factors_and_runs()
+        # Underlying surface plus an additive run-order drift the model can't capture
+        responses = {}
+        for i, r in enumerate(runs):
+            x = float(r.factor_values["x"])
+            y = float(r.factor_values["y"])
+            z = float(r.factor_values["z"])
+            responses[r.run_id] = 5 - x*x - y*y - 0.5*z*z + 0.4 * i  # strong drift
+        model = fit_rsm(runs, responses, names, factors, model_type="quadratic")
+        ma = compute_model_adequacy(model, run_ids_in_order=[r.run_id for r in runs])
+        assert ma.runorder_drift_p is not None
+        assert ma.runorder_drift_p < 0.05  # drift should be detected
+        assert any("drift" in n.lower() for n in ma.notes)
+
+    def test_runorder_drift_uses_supplied_order(self):
+        """When the runner randomises the order, the drift test must use the
+        physical execution order, not the order in diagnostics."""
+        from doe.rsm import compute_model_adequacy, fit_rsm
+        factors, names, runs = self._ccd_factors_and_runs()
+        responses = {}
+        # Sort runs by run_id ascending (assumed physical order)
+        for i, r in enumerate(sorted(runs, key=lambda r: r.run_id)):
+            x = float(r.factor_values["x"])
+            y = float(r.factor_values["y"])
+            z = float(r.factor_values["z"])
+            responses[r.run_id] = 5 - x*x - y*y - 0.5*z*z + 0.2 * i
+        model = fit_rsm(runs, responses, names, factors, model_type="quadratic")
+        # Physical order: ascending run_id
+        ma = compute_model_adequacy(
+            model, run_ids_in_order=sorted(r.run_id for r in runs)
+        )
+        assert ma.runorder_drift_p is not None
+        assert ma.runorder_drift_p < 0.05
+
+    def test_analyze_attaches_adequacy_and_stationary(self, tmp_path):
+        """End-to-end: analyze() should populate ResponseAnalysis fields."""
+        from doe.config import load_config
+        from doe.design import generate_design
+        from doe.analysis import analyze
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "z", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r", "optimize": "maximize"}],
+            operation="central_composite",
+        )
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=3)
+
+        results_dir = tmp_path / "results"
+        results_dir.mkdir()
+        for run in matrix.runs:
+            x = float(run.factor_values["x"])
+            y = float(run.factor_values["y"])
+            z = float(run.factor_values["z"])
+            r = -(x - 0.3) ** 2 - (y + 0.2) ** 2 - 0.5 * z * z + 5
+            (results_dir / f"run_{run.run_id}.json").write_text(json.dumps({"r": r}))
+
+        report = analyze(matrix, cfg, results_dir=str(results_dir), no_plots=True)
+        ra = report.results_by_response["r"]
+        assert ra.model_adequacy is not None
+        assert ra.model_adequacy.r_squared > 0.99
+        assert ra.stationary_point is not None
+        # Surface is concave on all axes → maximum
+        assert ra.stationary_point.nature == "maximum"
+
+
+class TestStationaryPoint:
+    """Tests for characterize_stationary_point."""
+
+    def _factors(self, names):
+        from doe.models import Factor
+        return [Factor(name=n, levels=["-1", "1"], type="continuous") for n in names]
+
+    def _model(self, coefs):
+        from doe.rsm import RSMModel
+        return RSMModel(
+            response_name="y",
+            coefficients=coefs,
+            r_squared=1.0, adj_r_squared=1.0,
+            predicted_optimum={}, predicted_value=0.0,
+        )
+
+    def test_maximum(self):
+        from doe.rsm import characterize_stationary_point
+        # y = -(x-0.3)^2 - (y+0.2)^2 + 5  → max at (0.3, -0.2)
+        coefs = {"intercept": 5.0 - 0.09 - 0.04,
+                 "x": 0.6, "y": -0.4,
+                 "x^2": -1.0, "y^2": -1.0,
+                 "x*y": 0.0}
+        sp = characterize_stationary_point(self._model(coefs), ["x", "y"], self._factors(["x", "y"]))
+        assert sp is not None
+        assert sp.nature == "maximum"
+        assert abs(sp.coded_location["x"] - 0.3) < 1e-6
+        assert abs(sp.coded_location["y"] - (-0.2)) < 1e-6
+        assert sp.inside_design_region is True
+        assert all(v < 0 for v in sp.eigenvalues)
+
+    def test_minimum(self):
+        from doe.rsm import characterize_stationary_point
+        coefs = {"intercept": 0.0, "x": 0.0, "y": 0.0,
+                 "x^2": 1.0, "y^2": 1.0, "x*y": 0.0}
+        sp = characterize_stationary_point(self._model(coefs), ["x", "y"], self._factors(["x", "y"]))
+        assert sp.nature == "minimum"
+        assert all(v > 0 for v in sp.eigenvalues)
+
+    def test_saddle(self):
+        from doe.rsm import characterize_stationary_point
+        coefs = {"intercept": 0.0, "x": 0.0, "y": 0.0,
+                 "x^2": 1.0, "y^2": -1.0, "x*y": 0.0}
+        sp = characterize_stationary_point(self._model(coefs), ["x", "y"], self._factors(["x", "y"]))
+        assert sp.nature == "saddle"
+
+    def test_ridge_when_one_axis_is_flat(self):
+        """A near-zero eigenvalue + others negative → rising_ridge."""
+        from doe.rsm import characterize_stationary_point
+        # y = -x^2 + 0.1 * z   (no quadratic in z, only linear): rising ridge along z
+        coefs = {"intercept": 0.0, "x": 0.0, "y": 0.0, "z": 0.1,
+                 "x^2": -1.0, "y^2": -1.0, "z^2": 0.0,
+                 "x*y": 0.0, "x*z": 0.0, "y*z": 0.0}
+        sp = characterize_stationary_point(self._model(coefs), ["x", "y", "z"],
+                                           self._factors(["x", "y", "z"]))
+        assert sp.nature == "rising_ridge"
+        # The ridge axis must be along z (largest absolute component)
+        assert abs(sp.ridge_direction["z"]) > 0.9
+
+    def test_no_quadratic_returns_none(self):
+        from doe.rsm import characterize_stationary_point
+        coefs = {"intercept": 1.0, "x": 0.5, "y": -0.3}
+        sp = characterize_stationary_point(self._model(coefs), ["x", "y"],
+                                           self._factors(["x", "y"]))
+        assert sp is None
+
+    def test_natural_units_decoding(self):
+        """Coded location must be decoded into natural units when factor levels are numeric."""
+        from doe.models import Factor
+        from doe.rsm import characterize_stationary_point
+        factors = [
+            Factor(name="temp", levels=["100", "200"], type="continuous"),
+            Factor(name="press", levels=["1", "5"], type="continuous"),
+        ]
+        # y = -(temp_coded - 0.5)^2 - (press_coded - 0)^2 + 1
+        # Coded (0.5, 0); natural temp = 150 + 0.5*50 = 175; natural press = 3
+        coefs = {"intercept": 1.0 - 0.25, "temp": 1.0, "press": 0.0,
+                 "temp^2": -1.0, "press^2": -1.0, "temp*press": 0.0}
+        sp = characterize_stationary_point(
+            type("M", (), {"coefficients": coefs, "diagnostics": None})(),
+            ["temp", "press"], factors,
+        )
+        assert sp.nature == "maximum"
+        assert float(sp.natural_location["temp"]) == 175.0
+        assert float(sp.natural_location["press"]) == 3.0
+
+
+class TestAdequacyAndStationaryReporting:
+    """The new sections must show up in the printout, HTML report, and CSV export."""
+
+    def _setup(self, tmp_path):
+        from doe.config import load_config
+        from doe.design import generate_design
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "z", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r", "optimize": "maximize"}],
+            operation="central_composite",
+        )
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=11)
+        results_dir = tmp_path / "results"
+        results_dir.mkdir()
+        for run in matrix.runs:
+            x = float(run.factor_values["x"])
+            y = float(run.factor_values["y"])
+            z = float(run.factor_values["z"])
+            r = -(x ** 2) - (y ** 2) - 0.5 * z * z + 4.0
+            (results_dir / f"run_{run.run_id}.json").write_text(json.dumps({"r": r}))
+        return cfg, matrix, results_dir
+
+    def test_csv_export_contains_new_files(self, tmp_path):
+        from doe.analysis import analyze, export_csv
+        cfg, matrix, results_dir = self._setup(tmp_path)
+        report = analyze(matrix, cfg, results_dir=str(results_dir), no_plots=True)
+        export_dir = tmp_path / "csv"
+        files = export_csv(report, str(export_dir))
+        names = {os.path.basename(p) for p in files}
+        assert "model_adequacy_r.csv" in names
+        assert "stationary_point_r.csv" in names
+        adq = (export_dir / "model_adequacy_r.csv").read_text()
+        assert "predicted_r_squared" in adq
+        sp_csv = (export_dir / "stationary_point_r.csv").read_text()
+        assert "nature" in sp_csv
+
+    def test_print_report_includes_new_sections(self, tmp_path, capsys):
+        from doe.analysis import analyze
+        from doe.cli import _print_report
+        cfg, matrix, results_dir = self._setup(tmp_path)
+        report = analyze(matrix, cfg, results_dir=str(results_dir), no_plots=True)
+        _print_report(report)
+        out = capsys.readouterr().out
+        assert "Model Adequacy" in out
+        assert "Stationary Point" in out
+        assert "Eigenvalues" in out
+
+    def test_html_report_has_sections(self, tmp_path):
+        from doe.analysis import analyze
+        from doe.report import generate_report
+        cfg, matrix, results_dir = self._setup(tmp_path)
+        out_html = tmp_path / "report.html"
+        generate_report(matrix, cfg, results_dir=str(results_dir),
+                        output_path=str(out_html))
+        body = out_html.read_text()
+        assert "Model Adequacy" in body
+        assert "Stationary Point" in body
+        assert "Predicted R" in body
