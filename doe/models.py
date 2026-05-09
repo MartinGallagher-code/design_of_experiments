@@ -45,6 +45,7 @@ class DOEConfig:
     min_resolution: int = 0                  # 0 = auto (max within smallest run budget); 3/4/5+ = pin
     replicate_center: int = 0                # N center-point replicates per block (numeric factors only)
     whole_plot_replicates: int = 1           # split-plot: replicates of each whole-plot (HTC) level
+    constraints: list[str] = field(default_factory=list)  # python-syntax filter expressions
     metadata: dict = field(default_factory=dict)
     runner: RunnerConfig = field(default_factory=RunnerConfig)
     adaptive: object = None                  # AdaptiveConfig | None

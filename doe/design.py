@@ -64,6 +64,27 @@ def generate_design(cfg: DOEConfig, seed: int | None = None) -> DesignMatrix:
             runs, cfg.factors, n_center_replicates, cfg.block_count,
         )
 
+    # Apply user-supplied constraints (e.g. "x + y <= 1"). Filtering before
+    # randomisation keeps the seeded shuffle deterministic on whatever
+    # subset survives.
+    constraints = list(getattr(cfg, "constraints", []) or [])
+    if constraints:
+        from .constraints import filter_runs
+        runs, dropped = filter_runs(runs, constraints)
+        if not runs:
+            raise ValueError(
+                "All generated runs were filtered out by the constraints: "
+                f"{constraints}. Loosen them or remove."
+            )
+        if dropped:
+            print(
+                f"Constraints removed {len(dropped)}/{len(dropped) + len(runs)} runs"
+                f" — {len(runs)} remain."
+            )
+        # Renumber so run_ids are dense after filtering.
+        for new_id, run in enumerate(runs, start=1):
+            run.run_id = new_id
+
     # LHS already incorporates randomness via seed; all others randomize here.
     # Split-plot designs are randomised within each whole plot only — global
     # shuffling would break the whole-plot structure.
