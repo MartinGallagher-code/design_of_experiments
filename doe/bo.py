@@ -48,8 +48,23 @@ def fit_gp(
     X: np.ndarray,
     y: np.ndarray,
     seed: int | None = None,
+    noise_per_point: np.ndarray | None = None,
 ) -> GPModel:
-    """Fit an RBF GP via marginal-likelihood maximisation."""
+    """Fit an RBF GP via marginal-likelihood maximisation.
+
+    Parameters
+    ----------
+    X, y
+        Inputs and outputs.
+    seed
+        RNG seed for the multi-start in hyperparameter optimisation.
+    noise_per_point
+        Optional per-point variance. When provided, each diagonal entry
+        of ``K`` becomes ``σ_n² + var_i`` and the marginal likelihood is
+        maximised over the *floor* ``σ_n²`` only — i.e., the user-supplied
+        variance accounts for known measurement scatter (e.g., from
+        replicates) and ``σ_n²`` absorbs any residual jitter.
+    """
     X = np.asarray(X, dtype=float)
     y = np.asarray(y, dtype=float).ravel()
     n, d = X.shape
@@ -62,12 +77,24 @@ def fit_gp(
         y_std = 1.0  # constant data — degenerate but proceed
     y_norm = (y - y_mean) / y_std
 
+    if noise_per_point is not None:
+        noise_per_point = np.asarray(noise_per_point, dtype=float).ravel()
+        if noise_per_point.shape != (n,):
+            raise ValueError(
+                f"noise_per_point shape {noise_per_point.shape} != ({n},)"
+            )
+        # Standardise the supplied variance to the same y-scale used for fitting.
+        diag_noise = noise_per_point / (y_std ** 2)
+    else:
+        diag_noise = np.zeros(n)
+
     rng = np.random.default_rng(seed)
 
     def neg_log_marginal(theta):
         log_l, log_sf, log_sn = theta
         K = _rbf_kernel(X, X, np.exp(log_l), np.exp(log_sf))
-        K += np.exp(log_sn) ** 2 * np.eye(n)
+        # Diagonal noise: per-point known + a homoscedastic floor.
+        K = K + np.diag(diag_noise) + (np.exp(log_sn) ** 2) * np.eye(n)
         try:
             L = np.linalg.cholesky(K)
         except np.linalg.LinAlgError:
@@ -103,7 +130,7 @@ def fit_gp(
         theta = best[0]
     log_l, log_sf, log_sn = theta
     K = _rbf_kernel(X, X, np.exp(log_l), np.exp(log_sf))
-    K += np.exp(log_sn) ** 2 * np.eye(n)
+    K = K + np.diag(diag_noise) + (np.exp(log_sn) ** 2) * np.eye(n)
     L = np.linalg.cholesky(K)
     alpha = np.linalg.solve(L.T, np.linalg.solve(L, y_norm))
 
@@ -229,3 +256,143 @@ def _rbf_kernel(A: np.ndarray, B: np.ndarray, length: float, signal: float) -> n
     diff = A[:, None, :] - B[None, :, :]
     sq = np.sum(diff ** 2, axis=2)
     return (signal ** 2) * np.exp(-0.5 * sq / (length ** 2))
+
+
+def is_pareto_front(Y: np.ndarray, directions: list[str]) -> np.ndarray:
+    """Boolean mask of Pareto-optimal rows for a (n, m) objective matrix.
+
+    A row is Pareto-optimal iff no other row dominates it. Domination is
+    decided per-objective using ``directions[k] in {'maximize','minimize'}``.
+    """
+    Y = np.atleast_2d(Y)
+    n, m = Y.shape
+    if len(directions) != m:
+        raise ValueError(
+            f"directions has length {len(directions)} but Y has {m} columns"
+        )
+    # Flip minimisation columns so we can treat everything as maximisation.
+    Y_max = Y.copy()
+    for k, d in enumerate(directions):
+        if d == "minimize":
+            Y_max[:, k] = -Y_max[:, k]
+
+    on_front = np.ones(n, dtype=bool)
+    for i in range(n):
+        if not on_front[i]:
+            continue
+        diffs = Y_max - Y_max[i]
+        # j dominates i iff every coord >= and at least one >
+        dominated_by_j = np.all(diffs >= 0, axis=1) & np.any(diffs > 0, axis=1)
+        if np.any(dominated_by_j):
+            on_front[i] = False
+    return on_front
+
+
+def propose_batch_multi_objective(
+    gps: list[GPModel],
+    bounds: np.ndarray,
+    batch_size: int,
+    directions: list[str],
+    n_candidates: int = 2000,
+    n_scalarizations: int = 16,
+    seed: int | None = None,
+) -> np.ndarray:
+    """Pick a batch via random Tchebycheff scalarisation across objectives.
+
+    For each batch member:
+      1. Draw a random weight vector ``w`` from a (m-1)-simplex.
+      2. Reward each candidate by its EI under
+         ``T(x) = max_k w_k · normalised_improvement_k(x)``.
+      3. Pick the highest-EI candidate, fantasise its objective vector at the
+         current Pareto-incumbent values, and refit each GP for the next pick.
+    Same same-batch repulsion logic as ``propose_batch``.
+    """
+    if not gps:
+        raise ValueError("Need at least one GP for multi-objective batching.")
+    if len(gps) != len(directions):
+        raise ValueError("len(gps) must equal len(directions)")
+    rng = np.random.default_rng(seed)
+    d = gps[0].X_train.shape[1]
+    candidates = rng.uniform(
+        low=bounds[:, 0], high=bounds[:, 1], size=(n_candidates, d),
+    )
+    chosen: list[np.ndarray] = []
+    current_gps = list(gps)
+
+    # Pre-compute per-objective scaling so weights act on comparable units.
+    obj_scales: list[float] = []
+    for gp in current_gps:
+        scale = max(gp.y_std, 1e-9)
+        obj_scales.append(scale)
+
+    for _ in range(batch_size):
+        # Posterior μ and σ for every objective at every candidate.
+        means = []
+        sigmas = []
+        for gp in current_gps:
+            mean, var = predict(gp, candidates)
+            means.append(mean)
+            sigmas.append(np.sqrt(np.maximum(var, 1e-12)))
+        means = np.column_stack(means)
+        sigmas = np.column_stack(sigmas)
+
+        # Per-objective incumbent (best so far in the GP's own training set).
+        incumbents = []
+        for k, gp in enumerate(current_gps):
+            best_norm = (
+                float(np.min(gp.y_train)) if directions[k] == "minimize"
+                else float(np.max(gp.y_train))
+            )
+            incumbents.append(best_norm * gp.y_std + gp.y_mean)
+        incumbents = np.asarray(incumbents)
+
+        # Random Tchebycheff scalarisations
+        m = len(current_gps)
+        weights = rng.dirichlet(alpha=np.ones(m), size=n_scalarizations)
+        ei_per_scalarization = np.zeros((n_scalarizations, n_candidates))
+        for s_idx, w in enumerate(weights):
+            # Per-objective improvement (positive when better than incumbent)
+            improvements = np.zeros_like(means)
+            for k in range(m):
+                if directions[k] == "minimize":
+                    improvements[:, k] = (incumbents[k] - means[:, k]) / obj_scales[k]
+                else:
+                    improvements[:, k] = (means[:, k] - incumbents[k]) / obj_scales[k]
+            # Weighted improvement; Tchebycheff = min over weighted gain
+            weighted = improvements * w[None, :]
+            tcheby = np.min(weighted, axis=1)
+            # Treat tcheby as the improvement metric for an EI-like score:
+            # use a Gaussian approximation with σ scaled by weight too.
+            sigma_eff = np.sqrt(np.sum((sigmas / np.array(obj_scales)) ** 2 * (w[None, :] ** 2), axis=1))
+            sigma_eff = np.maximum(sigma_eff, 1e-9)
+            z = tcheby / sigma_eff
+            from scipy.stats import norm
+            ei = tcheby * norm.cdf(z) + sigma_eff * norm.pdf(z)
+            ei_per_scalarization[s_idx] = np.maximum(ei, 0.0)
+
+        ei_score = ei_per_scalarization.mean(axis=0)
+        for c in chosen:
+            dists = np.linalg.norm(candidates - c, axis=1)
+            ei_score = ei_score * (1.0 - np.exp(-(dists ** 2) / 0.04))
+
+        if not np.any(ei_score > 0):
+            idx = int(np.argmax(np.linalg.norm(candidates - candidates.mean(axis=0), axis=1)))
+        else:
+            idx = int(np.argmax(ei_score))
+        chosen.append(candidates[idx].copy())
+
+        # Constant-liar refit: append fantasy at incumbent for every objective.
+        for k, gp in enumerate(current_gps):
+            X_new = np.vstack([gp.X_train, candidates[idx][None, :]])
+            best_norm = (
+                float(np.min(gp.y_train)) if directions[k] == "minimize"
+                else float(np.max(gp.y_train))
+            )
+            y_new_norm = np.append(gp.y_train, best_norm)
+            y_new = y_new_norm * gp.y_std + gp.y_mean
+            try:
+                current_gps[k] = fit_gp(X_new, y_new, seed=seed)
+            except Exception:
+                pass
+
+    return np.vstack(chosen)
