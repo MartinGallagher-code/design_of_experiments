@@ -104,7 +104,6 @@ def compute_alias_structure(
     # interactions, listing only effects with absolute correlation above the
     # reporting threshold.
     n_me = len(me_labels)
-    label_index = {lbl: i for i, lbl in enumerate(labels)}
 
     def _entries(start: int, end: int) -> list[AliasEntry]:
         out: list[AliasEntry] = []

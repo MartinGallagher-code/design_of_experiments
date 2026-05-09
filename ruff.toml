@@ -1,0 +1,45 @@
+# Lint-only ruff config. Formatting-style rules (line length, etc.) are
+# off intentionally: we don't want pre-commit reformatting the whole tree.
+target-version = "py310"
+line-length = 100
+exclude = [
+    "docs/book",
+    "results",
+    "out",
+    "thread_saturation",
+    "numa_crossnode",
+]
+
+[lint]
+# Keep the rule set tight: real bugs only, not stylistic opinions.
+# Import sorting (I) is off — it would generate hundreds of cosmetic
+# diffs. Add it back in a focused cleanup pass.
+select = [
+    "E9",     # syntax errors
+    "F",      # pyflakes (unused imports, undefined names, etc.)
+    "B",      # bugbear: real bug patterns
+    "UP",     # pyupgrade: outdated syntax
+]
+ignore = [
+    # Long lines exist all over the test file; tightening that is its own PR.
+    "E501",
+    # B008 = function-call default argument; legitimate dataclass field
+    # default factories trigger this, ignore.
+    "B008",
+    # B904 = exception without `from None`/`from err`; widespread in
+    # existing code, address in a focused cleanup pass later.
+    "B904",
+    # B007 = unused loop variable. Mostly used for iteration count.
+    "B007",
+    # B905 = zip without explicit strict=. Stylistic, not a bug.
+    "B905",
+    # B023 = function uses loop variable (closure). Existing code that
+    # captures by reference; address case-by-case later.
+    "B023",
+    # F541 = f-string without placeholders. Cosmetic.
+    "F541",
+]
+
+[lint.per-file-ignores]
+# Test files often shadow names intentionally + use `*` imports.
+"tests/*" = ["F401", "F841", "F811"]

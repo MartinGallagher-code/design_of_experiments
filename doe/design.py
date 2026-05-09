@@ -610,7 +610,6 @@ def _definitive_screening(cfg: DOEConfig) -> list[ExperimentRun]:
     if n_factors % 2 == 0:
         matrix = np.vstack([matrix, center, center])
 
-    factor_names = [f.name for f in cfg.factors]
     runs = []
     for i, row in enumerate(matrix):
         factor_values = {
@@ -679,7 +678,7 @@ def _d_optimal(cfg: DOEConfig) -> list[ExperimentRun]:
     given number of runs.
     """
     import numpy as np
-    from .rsm import _build_design_matrix, _encode_factor_value
+    from .rsm import _build_design_matrix
 
     n_factors = len(cfg.factors)
     # Default n_runs: 2 * n_terms for linear model
@@ -722,7 +721,6 @@ def _d_optimal(cfg: DOEConfig) -> list[ExperimentRun]:
     current_design = [all_candidates[i] for i in indices]
 
     factor_names = [f.name for f in cfg.factors]
-    factor_map = {f.name: f for f in cfg.factors}
 
     def design_to_runs(design):
         return [

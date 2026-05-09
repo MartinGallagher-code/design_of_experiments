@@ -23,7 +23,6 @@ formats it as advice; the user still has to write the config.
 """
 
 from dataclasses import dataclass, field
-from typing import Iterable
 
 
 GOALS = ("screening", "response_surface", "optimization")

@@ -1,16 +1,6 @@
 # Changelog
 
-## Unreleased
-
-### Added
-- `docs/cookbook.md` — short "if you want X, do Y" recipes for the most common workflows (screening + RSM follow-up, replicates + lack-of-fit, Bayesian optimisation loop, calibration, Slurm, constraints, integer factors, branching, sensitivity, archive, serve, fast `analyze`).
-- `doe analyze --filter-runs IDS` — re-run analysis excluding specific run IDs (e.g. high-Cook's-D outliers) without editing on-disk files.
-- `doe init --template <name>` now prints an inferred-goal rationale alongside the recommendation the suggester would have made for the same factor / response / budget shape, so users learn *why* the template's design was chosen.
-
-### Fixed
-- (CHANGELOG was stale through 0.2.x and 0.3.x; this release backfills the missing entries.)
-
-## 0.3.0 — 2026-05 *(unreleased; bundled below for completeness)*
+## 0.3.0 — 2026-05-09
 
 ### Bootstrap & scaffolding
 - `doe scaffold-config`, `doe scaffold-test` — annotated starter files.
@@ -57,8 +47,12 @@
 - `doe serve --root results/` — stdlib HTTP localhost browser for sessions.
 
 ### Documentation
-- `docs/user_guide.md`, `docs/commands.md`, `docs/strategies.md`, `docs/config.md`.
+- `docs/user_guide.md`, `docs/commands.md`, `docs/strategies.md`, `docs/config.md`, `docs/cookbook.md`.
 - README rewritten around the bootstrap path; Documentation block at the top.
+
+### Other
+- `doe analyze --filter-runs IDS` excludes specific run IDs from analysis without editing on-disk files (closes the loop with the high-Cook's-D run IDs Model Adequacy already prints).
+- `doe init --template <name>` prints an inferred-goal rationale alongside what the suggester would have recommended for the same factor / response / budget shape.
 
 ### Fixed
 - Empty-string response values in `run_*.json` no longer raise an opaque `could not convert string to float: ''`; non-numeric values get a file-pointing `ValueError`.

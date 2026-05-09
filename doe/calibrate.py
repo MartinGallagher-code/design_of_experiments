@@ -28,11 +28,11 @@ CLI::
 import json
 import os
 from dataclasses import dataclass, field, asdict
-from typing import Any, Callable
+from collections.abc import Callable
 
 import numpy as np
 
-from .models import DOEConfig, ExperimentRun
+from .models import ExperimentRun
 from .simulate import _resolve_target
 
 

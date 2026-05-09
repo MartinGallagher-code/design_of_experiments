@@ -18,7 +18,6 @@ import os
 import tarfile
 from pathlib import Path
 
-from .models import DOEConfig
 
 
 def archive_session(

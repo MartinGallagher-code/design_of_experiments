@@ -15,7 +15,6 @@ sense for any N >= 2.
 """
 
 import os
-from typing import Iterable
 
 from .compare import (
     _load_session_runs,

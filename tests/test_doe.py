@@ -5526,3 +5526,89 @@ class TestInitTemplateRationale:
         _print_template_rationale(str(out_dir), info)
         out = capsys.readouterr().out
         assert "Inferred goal: screening" in out
+
+
+class TestReportInclude:
+    """Tests for `doe report --include FILE`."""
+
+    def _setup(self, tmp_path):
+        from doe.config import load_config
+        from doe.design import generate_design
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r"}],
+            operation="full_factorial",
+        )
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        rd = Path(cfg.out_directory)
+        rd.mkdir(parents=True, exist_ok=True)
+        for run in matrix.runs:
+            (rd / f"run_{run.run_id}.json").write_text(json.dumps({"r": 1.0}))
+        return cfg, matrix
+
+    def test_include_file_inlined(self, tmp_path):
+        from doe.report import generate_report
+        cfg, matrix = self._setup(tmp_path)
+        extra = tmp_path / "extra.html"
+        extra.write_text(
+            "<html><body><h2>Mock embedded report</h2>"
+            "<p>marker-content</p></body></html>"
+        )
+        out = tmp_path / "master.html"
+        generate_report(matrix, cfg, results_dir=str(Path(cfg.out_directory)),
+                         output_path=str(out), include_paths=[str(extra)])
+        body = out.read_text()
+        assert "Mock embedded report" in body
+        assert "marker-content" in body
+        assert "Included: extra.html" in body
+
+    def test_include_strips_style_and_header(self, tmp_path):
+        """Embedded <style> / <header> / <footer> blocks are stripped so
+        the master report's CSS isn't overwritten by the inclusion."""
+        from doe.report import generate_report
+        cfg, matrix = self._setup(tmp_path)
+        extra = tmp_path / "extra.html"
+        extra.write_text(
+            "<html><head><style>body { background: lime; }</style></head>"
+            "<body><header><h1>NOPE</h1></header><h2>Marker</h2>"
+            "<footer>NOPE-FOOT</footer></body></html>"
+        )
+        out = tmp_path / "master.html"
+        generate_report(matrix, cfg, results_dir=str(Path(cfg.out_directory)),
+                         output_path=str(out), include_paths=[str(extra)])
+        body = out.read_text()
+        # The inclusion's style/header/footer must NOT leak into the master.
+        # (Master's own header/footer/style still appear, of course; check
+        # that the embedded sentinels are absent.)
+        assert "background: lime" not in body
+        assert "NOPE-FOOT" not in body
+        # The h2 content survives
+        assert ">Marker<" in body
+
+    def test_missing_include_file_handled(self, tmp_path):
+        from doe.report import generate_report
+        cfg, matrix = self._setup(tmp_path)
+        out = tmp_path / "master.html"
+        generate_report(matrix, cfg, results_dir=str(Path(cfg.out_directory)),
+                         output_path=str(out),
+                         include_paths=[str(tmp_path / "does-not-exist.html")])
+        body = out.read_text()
+        assert "File not found" in body
+
+
+class TestPackageVersion:
+    """The package version pinned in pyproject and __init__ must agree."""
+
+    def test_version_matches_pyproject(self):
+        import re
+        from doe import __version__
+        with open("pyproject.toml") as f:
+            text = f.read()
+        match = re.search(r'^version\s*=\s*"([^"]+)"', text, flags=re.MULTILINE)
+        assert match is not None, "Could not find version in pyproject.toml"
+        assert match.group(1) == __version__

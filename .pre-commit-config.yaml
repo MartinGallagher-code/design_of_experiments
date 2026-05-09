@@ -1,0 +1,41 @@
+# Pre-commit hooks — install with: pip install pre-commit && pre-commit install
+#
+# These run on every commit and are designed to be fast (under ~5 s on a
+# warm cache). Anything heavier (full pytest, mypy strict pass) belongs in
+# CI, not here.
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^docs/book/  # latex artefacts
+      - id: end-of-file-fixer
+        exclude: ^docs/book/
+      - id: check-yaml
+      - id: check-toml
+      - id: check-json
+        exclude: |
+          (?x)^(
+            doe/use_cases/.*/config\.json|
+            results/design_matrix\.json
+          )$
+      - id: check-merge-conflict
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.7
+    hooks:
+      # Lint only — keep formatting concerns out of the diff for now.
+      - id: ruff
+        args: ["--fix", "--exit-non-zero-on-fix"]
+
+  - repo: local
+    hooks:
+      # Cheap "did you break the import graph?" check. Full pytest runs in CI.
+      - id: compileall
+        name: python -m compileall (syntax check)
+        entry: python -m compileall -q doe tests
+        language: system
+        pass_filenames: false
+        types: [python]

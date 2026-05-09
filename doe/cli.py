@@ -217,6 +217,10 @@ def main():
     rep.add_argument("--results-dir", default=None, help="Override out_directory from config")
     rep.add_argument("--output", default="report.html", help="Output HTML file path")
     rep.add_argument("--partial", action="store_true", help="Analyze only completed runs, skipping missing results")
+    rep.add_argument("--include", action="append", default=[], metavar="FILE",
+                     help="Inline another HTML file (e.g. compare.html, trend.html, "
+                          "sobol.html) as an extra section in this report. Repeat the "
+                          "flag for multiple files.")
 
     # --- record ---
     rec = subparsers.add_parser("record", help="Interactively record results for experiment runs")
@@ -578,7 +582,7 @@ def _dispatch(args):
         matrix = _load_or_generate(cfg, results_dir=results_dir)
         try:
             from doe.report import generate_report
-            generate_report(matrix, cfg, results_dir=results_dir, output_path=args.output, partial=args.partial)
+            generate_report(matrix, cfg, results_dir=results_dir, output_path=args.output, partial=args.partial, include_paths=args.include)
         except FileNotFoundError:
             _no_results_message(cfg, matrix)
             return
@@ -1155,7 +1159,7 @@ def _print_template_rationale(out_dir: str, info: dict) -> None:
     try:
         from doe.config import load_config
         from doe.design import generate_design
-        from doe.suggest import suggest, GOALS
+        from doe.suggest import suggest
     except Exception:
         return
 

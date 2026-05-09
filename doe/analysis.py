@@ -7,7 +7,7 @@ import os
 import numpy as np
 
 from .models import (
-    AliasStructure, AnalysisReport, AnovaRow, AnovaTable,
+    AnalysisReport, AnovaRow, AnovaTable,
     CrossValidation, DesignMatrix, DOEConfig,
     EffectResult, ExperimentRun, InteractionEffect, KneePointResult,
     OrdinalTrendResult, ResponseAnalysis,
@@ -768,7 +768,6 @@ def _compute_anova(
     an error estimate from the median of absolute effects (same approach as
     R's FrF2 package).
     """
-    from .rsm import _build_design_matrix, _encode_factor_value
 
     try:
         from scipy.stats import f as f_dist
@@ -800,8 +799,6 @@ def _compute_anova(
 
     has_replicates = any(c > 1 for c in setting_counts.values())
 
-    # Build full design matrix (linear model with main effects only)
-    factor_map = {f.name: f for f in factors}
 
     # Compute SS for each factor using Type I approach
     # Build X column by column, compute sequential SS
@@ -1421,7 +1418,6 @@ def plot_diagnostics(
 
     resid = diagnostics.residuals
     fitted = diagnostics.fitted_values
-    run_ids = diagnostics.run_ids
     n = len(resid)
     if n < 3:
         return

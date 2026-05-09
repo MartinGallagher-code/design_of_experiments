@@ -264,11 +264,9 @@ def _multi_objective_strategy(
     response).
     """
     from .bo import fit_gp, propose_batch_multi_objective
-    from .analysis import _load_all_results, _coerce_response_value
 
     if len(cfg.responses) < 2:
         # Reuse the single-response BO path for mono-objective cases.
-        responses_first = {r.run_id: float for r in valid_runs}  # placeholder
         return _bayesian_strategy(
             valid_runs,
             _load_response_dict(matrix, results_dir, cfg.responses[0].name),
@@ -372,7 +370,7 @@ def _bayesian_strategy(
     to one-hot blocks so the GP can see both. Falls back to
     ``model_guided`` if no factor is usable or the GP fit fails outright.
     """
-    from .bo import fit_gp, propose_batch
+    from .bo import fit_gp
 
     encoder = _build_factor_encoder(matrix.factor_names, cfg.factors)
     if encoder is None or len(valid_runs) < 2:
