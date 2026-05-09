@@ -161,6 +161,22 @@ def analyze(
             model_adequacy, stationary_point = None, None
             cross_validation = None
 
+        # Mixture-design Scheffé canonical fit (when the operation is mixture-style).
+        scheffe = None
+        try:
+            from .mixture import fit_scheffe, is_mixture_operation
+            if is_mixture_operation(cfg.operation):
+                # Quadratic when the design supports it, else linear.
+                q = len(factor_names)
+                n_quad = q + q * (q - 1) // 2
+                form = "quadratic" if len(valid_runs) >= n_quad + 1 else "linear"
+                scheffe = fit_scheffe(
+                    valid_runs, responses, factor_names,
+                    response_name=resp.name, model_form=form,
+                )
+        except Exception:
+            scheffe = None
+
         # Achieved-power retrospective from the actual residual MS.
         achieved_power_result = None
         if anova_table and anova_table.error_row and anova_table.error_row.df > 0:
@@ -186,6 +202,7 @@ def analyze(
             stationary_point=stationary_point,
             achieved_power=achieved_power_result,
             cross_validation=cross_validation,
+            scheffe_model=scheffe,
         )
 
         if not no_plots:

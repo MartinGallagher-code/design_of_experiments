@@ -247,13 +247,26 @@ def main():
                      help="Generate a session-aware runner (see 'doe generate --session').")
 
     # --- init ---
-    init = subparsers.add_parser("init", help="Create a new experiment from a built-in use case template")
+    init = subparsers.add_parser("init", help="Create a new experiment from a built-in template OR from --factors/--budget/--goal")
     init.add_argument("--template", default=None, metavar="NAME",
                        help="Use case template name (e.g. reactor_optimization, coffee_brewing)")
     init.add_argument("--list", action="store_true", dest="list_templates",
                        help="List all available use case templates")
     init.add_argument("--output-dir", default=".", metavar="DIR",
                        help="Directory to extract the template into (default: current directory)")
+    init.add_argument("--factors", type=int, default=None, metavar="N",
+                       help="Bootstrap a fresh config for N factors (skips templates).")
+    init.add_argument("--responses", type=int, default=1, metavar="M",
+                       help="Response count when bootstrapping (default: 1)")
+    init.add_argument("--budget", type=int, default=None, metavar="K",
+                       help="Run budget when bootstrapping; required with --factors.")
+    init.add_argument("--goal", choices=["screening", "response_surface", "optimization"],
+                       default="screening",
+                       help="Goal when bootstrapping (default: screening)")
+    init.add_argument("--categorical", type=int, default=0, metavar="N",
+                       help="Number of categorical factors when bootstrapping")
+    init.add_argument("--with-test", action="store_true",
+                       help="Also scaffold a test.py beside the new config")
 
     # --- export-worksheet ---
     ew = subparsers.add_parser("export-worksheet", help="Export design as a printable worksheet")
@@ -868,10 +881,160 @@ def _run_optimize(matrix, cfg, args):
         recommend(matrix, cfg, results_dir=results_dir, response_name=args.response, partial=args.partial)
 
 
+def _handle_init_bootstrap(args):
+    """Bootstrap a working config (and optionally a test.py) from
+    --factors / --responses / --budget / --goal, using the same logic
+    as 'doe suggest'."""
+    if args.budget is None:
+        print("Error: --budget is required when bootstrapping with --factors.")
+        return
+    if args.factors < 1 or args.budget < 1:
+        print("Error: --factors and --budget must both be positive.")
+        return
+    if args.categorical < 0 or args.categorical > args.factors:
+        print(
+            f"Error: --categorical ({args.categorical}) must be between "
+            f"0 and --factors ({args.factors})."
+        )
+        return
+
+    from doe.suggest import suggest
+    from doe.codegen import generate_config_template, generate_test_scaffold
+    from doe.config import load_config
+
+    out_dir = args.output_dir or "."
+    os.makedirs(out_dir, exist_ok=True)
+    config_path = os.path.join(out_dir, "config.json")
+    test_path = os.path.join(out_dir, "test.py") if args.with_test else None
+
+    if os.path.exists(config_path):
+        print(f"Error: '{config_path}' already exists; refusing to overwrite.")
+        return
+    if test_path and os.path.exists(test_path):
+        print(f"Error: '{test_path}' already exists; refusing to overwrite.")
+        return
+
+    kinds = (
+        ["categorical"] * args.categorical
+        + ["continuous"] * (args.factors - args.categorical)
+    )
+    rec = suggest(
+        n_factors=args.factors, n_responses=args.responses,
+        budget=args.budget, goal=args.goal, factor_kinds=kinds,
+    )
+
+    # Write a starter config and overlay the suggested operation / settings.
+    generate_config_template(config_path)
+    with open(config_path) as f:
+        cfg_dict = json.load(f)
+
+    # Replace the sample factors with the requested mix.
+    cfg_dict["factors"] = _bootstrap_factors(args.factors, args.categorical)
+    cfg_dict["fixed_factors"] = {}
+    cfg_dict["responses"] = [
+        {"name": f"response_{i + 1}",
+         "optimize": "maximize" if i % 2 == 0 else "minimize"}
+        for i in range(max(1, args.responses))
+    ]
+    cfg_dict["settings"]["operation"] = rec.operation
+    if rec.replicate_center:
+        cfg_dict["settings"]["replicate_center"] = rec.replicate_center
+    if rec.min_resolution:
+        cfg_dict["settings"]["min_resolution"] = rec.min_resolution
+    if rec.block_count > 1:
+        cfg_dict["settings"]["block_count"] = rec.block_count
+    if rec.adaptive_strategy:
+        cfg_dict["adaptive"] = {
+            "strategy": rec.adaptive_strategy,
+            "batch_size": 4,
+            "stopping_max_phases": 5,
+        }
+        cfg_dict.pop("_adaptive", None)
+        cfg_dict.pop("_adaptive_help", None)
+    cfg_dict["metadata"] = {
+        "name": f"{args.goal.replace('_', ' ').title()} (bootstrapped)",
+        "description": (
+            f"Auto-generated for {args.factors} factor(s), {args.responses} "
+            f"response(s), budget {args.budget}, goal '{args.goal}'."
+        ),
+    }
+    cfg_dict["_help"] = (
+        "Bootstrapped by 'doe init --factors ... --budget ... --goal ...'. "
+        "Replace 'factor_1' / 'response_1' names with your own; tweak "
+        "levels and units. The suggester chose '"
+        + rec.operation + "' — see docs/strategies.md for alternatives."
+    )
+
+    with open(config_path, "w", encoding="utf-8") as f:
+        json.dump(cfg_dict, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+
+    print(f"Wrote {config_path}")
+    print(f"  goal      : {args.goal}")
+    print(f"  factors   : {args.factors} ({args.categorical} categorical)")
+    print(f"  responses : {args.responses}")
+    print(f"  budget    : {args.budget}")
+    print(f"  operation : {rec.operation}  (~{rec.estimated_runs} runs)")
+    if rec.adaptive_strategy:
+        print(f"  adaptive  : {rec.adaptive_strategy}")
+    for line in rec.rationale:
+        print(f"  - {line}")
+    for note in rec.notes:
+        print(f"  Note: {note}")
+
+    if test_path:
+        cfg = load_config(config_path, strict=False)
+        generate_test_scaffold(cfg, test_path, language="py")
+        print(f"Wrote {test_path}")
+        cfg_dict["settings"]["test_script"] = "./" + os.path.basename(test_path)
+        with open(config_path, "w", encoding="utf-8") as f:
+            json.dump(cfg_dict, f, indent=2, ensure_ascii=False)
+            f.write("\n")
+
+    print()
+    print("Next steps:")
+    print(f"  1. Edit {config_path} — rename factors / responses to match your experiment.")
+    if not test_path:
+        print(f"  2. doe scaffold-test --config {config_path}")
+        print(f"  3. Edit the TODO block in test.py.")
+        print(f"  4. doe generate --config {config_path}")
+    else:
+        print(f"  2. Edit the TODO block in {test_path}.")
+        print(f"  3. doe generate --config {config_path}")
+
+
+def _bootstrap_factors(n_total: int, n_categorical: int) -> list[dict]:
+    """Generate placeholder factor entries for a bootstrapped config."""
+    factors: list[dict] = []
+    for i in range(n_categorical):
+        factors.append({
+            "name": f"category_{i + 1}",
+            "type": "categorical",
+            "unit": "",
+            "levels": ["A", "B"],
+            "description": f"Categorical factor {i + 1} — replace with real levels",
+        })
+    for i in range(n_total - n_categorical):
+        factors.append({
+            "name": f"factor_{i + 1}",
+            "type": "continuous",
+            "unit": "",
+            "levels": ["0", "1"],
+            "description": f"Continuous factor {i + 1} — replace [low, high]",
+        })
+    return factors
+
+
 def _handle_init(args):
-    """List or extract a built-in use case template."""
+    """List or extract a built-in use case template, or bootstrap a fresh
+    config from --factors/--budget/--goal via the suggester."""
     from importlib.resources import files as pkg_files
     import shutil
+
+    # Bootstrap mode: --factors implies a fresh suggest-driven init.
+    if args.factors is not None:
+        _handle_init_bootstrap(args)
+        return
 
     use_cases_dir = pkg_files("doe").joinpath("use_cases")
 
@@ -1747,6 +1910,23 @@ def _print_report(report):
         if analysis.achieved_power:
             _print_achieved_power(analysis.achieved_power,
                                   header_prefix=f"Achieved Power: {resp_name}")
+
+        if analysis.scheffe_model:
+            sm = analysis.scheffe_model
+            print(f"\n=== Scheffé Canonical ({sm.model_form}): {resp_name} ===")
+            for note in sm.notes:
+                print(f"  Note: {note}")
+            print(f"  R² = {sm.r_squared:.4f}   Adj R² = {sm.adj_r_squared:.4f}   "
+                  f"Residual MS = {sm.residual_ms:.4f}")
+            print(f"  {'Term':<24} {'Coefficient':>12} {'SE':>10} {'t':>8} {'p-value':>10}")
+            print(f"  {'-' * 24} {'-' * 12} {'-' * 10} {'-' * 8} {'-' * 10}")
+            for term in sm.terms:
+                se_str = f"{term.std_error:.4f}" if term.std_error is not None else "—"
+                t_str = f"{term.t_value:.3f}" if term.t_value is not None else "—"
+                p_str = f"{term.p_value:.4f}" if term.p_value is not None else "—"
+                sig = " *" if term.p_value is not None and term.p_value < 0.05 else ""
+                print(f"  {term.label:<24} {term.coefficient:>12.4f} {se_str:>10} "
+                      f"{t_str:>8} {p_str:>10}{sig}")
 
         if analysis.cross_validation:
             cv = analysis.cross_validation

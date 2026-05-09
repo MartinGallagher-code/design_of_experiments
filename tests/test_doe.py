@@ -4949,3 +4949,245 @@ class TestSuggest:
         from doe.suggest import suggest
         with pytest.raises(ValueError, match="n_factors"):
             suggest(n_factors=0, n_responses=1, budget=10, goal="screening")
+
+
+class TestInitBootstrap:
+    """Tests for `doe init --factors --budget --goal` bootstrap mode."""
+
+    def test_bootstrap_writes_runnable_config(self, tmp_path):
+        from doe.cli import _handle_init_bootstrap
+        from doe.config import load_config
+        from doe.design import generate_design
+
+        class _Args:
+            factors = 3
+            responses = 1
+            budget = 25
+            goal = "response_surface"
+            categorical = 0
+            output_dir = str(tmp_path)
+            with_test = False
+
+        _handle_init_bootstrap(_Args)
+        config_path = tmp_path / "config.json"
+        assert config_path.exists()
+        cfg = load_config(str(config_path), strict=False)
+        # Suggester should pick box_behnken for 3 continuous factors / budget 25.
+        assert cfg.operation == "box_behnken"
+        # Generated factors are placeholders the user is expected to rename
+        assert [f.name for f in cfg.factors] == ["factor_1", "factor_2", "factor_3"]
+        # The config must round-trip through generate_design without error
+        matrix = generate_design(cfg, seed=1)
+        assert len(matrix.runs) > 0
+
+    def test_bootstrap_with_test_emits_test_py(self, tmp_path):
+        from doe.cli import _handle_init_bootstrap
+        from doe.config import load_config
+
+        class _Args:
+            factors = 2
+            responses = 1
+            budget = 16
+            goal = "screening"
+            categorical = 0
+            output_dir = str(tmp_path)
+            with_test = True
+
+        _handle_init_bootstrap(_Args)
+        assert (tmp_path / "config.json").exists()
+        assert (tmp_path / "test.py").exists()
+        cfg = load_config(str(tmp_path / "config.json"), strict=False)
+        # test_script should now point at the generated file
+        assert cfg.test_script.endswith("test.py")
+
+    def test_bootstrap_categorical_factors(self, tmp_path):
+        from doe.cli import _handle_init_bootstrap
+        from doe.config import load_config
+
+        class _Args:
+            factors = 4
+            responses = 1
+            budget = 16
+            goal = "screening"
+            categorical = 2
+            output_dir = str(tmp_path)
+            with_test = False
+
+        _handle_init_bootstrap(_Args)
+        cfg = load_config(str(tmp_path / "config.json"), strict=False)
+        # First 2 factors should be categorical placeholders
+        assert sum(1 for f in cfg.factors if f.type == "categorical") == 2
+        assert sum(1 for f in cfg.factors if f.type == "continuous") == 2
+
+    def test_bootstrap_refuses_overwrite(self, tmp_path):
+        from doe.cli import _handle_init_bootstrap
+
+        class _Args:
+            factors = 2
+            responses = 1
+            budget = 8
+            goal = "screening"
+            categorical = 0
+            output_dir = str(tmp_path)
+            with_test = False
+
+        # First call writes the config
+        _handle_init_bootstrap(_Args)
+        # Second call should refuse — capture output to verify
+        import io
+        from contextlib import redirect_stdout
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            _handle_init_bootstrap(_Args)
+        assert "refusing to overwrite" in buf.getvalue()
+
+    def test_bootstrap_validates_inputs(self, tmp_path):
+        from doe.cli import _handle_init_bootstrap
+        import io
+        from contextlib import redirect_stdout
+
+        class _Args:
+            factors = 2
+            responses = 1
+            budget = None
+            goal = "screening"
+            categorical = 0
+            output_dir = str(tmp_path)
+            with_test = False
+
+        buf = io.StringIO()
+        with redirect_stdout(buf):
+            _handle_init_bootstrap(_Args)
+        assert "--budget is required" in buf.getvalue()
+
+
+class TestScheffeMixture:
+    """Tests for the Scheffé canonical-form mixture analysis."""
+
+    def _runs_and_responses(self):
+        from doe.models import ExperimentRun
+        # Three-component mixture, simplex-lattice degree 2 + binary blends
+        coords = [
+            (1.0, 0.0, 0.0),
+            (0.0, 1.0, 0.0),
+            (0.0, 0.0, 1.0),
+            (0.5, 0.5, 0.0),
+            (0.5, 0.0, 0.5),
+            (0.0, 0.5, 0.5),
+            (1 / 3, 1 / 3, 1 / 3),
+        ]
+        runs = [
+            ExperimentRun(run_id=i + 1, block_id=1,
+                          factor_values={"x1": str(c[0]), "x2": str(c[1]), "x3": str(c[2])})
+            for i, c in enumerate(coords)
+        ]
+        # Synthetic: y = 2*x1 + 3*x2 + 1*x3 + 4*x1*x2 (synergy between 1 and 2)
+        responses = {
+            r.run_id: 2.0 * float(r.factor_values["x1"]) + 3.0 * float(r.factor_values["x2"])
+                       + 1.0 * float(r.factor_values["x3"])
+                       + 4.0 * float(r.factor_values["x1"]) * float(r.factor_values["x2"])
+            for r in runs
+        }
+        return runs, responses
+
+    def test_recovers_scheffe_coefficients(self):
+        from doe.mixture import fit_scheffe
+        runs, responses = self._runs_and_responses()
+        model = fit_scheffe(runs, responses, ["x1", "x2", "x3"], model_form="quadratic")
+        assert model is not None
+        coefs = {t.label: t.coefficient for t in model.terms}
+        assert abs(coefs["x1"] - 2.0) < 1e-6
+        assert abs(coefs["x2"] - 3.0) < 1e-6
+        assert abs(coefs["x3"] - 1.0) < 1e-6
+        assert abs(coefs["x1*x2"] - 4.0) < 1e-6
+        assert abs(coefs["x1*x3"]) < 1e-6
+        assert abs(coefs["x2*x3"]) < 1e-6
+
+    def test_linear_form_no_blends(self):
+        from doe.mixture import fit_scheffe
+        runs, responses = self._runs_and_responses()
+        model = fit_scheffe(runs, responses, ["x1", "x2", "x3"], model_form="linear")
+        # Linear-only: just three component terms, no x_i*x_j
+        labels = {t.label for t in model.terms}
+        assert labels == {"x1", "x2", "x3"}
+
+    def test_invalid_form_raises(self):
+        from doe.mixture import fit_scheffe
+        runs, responses = self._runs_and_responses()
+        with pytest.raises(ValueError):
+            fit_scheffe(runs, responses, ["x1", "x2", "x3"], model_form="cubic")
+
+    def test_is_mixture_operation(self):
+        from doe.mixture import is_mixture_operation
+        assert is_mixture_operation("mixture_simplex_lattice")
+        assert is_mixture_operation("mixture_simplex_centroid")
+        assert not is_mixture_operation("full_factorial")
+
+
+class TestComparePlotEmbedding:
+    """Per-run delta dotplot rendered into the compare HTML."""
+
+    def test_html_contains_data_image(self, tmp_path):
+        from doe.compare import compare_sessions, export_compare_html
+        # Reuse the helper from TestCompareSessions by instantiating it.
+        builder = TestCompareSessions()
+        cfg, _, b, c = builder._build_two_sessions(
+            tmp_path,
+            baseline_fn=lambda x, y: x + y,
+            candidate_fn=lambda x, y: x + y + 0.5,
+        )
+        report = compare_sessions(cfg, b, c)
+        out_html = tmp_path / "compare.html"
+        export_compare_html(report, str(out_html))
+        body = out_html.read_text()
+        assert "Per-run paired deltas" in body or 'class="plot"' in body
+        assert 'src="data:image/png;base64,' in body
+
+
+class TestTrendPlotEmbedding:
+    """Per-session-mean line chart rendered into the trend HTML."""
+
+    def test_html_contains_data_image(self, tmp_path):
+        from doe.trend import trend_sessions, export_trend_html
+        from doe.config import load_config
+        from doe.design import generate_design
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r"}],
+            operation="full_factorial",
+        )
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        rd = Path(cfg.out_directory)
+        rd.mkdir(parents=True, exist_ok=True)
+        sessions = []
+        for k in range(3):
+            d = rd / f"sess-{k}"
+            d.mkdir(parents=True, exist_ok=True)
+            (d / "design_matrix.json").write_text(json.dumps({
+                "factor_names": matrix.factor_names,
+                "operation": matrix.operation,
+                "metadata": matrix.metadata,
+                "runs": [
+                    {"run_id": r.run_id, "block_id": r.block_id,
+                     "factor_values": r.factor_values}
+                    for r in matrix.runs
+                ],
+            }))
+            for run in matrix.runs:
+                x = float(run.factor_values["x"])
+                y = float(run.factor_values["y"])
+                (d / f"run_{run.run_id}.json").write_text(json.dumps({
+                    "r": x + y + 0.4 * k,
+                }))
+            sessions.append(str(d))
+        report = trend_sessions(cfg, sessions)
+        out_html = tmp_path / "trend.html"
+        export_trend_html(report, str(out_html))
+        body = out_html.read_text()
+        assert "Per-session mean trend" in body or 'class="plot"' in body
+        assert 'src="data:image/png;base64,' in body

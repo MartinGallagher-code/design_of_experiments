@@ -685,8 +685,25 @@ def _d_optimal(cfg: DOEConfig) -> list[ExperimentRun]:
     # Default n_runs: 2 * n_terms for linear model
     n_runs = cfg.lhs_samples if cfg.lhs_samples > 0 else max(n_factors + 2, 2 * n_factors)
 
-    # Generate candidate set: full factorial or grid of levels
-    level_lists = [f.levels for f in cfg.factors]
+    # Build a candidate set. For continuous factors with only 2 levels we'd
+    # otherwise be stuck with corner-only candidates, so add interior points
+    # at low / mid / high to give the coordinate-exchange algorithm room to
+    # pick a more information-rich design.
+    enriched_levels = []
+    for f in cfg.factors:
+        if f.type in ("continuous", "ordinal") and len(f.levels) == 2:
+            try:
+                low = float(f.levels[0])
+                high = float(f.levels[1])
+                mid = (low + high) / 2.0
+                enriched_levels.append([
+                    f"{low:g}", f"{mid:g}", f"{high:g}",
+                ])
+                continue
+            except (TypeError, ValueError):
+                pass
+        enriched_levels.append(list(f.levels))
+    level_lists = enriched_levels
     all_candidates = list(itertools.product(*level_lists))
 
     if len(all_candidates) <= n_runs:

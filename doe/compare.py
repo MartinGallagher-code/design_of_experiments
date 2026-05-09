@@ -689,6 +689,9 @@ def export_compare_html(report: ComparisonReport, output_path: str) -> str:
                     '  <p class="muted">' + "; ".join(_html.escape(n) for n in dc.notes) + '</p>\n'
                 )
 
+        # Per-run delta dotplot (inline base64 PNG, optional)
+        plot_html = _render_delta_dotplot(rc) if rc.per_run else ""
+
         # Per-run paired deltas (collapsed by default)
         run_rows = ""
         for r in rc.per_run:
@@ -714,6 +717,7 @@ def export_compare_html(report: ComparisonReport, output_path: str) -> str:
             f'  <summary><h2>{title}</h2></summary>\n'
             f'  <div class="section-body">\n'
             f'{summary_table}'
+            f'{plot_html}'
             f'{effects_table}'
             f'{decomp_html}'
             f'{runs_table}'
@@ -743,6 +747,52 @@ def export_compare_html(report: ComparisonReport, output_path: str) -> str:
     with open(output_path, "w", encoding="utf-8") as fh:
         fh.write(page)
     return output_path
+
+
+def _render_delta_dotplot(rc) -> str:
+    """Inline a small dotplot of per-run deltas as a base64 PNG.
+
+    Bails out silently (returns "") if matplotlib isn't available so HTML
+    rendering still works on a slim install.
+    """
+    try:
+        import io
+        import base64
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+    except Exception:
+        return ""
+    if not rc.per_run:
+        return ""
+    deltas = [r.delta for r in rc.per_run]
+    n = len(deltas)
+    fig, ax = plt.subplots(figsize=(7.5, 2.4 + 0.04 * n))
+    y_positions = list(range(n))
+    colors = ["#0a7" if d >= 0 else "#c33" for d in deltas]
+    ax.scatter(deltas, y_positions, c=colors, s=42, edgecolor="white", linewidths=0.6)
+    ax.axvline(0, color="#888", linewidth=0.8, zorder=0)
+    ax.set_yticks(y_positions)
+    ax.set_yticklabels(
+        [f"#{r.baseline_run_id}↔{r.candidate_run_id}" for r in rc.per_run],
+        fontsize=7,
+    )
+    ax.set_xlabel("Δ (candidate − baseline)")
+    ax.set_title(f"Per-run paired deltas — {rc.response_name}")
+    ax.invert_yaxis()
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
+    fig.tight_layout()
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=110)
+    plt.close(fig)
+    encoded = base64.b64encode(buf.getvalue()).decode("ascii")
+    return (
+        f'  <div class="plot">\n'
+        f'    <img alt="Per-run delta dotplot" '
+        f'src="data:image/png;base64,{encoded}">\n'
+        f'  </div>\n'
+    )
 
 
 def _isfinite(x: float) -> bool:
