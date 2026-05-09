@@ -190,3 +190,27 @@ class AnalysisReport:
     knee_point_results: dict[str, list[KneePointResult]] = field(default_factory=dict)
     knee_point_plot_paths: dict[str, str] = field(default_factory=dict)
     ordinal_trend_plot_paths: dict[str, str] = field(default_factory=dict)
+    alias_structure: "AliasStructure | None" = None
+
+
+@dataclass
+class AliasEntry:
+    """One row of the alias / confounding report.
+
+    `effect` is a single main effect or two-factor interaction. `aliased_with`
+    lists every other effect this one is correlated with above the reporting
+    threshold, paired with the absolute correlation magnitude in coded space
+    (1.0 means perfect aliasing; values in (0, 1) are partial aliasing as
+    seen in Plackett-Burman designs).
+    """
+    effect: str
+    aliased_with: list[tuple[str, float]] = field(default_factory=list)
+
+
+@dataclass
+class AliasStructure:
+    design_type: str                    # "fractional_factorial" | "plackett_burman"
+    resolution: int | None = None       # III, IV, V, ... (None for PB or when undetermined)
+    notes: list[str] = field(default_factory=list)
+    main_effects: list[AliasEntry] = field(default_factory=list)
+    two_factor_interactions: list[AliasEntry] = field(default_factory=list)

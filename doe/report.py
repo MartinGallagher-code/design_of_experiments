@@ -104,6 +104,7 @@ def generate_report(
                                   normal_images, half_normal_images, diagnostics_images)
     optimization_html = _build_optimization(optimization_data, cfg)
     design_matrix_html = _build_design_matrix(matrix)
+    alias_structure_html = _build_alias_structure(report.alias_structure)
     footer_html = _build_footer()
 
     page = _HTML_TEMPLATE.format(
@@ -111,6 +112,7 @@ def generate_report(
         css=_CSS,
         header=header_html,
         design_summary=design_summary_html,
+        alias_structure=alias_structure_html,
         results=results_html,
         optimization=optimization_html,
         design_matrix=design_matrix_html,
@@ -684,6 +686,58 @@ def _stationary_point_html(sp) -> str:
     )
 
 
+def _build_alias_structure(alias) -> str:
+    if alias is None:
+        return ""
+
+    label = alias.design_type.replace("_", " ").title()
+    if alias.resolution is not None:
+        label += f" (Resolution {'I' * alias.resolution})"
+
+    notes_html = ""
+    if alias.notes:
+        items = "".join(f"<li>{html.escape(n)}</li>" for n in alias.notes)
+        notes_html = f'  <ul class="muted">{items}</ul>\n'
+
+    def _section(title, entries):
+        if not entries or not any(e.aliased_with for e in entries):
+            return ""
+        body = ""
+        for e in entries:
+            if not e.aliased_with:
+                continue
+            partner_html = ", ".join(
+                html.escape(p) + ("" if (1.0 - r) < 1e-6 else f" <span class='muted'>({r:.2f})</span>")
+                for p, r in e.aliased_with
+            )
+            body += (
+                f'      <tr><td class="mono">{html.escape(e.effect)}</td>'
+                f'<td>{partner_html}</td></tr>\n'
+            )
+        return (
+            f'  <h3>{html.escape(title)}</h3>\n'
+            '  <table class="data-table">\n'
+            '    <thead><tr><th>Effect</th><th>Aliased with</th></tr></thead>\n'
+            '    <tbody>\n'
+            f'{body}'
+            '    </tbody>\n'
+            '  </table>\n'
+        )
+
+    body = ""
+    body += _section("Main Effects", alias.main_effects)
+    body += _section("Two-Factor Interactions", alias.two_factor_interactions)
+    return (
+        '<details>\n'
+        f'  <summary><h2>Alias Structure: {html.escape(label)}</h2></summary>\n'
+        '  <div class="section-body">\n'
+        f'{notes_html}'
+        f'{body}'
+        '  </div>\n'
+        '</details>\n'
+    )
+
+
 def _build_design_matrix(matrix: DesignMatrix) -> str:
     header_cells = "<th>Run</th><th>Block</th>" + "".join(
         f"<th>{html.escape(f)}</th>" for f in matrix.factor_names
@@ -866,6 +920,7 @@ _HTML_TEMPLATE = """\
 <body>
 {header}
 {design_summary}
+{alias_structure}
 {results}
 {optimization}
 {design_matrix}
