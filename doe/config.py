@@ -53,6 +53,7 @@ def load_config(path: str, strict: bool = True) -> DOEConfig:
         lhs_samples=settings.get("lhs_samples", 0),
         sweep_points=settings.get("sweep_points", 0),
         min_resolution=int(settings.get("min_resolution", 0)),
+        replicate_center=int(settings.get("replicate_center", 0)),
         metadata=metadata,
         runner=runner,
         adaptive=adaptive,

@@ -42,6 +42,7 @@ class DOEConfig:
     lhs_samples: int = 0                    # 0 = auto: max(10, 2 * n_factors)
     sweep_points: int = 0                    # 0 = auto: use lhs_samples or default 8
     min_resolution: int = 0                  # 0 = auto (max within smallest run budget); 3/4/5+ = pin
+    replicate_center: int = 0                # N center-point replicates per block (numeric factors only)
     metadata: dict = field(default_factory=dict)
     runner: RunnerConfig = field(default_factory=RunnerConfig)
     adaptive: object = None                  # AdaptiveConfig | None
@@ -304,4 +305,34 @@ class ComparisonReport:
     n_candidate_runs: int
     n_matched_runs: int
     responses: list[ResponseComparison] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)
+
+
+@dataclass
+class SessionTrendEntry:
+    """Per-factor slope-drift summary in a multi-session regression."""
+    factor_name: str
+    slope_drift_per_session: float       # change in main-effect size per session step
+    p_value: float | None
+
+
+@dataclass
+class TrendResponse:
+    response_name: str
+    n_sessions: int
+    n_matched_runs: int                  # runs shared across every session
+    per_session_means: list[float]       # one entry per session, in input order
+    intercept_drift_per_session: float   # uniform shift between consecutive sessions
+    intercept_drift_p: float | None
+    slope_drift: list[SessionTrendEntry] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)
+
+
+@dataclass
+class TrendReport:
+    session_dirs: list[str]
+    factor_names: list[str]
+    n_runs_per_session: list[int]
+    n_matched_runs: int
+    responses: list[TrendResponse] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
