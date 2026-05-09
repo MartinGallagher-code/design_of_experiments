@@ -964,24 +964,26 @@ def _format_markdown_worksheet(columns, rows, matrix, cfg, multiple_blocks):
 
 
 def _handle_power(matrix, cfg, args):
-    """Compute and display statistical power for each factor."""
-    from scipy.stats import f as f_dist, ncf
+    """Compute and display prospective power for each factor.
+
+    Sigma can be supplied directly (--sigma) or estimated post-hoc from
+    residuals when results are present. Either way the computation flows
+    through ``doe.power.achieved_power`` so the CLI output and the
+    automatic block inside ``analyze`` agree.
+    """
+    from doe.power import achieved_power
 
     n = len(matrix.runs)
-    n_factors = len(matrix.factor_names)
-
     sigma = args.sigma
     delta = args.delta
     alpha = args.alpha
 
-    # If sigma not provided, try to estimate from results
     if sigma is None:
         try:
             from doe.analysis import _load_all_results, _coerce_response_value
             from doe.rsm import fit_rsm
             results_dir = _resolve_results_dir(cfg, args.results_dir)
             all_data = _load_all_results(matrix.runs, results_dir, partial=args.partial)
-            # Use first response to estimate sigma from residuals
             resp = cfg.responses[0]
             responses = {}
             for run in matrix.runs:
@@ -1004,46 +1006,20 @@ def _handle_power(matrix, cfg, args):
         print("Usage: doe power --config FILE --sigma FLOAT [--delta FLOAT]")
         return
 
-    if delta is None:
-        delta = 2 * sigma  # default: detect effect of 2 sigma
-
-    print(f"\nPower Analysis")
-    print(f"  Runs: {n}, Factors: {n_factors}")
-    print(f"  Sigma (error std): {sigma:.4f}")
-    print(f"  Delta (min detectable effect): {delta:.4f}")
-    print(f"  Alpha (significance level): {alpha}")
-    print()
-
-    # For each factor, compute power
-    # Identify factor levels
-    factor_level_counts = {}
-    for f in cfg.factors:
-        factor_level_counts[f.name] = len(f.levels)
-
-    # Approximate df_error
-    df_model = sum(factor_level_counts[f.name] - 1 for f in cfg.factors)
+    df_model = sum(len(f.levels) - 1 for f in cfg.factors)
     df_error = max(1, n - 1 - df_model)
+    residual_ms = sigma * sigma
 
-    f_crit = f_dist.ppf(1 - alpha, 1, df_error)
+    ap = achieved_power(
+        matrix=matrix, factors=cfg.factors,
+        residual_ms=residual_ms, df_error=df_error,
+        delta=delta, alpha=alpha,
+    )
+    if ap is None:
+        print("Cannot compute power: df_error is zero (saturated design).")
+        return
 
-    print(f"{'Factor':<25} {'Levels':>7} {'df':>4} {'Lambda':>10} {'Power':>10}")
-    print("-" * 60)
-
-    for factor in cfg.factors:
-        df_factor = len(factor.levels) - 1
-        # Non-centrality parameter: lambda = n * delta^2 / (4 * sigma^2)
-        # For balanced designs with r replicates per level:
-        r = n // len(factor.levels)  # approx replicates per level
-        ncp = r * (delta ** 2) / (sigma ** 2) if sigma > 0 else 0.0
-
-        # Power = P(F > F_crit | H1 true) = 1 - CDF of non-central F
-        power = 1.0 - ncf.cdf(f_crit, df_factor, df_error, ncp)
-
-        print(f"{factor.name:<25} {len(factor.levels):>7} {df_factor:>4} {ncp:>10.3f} {power:>10.3f}")
-
-    print()
-    if any(1.0 - ncf.cdf(f_crit, 1, df_error, n // 2 * delta ** 2 / sigma ** 2) < 0.8 for f in cfg.factors):
-        print("  Note: Power < 0.80 for some factors. Consider adding more runs or blocks.")
+    _print_achieved_power(ap, header_prefix="Power Analysis")
 
 
 def _print_matrix(matrix, cfg=None):
@@ -1080,6 +1056,22 @@ def _print_matrix(matrix, cfg=None):
     for run in matrix.runs:
         row = [str(run.run_id), str(run.block_id)] + [run.factor_values[f] for f in matrix.factor_names]
         print("".join(v.ljust(col_w) for v in row))
+
+
+def _print_achieved_power(ap, header_prefix: str = "Achieved Power"):
+    print(f"\n=== {header_prefix} ===")
+    print(f"  Runs: {ap.n_runs}, df_error: {ap.df_error}")
+    print(f"  Sigma (sqrt residual MS): {ap.sigma:.4f}   (residual MS = {ap.residual_ms:.4f})")
+    print(f"  Alpha: {ap.alpha}   |   delta: {ap.delta:.4f}   |   target power: {ap.target_power}")
+    print()
+    print(f"  {'Factor':<24} {'Levels':>6} {'Power @ delta':>14} {'MDE @ target':>14}")
+    print(f"  {'-' * 24} {'-' * 6} {'-' * 14} {'-' * 14}")
+    for entry in ap.per_factor:
+        mde_str = "inf" if entry.mde_at_target == float("inf") else f"{entry.mde_at_target:.4f}"
+        print(f"  {entry.factor_name:<24} {entry.n_levels:>6} "
+              f"{entry.power_at_delta:>14.3f} {mde_str:>14}")
+    if any(e.power_at_delta < 0.8 for e in ap.per_factor):
+        print("  Note: power < 0.80 for some factors at the chosen delta.")
 
 
 def _print_alias_structure(alias):
@@ -1212,6 +1204,10 @@ def _print_report(report):
             if sp.ridge_direction:
                 parts = [f"{n}={v:+.3f}" for n, v in sp.ridge_direction.items()]
                 print(f"  Ridge axis      : {', '.join(parts)}")
+
+        if analysis.achieved_power:
+            _print_achieved_power(analysis.achieved_power,
+                                  header_prefix=f"Achieved Power: {resp_name}")
 
     if report.knee_point_results:
         print(f"\n=== Knee-Point / Saturation Detection ===")

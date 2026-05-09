@@ -385,7 +385,18 @@ def compute_model_adequacy(
         cooks = [0.0] * n
         notes.append("Residual MS is zero; Cook's distance not meaningful.")
 
+    # F-distribution threshold: F(0.5, p, n-p). This is the well-known
+    # "possibly influential" cutoff (Cook & Weisberg) and stays sensible
+    # on small designs where the 4/n rule of thumb flags most points.
+    # Falls back to 4/n only when scipy's F-distribution isn't usable.
+    df_resid = n - p
     cooks_threshold = 4.0 / n
+    if df_resid >= 1:
+        try:
+            from scipy.stats import f as _f
+            cooks_threshold = float(_f.ppf(0.5, p, df_resid))
+        except Exception:
+            pass
     high_influence = [
         diag_run_ids[i] for i, d in enumerate(cooks) if d > cooks_threshold
     ]

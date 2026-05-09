@@ -140,6 +140,20 @@ def analyze(
             valid_runs, responses, factor_names, cfg.factors,
         )
 
+        # Achieved-power retrospective from the actual residual MS.
+        achieved_power_result = None
+        if anova_table and anova_table.error_row and anova_table.error_row.df > 0:
+            try:
+                from .power import achieved_power as _achieved_power
+                achieved_power_result = _achieved_power(
+                    matrix=matrix,
+                    factors=cfg.factors,
+                    residual_ms=anova_table.error_row.ms,
+                    df_error=anova_table.error_row.df,
+                )
+            except Exception:
+                achieved_power_result = None
+
         results_by_response[resp.name] = ResponseAnalysis(
             response_name=resp.name,
             effects=effects,
@@ -149,6 +163,7 @@ def analyze(
             ordinal_trends=ordinal_trends,
             model_adequacy=model_adequacy,
             stationary_point=stationary_point,
+            achieved_power=achieved_power_result,
         )
 
         if not no_plots:
@@ -1322,6 +1337,27 @@ def export_csv(report: AnalysisReport, output_dir: str) -> list[str]:
                 writer.writerow(["cooks_threshold", ma.cooks_threshold])
                 writer.writerow(["high_influence_run_ids", ";".join(str(r) for r in ma.high_influence_run_ids)])
             created.append(adequacy_path)
+
+        # Achieved-power CSV
+        if analysis.achieved_power:
+            ap = analysis.achieved_power
+            ap_path = os.path.join(output_dir, f"achieved_power_{safe}.csv")
+            with open(ap_path, "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow(["scope", "factor", "n_levels", "power_at_delta", "mde_at_target"])
+                writer.writerow(["__summary__", "", "", "", ""])
+                writer.writerow(["n_runs", "", "", ap.n_runs, ""])
+                writer.writerow(["df_error", "", "", ap.df_error, ""])
+                writer.writerow(["sigma", "", "", ap.sigma, ""])
+                writer.writerow(["residual_ms", "", "", ap.residual_ms, ""])
+                writer.writerow(["alpha", "", "", ap.alpha, ""])
+                writer.writerow(["delta", "", "", ap.delta, ""])
+                writer.writerow(["target_power", "", "", ap.target_power, ""])
+                for entry in ap.per_factor:
+                    mde = entry.mde_at_target if entry.mde_at_target != float("inf") else ""
+                    writer.writerow(["per_factor", entry.factor_name, entry.n_levels,
+                                     entry.power_at_delta, mde])
+            created.append(ap_path)
 
         # Stationary point CSV
         if analysis.stationary_point:
