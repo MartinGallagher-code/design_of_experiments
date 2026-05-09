@@ -130,6 +130,44 @@ class KneePointResult:
 
 
 @dataclass
+class ModelAdequacy:
+    """Post-fit diagnostics for the response surface model fitted in analyze."""
+    model_type: str                  # "linear" | "quadratic"
+    n_observations: int
+    n_parameters: int
+    r_squared: float
+    adj_r_squared: float
+    predicted_r_squared: float       # 1 - PRESS/SS_total
+    press: float
+    shapiro_w: float | None = None
+    shapiro_p: float | None = None
+    durbin_watson: float | None = None
+    runorder_drift_slope: float | None = None
+    runorder_drift_p: float | None = None
+    max_leverage: float = 0.0
+    leverage_threshold: float = 0.0  # 2 * p / n
+    high_leverage_run_ids: list[int] = field(default_factory=list)
+    max_cooks_distance: float = 0.0
+    cooks_threshold: float = 0.0     # 4 / n
+    high_influence_run_ids: list[int] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)
+
+
+@dataclass
+class StationaryPoint:
+    """Characterization of the stationary point of a quadratic RSM."""
+    nature: str                                    # "maximum" | "minimum" | "saddle" | "ridge" | "rising_ridge" | "flat"
+    coded_location: dict[str, float]               # in [-1, 1] coded space
+    natural_location: dict[str, str]               # decoded into factor units
+    predicted_value: float
+    eigenvalues: list[float]
+    eigenvectors: list[list[float]]                # rows align with eigenvalues; cols align with factor_names order
+    factor_order: list[str]                        # order of factors in eigenvectors
+    inside_design_region: bool                     # True iff |x*| <= 1 in every coded coord
+    ridge_direction: dict[str, float] | None = None  # unit vector along the indeterminate axis when nature involves a ridge
+
+
+@dataclass
 class ResponseAnalysis:
     response_name: str
     effects: list[EffectResult]
@@ -137,6 +175,8 @@ class ResponseAnalysis:
     interactions: list[InteractionEffect] = field(default_factory=list)
     anova_table: AnovaTable | None = None
     ordinal_trends: list[OrdinalTrendResult] = field(default_factory=list)
+    model_adequacy: ModelAdequacy | None = None
+    stationary_point: StationaryPoint | None = None
 
 
 @dataclass

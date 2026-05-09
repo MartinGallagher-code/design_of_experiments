@@ -7,7 +7,10 @@ from itertools import combinations
 
 import numpy as np
 
-from .models import DesignMatrix, DOEConfig, ExperimentRun, Factor
+from .models import (
+    DesignMatrix, DOEConfig, ExperimentRun, Factor,
+    ModelAdequacy, StationaryPoint,
+)
 
 
 @dataclass
@@ -282,6 +285,301 @@ def optimize_surface(
         "predicted_value": float(predicted_value),
         "converged": bool(best_result.success),
     }
+
+
+def compute_model_adequacy(
+    model: RSMModel,
+    run_ids_in_order: list[int] | None = None,
+) -> ModelAdequacy | None:
+    """Compute post-fit adequacy statistics for a fitted RSM.
+
+    Parameters
+    ----------
+    model : RSMModel
+        The fitted model. ``model.diagnostics`` must already contain
+        residuals, fitted values, leverages and the PRESS statistic
+        (populated by ``fit_rsm``).
+    run_ids_in_order : list[int] | None
+        Run IDs in physical execution order. When provided, used to
+        align residuals so the Durbin-Watson and run-order-drift stats
+        reflect time order rather than the order they happen to sit in
+        ``model.diagnostics``.
+    """
+    diag = model.diagnostics
+    if diag is None or not diag.residuals:
+        return None
+
+    n = len(diag.residuals)
+    p = len(model.coefficients)
+    if n <= p:
+        return None  # no degrees of freedom to compute meaningful stats
+
+    # Optionally reorder residuals by physical run order so DW reflects
+    # autocorrelation along execution time rather than diagnostic ordering.
+    resid_arr = np.array(diag.residuals, dtype=float)
+    leverages = np.array(diag.hat_matrix_diag, dtype=float)
+    diag_run_ids = list(diag.run_ids) if diag.run_ids else list(range(n))
+    if run_ids_in_order:
+        position = {rid: i for i, rid in enumerate(diag_run_ids)}
+        order_idx = [position[r] for r in run_ids_in_order if r in position]
+        if len(order_idx) == n:
+            resid_ordered = resid_arr[order_idx]
+        else:
+            resid_ordered = resid_arr
+    else:
+        resid_ordered = resid_arr
+
+    notes: list[str] = []
+    sse = float(np.sum(resid_arr ** 2))
+    mse = sse / (n - p)
+
+    # Durbin-Watson on time-ordered residuals
+    if n >= 2 and sse > 0:
+        diffs = np.diff(resid_ordered)
+        dw = float(np.sum(diffs ** 2) / np.sum(resid_ordered ** 2)) if np.sum(resid_ordered ** 2) > 0 else None
+    else:
+        dw = None
+
+    # Run-order drift: regress residuals against time index
+    drift_slope = None
+    drift_p = None
+    if n >= 4 and np.std(resid_ordered) > 0:
+        try:
+            from scipy import stats as _stats
+            t = np.arange(n, dtype=float)
+            res = _stats.linregress(t, resid_ordered)
+            drift_slope = float(res.slope)
+            drift_p = float(res.pvalue)
+        except Exception:
+            pass
+
+    # Shapiro-Wilk on raw residuals
+    shapiro_w = None
+    shapiro_p = None
+    if 3 <= n <= 5000 and np.std(resid_arr) > 0:
+        try:
+            from scipy import stats as _stats
+            w_stat, w_p = _stats.shapiro(resid_arr)
+            shapiro_w = float(w_stat)
+            shapiro_p = float(w_p)
+        except Exception:
+            pass
+
+    # Leverage flags: rule of thumb is h_i > 2*p/n
+    leverage_threshold = 2.0 * p / n
+    high_leverage = [
+        diag_run_ids[i] for i, h in enumerate(leverages) if h > leverage_threshold
+    ]
+
+    # Cook's distance: D_i = (e_i^2 / (p * MSE)) * (h_i / (1 - h_i)^2)
+    cooks: list[float] = []
+    if mse > 0:
+        for e, h in zip(resid_arr, leverages):
+            denom = (1.0 - h) ** 2
+            if denom > 0:
+                d = (e ** 2 / (p * mse)) * (h / denom)
+            else:
+                d = float("inf")
+            cooks.append(float(d))
+    else:
+        cooks = [0.0] * n
+        notes.append("Residual MS is zero; Cook's distance not meaningful.")
+
+    cooks_threshold = 4.0 / n
+    high_influence = [
+        diag_run_ids[i] for i, d in enumerate(cooks) if d > cooks_threshold
+    ]
+
+    if dw is not None and (dw < 1.0 or dw > 3.0):
+        notes.append(
+            f"Durbin-Watson {dw:.2f} is far from 2.0; check for run-order autocorrelation."
+        )
+    if drift_p is not None and drift_p < 0.05:
+        notes.append(
+            f"Residuals trend with run order (p={drift_p:.3f}); "
+            "the experiment may have drifted in time."
+        )
+    if shapiro_p is not None and shapiro_p < 0.05:
+        notes.append(
+            f"Residuals fail Shapiro-Wilk normality (p={shapiro_p:.3f})."
+        )
+    if model.diagnostics is not None and model.diagnostics.predicted_r_squared < model.r_squared - 0.2:
+        notes.append(
+            "Predicted R² is much lower than R² — model may be over-fit."
+        )
+
+    return ModelAdequacy(
+        model_type="quadratic" if any("^2" in k or "*" in k for k in model.coefficients) else "linear",
+        n_observations=n,
+        n_parameters=p,
+        r_squared=model.r_squared,
+        adj_r_squared=model.adj_r_squared,
+        predicted_r_squared=model.diagnostics.predicted_r_squared,
+        press=model.diagnostics.press,
+        shapiro_w=shapiro_w,
+        shapiro_p=shapiro_p,
+        durbin_watson=dw,
+        runorder_drift_slope=drift_slope,
+        runorder_drift_p=drift_p,
+        max_leverage=float(np.max(leverages)) if len(leverages) else 0.0,
+        leverage_threshold=float(leverage_threshold),
+        high_leverage_run_ids=high_leverage,
+        max_cooks_distance=float(max(cooks)) if cooks else 0.0,
+        cooks_threshold=float(cooks_threshold),
+        high_influence_run_ids=high_influence,
+        notes=notes,
+    )
+
+
+def characterize_stationary_point(
+    model: RSMModel,
+    factor_names: list[str],
+    factors: list,
+    ridge_tolerance: float = 0.05,
+) -> StationaryPoint | None:
+    """Classify the stationary point of a fitted quadratic RSM.
+
+    The fit is taken in coded space (each factor in [-1, 1]). The
+    stationary point x* satisfies ∇y(x*) = 0; its nature is decided by
+    the eigenvalues of the Hessian H of the quadratic form.
+
+    Returns ``None`` if the model has no quadratic terms (so no
+    characterization is possible).
+    """
+    coefs = model.coefficients
+    n = len(factor_names)
+    if n == 0:
+        return None
+
+    # Hessian: H_ii = 2 * coef of x_i^2;  H_ij = coef of x_i*x_j  (i!=j)
+    H = np.zeros((n, n), dtype=float)
+    has_quadratic_term = False
+    for i, fi in enumerate(factor_names):
+        sq = coefs.get(f"{fi}^2")
+        if sq is not None:
+            H[i, i] = 2.0 * sq
+            has_quadratic_term = True
+        for j in range(i + 1, n):
+            fj = factor_names[j]
+            cross = coefs.get(f"{fi}*{fj}")
+            if cross is None:
+                cross = coefs.get(f"{fj}*{fi}")
+            if cross is not None:
+                H[i, j] = float(cross)
+                H[j, i] = float(cross)
+                has_quadratic_term = True
+    if not has_quadratic_term:
+        return None
+
+    b = np.array([coefs.get(fname, 0.0) for fname in factor_names], dtype=float)
+
+    # Solve H x* = -b. Use pseudo-inverse so a flat / ridge direction
+    # produces the minimum-norm stationary point along the well-defined axes.
+    try:
+        x_star = -np.linalg.pinv(H) @ b
+    except np.linalg.LinAlgError:
+        return None
+
+    # Predicted value at x*: y0 + b·x* + 0.5 x*ᵀ H x*
+    y0 = coefs.get("intercept", 0.0)
+    y_star = float(y0 + b @ x_star + 0.5 * x_star @ H @ x_star)
+
+    eigvals, eigvecs = np.linalg.eigh(H)  # H is symmetric, eigvals real & sorted ascending
+    eigvals = np.real(eigvals)
+
+    max_abs = float(np.max(np.abs(eigvals))) if eigvals.size else 0.0
+    if max_abs == 0:
+        return StationaryPoint(
+            nature="flat",
+            coded_location={f: 0.0 for f in factor_names},
+            natural_location=_decode_settings({f: 0.0 for f in factor_names}, factor_names, factors),
+            predicted_value=y_star,
+            eigenvalues=[0.0] * n,
+            eigenvectors=eigvecs.tolist(),
+            factor_order=list(factor_names),
+            inside_design_region=True,
+            ridge_direction=None,
+        )
+
+    # Threshold for "near-zero" eigenvalue → ridge.
+    near_zero = np.abs(eigvals) < ridge_tolerance * max_abs
+    pos = (eigvals > 0) & ~near_zero
+    neg = (eigvals < 0) & ~near_zero
+
+    ridge_direction = None
+    if near_zero.any():
+        # Pick the eigenvector with the smallest |λ| as the ridge axis.
+        idx = int(np.argmin(np.abs(eigvals)))
+        ridge_vec = eigvecs[:, idx]
+        ridge_direction = {fname: float(ridge_vec[i]) for i, fname in enumerate(factor_names)}
+        if pos.any() and not neg.any():
+            nature = "ridge"  # min along well-defined axes, indeterminate elsewhere
+        elif neg.any() and not pos.any():
+            nature = "rising_ridge"
+        else:
+            nature = "saddle"
+    else:
+        if pos.all():
+            nature = "minimum"
+        elif neg.all():
+            nature = "maximum"
+        else:
+            nature = "saddle"
+
+    coded_location = {fname: float(x_star[i]) for i, fname in enumerate(factor_names)}
+    inside = bool(np.all(np.abs(x_star) <= 1.0 + 1e-9))
+
+    return StationaryPoint(
+        nature=nature,
+        coded_location=coded_location,
+        natural_location=_decode_settings(coded_location, factor_names, factors),
+        predicted_value=y_star,
+        eigenvalues=[float(v) for v in eigvals],
+        eigenvectors=eigvecs.T.tolist(),  # row i is eigenvector i, aligned with eigvals[i]
+        factor_order=list(factor_names),
+        inside_design_region=inside,
+        ridge_direction=ridge_direction,
+    )
+
+
+def _decode_settings(
+    coded: dict[str, float],
+    factor_names: list[str],
+    factors: list,
+) -> dict[str, str]:
+    """Convert coded-space coordinates [-1, 1] back to natural factor units."""
+    factor_map = {f.name: f for f in factors}
+    out: dict[str, str] = {}
+    for fname in factor_names:
+        factor = factor_map.get(fname)
+        coded_val = coded.get(fname, 0.0)
+        if factor is None:
+            out[fname] = f"{coded_val:.4f}"
+            continue
+        if factor.type in ("continuous", "ordinal"):
+            try:
+                low = float(factor.levels[0])
+                high = float(factor.levels[1])
+                center = (low + high) / 2.0
+                half_range = (high - low) / 2.0
+                out[fname] = f"{center + coded_val * half_range:.6g}"
+            except (ValueError, IndexError):
+                out[fname] = f"{coded_val:.4f}"
+        else:
+            sorted_levels = sorted(factor.levels)
+            if len(sorted_levels) == 2:
+                out[fname] = sorted_levels[1] if coded_val > 0 else sorted_levels[0]
+            else:
+                # Multi-level categorical: snap to nearest index
+                center = (len(sorted_levels) - 1) / 2.0
+                half_range = (len(sorted_levels) - 1) / 2.0
+                if half_range == 0:
+                    out[fname] = sorted_levels[0]
+                else:
+                    idx = int(round(center + coded_val * half_range))
+                    idx = max(0, min(len(sorted_levels) - 1, idx))
+                    out[fname] = sorted_levels[idx]
+    return out
 
 
 def steepest_ascent(

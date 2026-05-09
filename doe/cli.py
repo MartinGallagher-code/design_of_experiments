@@ -1140,6 +1140,46 @@ def _print_report(report):
                 p_str = f"{t.linear_p_value:.4f}" if t.linear_p_value is not None else ""
                 print(f"{t.factor_name:<20} {t.linear_coefficient:>14.4f} {t.linear_ss:>10.4f} {f_str:>10} {p_str:>10} {t.quadratic_coefficient:>14.4f} {t.r_squared_quadratic:>10.4f}")
 
+        if analysis.model_adequacy:
+            ma = analysis.model_adequacy
+            print(f"\n=== Model Adequacy ({ma.model_type}): {resp_name} ===")
+            print(f"  R²              = {ma.r_squared:.4f}")
+            print(f"  Adj R²          = {ma.adj_r_squared:.4f}")
+            print(f"  Predicted R²    = {ma.predicted_r_squared:.4f}   (PRESS = {ma.press:.4f})")
+            if ma.shapiro_p is not None:
+                flag = " ✱" if ma.shapiro_p < 0.05 else ""
+                print(f"  Shapiro-Wilk    = W={ma.shapiro_w:.3f}, p={ma.shapiro_p:.3f}{flag}")
+            if ma.durbin_watson is not None:
+                flag = " ✱" if ma.durbin_watson < 1.0 or ma.durbin_watson > 3.0 else ""
+                print(f"  Durbin-Watson   = {ma.durbin_watson:.3f}{flag}")
+            if ma.runorder_drift_p is not None:
+                flag = " ✱" if ma.runorder_drift_p < 0.05 else ""
+                print(f"  Run-order drift = slope={ma.runorder_drift_slope:.4g}, p={ma.runorder_drift_p:.3f}{flag}")
+            print(f"  Max leverage    = {ma.max_leverage:.3f}   (threshold {ma.leverage_threshold:.3f})")
+            if ma.high_leverage_run_ids:
+                print(f"    high-leverage runs: {ma.high_leverage_run_ids}")
+            print(f"  Max Cook's D    = {ma.max_cooks_distance:.3f}   (threshold {ma.cooks_threshold:.3f})")
+            if ma.high_influence_run_ids:
+                print(f"    high-influence runs: {ma.high_influence_run_ids}")
+            for note in ma.notes:
+                print(f"  Note: {note}")
+
+        if analysis.stationary_point:
+            sp = analysis.stationary_point
+            print(f"\n=== Stationary Point: {resp_name} ===")
+            print(f"  Nature          : {sp.nature}"
+                  f"{'' if sp.inside_design_region else '  (outside design region)'}")
+            print(f"  Predicted value : {sp.predicted_value:.4f}")
+            print(f"  Location        :")
+            for fname in sp.factor_order:
+                coded = sp.coded_location.get(fname, 0.0)
+                natural = sp.natural_location.get(fname, "")
+                print(f"    {fname:<18} = {natural:<14} (coded {coded:+.3f})")
+            print(f"  Eigenvalues     : {', '.join(f'{v:+.4f}' for v in sp.eigenvalues)}")
+            if sp.ridge_direction:
+                parts = [f"{n}={v:+.3f}" for n, v in sp.ridge_direction.items()]
+                print(f"  Ridge axis      : {', '.join(parts)}")
+
     if report.knee_point_results:
         print(f"\n=== Knee-Point / Saturation Detection ===")
         for resp_name, knees in report.knee_point_results.items():

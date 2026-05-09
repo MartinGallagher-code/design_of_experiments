@@ -565,6 +565,12 @@ def _build_results(report, pareto_images, effects_images, rsm_images=None,
                     f'  </div>\n'
                 )
 
+        # --- Model adequacy ---
+        adequacy_html = _model_adequacy_html(analysis.model_adequacy)
+
+        # --- Stationary point ---
+        stationary_html = _stationary_point_html(analysis.stationary_point)
+
         sections.append(
             f'<details open>\n'
             f'  <summary><h2>Results: {safe_name}</h2></summary>\n'
@@ -573,6 +579,8 @@ def _build_results(report, pareto_images, effects_images, rsm_images=None,
             f'{anova_html}'
             f'{interaction_html}'
             f'{summary_html}'
+            f'{adequacy_html}'
+            f'{stationary_html}'
             f'{plots_html}'
             f'{rsm_html}'
             f'  </div>\n'
@@ -580,6 +588,100 @@ def _build_results(report, pareto_images, effects_images, rsm_images=None,
         )
 
     return "\n".join(sections)
+
+
+def _model_adequacy_html(ma) -> str:
+    if ma is None:
+        return ""
+
+    def _fmt_optional(v, fmt=".4f"):
+        return format(v, fmt) if v is not None else "&mdash;"
+
+    def _flag(condition):
+        return ' style="color:#c00;font-weight:bold;"' if condition else ""
+
+    rows = ""
+    rows += f'      <tr><td>Model type</td><td class="mono">{html.escape(ma.model_type)}</td></tr>\n'
+    rows += f'      <tr><td>Observations / parameters</td><td class="mono">{ma.n_observations} / {ma.n_parameters}</td></tr>\n'
+    rows += f'      <tr><td>R²</td><td class="mono">{ma.r_squared:.4f}</td></tr>\n'
+    rows += f'      <tr><td>Adjusted R²</td><td class="mono">{ma.adj_r_squared:.4f}</td></tr>\n'
+    pred_flag = _flag(ma.predicted_r_squared < ma.r_squared - 0.2)
+    rows += f'      <tr{pred_flag}><td>Predicted R² (PRESS)</td><td class="mono">{ma.predicted_r_squared:.4f} (PRESS = {ma.press:.4f})</td></tr>\n'
+    if ma.shapiro_p is not None:
+        flag = _flag(ma.shapiro_p < 0.05)
+        rows += f'      <tr{flag}><td>Shapiro-Wilk normality</td><td class="mono">W = {ma.shapiro_w:.3f}, p = {ma.shapiro_p:.3f}</td></tr>\n'
+    if ma.durbin_watson is not None:
+        flag = _flag(ma.durbin_watson < 1.0 or ma.durbin_watson > 3.0)
+        rows += f'      <tr{flag}><td>Durbin-Watson</td><td class="mono">{ma.durbin_watson:.3f}</td></tr>\n'
+    if ma.runorder_drift_p is not None:
+        flag = _flag(ma.runorder_drift_p < 0.05)
+        rows += f'      <tr{flag}><td>Run-order drift</td><td class="mono">slope = {ma.runorder_drift_slope:.4g}, p = {ma.runorder_drift_p:.3f}</td></tr>\n'
+    high_lev = ", ".join(str(r) for r in ma.high_leverage_run_ids) or "&mdash;"
+    rows += (
+        f'      <tr><td>Max leverage (threshold {ma.leverage_threshold:.3f})</td>'
+        f'<td class="mono">{ma.max_leverage:.3f} &mdash; high-leverage runs: {high_lev}</td></tr>\n'
+    )
+    high_inf = ", ".join(str(r) for r in ma.high_influence_run_ids) or "&mdash;"
+    rows += (
+        f'      <tr><td>Max Cook\'s D (threshold {ma.cooks_threshold:.3f})</td>'
+        f'<td class="mono">{ma.max_cooks_distance:.3f} &mdash; high-influence runs: {high_inf}</td></tr>\n'
+    )
+
+    notes_html = ""
+    if ma.notes:
+        items = "".join(f"<li>{html.escape(n)}</li>" for n in ma.notes)
+        notes_html = f'  <ul class="muted">{items}</ul>\n'
+
+    return (
+        '  <h3>Model Adequacy</h3>\n'
+        '  <table class="data-table">\n'
+        '    <thead><tr><th>Metric</th><th>Value</th></tr></thead>\n'
+        '    <tbody>\n'
+        f'{rows}'
+        '    </tbody>\n'
+        '  </table>\n'
+        f'{notes_html}'
+    )
+
+
+def _stationary_point_html(sp) -> str:
+    if sp is None:
+        return ""
+    rows = ""
+    region = "" if sp.inside_design_region else ' &mdash; <em>outside the design region</em>'
+    rows += f'      <tr><td>Nature</td><td class="mono">{html.escape(sp.nature)}{region}</td></tr>\n'
+    rows += f'      <tr><td>Predicted value</td><td class="mono">{sp.predicted_value:.4f}</td></tr>\n'
+    eig = ", ".join(f"{v:+.4f}" for v in sp.eigenvalues)
+    rows += f'      <tr><td>Hessian eigenvalues</td><td class="mono">{html.escape(eig)}</td></tr>\n'
+    if sp.ridge_direction:
+        ridge = ", ".join(f"{html.escape(n)}={v:+.3f}" for n, v in sp.ridge_direction.items())
+        rows += f'      <tr><td>Ridge axis</td><td class="mono">{ridge}</td></tr>\n'
+
+    location_rows = ""
+    for fname in sp.factor_order:
+        coded = sp.coded_location.get(fname, 0.0)
+        natural = sp.natural_location.get(fname, "")
+        location_rows += (
+            f'      <tr><td>{html.escape(fname)}</td>'
+            f'<td class="mono">{html.escape(str(natural))}</td>'
+            f'<td class="mono">{coded:+.3f}</td></tr>\n'
+        )
+
+    return (
+        '  <h3>Stationary Point</h3>\n'
+        '  <table class="data-table">\n'
+        '    <thead><tr><th>Property</th><th>Value</th></tr></thead>\n'
+        '    <tbody>\n'
+        f'{rows}'
+        '    </tbody>\n'
+        '  </table>\n'
+        '  <table class="data-table">\n'
+        '    <thead><tr><th>Factor</th><th>Natural</th><th>Coded</th></tr></thead>\n'
+        '    <tbody>\n'
+        f'{location_rows}'
+        '    </tbody>\n'
+        '  </table>\n'
+    )
 
 
 def _build_design_matrix(matrix: DesignMatrix) -> str:
