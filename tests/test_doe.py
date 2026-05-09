@@ -4712,3 +4712,240 @@ class TestParallelRunner:
         results_dir = Path(cfg.out_directory)
         for run in matrix.runs:
             assert (results_dir / f"run_{run.run_id}.json").exists()
+
+
+class TestSlurmRunner:
+    """Tests for the --executor slurm runner template."""
+
+    def _setup(self, tmp_path):
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r"}],
+            operation="full_factorial",
+            test_script="./test.py",
+        )
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        return cfg, matrix
+
+    def test_slurm_template_renders_array_directive(self, tmp_path):
+        from doe.codegen import generate_script
+        cfg, matrix = self._setup(tmp_path)
+        out = tmp_path / "submit.sh"
+        body = generate_script(
+            matrix, cfg, str(out), executor="slurm",
+            slurm_options={"partition": "gpu", "time": "02:00:00",
+                           "max_concurrent": 4},
+        )
+        # SBATCH array directive is present and references all runs
+        assert f"#SBATCH --array=1-{len(matrix.runs)}%4" in body
+        assert "#SBATCH --partition=gpu" in body
+        assert "#SBATCH --time=02:00:00" in body
+        # Every run id is dispatched in the case block
+        for run in matrix.runs:
+            assert f"  {run.run_id})" in body
+
+    def test_slurm_template_no_options(self, tmp_path):
+        from doe.codegen import generate_script
+        cfg, matrix = self._setup(tmp_path)
+        out = tmp_path / "submit.sh"
+        body = generate_script(matrix, cfg, str(out), executor="slurm")
+        # Defaults: array runs without %max-concurrent
+        assert f"#SBATCH --array=1-{len(matrix.runs)}" in body
+        assert "%" not in body.split("\n#SBATCH --array=", 1)[1].split("\n", 1)[0]
+
+    def test_slurm_session_block(self, tmp_path):
+        from doe.codegen import generate_script
+        cfg, matrix = self._setup(tmp_path)
+        out = tmp_path / "submit.sh"
+        body = generate_script(
+            matrix, cfg, str(out), executor="slurm",
+            session_prefix="experiment-a",
+        )
+        assert "DOE_SESSION_DIR" in body
+        assert 'SESSION_NAME="experiment-a-' in body
+
+    def test_slurm_unknown_executor_raises(self, tmp_path):
+        from doe.codegen import generate_script
+        cfg, matrix = self._setup(tmp_path)
+        with pytest.raises(ValueError, match="Unknown executor"):
+            generate_script(
+                matrix, cfg, str(tmp_path / "x.sh"), executor="kubernetes",
+            )
+
+
+class TestCategoricalGP:
+    """Tests for the mixed numeric + one-hot encoder feeding the GP."""
+
+    def _make_cfg(self, tmp_path):
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "temp", "levels": ["100", "200"], "type": "continuous"},
+                {"name": "catalyst", "levels": ["A", "B", "C"], "type": "categorical"},
+            ],
+            responses=[{"name": "r", "optimize": "maximize"}],
+            operation="full_factorial",
+        )
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg_dict["settings"]["test_script"] = ""
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+        return cfg, matrix
+
+    def test_encoder_round_trip(self, tmp_path):
+        from doe.adaptive import _build_factor_encoder
+        cfg, matrix = self._make_cfg(tmp_path)
+        encoder = _build_factor_encoder(matrix.factor_names, cfg.factors)
+        assert encoder is not None
+        # 1 numeric + 3 one-hot columns for catalyst
+        assert encoder.n_dims == 1 + 3
+        # Encoding then decoding a known run reproduces its factor values
+        for run in matrix.runs:
+            row = np.array(encoder.encode(run.factor_values))
+            decoded = encoder.decode(row)
+            assert decoded["catalyst"] == run.factor_values["catalyst"]
+            assert abs(float(decoded["temp"]) - float(run.factor_values["temp"])) < 1e-3
+
+    def test_bayesian_strategy_with_categorical(self, tmp_path):
+        from doe.adaptive import plan_next_batch, AdaptiveConfig
+        cfg, matrix = self._make_cfg(tmp_path)
+        rd = Path(cfg.out_directory)
+        rd.mkdir(parents=True, exist_ok=True)
+        # Synthetic surface where catalyst='C' is best
+        for run in matrix.runs:
+            temp = float(run.factor_values["temp"])
+            cat_bonus = {"A": 0.0, "B": 0.5, "C": 2.0}[run.factor_values["catalyst"]]
+            (rd / f"run_{run.run_id}.json").write_text(json.dumps({
+                "r": -((temp - 150) / 50) ** 2 + cat_bonus,
+            }))
+        ac = AdaptiveConfig(strategy="bayesian", batch_size=3,
+                            stopping_max_phases=5)
+        new_matrix, _state = plan_next_batch(
+            matrix, cfg, ac, results_dir=cfg.out_directory, seed=0,
+        )
+        assert len(new_matrix.runs) == 3
+        # Picked levels must be valid (not random strings)
+        for run in new_matrix.runs:
+            assert run.factor_values["catalyst"] in {"A", "B", "C"}
+
+
+class TestSensitivity:
+    """Tests for Sobol index computation."""
+
+    def test_linear_predictor_concentrates_first_order(self):
+        """For a purely additive surface y = 2*x + 3*y, the first-order
+        Sobol indices should sum to ~1 and approximately reflect the
+        squared-coefficient ratios."""
+        from doe.sensitivity import sobol_indices
+        def predictor(X):
+            return 2.0 * X[:, 0] + 3.0 * X[:, 1]
+        result = sobol_indices(
+            predictor, factor_names=["x", "y"],
+            bounds=[(-1.0, 1.0), (-1.0, 1.0)],
+            n_base_samples=512, seed=0,
+        )
+        s_first = sum(idx.first_order for idx in result.indices)
+        # First-order sum should be very close to 1 for an additive model
+        assert abs(s_first - 1.0) < 0.05
+        # x explains ~ 4/13 ≈ 0.31, y explains ~ 9/13 ≈ 0.69
+        s_x = next(i for i in result.indices if i.factor_name == "x")
+        s_y = next(i for i in result.indices if i.factor_name == "y")
+        assert s_y.first_order > s_x.first_order
+
+    def test_interaction_inflates_total_order(self):
+        """For y = x*y, both factors should have S_T ≈ 1 and S ≈ 0
+        (pure interaction)."""
+        from doe.sensitivity import sobol_indices
+        def predictor(X):
+            return X[:, 0] * X[:, 1]
+        result = sobol_indices(
+            predictor, factor_names=["x", "y"],
+            bounds=[(-1.0, 1.0), (-1.0, 1.0)],
+            n_base_samples=512, seed=0,
+        )
+        for idx in result.indices:
+            assert idx.first_order < 0.15, (
+                f"Expected near-zero first order for pure interaction, "
+                f"got {idx.first_order}"
+            )
+            assert idx.total_order > 0.7, (
+                f"Expected near-1 total order for pure interaction, "
+                f"got {idx.total_order}"
+            )
+
+    def test_constant_predictor_emits_note(self):
+        from doe.sensitivity import sobol_indices
+        def predictor(X):
+            return np.full(X.shape[0], 7.0)
+        result = sobol_indices(
+            predictor, factor_names=["x"], bounds=[(-1.0, 1.0)],
+            n_base_samples=64, seed=0,
+        )
+        assert not result.indices
+        assert any("constant" in n.lower() for n in result.notes)
+
+    def test_make_rsm_predictor(self):
+        from doe.sensitivity import make_rsm_predictor
+        # Linear surface y = intercept + a*x + b*y; coded space is just [-1,1].
+        coefs = {"intercept": 0.5, "x": 1.0, "y": -1.5}
+        pred = make_rsm_predictor(
+            coefs, factor_names=["x", "y"],
+            bounds=[(-1.0, 1.0), (-1.0, 1.0)],
+        )
+        X = np.array([[0.0, 0.0], [1.0, -1.0]])
+        y = pred(X)
+        # At (0,0) → 0.5, at (1,-1) → 0.5 + 1*1 + (-1.5)*(-1) = 0.5 + 1 + 1.5 = 3.0
+        assert abs(y[0] - 0.5) < 1e-9
+        assert abs(y[1] - 3.0) < 1e-9
+
+
+class TestSuggest:
+    """Tests for doe.suggest.suggest."""
+
+    def test_screening_tight_budget(self):
+        from doe.suggest import suggest
+        s = suggest(n_factors=11, n_responses=1, budget=12, goal="screening")
+        assert s.operation == "plackett_burman"
+        assert s.estimated_runs == 12
+
+    def test_screening_room_for_resolution_iv(self):
+        from doe.suggest import suggest
+        s = suggest(n_factors=4, n_responses=1, budget=24, goal="screening")
+        assert s.operation == "fractional_factorial"
+        assert s.min_resolution == 4
+
+    def test_response_surface_picks_box_behnken(self):
+        from doe.suggest import suggest
+        s = suggest(n_factors=3, n_responses=1, budget=20, goal="response_surface")
+        assert s.operation == "box_behnken"
+        assert s.replicate_center == 3
+
+    def test_response_surface_picks_central_composite_for_more_factors(self):
+        from doe.suggest import suggest
+        s = suggest(n_factors=6, n_responses=1, budget=200, goal="response_surface")
+        assert s.operation == "central_composite"
+
+    def test_optimization_single_response_picks_bayesian(self):
+        from doe.suggest import suggest
+        s = suggest(n_factors=4, n_responses=1, budget=40, goal="optimization")
+        assert s.operation == "latin_hypercube"
+        assert s.adaptive_strategy == "bayesian"
+
+    def test_optimization_multi_response_picks_multi_objective(self):
+        from doe.suggest import suggest
+        s = suggest(n_factors=4, n_responses=3, budget=40, goal="optimization")
+        assert s.adaptive_strategy == "multi_objective"
+
+    def test_invalid_goal_raises(self):
+        from doe.suggest import suggest
+        with pytest.raises(ValueError, match="goal must be one of"):
+            suggest(n_factors=3, n_responses=1, budget=10, goal="exploration")
+
+    def test_invalid_factor_count_raises(self):
+        from doe.suggest import suggest
+        with pytest.raises(ValueError, match="n_factors"):
+            suggest(n_factors=0, n_responses=1, budget=10, goal="screening")

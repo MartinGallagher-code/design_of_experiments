@@ -272,27 +272,8 @@ def _multi_objective_strategy(
             batch_size, start_run_id, seed=seed,
         )
 
-    factor_names = matrix.factor_names
-    factor_map = {f.name: f for f in cfg.factors}
-
-    # Numeric factor selection (same gate as _bayesian_strategy)
-    numeric_names: list[str] = []
-    bounds_natural: list[tuple[float, float]] = []
-    for fname in factor_names:
-        f = factor_map[fname]
-        if f.type not in ("continuous", "ordinal"):
-            continue
-        try:
-            low = float(f.levels[0])
-            high = float(f.levels[1])
-        except (TypeError, ValueError, IndexError):
-            continue
-        if low == high:
-            continue
-        numeric_names.append(fname)
-        bounds_natural.append((min(low, high), max(low, high)))
-
-    if not numeric_names:
+    encoder = _build_factor_encoder(matrix.factor_names, cfg.factors)
+    if encoder is None:
         return _model_guided_strategy(
             valid_runs,
             _load_response_dict(matrix, results_dir, cfg.responses[0].name),
@@ -300,22 +281,14 @@ def _multi_objective_strategy(
             batch_size, np.random.default_rng(seed), start_run_id,
         )
 
-    # Build the shared X matrix once
-    X_train = np.zeros((len(valid_runs), len(numeric_names)))
-    for i, run in enumerate(valid_runs):
-        for j, fname in enumerate(numeric_names):
-            low, high = bounds_natural[j]
-            try:
-                v = float(run.factor_values[fname])
-            except (TypeError, ValueError):
-                v = (low + high) / 2.0
-            X_train[i, j] = 2.0 * (v - low) / (high - low) - 1.0
+    X_train = np.array(
+        [encoder.encode(run.factor_values) for run in valid_runs], dtype=float,
+    )
 
     gps = []
     directions = []
     for resp in cfg.responses:
         responses = _load_response_dict(matrix, results_dir, resp.name)
-        # Restrict to runs that have a value for *this* response.
         usable_idx = [i for i, run in enumerate(valid_runs)
                       if run.run_id in responses]
         if len(usable_idx) < 2:
@@ -341,7 +314,15 @@ def _multi_objective_strategy(
         gps.append(gp)
         directions.append(resp.optimize)
 
-    bounds = np.tile([-1.0, 1.0], (len(numeric_names), 1))
+    # Multi-objective candidate scoring needs raw bounds; we pass [-1, 1]
+    # for numeric dims and let propose_batch_multi_objective fantasise on
+    # the encoded space. Because each categorical block is a 1-of-k
+    # indicator, treating it as continuous in [0, 1] still produces
+    # legal one-hot vectors after we decode via argmax.
+    bounds = np.array(
+        [[-1.0, 1.0]] * encoder.n_numeric_dims +
+        [[0.0, 1.0]] * (encoder.n_dims - encoder.n_numeric_dims)
+    )
     try:
         proposed = propose_batch_multi_objective(
             gps, bounds, batch_size, directions, seed=seed,
@@ -354,21 +335,11 @@ def _multi_objective_strategy(
             batch_size, start_run_id, seed=seed,
         )
 
-    from .rsm import _format_factor_value
     runs: list[ExperimentRun] = []
     run_id = start_run_id
     for coded_row in proposed:
         run_id += 1
-        factor_values: dict[str, str] = {}
-        for j, fname in enumerate(numeric_names):
-            low, high = bounds_natural[j]
-            decoded = low + (coded_row[j] + 1.0) / 2.0 * (high - low)
-            factor_values[fname] = _format_factor_value(factor_map[fname], decoded)
-        for fname in factor_names:
-            if fname in factor_values:
-                continue
-            f = factor_map[fname]
-            factor_values[fname] = f.levels[0] if f.levels else ""
+        factor_values = encoder.decode(coded_row)
         runs.append(ExperimentRun(
             run_id=run_id, block_id=1, factor_values=factor_values,
         ))
@@ -393,59 +364,27 @@ def _bayesian_strategy(
 ) -> list[ExperimentRun]:
     """Use a GP surrogate + Expected Improvement to pick the next batch.
 
-    Encodes existing runs to coded ``[-1, 1]`` space (numeric factors)
-    and skips factors without a numeric range — those don't fit the GP
-    cleanly and would need a separate kernel; the user can keep them
-    fixed or set them via ``fixed_factors``.
-
-    Falls back to ``model_guided`` if the GP fit fails outright.
+    Encodes numeric factors to coded ``[-1, 1]`` and categorical factors
+    to one-hot blocks so the GP can see both. Falls back to
+    ``model_guided`` if no factor is usable or the GP fit fails outright.
     """
     from .bo import fit_gp, propose_batch
 
-    factor_names = matrix.factor_names
-    factor_map = {f.name: f for f in cfg.factors}
-
-    # Identify numeric factors with a usable range
-    numeric_names: list[str] = []
-    bounds_natural: list[tuple[float, float]] = []
-    for fname in factor_names:
-        f = factor_map[fname]
-        if f.type not in ("continuous", "ordinal"):
-            continue
-        try:
-            low = float(f.levels[0])
-            high = float(f.levels[1])
-        except (TypeError, ValueError, IndexError):
-            continue
-        if low == high:
-            continue
-        numeric_names.append(fname)
-        bounds_natural.append((min(low, high), max(low, high)))
-
-    if not numeric_names or len(valid_runs) < 2:
-        # Cannot fit a GP — fall back to the leverage-based picker.
+    encoder = _build_factor_encoder(matrix.factor_names, cfg.factors)
+    if encoder is None or len(valid_runs) < 2:
         return _model_guided_strategy(
             valid_runs, responses, resp, cfg, matrix,
             batch_size, np.random.default_rng(seed), start_run_id,
         )
 
-    # Encode training X into coded space and y in original units.
-    X_train = np.zeros((len(valid_runs), len(numeric_names)))
-    y_train = np.zeros(len(valid_runs))
-    for i, run in enumerate(valid_runs):
-        for j, fname in enumerate(numeric_names):
-            low, high = bounds_natural[j]
-            try:
-                v = float(run.factor_values[fname])
-            except (TypeError, ValueError):
-                v = (low + high) / 2.0
-            X_train[i, j] = 2.0 * (v - low) / (high - low) - 1.0
-        y_train[i] = float(responses[run.run_id])
+    X_train = np.array(
+        [encoder.encode(run.factor_values) for run in valid_runs], dtype=float,
+    )
+    y_train = np.array(
+        [float(responses[run.run_id]) for run in valid_runs], dtype=float,
+    )
 
-    # Estimate per-point noise from replicates: any (factor_values) seen more
-    # than once contributes its sample variance to every replicate's diagonal
-    # entry. Singletons get the empirical pooled variance as a fallback.
-    noise = _per_point_noise_from_replicates(valid_runs, responses, factor_names)
+    noise = _per_point_noise_from_replicates(valid_runs, responses, matrix.factor_names)
 
     try:
         gp = fit_gp(X_train, y_train, seed=seed, noise_per_point=noise)
@@ -455,11 +394,9 @@ def _bayesian_strategy(
             batch_size, np.random.default_rng(seed), start_run_id,
         )
 
-    bounds = np.tile([-1.0, 1.0], (len(numeric_names), 1))
     try:
-        proposed = propose_batch(
-            gp, bounds, batch_size,
-            direction=resp.optimize, seed=seed,
+        proposed = encoder.propose_with_gp(
+            gp, batch_size, direction=resp.optimize, seed=seed,
         )
     except Exception:
         return _model_guided_strategy(
@@ -467,26 +404,192 @@ def _bayesian_strategy(
             batch_size, np.random.default_rng(seed), start_run_id,
         )
 
-    from .rsm import _format_factor_value
     runs: list[ExperimentRun] = []
     run_id = start_run_id
     for coded_row in proposed:
         run_id += 1
-        factor_values: dict[str, str] = {}
-        for j, fname in enumerate(numeric_names):
-            low, high = bounds_natural[j]
-            decoded = low + (coded_row[j] + 1.0) / 2.0 * (high - low)
-            factor_values[fname] = _format_factor_value(factor_map[fname], decoded)
-        # Fill in non-numeric / fixed factors at their first level
-        for fname in factor_names:
-            if fname in factor_values:
-                continue
-            f = factor_map[fname]
-            factor_values[fname] = f.levels[0] if f.levels else ""
+        factor_values = encoder.decode(coded_row)
         runs.append(ExperimentRun(
             run_id=run_id, block_id=1, factor_values=factor_values,
         ))
     return runs
+
+
+@dataclass
+class _FactorEncoder:
+    """Numeric-RBF + one-hot-categorical encoder for the GP surrogate.
+
+    Numeric factors with a 2-element numeric range become one column in
+    coded ``[-1, 1]`` space. Categorical factors with k levels become a
+    block of k columns whose values are 1 / k-1 (one-hot scaled to keep
+    Euclidean distances comparable across blocks). A factor with neither
+    a numeric range nor categorical levels is ignored — the user can
+    pin it via ``fixed_factors``.
+    """
+    factor_names: list[str]                              # original order
+    numeric_names: list[str]
+    numeric_bounds: list[tuple[float, float]]
+    categorical_names: list[str]
+    categorical_levels: list[list[str]]
+    factor_map: dict
+    n_numeric_dims: int
+    cat_offsets: list[int]                               # start index per categorical block
+    n_dims: int
+
+    @classmethod
+    def _build(cls, factor_names, factors):
+        factor_map = {f.name: f for f in factors}
+        numeric_names: list[str] = []
+        numeric_bounds: list[tuple[float, float]] = []
+        categorical_names: list[str] = []
+        categorical_levels: list[list[str]] = []
+
+        for fname in factor_names:
+            f = factor_map[fname]
+            if f.type in ("continuous", "ordinal"):
+                try:
+                    low = float(f.levels[0])
+                    high = float(f.levels[1])
+                except (TypeError, ValueError, IndexError):
+                    continue
+                if low == high:
+                    continue
+                numeric_names.append(fname)
+                numeric_bounds.append((min(low, high), max(low, high)))
+            else:
+                lvls = list(dict.fromkeys(f.levels))  # preserve order, dedup
+                if len(lvls) >= 2:
+                    categorical_names.append(fname)
+                    categorical_levels.append(lvls)
+
+        if not numeric_names and not categorical_names:
+            return None
+
+        n_num = len(numeric_names)
+        cat_offsets: list[int] = []
+        running = n_num
+        for lvls in categorical_levels:
+            cat_offsets.append(running)
+            running += len(lvls)
+        return cls(
+            factor_names=list(factor_names),
+            numeric_names=numeric_names,
+            numeric_bounds=numeric_bounds,
+            categorical_names=categorical_names,
+            categorical_levels=categorical_levels,
+            factor_map=factor_map,
+            n_numeric_dims=n_num,
+            cat_offsets=cat_offsets,
+            n_dims=running,
+        )
+
+    def encode(self, factor_values: dict[str, str]) -> list[float]:
+        row = [0.0] * self.n_dims
+        for j, fname in enumerate(self.numeric_names):
+            low, high = self.numeric_bounds[j]
+            try:
+                v = float(factor_values[fname])
+            except (TypeError, ValueError):
+                v = (low + high) / 2.0
+            row[j] = 2.0 * (v - low) / (high - low) - 1.0
+        for j, fname in enumerate(self.categorical_names):
+            lvls = self.categorical_levels[j]
+            v = factor_values.get(fname, lvls[0])
+            try:
+                idx = lvls.index(v)
+            except ValueError:
+                idx = 0
+            offset = self.cat_offsets[j]
+            row[offset + idx] = 1.0
+        return row
+
+    def decode(self, coded_row: np.ndarray) -> dict[str, str]:
+        from .rsm import _format_factor_value
+        out: dict[str, str] = {}
+        for j, fname in enumerate(self.numeric_names):
+            low, high = self.numeric_bounds[j]
+            cv = float(np.clip(coded_row[j], -1.0, 1.0))
+            decoded = low + (cv + 1.0) / 2.0 * (high - low)
+            out[fname] = _format_factor_value(self.factor_map[fname], decoded)
+        for j, fname in enumerate(self.categorical_names):
+            offset = self.cat_offsets[j]
+            block = coded_row[offset:offset + len(self.categorical_levels[j])]
+            idx = int(np.argmax(block))
+            out[fname] = self.categorical_levels[j][idx]
+        # Fill un-encoded factors with their first level (e.g. fixed factors).
+        for fname in self.factor_names:
+            if fname not in out:
+                f = self.factor_map.get(fname)
+                out[fname] = f.levels[0] if (f and f.levels) else ""
+        return out
+
+    def sample_candidate_set(
+        self, n_candidates: int, rng: np.random.Generator,
+    ) -> np.ndarray:
+        """Random candidate matrix in the encoded space."""
+        X = np.zeros((n_candidates, self.n_dims))
+        if self.n_numeric_dims:
+            X[:, :self.n_numeric_dims] = rng.uniform(
+                -1.0, 1.0, size=(n_candidates, self.n_numeric_dims),
+            )
+        for j, fname in enumerate(self.categorical_names):
+            offset = self.cat_offsets[j]
+            n_lvls = len(self.categorical_levels[j])
+            picks = rng.integers(low=0, high=n_lvls, size=n_candidates)
+            for i, p in enumerate(picks):
+                X[i, offset + int(p)] = 1.0
+        return X
+
+    def propose_with_gp(
+        self,
+        gp,
+        batch_size: int,
+        direction: str = "maximize",
+        n_candidates: int = 2000,
+        seed: int | None = None,
+    ) -> np.ndarray:
+        """Pick a batch by EI on a randomly sampled candidate set, with
+        constant-liar fantasising. Same logic as :func:`doe.bo.propose_batch`
+        but on the mixed candidate space — categorical levels are
+        sampled discretely each iteration, numerics uniformly in [-1, 1]."""
+        from .bo import expected_improvement, fit_gp, predict
+        rng = np.random.default_rng(seed)
+        chosen: list[np.ndarray] = []
+        if direction == "minimize":
+            best_norm = float(np.min(gp.y_train))
+        else:
+            best_norm = float(np.max(gp.y_train))
+        best_orig = best_norm * gp.y_std + gp.y_mean
+
+        current_gp = gp
+        for _ in range(batch_size):
+            candidates = self.sample_candidate_set(n_candidates, rng)
+            ei = expected_improvement(
+                current_gp, candidates, best_orig, direction=direction,
+            )
+            for c in chosen:
+                dists = np.linalg.norm(candidates - c, axis=1)
+                ei = ei * (1.0 - np.exp(-(dists ** 2) / 0.04))
+            if not np.any(ei > 0):
+                _, var = predict(current_gp, candidates)
+                idx = int(np.argmax(var))
+            else:
+                idx = int(np.argmax(ei))
+            chosen.append(candidates[idx].copy())
+
+            X_new = np.vstack([current_gp.X_train, candidates[idx][None, :]])
+            y_new_norm = np.append(current_gp.y_train, best_norm)
+            y_new = y_new_norm * current_gp.y_std + current_gp.y_mean
+            try:
+                current_gp = fit_gp(X_new, y_new, seed=seed)
+            except Exception:
+                pass
+
+        return np.vstack(chosen)
+
+
+def _build_factor_encoder(factor_names, factors):
+    return _FactorEncoder._build(factor_names, factors)
 
 
 def _model_guided_strategy(
