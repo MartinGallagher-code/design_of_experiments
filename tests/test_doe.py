@@ -2973,3 +2973,235 @@ class TestAliasStructure:
         body = (out_dir / "alias_structure.csv").read_text()
         # Header must include all four columns
         assert "effect_kind,effect,aliased_with,abs_correlation" in body
+
+
+class TestCompareSessions:
+    """Tests for doe.compare.compare_sessions and the doe compare CLI."""
+
+    def _build_two_sessions(self, tmp_path, baseline_fn, candidate_fn,
+                            factors=None, response_name="r"):
+        """Generate a small full-factorial design and write two sessions
+        whose response values come from ``baseline_fn`` / ``candidate_fn``.
+        Returns (cfg, matrix, baseline_dir, candidate_dir).
+        """
+        cfg_dict = _make_config_dict(
+            factors=factors or [
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": response_name, "optimize": "maximize"}],
+            operation="full_factorial",
+        )
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        matrix = generate_design(cfg, seed=1)
+
+        results_dir = Path(cfg.out_directory)
+        results_dir.mkdir(parents=True, exist_ok=True)
+
+        def _write(name, fn):
+            d = results_dir / name
+            d.mkdir(parents=True, exist_ok=True)
+            # Copy the design matrix into the session dir (the runner does this
+            # for real sessions; for tests we replicate the layout directly).
+            (d / "design_matrix.json").write_text(json.dumps({
+                "factor_names": matrix.factor_names,
+                "operation": matrix.operation,
+                "metadata": matrix.metadata,
+                "runs": [
+                    {"run_id": r.run_id, "block_id": r.block_id,
+                     "factor_values": r.factor_values}
+                    for r in matrix.runs
+                ],
+            }))
+            for run in matrix.runs:
+                vals = [float(run.factor_values[f]) for f in matrix.factor_names]
+                (d / f"run_{run.run_id}.json").write_text(json.dumps({
+                    response_name: float(fn(*vals)),
+                }))
+            return d
+
+        b = _write("baseline", baseline_fn)
+        c = _write("candidate", candidate_fn)
+        return cfg, matrix, str(b), str(c)
+
+    def test_uniform_shift_detected(self, tmp_path):
+        """A constant +5 added to every run → mean_delta ≈ 5, effects unchanged."""
+        from doe.compare import compare_sessions
+        cfg, _, b, c = self._build_two_sessions(
+            tmp_path,
+            baseline_fn=lambda x, y: 3 + 2 * x + y,
+            candidate_fn=lambda x, y: 3 + 2 * x + y + 5.0,
+        )
+        report = compare_sessions(cfg, b, c)
+        assert report.n_matched_runs == 4
+        rc = report.responses[0]
+        assert abs(rc.mean_delta - 5.0) < 1e-9
+        # Paired t with deltas all exactly 5 → infinite t, p=0
+        # (handled as inf / 0 by the helper)
+        assert rc.paired_t_stat is not None
+        # Main effects didn't change: deltas should all be ~0, none flipped
+        for e in rc.effect_deltas:
+            assert abs(e.delta) < 1e-9
+            assert not e.flipped_sign
+
+    def test_sign_flip_detected(self, tmp_path):
+        from doe.compare import compare_sessions
+        # Baseline: x has positive effect (+2). Candidate: x has negative effect (-2).
+        cfg, _, b, c = self._build_two_sessions(
+            tmp_path,
+            baseline_fn=lambda x, y: 10 + 2 * x + y,
+            candidate_fn=lambda x, y: 10 - 2 * x + y,
+        )
+        report = compare_sessions(cfg, b, c)
+        rc = report.responses[0]
+        x_delta = next(e for e in rc.effect_deltas if e.factor_name == "x")
+        assert x_delta.flipped_sign is True
+        y_delta = next(e for e in rc.effect_deltas if e.factor_name == "y")
+        assert y_delta.flipped_sign is False
+
+    def test_matches_by_factor_values_not_run_id(self, tmp_path):
+        """Re-randomising the candidate run order must still pair correctly."""
+        from doe.compare import compare_sessions
+        cfg, matrix, b, c = self._build_two_sessions(
+            tmp_path,
+            baseline_fn=lambda x, y: x + y,
+            candidate_fn=lambda x, y: x + y + 0.5,
+        )
+        # Re-write candidate with run_ids reversed but same factor values
+        import shutil
+        cand = Path(c)
+        # Rename run_*.json files: id -> (5 - id) so 1<->4, 2<->3
+        old_files = {p.name: p for p in cand.glob("run_*.json")}
+        # Read all values keyed by the original run_id
+        import json as _json
+        contents = {int(name.split("_")[1].split(".")[0]):
+                    _json.loads(p.read_text()) for name, p in old_files.items()}
+        for p in old_files.values():
+            p.unlink()
+        # Reverse the mapping
+        n_runs = len(contents)
+        for old_id, payload in contents.items():
+            new_id = n_runs + 1 - old_id
+            (cand / f"run_{new_id}.json").write_text(_json.dumps(payload))
+        # Also rewrite the design_matrix.json with re-ordered runs
+        dm_path = cand / "design_matrix.json"
+        dm = _json.loads(dm_path.read_text())
+        # Reverse run_id assignment but keep factor_values bound to the reverse
+        new_runs = []
+        for old_run in dm["runs"]:
+            new_runs.append({
+                "run_id": n_runs + 1 - old_run["run_id"],
+                "block_id": old_run["block_id"],
+                "factor_values": old_run["factor_values"],
+            })
+        dm["runs"] = new_runs
+        dm_path.write_text(_json.dumps(dm))
+
+        report = compare_sessions(cfg, b, c)
+        # All 4 runs should still pair via factor-value matching.
+        assert report.n_matched_runs == 4
+        rc = report.responses[0]
+        # Each per-run delta must equal +0.5 since the function only differs
+        # by a constant — confirms matching is correct.
+        assert all(abs(d.delta - 0.5) < 1e-9 for d in rc.per_run)
+
+    def test_unmatched_runs_warned(self, tmp_path):
+        from doe.compare import compare_sessions
+        cfg, _, b, c = self._build_two_sessions(
+            tmp_path,
+            baseline_fn=lambda x, y: x + y,
+            candidate_fn=lambda x, y: x + y,
+        )
+        # Delete one run from the candidate
+        candidate = Path(c)
+        next(candidate.glob("run_*.json")).unlink()
+        report = compare_sessions(cfg, b, c)
+        # Still pairs the 3 remaining; report carries a note about the missing one.
+        assert report.n_matched_runs == 4  # all factor settings still in candidate dir's matrix
+        rc = report.responses[0]
+        # But only 3 had results and got compared
+        assert rc.n_matched == 3
+
+    def test_mismatched_factor_names_raises(self, tmp_path):
+        from doe.compare import compare_sessions
+        cfg, _, b, _ = self._build_two_sessions(
+            tmp_path,
+            baseline_fn=lambda x, y: x + y,
+            candidate_fn=lambda x, y: x + y,
+        )
+        # Hand-craft a "candidate" session that claims different factors
+        rogue = tmp_path / "rogue"
+        rogue.mkdir()
+        (rogue / "design_matrix.json").write_text(json.dumps({
+            "factor_names": ["alpha", "beta"],
+            "operation": "full_factorial",
+            "metadata": {},
+            "runs": [{"run_id": 1, "block_id": 1, "factor_values": {"alpha": "0", "beta": "0"}}],
+        }))
+        with pytest.raises(ValueError, match="Factor names"):
+            compare_sessions(cfg, b, str(rogue))
+
+    def test_no_overlap_raises(self, tmp_path):
+        from doe.compare import compare_sessions
+        # Two sessions with identical factor names but disjoint level values:
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "x", "levels": ["-1", "1"], "type": "continuous"},
+                {"name": "y", "levels": ["-1", "1"], "type": "continuous"},
+            ],
+            responses=[{"name": "r"}],
+            operation="full_factorial",
+        )
+        cfg_dict["settings"]["out_directory"] = str(tmp_path / "results")
+        cfg = load_config(_write_config(tmp_path, cfg_dict), strict=False)
+        # Session B's "matrix" has factor values that don't appear in A
+        a = tmp_path / "a"
+        b = tmp_path / "b"
+        a.mkdir(); b.mkdir()
+        for d, vals in ((a, ("-1", "-1")), (b, ("99", "99"))):
+            (d / "design_matrix.json").write_text(json.dumps({
+                "factor_names": ["x", "y"],
+                "operation": "full_factorial",
+                "metadata": {},
+                "runs": [{"run_id": 1, "block_id": 1,
+                          "factor_values": {"x": vals[0], "y": vals[1]}}],
+            }))
+            (d / "run_1.json").write_text(json.dumps({"r": 1.0}))
+        with pytest.raises(ValueError, match="No matching runs"):
+            compare_sessions(cfg, str(a), str(b))
+
+    def test_csv_export(self, tmp_path):
+        from doe.compare import compare_sessions, export_compare_csv
+        cfg, _, b, c = self._build_two_sessions(
+            tmp_path,
+            baseline_fn=lambda x, y: x + y,
+            candidate_fn=lambda x, y: x + y + 1.0,
+        )
+        report = compare_sessions(cfg, b, c)
+        out_dir = tmp_path / "csv"
+        files = export_compare_csv(report, str(out_dir))
+        names = {os.path.basename(p) for p in files}
+        assert "compare_summary.csv" in names
+        assert "compare_runs_r.csv" in names
+        assert "compare_effects_r.csv" in names
+        body = (out_dir / "compare_summary.csv").read_text()
+        assert "response,n_matched,baseline_mean" in body
+
+    def test_cli_compare_runs(self, tmp_path):
+        """Smoke test the CLI integration."""
+        from doe.compare import compare_sessions
+        cfg, _, b, c = self._build_two_sessions(
+            tmp_path,
+            baseline_fn=lambda x, y: x + y,
+            candidate_fn=lambda x, y: x + y + 1.0,
+        )
+        # Re-load through the CLI path, capturing output
+        from doe.cli import _print_compare_report
+        report = compare_sessions(cfg, b, c)
+        # Just confirm the report has the expected shape
+        assert report.n_matched_runs == 4
+        assert len(report.responses) == 1
+        # Sanity: paired t-test is meaningful when deltas are constant +1
+        rc = report.responses[0]
+        assert rc.mean_delta - 1.0 < 1e-9

@@ -230,6 +230,19 @@ def main():
     ed.add_argument("--seed", type=int, default=42, help="Random seed for run order (default: 42)")
     ed.add_argument("--partial", action="store_true", help="Include runs with missing results")
 
+    # --- compare ---
+    cmp = subparsers.add_parser(
+        "compare",
+        help="Pairwise comparison between two result sessions",
+    )
+    cmp.add_argument("--config", required=True, metavar="FILE", help="Input JSON config file")
+    cmp.add_argument("--baseline", required=True, metavar="DIR",
+                     help="Baseline session directory (e.g. results/baseline-20260101-093015)")
+    cmp.add_argument("--candidate", required=True, metavar="DIR",
+                     help="Candidate session directory (e.g. results/latest)")
+    cmp.add_argument("--csv", default=None, metavar="DIR",
+                     help="Also export the comparison tables to this directory")
+
     # --- scaffold-config ---
     sfc = subparsers.add_parser(
         "scaffold-config",
@@ -415,6 +428,17 @@ def _dispatch(args):
         matrix = _load_or_generate(cfg)
         _handle_export_data(matrix, cfg, fmt=args.format, output_path=args.output,
                             partial=args.partial)
+
+    elif args.command == "compare":
+        cfg = load_config(args.config, strict=False)
+        from doe.compare import compare_sessions
+        report = compare_sessions(cfg, args.baseline, args.candidate)
+        _print_compare_report(report)
+        if args.csv:
+            from doe.compare import export_compare_csv
+            paths = export_compare_csv(report, args.csv)
+            for p in paths:
+                print(f"CSV exported: {p}")
 
     elif args.command == "scaffold-config":
         if os.path.exists(args.output) and not args.force:
@@ -1056,6 +1080,51 @@ def _print_matrix(matrix, cfg=None):
     for run in matrix.runs:
         row = [str(run.run_id), str(run.block_id)] + [run.factor_values[f] for f in matrix.factor_names]
         print("".join(v.ljust(col_w) for v in row))
+
+
+def _print_compare_report(report):
+    print(f"\n=== Compare ===")
+    print(f"  Baseline : {report.baseline_dir}  ({report.n_baseline_runs} run(s))")
+    print(f"  Candidate: {report.candidate_dir}  ({report.n_candidate_runs} run(s))")
+    print(f"  Factors  : {', '.join(report.factor_names)}")
+    print(f"  Matched  : {report.n_matched_runs} run(s)")
+    for note in report.notes:
+        print(f"  Note: {note}")
+
+    for rc in report.responses:
+        print(f"\n=== Response: {rc.response_name} ===")
+        if rc.n_matched == 0:
+            for note in rc.notes:
+                print(f"  {note}")
+            continue
+
+        print(f"  Baseline mean : {rc.baseline_mean:.4f}")
+        print(f"  Candidate mean: {rc.candidate_mean:.4f}   (Δ = {rc.mean_delta:+.4f})")
+        if rc.paired_t_stat is not None:
+            t_str = f"{rc.paired_t_stat:.3f}" if math_isfinite(rc.paired_t_stat) else "inf"
+            p_str = "—" if rc.paired_p_value is None else f"{rc.paired_p_value:.4f}"
+            d_str = f"{rc.cohens_d:+.3f}" if rc.cohens_d is not None and math_isfinite(rc.cohens_d) else "—"
+            sig = " *" if rc.paired_p_value is not None and rc.paired_p_value < 0.05 else ""
+            print(f"  Paired t-test : t={t_str}, p={p_str}, Cohen's d={d_str}{sig}")
+
+        if rc.effect_deltas:
+            any_flipped = any(e.flipped_sign for e in rc.effect_deltas)
+            print(f"\n  Main-effect changes:")
+            print(f"    {'Factor':<20} {'baseline':>12} {'candidate':>12} {'delta':>10}"
+                  + ("  flipped" if any_flipped else ""))
+            print(f"    {'-' * 20} {'-' * 12} {'-' * 12} {'-' * 10}"
+                  + ("  -------" if any_flipped else ""))
+            for e in rc.effect_deltas:
+                flag = "  *" if e.flipped_sign else ""
+                print(f"    {e.factor_name:<20} {e.baseline_effect:>12.4f} "
+                      f"{e.candidate_effect:>12.4f} {e.delta:>+10.4f}{flag}")
+            if any_flipped:
+                print(f"    * = sign flipped between sessions")
+
+
+def math_isfinite(x):
+    import math
+    return math.isfinite(x) if isinstance(x, float) else True
 
 
 def _print_achieved_power(ap, header_prefix: str = "Achieved Power"):

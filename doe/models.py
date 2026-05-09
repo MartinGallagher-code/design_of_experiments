@@ -236,3 +236,53 @@ class AliasStructure:
     notes: list[str] = field(default_factory=list)
     main_effects: list[AliasEntry] = field(default_factory=list)
     two_factor_interactions: list[AliasEntry] = field(default_factory=list)
+
+
+@dataclass
+class PerRunDelta:
+    """One matched-run row in a session comparison."""
+    run_key: str                          # canonical "factor=value, factor=value" key
+    baseline_run_id: int
+    candidate_run_id: int
+    baseline_value: float
+    candidate_value: float
+    delta: float                          # candidate - baseline
+
+
+@dataclass
+class EffectDelta:
+    """Change in a main effect between baseline and candidate sessions."""
+    factor_name: str
+    baseline_effect: float
+    candidate_effect: float
+    delta: float                          # candidate - baseline
+    flipped_sign: bool                    # True iff sign changed and both magnitudes are non-trivial
+
+
+@dataclass
+class ResponseComparison:
+    response_name: str
+    n_baseline: int
+    n_candidate: int
+    n_matched: int
+    baseline_mean: float
+    candidate_mean: float
+    mean_delta: float
+    paired_t_stat: float | None = None
+    paired_p_value: float | None = None
+    cohens_d: float | None = None
+    per_run: list[PerRunDelta] = field(default_factory=list)
+    effect_deltas: list[EffectDelta] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)
+
+
+@dataclass
+class ComparisonReport:
+    baseline_dir: str
+    candidate_dir: str
+    factor_names: list[str]
+    n_baseline_runs: int
+    n_candidate_runs: int
+    n_matched_runs: int
+    responses: list[ResponseComparison] = field(default_factory=list)
+    notes: list[str] = field(default_factory=list)
