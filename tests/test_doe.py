@@ -5612,3 +5612,75 @@ class TestPackageVersion:
         match = re.search(r'^version\s*=\s*"([^"]+)"', text, flags=re.MULTILINE)
         assert match is not None, "Could not find version in pyproject.toml"
         assert match.group(1) == __version__
+
+
+class TestReleaseNotesExtraction:
+    """Regression test for the awk snippet in .github/workflows/release.yml.
+
+    We don't run awk — we re-implement the same logic in Python and check
+    a representative CHANGELOG. If the workflow's logic ever drifts,
+    update this test to match.
+    """
+
+    @staticmethod
+    def _extract_section(changelog: str, version: str) -> str:
+        out: list[str] = []
+        capturing = False
+        header = f"## {version}"
+        for line in changelog.splitlines():
+            if line.startswith("## "):
+                if capturing:
+                    break
+                # Match '## VERSION ...' (next char is whitespace, dash, or end).
+                if line.startswith(header) and (
+                    len(line) == len(header) or not line[len(header)].isalnum()
+                ):
+                    capturing = True
+                    continue
+            if capturing:
+                out.append(line)
+        # Strip trailing blank lines that come from a hard CHANGELOG break.
+        while out and not out[-1].strip():
+            out.pop()
+        return "\n".join(out)
+
+    def test_extracts_section_for_version(self):
+        log = (
+            "# Changelog\n\n"
+            "## 0.4.0 — 2026-06-01\n\n"
+            "### Added\n"
+            "- New thing.\n\n"
+            "## 0.3.0 — 2026-05-09\n\n"
+            "### Added\n"
+            "- Old thing.\n"
+        )
+        section = self._extract_section(log, "0.3.0")
+        assert "Old thing" in section
+        # Stops at the next version header
+        assert "New thing" not in section
+
+    def test_top_section_extracts(self):
+        log = (
+            "# Changelog\n\n"
+            "## 0.4.0 — 2026-06-01\n\n"
+            "Top-of-file release.\n"
+        )
+        section = self._extract_section(log, "0.4.0")
+        assert "Top-of-file release" in section
+
+    def test_missing_version_returns_empty(self):
+        log = "# Changelog\n\n## 0.3.0 — 2026-05-09\n\nNotes here.\n"
+        assert self._extract_section(log, "9.9.9") == ""
+
+    def test_real_changelog_has_current_version_section(self):
+        """Sanity: the bundled CHANGELOG actually has a section for the
+        version pinned in pyproject. If a future release forgets to add
+        a CHANGELOG entry, this test points it out."""
+        from doe import __version__
+        with open("CHANGELOG.md") as f:
+            log = f.read()
+        section = self._extract_section(log, __version__)
+        assert section, (
+            f"CHANGELOG.md is missing a '## {__version__}' section; "
+            "release.yml would emit a placeholder."
+        )

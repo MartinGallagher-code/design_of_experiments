@@ -250,6 +250,7 @@ Archives include a `manifest.json` with SHA-256 sums for every entry.
 - [`commands.md`](commands.md) — CLI command reference.
 - [`strategies.md`](strategies.md) — when to pick which adaptive strategy.
 - [`config.md`](config.md) — every config key with defaults.
+- [`releasing.md`](releasing.md) — how the auto-release pipeline works.
 - [`doe_fundamentals.md`](doe_fundamentals.md) — DOE theory primer.
 
 ---

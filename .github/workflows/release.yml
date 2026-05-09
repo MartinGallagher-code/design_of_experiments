@@ -1,0 +1,93 @@
+name: Auto-release
+
+# Detects version bumps in pyproject.toml on the main branch and, when the
+# version is new, creates a matching git tag and GitHub release. Once the
+# release is published, .github/workflows/publish.yml uploads the package
+# to PyPI.
+#
+# The release body comes from CHANGELOG.md — we extract the section between
+# the version header and the next `## ` so each release ships with the
+# notes the maintainer already wrote.
+#
+# Manual trigger is supported via workflow_dispatch for cases where the
+# version was bumped earlier without firing this workflow.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "pyproject.toml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Read version from pyproject.toml
+        id: version
+        run: |
+          ver=$(python -c "
+          import re, pathlib
+          text = pathlib.Path('pyproject.toml').read_text()
+          m = re.search(r'^version\s*=\s*\"([^\"]+)\"', text, flags=re.MULTILINE)
+          print(m.group(1) if m else '')
+          ")
+          if [ -z "$ver" ]; then
+            echo "Could not read version from pyproject.toml" >&2
+            exit 1
+          fi
+          echo "version=$ver" >> "$GITHUB_OUTPUT"
+          echo "tag=v$ver" >> "$GITHUB_OUTPUT"
+          echo "Resolved version: $ver"
+
+      - name: Skip if tag already exists
+        id: tag_check
+        run: |
+          tag="${{ steps.version.outputs.tag }}"
+          if git rev-parse "$tag" >/dev/null 2>&1; then
+            echo "Tag $tag already exists locally — nothing to do."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          elif git ls-remote --exit-code --tags origin "$tag" >/dev/null 2>&1; then
+            echo "Tag $tag already exists on origin — nothing to do."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Extract CHANGELOG section
+        if: steps.tag_check.outputs.skip != 'true'
+        id: changelog
+        run: |
+          ver="${{ steps.version.outputs.version }}"
+          # awk: capture everything between '## <ver> ...' and the next '## '
+          notes=$(awk -v ver="$ver" '
+            /^## / {
+              if (capturing) { exit }
+              if ($0 ~ "^## " ver "([^0-9]|$)") { capturing = 1; next }
+            }
+            capturing { print }
+          ' CHANGELOG.md)
+          if [ -z "$notes" ]; then
+            notes="No CHANGELOG entry found for $ver."
+          fi
+          # Stash to a file because GITHUB_OUTPUT can't carry multiline easily.
+          echo "$notes" > /tmp/release-notes.md
+          echo "Notes preview (first 20 lines):"
+          head -20 /tmp/release-notes.md
+
+      - name: Create GitHub release
+        if: steps.tag_check.outputs.skip != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          body_path: /tmp/release-notes.md
+          draft: false
+          prerelease: false
