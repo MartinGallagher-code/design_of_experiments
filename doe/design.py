@@ -205,8 +205,10 @@ def _central_composite(cfg: DOEConfig) -> list[ExperimentRun]:
         )
 
     n_factors = len(cfg.factors)
-    # circumscribed CCD: star points outside the factorial cube
-    matrix = pyDOE3.ccdesign(n_factors, center=(4, 4), alpha="orthogonal", face="circumscribed")
+    # Face-centered CCD: star points sit on the faces of the factorial cube
+    # (alpha=1), so every coded value is in {-1, 0, +1} and decoded values
+    # never escape the user-supplied [low, high] range.
+    matrix = pyDOE3.ccdesign(n_factors, center=(4, 4), face="faced")
 
     runs = []
     for i, row in enumerate(matrix):
@@ -219,12 +221,36 @@ def _central_composite(cfg: DOEConfig) -> list[ExperimentRun]:
 
 
 def _decode_coded_value(code: float, factor) -> str:
-    """Map a coded CCD value (±1 factorial, ±alpha star, 0 center) to a string."""
-    low = float(factor.levels[0])
-    high = float(factor.levels[1])
-    center = (low + high) / 2.0
-    half_range = (high - low) / 2.0
-    return f"{center + code * half_range:.6g}"
+    """Map a coded CCD value (-1 / 0 / +1) to a string level.
+
+    Uses the user-supplied middle level when 3 levels are given; otherwise
+    the center is (low + high) / 2. Integer factors (``dtype='int'``, or
+    both endpoints parse as integers) are rounded to the nearest integer
+    and clamped to [low, high] so the design never leaves the user's range
+    and never invents a non-integer middle.
+    """
+    levels = [float(lv) for lv in factor.levels]
+    low, high = levels[0], levels[-1]
+    lo, hi = (low, high) if low <= high else (high, low)
+    if len(levels) == 3:
+        center = levels[1]
+    else:
+        center = (low + high) / 2.0
+    if code >= 0:
+        decoded = center + code * (high - center)
+    else:
+        decoded = center + code * (center - low)
+
+    dtype = (getattr(factor, "dtype", "") or "").lower()
+    if not dtype:
+        # Infer integer dtype when every supplied level is an integer.
+        if all(float(lv).is_integer() for lv in factor.levels):
+            dtype = "int"
+    if dtype == "int":
+        rounded = int(round(decoded))
+        rounded = max(int(round(lo)), min(int(round(hi)), rounded))
+        return str(rounded)
+    return f"{decoded:.6g}"
 
 
 def _best_generator_choice(
