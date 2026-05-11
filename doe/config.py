@@ -246,19 +246,26 @@ def _validate_config(cfg: DOEConfig, strict: bool = True) -> None:
 
     if cfg.operation == "central_composite":
         for f in cfg.factors:
-            if len(f.levels) != 2:
+            if len(f.levels) not in (2, 3):
                 raise ValueError(
-                    f"Central composite requires exactly 2 levels (low, high) per factor, "
+                    f"Central composite requires 2 levels (low, high) or 3 levels "
+                    f"(low, center, high) per factor, "
                     f"but factor '{f.name}' has {len(f.levels)}: {f.levels}"
                 )
             try:
-                float(f.levels[0])
-                float(f.levels[1])
+                numeric = [float(lv) for lv in f.levels]
             except ValueError:
                 raise ValueError(
                     f"Central composite requires numeric levels, "
                     f"but factor '{f.name}' has non-numeric levels: {f.levels}"
                 )
+            if len(numeric) == 3:
+                lo, mid, hi = numeric
+                if not (min(lo, hi) <= mid <= max(lo, hi)):
+                    raise ValueError(
+                        f"Central composite center level must lie between low and high, "
+                        f"but factor '{f.name}' has levels: {f.levels}"
+                    )
 
     if cfg.operation == "definitive_screening":
         if len(cfg.factors) < 3:

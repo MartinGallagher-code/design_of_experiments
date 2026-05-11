@@ -224,16 +224,40 @@ class TestConfigLoading:
         with pytest.raises(ValueError, match="Central composite requires numeric levels"):
             load_config(path, strict=False)
 
-    def test_central_composite_requires_exactly_2_levels(self, tmp_path):
+    def test_central_composite_rejects_more_than_3_levels(self, tmp_path):
         cfg_dict = _make_config_dict(
             factors=[
-                {"name": "A", "levels": [1, 2, 3]},
+                {"name": "A", "levels": [1, 2, 3, 4]},
                 {"name": "B", "levels": [10, 20]},
             ],
             operation="central_composite",
         )
         path = _write_config(tmp_path, cfg_dict)
-        with pytest.raises(ValueError, match="Central composite requires exactly 2 levels"):
+        with pytest.raises(ValueError, match="Central composite requires"):
+            load_config(path, strict=False)
+
+    def test_central_composite_accepts_3_levels(self, tmp_path):
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "A", "levels": [1, 5, 10]},
+                {"name": "B", "levels": [10, 20]},
+            ],
+            operation="central_composite",
+        )
+        path = _write_config(tmp_path, cfg_dict)
+        cfg = load_config(path, strict=False)
+        assert cfg.factors[0].levels == ["1", "5", "10"]
+
+    def test_central_composite_rejects_center_outside_range(self, tmp_path):
+        cfg_dict = _make_config_dict(
+            factors=[
+                {"name": "A", "levels": [1, 99, 10]},
+                {"name": "B", "levels": [10, 20]},
+            ],
+            operation="central_composite",
+        )
+        path = _write_config(tmp_path, cfg_dict)
+        with pytest.raises(ValueError, match="center level must lie between"):
             load_config(path, strict=False)
 
     def test_duplicate_factor_names(self, tmp_path):
@@ -461,6 +485,49 @@ class TestDesignGeneration:
         for run in matrix.runs:
             for val in run.factor_values.values():
                 float(val)  # should not raise
+
+    def test_central_composite_stays_within_user_range(self):
+        cfg = _make_doe_config(
+            factors=[
+                Factor(name="A", levels=["100", "1000"], dtype="int"),
+                Factor(name="B", levels=["10", "20"], dtype="int"),
+            ],
+            operation="central_composite",
+        )
+        matrix = generate_design(cfg, seed=42)
+        for run in matrix.runs:
+            a = int(run.factor_values["A"])
+            b = int(run.factor_values["B"])
+            assert 100 <= a <= 1000
+            assert 10 <= b <= 20
+
+    def test_central_composite_integer_dtype_rounds_center(self):
+        cfg = _make_doe_config(
+            factors=[
+                Factor(name="A", levels=["10", "13"], dtype="int"),
+                Factor(name="B", levels=["0", "1"], dtype="int"),
+            ],
+            operation="central_composite",
+        )
+        matrix = generate_design(cfg, seed=42)
+        for run in matrix.runs:
+            # Every value must be an integer string (no 11.5, etc.)
+            assert run.factor_values["A"].lstrip("-").isdigit()
+            assert run.factor_values["B"].lstrip("-").isdigit()
+
+    def test_central_composite_three_levels_uses_user_center(self):
+        cfg = _make_doe_config(
+            factors=[
+                Factor(name="A", levels=["100", "400", "1000"], dtype="int"),
+                Factor(name="B", levels=["0", "5", "10"], dtype="int"),
+            ],
+            operation="central_composite",
+        )
+        matrix = generate_design(cfg, seed=42)
+        a_values = {run.factor_values["A"] for run in matrix.runs}
+        b_values = {run.factor_values["B"] for run in matrix.runs}
+        assert a_values == {"100", "400", "1000"}
+        assert b_values == {"0", "5", "10"}
 
     def test_blocking_multiplies_runs(self):
         cfg = _make_doe_config(
