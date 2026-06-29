@@ -20,10 +20,19 @@ The project includes **221 worked use cases** spanning HPC, cloud infrastructure
 
 ## Documentation
 
+**Getting Started**:
 - **[User guide](docs/user_guide.md)** — five-step workflow tour from first config to a finished report.
+- **[Quick start](README.md#quick-start)** — first experiment in 5 minutes.
+
+**Reference**:
 - **[Command reference](docs/commands.md)** — one-line-per-subcommand cheat sheet.
-- **[Adaptive strategies](docs/strategies.md)** — when to pick `refine` / `bayesian` / `multi_objective` etc.
 - **[Config reference](docs/config.md)** — every recognised JSON key, default, and constraint.
+- **[Public API](docs/api.md)** — stable APIs, backward compatibility guarantees, deprecation policy.
+
+**Advanced**:
+- **[Adaptive strategies](docs/strategies.md)** — when to pick `refine` / `bayesian` / `multi_objective` etc.
+- **[Release process](docs/RELEASE.md)** — how to cut a release.
+- **[Project roadmap](ROADMAP.md)** — planned features and vision.
 
 ## Features
 
