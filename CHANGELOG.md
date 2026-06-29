@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-06-29
+
 ### Added
 - CONTRIBUTING.md with development and PR guidelines
 - SECURITY.md for responsible vulnerability disclosure
@@ -14,6 +16,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GitHub issue templates (bug report, feature request)
 - GitHub pull request template
 - Pre-commit configuration for code quality checks
+- ROADMAP.md describing project vision and planned work
+- docs/RELEASE.md documenting the semantic-versioning and release process
+- docs/api.md documenting the public API surface and stability guarantees
+- Integration tests covering end-to-end DOE workflows
+- In-process CLI tests, raising overall coverage to ~90%
+
+### Changed
+- CHANGELOG now follows the Keep a Changelog format
+- mypy strict type checking is enforced in CI (no longer advisory)
+- CI enforces a minimum test-coverage threshold (`--cov-fail-under=80`)
+- README adds REUSE, contributor, and security resource links
+
+### Security
+- Dependency vulnerability scanning via `pip-audit` in CI
+- Static security analysis via `bandit` in CI
+- REUSE license-compliance checking in CI
+- SBOM (CycloneDX) generation and attachment on release
+
+### Fixed
+- Resolved all mypy strict type errors across the `doe` package
 
 ## [0.3.0] — 2026-05-09
 
@@ -80,6 +102,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Power analysis
 - Design augmentation (fold-over, star points, center points)
 
-[Unreleased]: https://github.com/MartinGallagher-code/design_of_experiments/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/MartinGallagher-code/design_of_experiments/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/MartinGallagher-code/design_of_experiments/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/MartinGallagher-code/design_of_experiments/compare/v0.1.0...v0.3.0
 [0.1.0]: https://github.com/MartinGallagher-code/design_of_experiments/releases/tag/v0.1.0
