@@ -104,7 +104,7 @@ def _trend_for_response(
     factor_names: list[str],
     matched_keys: list[str],
     session_runs: list[dict[str, ExperimentRun]],
-    session_data: list[dict[int, dict]],
+    session_data: list[dict[int, dict[str, object]]],
 ) -> TrendResponse | None:
     try:
         import numpy as np
@@ -297,7 +297,7 @@ def export_trend_html(report: TrendReport, output_path: str) -> str:
     import html as _html
     from .report import _CSS
 
-    def fmt_p(p):
+    def fmt_p(p: float | None) -> str:
         return "&mdash;" if p is None else f"{p:.4f}"
 
     def _anchor(name: str) -> str:
@@ -449,7 +449,7 @@ def export_trend_html(report: TrendReport, output_path: str) -> str:
     return output_path
 
 
-def _render_means_lineplot(tr) -> str:
+def _render_means_lineplot(tr: TrendResponse) -> str:
     """Inline a per-session-mean line plot as base64 PNG. Returns "" if
     matplotlib isn't available."""
     try:

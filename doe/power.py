@@ -15,7 +15,7 @@ Two ways to use this module:
 """
 
 
-from .models import AchievedPower, AchievedPowerEntry
+from .models import AchievedPower, AchievedPowerEntry, DesignMatrix, Factor
 
 
 def power_for_factor(
@@ -63,7 +63,7 @@ def mde_for_factor(
     if df_error < 1 or n_levels < 2:
         return float("inf")
 
-    def _power(delta):
+    def _power(delta: float) -> float:
         return power_for_factor(n_runs, n_levels, df_error, delta, sigma, alpha)
 
     lo, hi = 0.0, max(8.0 * sigma, 1.0)
@@ -87,8 +87,8 @@ def mde_for_factor(
 
 
 def achieved_power(
-    matrix,
-    factors,
+    matrix: DesignMatrix,
+    factors: list[Factor],
     residual_ms: float,
     df_error: int,
     delta: float | None = None,

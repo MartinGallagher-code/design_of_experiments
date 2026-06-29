@@ -130,7 +130,7 @@ def _load_session_runs(cfg: DOEConfig, session_dir: str) -> list[ExperimentRun]:
     return matrix.runs
 
 
-def _validate_factor_alignment(cfg: DOEConfig, names_in_matrix: Iterable[str], session_dir: str):
+def _validate_factor_alignment(cfg: DOEConfig, names_in_matrix: Iterable[str], session_dir: str) -> None:
     cfg_names = [f.name for f in cfg.factors]
     matrix_names = list(names_in_matrix)
     if matrix_names and matrix_names != cfg_names:
@@ -149,9 +149,9 @@ def _run_key(run: ExperimentRun, factor_names: Iterable[str]) -> str:
     return ";".join(f"{n}={run.factor_values.get(n, '')}" for n in factor_names)
 
 
-def _load_results(runs: list[ExperimentRun], session_dir: str) -> dict[int, dict]:
+def _load_results(runs: list[ExperimentRun], session_dir: str) -> dict[int, dict[str, object]]:
     """Load every available run_*.json from a session, ignoring missing files."""
-    out: dict[int, dict] = {}
+    out: dict[int, dict[str, object]] = {}
     for run in runs:
         path = os.path.join(session_dir, f"run_{run.run_id}.json")
         if not os.path.isfile(path):
@@ -182,8 +182,8 @@ def _compare_response(
     matched_keys: list[str],
     base_by_key: dict[str, ExperimentRun],
     cand_by_key: dict[str, ExperimentRun],
-    base_data: dict[int, dict],
-    cand_data: dict[int, dict],
+    base_data: dict[int, dict[str, object]],
+    cand_data: dict[int, dict[str, object]],
     n_baseline: int,
     n_candidate: int,
 ) -> ResponseComparison | None:
@@ -324,7 +324,7 @@ def _compute_effect_deltas(
     return out
 
 
-def _sort_key(value: str):
+def _sort_key(value: str) -> tuple[int, float | str]:
     try:
         return (0, float(value))
     except (TypeError, ValueError):
@@ -551,7 +551,7 @@ def export_compare_html(report: ComparisonReport, output_path: str) -> str:
     import html as _html
     from .report import _CSS  # reuse the report stylesheet
 
-    def fmt_optional(v, fmt=".4f"):
+    def fmt_optional(v: object, fmt: str = ".4f") -> str:
         if v is None or (isinstance(v, float) and (v != v)):  # NaN check
             return "&mdash;"
         if isinstance(v, float) and not _isfinite(v):
@@ -749,7 +749,7 @@ def export_compare_html(report: ComparisonReport, output_path: str) -> str:
     return output_path
 
 
-def _render_delta_dotplot(rc) -> str:
+def _render_delta_dotplot(rc: ResponseComparison) -> str:
     """Inline a small dotplot of per-run deltas as a base64 PNG.
 
     Bails out silently (returns "") if matplotlib isn't available so HTML

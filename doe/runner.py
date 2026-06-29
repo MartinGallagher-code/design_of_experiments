@@ -102,7 +102,7 @@ def parse_factors(
 
 def emit(
     out_path: str,
-    responses: dict | None = None,
+    responses: dict[str, float] | None = None,
     *,
     _expected: Iterable[str] | None = None,
     **kwargs: float,

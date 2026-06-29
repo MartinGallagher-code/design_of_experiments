@@ -52,7 +52,7 @@ class DOEConfig:
     replicate_center: int = 0                # N center-point replicates per block (numeric factors only)
     whole_plot_replicates: int = 1           # split-plot: replicates of each whole-plot (HTC) level
     constraints: list[str] = field(default_factory=list)  # python-syntax filter expressions
-    metadata: dict = field(default_factory=dict)
+    metadata: dict[str, object] = field(default_factory=dict)
     runner: RunnerConfig = field(default_factory=RunnerConfig)
     adaptive: object = None                  # AdaptiveConfig | None
     _alias_structure: list[object] | None = None  # Internal: computed alias structure during design generation
@@ -71,7 +71,7 @@ class DesignMatrix:
     runs: list[ExperimentRun]
     factor_names: list[str]
     operation: str
-    metadata: dict = field(default_factory=dict)
+    metadata: dict[str, object] = field(default_factory=dict)
 
 
 @dataclass
@@ -227,7 +227,7 @@ class AchievedPower:
 class ResponseAnalysis:
     response_name: str
     effects: list[EffectResult]
-    summary_stats: dict
+    summary_stats: dict[str, dict[str, dict[str, float | int]]]
     interactions: list[InteractionEffect] = field(default_factory=list)
     anova_table: AnovaTable | None = None
     ordinal_trends: list[OrdinalTrendResult] = field(default_factory=list)

@@ -17,6 +17,7 @@ import json
 import os
 import tarfile
 from pathlib import Path
+from typing import Any
 
 
 
@@ -25,8 +26,8 @@ def archive_session(
     output_path: str,
     config_path: str | None = None,
     extras: list[str] | None = None,
-    metadata: dict | None = None,
-) -> dict:
+    metadata: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Bundle a session into a tar.gz with a manifest. Returns the manifest dict."""
     if not os.path.isdir(session_dir):
         raise FileNotFoundError(f"Session directory not found: '{session_dir}'")

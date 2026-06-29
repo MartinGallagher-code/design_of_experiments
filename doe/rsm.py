@@ -9,7 +9,7 @@ import numpy as np
 
 from .models import (
     CrossValidation, CrossValidationFold,
-    ExperimentRun, ModelAdequacy, StationaryPoint,
+    ExperimentRun, Factor, ModelAdequacy, StationaryPoint,
 )
 
 
@@ -34,7 +34,7 @@ class RSMModel:
     diagnostics: ModelDiagnostics | None = None
 
 
-def _format_factor_value(factor, decoded_value: float) -> str:
+def _format_factor_value(factor: Factor, decoded_value: float) -> str:
     """Format a decoded numeric value for the factor.
 
     Honors ``factor.dtype == 'int'`` by rounding to the nearest integer
@@ -57,7 +57,7 @@ def _format_factor_value(factor, decoded_value: float) -> str:
     return f"{decoded_value:.6g}"
 
 
-def _encode_factor_value(value: str, factor) -> float:
+def _encode_factor_value(value: str, factor: Factor) -> float:
     """Encode a factor value as a numeric value for regression.
 
     - For continuous/ordinal factors: normalize as (value - center) / half_range
@@ -94,7 +94,7 @@ def _encode_factor_value(value: str, factor) -> float:
 def _build_design_matrix(
     runs: list[ExperimentRun],
     factor_names: list[str],
-    factors: list,
+    factors: list[Factor],
     model_type: str = "linear",
 ) -> tuple[np.ndarray, list[str]]:
     """Build the design matrix X and return column names.
@@ -134,7 +134,7 @@ def fit_rsm(
     runs: list[ExperimentRun],
     responses: dict[int, float],
     factor_names: list[str],
-    factors: list,  # list of Factor objects
+    factors: list[Factor],  # list of Factor objects
     model_type: str = "linear",  # "linear" or "quadratic"
 ) -> RSMModel:
     """Fit a polynomial regression model to DOE results.
@@ -231,10 +231,10 @@ def fit_rsm(
 def optimize_surface(
     model: RSMModel,
     factor_names: list[str],
-    factors: list,
+    factors: list[Factor],
     direction: str = "maximize",
     n_restarts: int = 10,
-) -> dict:
+) -> dict[str, object]:
     """Find the true optimum of a fitted RSM surface using scipy.optimize.
 
     Uses L-BFGS-B with multiple random restarts to avoid local optima.
@@ -247,7 +247,7 @@ def optimize_surface(
     coefs = model.coefficients
     n_factors = len(factor_names)
 
-    def predict_coded(x_coded):
+    def predict_coded(x_coded: np.ndarray) -> float:
         """Evaluate the polynomial at coded values."""
         val = coefs.get("intercept", 0.0)
         for i, fname in enumerate(factor_names):
@@ -260,7 +260,7 @@ def optimize_surface(
             val += coefs.get(key, 0.0) * x_coded[i] ** 2
         return val
 
-    def objective(x_coded):
+    def objective(x_coded: np.ndarray) -> float:
         val = predict_coded(x_coded)
         return -val if direction == "maximize" else val
 
@@ -472,7 +472,7 @@ def compute_cross_validation(
     runs: list[ExperimentRun],
     responses: dict[int, float],
     factor_names: list[str],
-    factors: list,
+    factors: list[Factor],
     model_type: str = "linear",
     k_folds: int | None = None,
     seed: int | None = None,
@@ -592,7 +592,7 @@ def compute_cross_validation(
     )
 
 
-def _factor_lookup(factors: list) -> dict:
+def _factor_lookup(factors: list[Factor]) -> dict[str, Factor]:
     return {f.name: f for f in factors}
 
 
@@ -603,7 +603,7 @@ _np = np
 def characterize_stationary_point(
     model: RSMModel,
     factor_names: list[str],
-    factors: list,
+    factors: list[Factor],
     ridge_tolerance: float = 0.05,
 ) -> StationaryPoint | None:
     """Classify the stationary point of a fitted quadratic RSM.
@@ -714,7 +714,7 @@ def characterize_stationary_point(
 def _decode_settings(
     coded: dict[str, float],
     factor_names: list[str],
-    factors: list,
+    factors: list[Factor],
 ) -> dict[str, str]:
     """Convert coded-space coordinates [-1, 1] back to natural factor units."""
     factor_map = {f.name: f for f in factors}
@@ -756,10 +756,10 @@ def _decode_settings(
 def steepest_ascent(
     model: RSMModel,
     factor_names: list[str],
-    factors: list,
+    factors: list[Factor],
     direction: str = "maximize",
     n_steps: int = 10,
-) -> list[dict]:
+) -> list[dict[str, object]]:
     """Generate a steepest ascent/descent pathway from a linear RSM model.
 
     The gradient in coded space is the vector of linear coefficients.

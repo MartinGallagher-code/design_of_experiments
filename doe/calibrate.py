@@ -31,6 +31,7 @@ from dataclasses import dataclass, field, asdict
 from collections.abc import Callable
 
 import numpy as np
+import numpy.typing as npt
 
 from .models import ExperimentRun
 from .simulate import _resolve_target
@@ -59,7 +60,7 @@ class CalibrationResult:
 def calibrate(
     runs: list[ExperimentRun],
     observed: dict[int, dict[str, float]],
-    func: Callable | str,
+    func: Callable[..., dict[str, float]] | str,
     params: list[CalibrationParam],
     response_weights: dict[str, float] | None = None,
     seed: int | None = None,
@@ -126,7 +127,7 @@ def calibrate(
     x0 = np.array([p.initial for p in params], dtype=float)
     bounds = [(p.low, p.high) for p in params]
 
-    def objective(x):
+    def objective(x: npt.NDArray[np.float64]) -> float:
         kwargs = {p.name: float(v) for p, v in zip(params, x)}
         try:
             return _weighted_sse(
@@ -169,7 +170,12 @@ def calibrate(
 
 
 def _weighted_sse(
-    sim, runs, observed, response_names, kwargs, weights,
+    sim: Callable[..., dict[str, float]],
+    runs: list[ExperimentRun],
+    observed: dict[int, dict[str, float]],
+    response_names: list[str],
+    kwargs: dict[str, float],
+    weights: dict[str, float],
 ) -> float:
     total = 0.0
     for run in runs:
@@ -184,7 +190,12 @@ def _weighted_sse(
 
 
 def _residual_metrics(
-    sim, runs, observed, response_names, kwargs, weights,
+    sim: Callable[..., dict[str, float]],
+    runs: list[ExperimentRun],
+    observed: dict[int, dict[str, float]],
+    response_names: list[str],
+    kwargs: dict[str, float],
+    weights: dict[str, float],
 ) -> tuple[float, dict[str, float]]:
     sq_total = 0.0
     n_total = 0

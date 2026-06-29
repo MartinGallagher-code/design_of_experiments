@@ -3,7 +3,7 @@
 """Optimization recommendations from DOE results."""
 
 from itertools import combinations
-from typing import Any
+from typing import Any, cast
 
 from .models import DesignMatrix, DOEConfig
 from .analysis import _load_all_results, _compute_main_effects
@@ -40,7 +40,7 @@ def recommend(
         for run in matrix.runs:
             data = all_data.get(run.run_id, {})
             if resp.name in data:
-                responses[run.run_id] = float(data[resp.name])
+                responses[run.run_id] = float(cast("str | float", data[resp.name]))
 
         if not responses:
             print(f"Warning: no data found for response '{resp.name}', skipping.")
@@ -145,7 +145,9 @@ def recommend(
             )
             if opt_result["converged"] and opt_result["optimal_settings"]:
                 print(f"  Surface optimum (via L-BFGS-B, {model_label} model):")
-                for fname, val in opt_result["optimal_settings"].items():
+                optimal_settings = opt_result["optimal_settings"]
+                assert isinstance(optimal_settings, dict)
+                for fname, val in optimal_settings.items():
                     print(f"    {fname} = {val}")
                 print(f"    Predicted value: {opt_result['predicted_value']:.4f}")
                 print()
@@ -212,7 +214,7 @@ def multi_objective(
         for run in matrix.runs:
             data = all_data.get(run.run_id, {})
             if resp.name in data:
-                responses[run.run_id] = float(data[resp.name])
+                responses[run.run_id] = float(cast("str | float", data[resp.name]))
 
         if not responses:
             print(f"Warning: no data for response '{resp.name}', skipping.")
@@ -270,7 +272,7 @@ def multi_objective(
         resp_bounds[resp.name] = (low, high)
 
     # Individual desirability function
-    def _desirability(value, low, high, direction):
+    def _desirability(value: float, low: float, high: float, direction: str) -> float:
         """Compute individual desirability d in [0, 1]."""
         if high == low:
             return 1.0

@@ -4,6 +4,8 @@
 """Design of Experiments helper tool — CLI entry point."""
 
 import argparse
+from importlib.abc import Traversable
+from typing import TypedDict, cast
 import csv
 import io
 import json
@@ -11,10 +13,31 @@ import os
 
 from doe.config import load_config
 from doe.design import generate_design
-from doe.models import DesignMatrix, ExperimentRun
+from doe.models import (
+    AchievedPower,
+    AliasEntry,
+    AliasStructure,
+    AnalysisReport,
+    ComparisonReport,
+    DesignMatrix,
+    DOEConfig,
+    ExperimentRun,
+    TrendReport,
+)
 
 
 _MATRIX_FILENAME = "design_matrix.json"
+
+
+class _TemplateInfo(TypedDict):
+    """Discovered metadata for a built-in use case template."""
+    dir_name: str
+    name: str
+    description: str
+    operation: str
+    n_factors: int
+    n_responses: int
+    path: Traversable
 
 
 def _save_matrix(matrix: DesignMatrix, directory: str) -> str:
@@ -76,12 +99,12 @@ def _merge_matrix(base: DesignMatrix, new: DesignMatrix) -> DesignMatrix:
     )
 
 
-def _results_dir_for(cfg) -> str:
+def _results_dir_for(cfg: DOEConfig) -> str:
     """Return the results directory for a config."""
     return cfg.out_directory or "results"
 
 
-def _resolve_results_dir(cfg, results_dir_arg: str | None) -> str:
+def _resolve_results_dir(cfg: DOEConfig, results_dir_arg: str | None) -> str:
     """Pick the results directory for read commands.
 
     If the user passed --results-dir, use it verbatim. Otherwise prefer
@@ -102,7 +125,7 @@ def _resolve_results_dir(cfg, results_dir_arg: str | None) -> str:
     return base
 
 
-def _load_or_generate(cfg, results_dir: str | None = None) -> DesignMatrix:
+def _load_or_generate(cfg: DOEConfig, results_dir: str | None = None) -> DesignMatrix:
     """Load persisted design matrix, falling back to regeneration with a warning."""
     directory = results_dir or _results_dir_for(cfg)
     matrix = _load_matrix(directory)
@@ -116,7 +139,7 @@ def _load_or_generate(cfg, results_dir: str | None = None) -> DesignMatrix:
     return generate_design(cfg)
 
 
-def _print_version():
+def _print_version() -> None:
     from doe import __version__
     print(f"doe {__version__}")
     print("Copyright (C) 2026 Martin J. Gallagher")
@@ -124,7 +147,7 @@ def _print_version():
     raise SystemExit(0)
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         prog="doe",
         description="Design of Experiments (DOE) helper tool",
@@ -489,7 +512,7 @@ def main():
             raise
 
 
-def _dispatch(args):
+def _dispatch(args: argparse.Namespace) -> None:
     """Dispatch to the appropriate subcommand handler."""
     if args.command == "generate":
         cfg = load_config(args.config)
@@ -741,31 +764,31 @@ def _dispatch(args):
     elif args.command == "trend":
         cfg = load_config(args.config, strict=False)
         from doe.trend import trend_sessions
-        report = trend_sessions(cfg, args.sessions)
-        _print_trend_report(report)
+        trend_report = trend_sessions(cfg, args.sessions)
+        _print_trend_report(trend_report)
         if args.csv:
             from doe.trend import export_trend_csv
-            paths = export_trend_csv(report, args.csv)
+            paths = export_trend_csv(trend_report, args.csv)
             for p in paths:
                 print(f"CSV exported: {p}")
         if args.html:
             from doe.trend import export_trend_html
-            export_trend_html(report, args.html)
+            export_trend_html(trend_report, args.html)
             print(f"HTML report: {args.html}")
 
     elif args.command == "compare":
         cfg = load_config(args.config, strict=False)
         from doe.compare import compare_sessions
-        report = compare_sessions(cfg, args.baseline, args.candidate)
-        _print_compare_report(report)
+        compare_report = compare_sessions(cfg, args.baseline, args.candidate)
+        _print_compare_report(compare_report)
         if args.csv:
             from doe.compare import export_compare_csv
-            paths = export_compare_csv(report, args.csv)
+            paths = export_compare_csv(compare_report, args.csv)
             for p in paths:
                 print(f"CSV exported: {p}")
         if args.html:
             from doe.compare import export_compare_html
-            export_compare_html(report, args.html)
+            export_compare_html(compare_report, args.html)
             print(f"HTML report: {args.html}")
 
     elif args.command == "scaffold-config":
@@ -807,7 +830,10 @@ def _dispatch(args):
         results_dir = _resolve_results_dir(cfg, args.results_dir)
         matrix = _load_or_generate(cfg, results_dir=results_dir)
         from doe.adaptive import plan_next_batch, AdaptiveConfig
-        adaptive_cfg = cfg.adaptive if cfg.adaptive else AdaptiveConfig()
+        adaptive_cfg: AdaptiveConfig = (
+            cfg.adaptive if isinstance(cfg.adaptive, AdaptiveConfig)
+            else AdaptiveConfig()
+        )
         if args.strategy:
             adaptive_cfg.strategy = args.strategy
         if args.batch_size:
@@ -836,7 +862,7 @@ def _dispatch(args):
             print(f"Design matrix updated: {len(merged.runs)} total runs")
 
 
-def _no_results_message(cfg, matrix):
+def _no_results_message(cfg: DOEConfig, matrix: DesignMatrix) -> None:
     """Print a friendly message when results are missing."""
     results_dir = cfg.out_directory or "results"
     n_runs = len(matrix.runs)
@@ -860,7 +886,7 @@ def _no_results_message(cfg, matrix):
     print(f"  doe analyze --config config.json --partial")
 
 
-def _run_optimize(matrix, cfg, args):
+def _run_optimize(matrix: DesignMatrix, cfg: DOEConfig, args: argparse.Namespace) -> None:
     """Run the optimize subcommand (steepest, multi, or single-response)."""
     if args.steepest:
         from doe.analysis import _load_all_results, _coerce_response_value
@@ -887,8 +913,9 @@ def _run_optimize(matrix, cfg, args):
             print("-" * (6 + 14 * (len(matrix.factor_names) + 1)))
             for pt in pathway:
                 print(f"{pt['step']:<6}", end="")
+                settings = cast("dict[str, object]", pt['settings'])
                 for fname in matrix.factor_names:
-                    print(f"{pt['settings'][fname]:>14}", end="")
+                    print(f"{settings[fname]:>14}", end="")
                 print(f"{pt['predicted_value']:>14.4f}")
     elif args.multi:
         from doe.optimize import multi_objective
@@ -900,7 +927,7 @@ def _run_optimize(matrix, cfg, args):
         recommend(matrix, cfg, results_dir=results_dir, response_name=args.response, partial=args.partial)
 
 
-def _handle_init_bootstrap(args):
+def _handle_init_bootstrap(args: argparse.Namespace) -> None:
     """Bootstrap a working config (and optionally a test.py) from
     --factors / --responses / --budget / --goal, using the same logic
     as 'doe suggest'."""
@@ -1022,9 +1049,9 @@ def _handle_init_bootstrap(args):
         print(f"  3. doe generate --config {config_path}")
 
 
-def _bootstrap_factors(n_total: int, n_categorical: int) -> list[dict]:
+def _bootstrap_factors(n_total: int, n_categorical: int) -> list[dict[str, object]]:
     """Generate placeholder factor entries for a bootstrapped config."""
-    factors: list[dict] = []
+    factors: list[dict[str, object]] = []
     for i in range(n_categorical):
         factors.append({
             "name": f"category_{i + 1}",
@@ -1044,7 +1071,7 @@ def _bootstrap_factors(n_total: int, n_categorical: int) -> list[dict]:
     return factors
 
 
-def _handle_init(args):
+def _handle_init(args: argparse.Namespace) -> None:
     """List or extract a built-in use case template, or bootstrap a fresh
     config from --factors/--budget/--goal via the suggester."""
     from importlib.resources import files as pkg_files
@@ -1058,8 +1085,8 @@ def _handle_init(args):
     use_cases_dir = pkg_files("doe").joinpath("use_cases")
 
     # Discover available templates
-    templates = {}
-    for entry in sorted(use_cases_dir.iterdir()):
+    templates: dict[str, _TemplateInfo] = {}
+    for entry in sorted(use_cases_dir.iterdir(), key=lambda p: p.name):
         config_path = entry.joinpath("config.json")
         if not config_path.is_file():
             continue
@@ -1146,7 +1173,7 @@ def _handle_init(args):
     print(f"  doe analyze --config config.json")
 
 
-def _print_template_rationale(out_dir: str, info: dict) -> None:
+def _print_template_rationale(out_dir: str, info: _TemplateInfo) -> None:
     """Print a 'why this design?' commentary using the suggester.
 
     Loads the template's config to get factor kinds + response count,
@@ -1223,12 +1250,12 @@ def _print_template_rationale(out_dir: str, info: dict) -> None:
             print(f"    Note: {note}")
 
 
-def _handle_record(matrix, cfg, run_arg):
+def _handle_record(matrix: DesignMatrix, cfg: DOEConfig, run_arg: str) -> None:
     results_dir = cfg.out_directory
     os.makedirs(results_dir, exist_ok=True)
 
     if run_arg.lower() == "all":
-        pending = []
+        pending: list[ExperimentRun] = []
         for run in matrix.runs:
             result_path = os.path.join(results_dir, f"run_{run.run_id}.json")
             if not os.path.exists(result_path):
@@ -1265,7 +1292,8 @@ def _handle_record(matrix, cfg, run_arg):
             print("\nRecording cancelled.")
 
 
-def _record_single_run(run, matrix, cfg, results_dir):
+def _record_single_run(run: ExperimentRun, matrix: DesignMatrix, cfg: DOEConfig,
+                       results_dir: str) -> None:
     result_path = os.path.join(results_dir, f"run_{run.run_id}.json")
 
     # Check for existing results
@@ -1287,7 +1315,7 @@ def _record_single_run(run, matrix, cfg, results_dir):
         print(f"  {name} = {run.factor_values[name]}")
 
     # Prompt for each response
-    results = {}
+    results: dict[str, float] = {}
     for resp in cfg.responses:
         unit_str = f" ({resp.unit})" if resp.unit else ""
         while True:
@@ -1305,15 +1333,15 @@ def _record_single_run(run, matrix, cfg, results_dir):
     print(f"Saved -> {result_path}")
 
 
-def _handle_status(matrix, cfg):
+def _handle_status(matrix: DesignMatrix, cfg: DOEConfig) -> None:
     results_dir = cfg.out_directory
     total = len(matrix.runs)
     n_factors = len(matrix.factor_names)
     n_responses = len(cfg.responses)
 
     # Classify runs as completed or pending
-    completed = []
-    pending = []
+    completed: list[ExperimentRun] = []
+    pending: list[ExperimentRun] = []
     for run in matrix.runs:
         result_path = os.path.join(results_dir, f"run_{run.run_id}.json")
         if os.path.exists(result_path):
@@ -1338,7 +1366,7 @@ def _handle_status(matrix, cfg):
     print()
 
     # Build a compact factor summary for a run (one line)
-    def _compact_factors(run):
+    def _compact_factors(run: ExperimentRun) -> str:
         parts = []
         for name in matrix.factor_names:
             parts.append(f"{name}={run.factor_values[name]}")
@@ -1380,10 +1408,11 @@ def _handle_status(matrix, cfg):
     print(f"Record results with: doe record --config <config> --run {next_run.run_id}")
 
 
-def _handle_export_worksheet(matrix, cfg, fmt="csv", output_path=None):
+def _handle_export_worksheet(matrix: DesignMatrix, cfg: DOEConfig, fmt: str = "csv",
+                            output_path: str | None = None) -> None:
     results_dir = cfg.out_directory
     factor_lookup = {f.name: f for f in cfg.factors}
-    multiple_blocks = matrix.metadata.get("n_blocks", 1) > 1
+    multiple_blocks = cast(int, matrix.metadata.get("n_blocks", 1)) > 1
 
     # Build column headers
     factor_headers = []
@@ -1405,7 +1434,7 @@ def _handle_export_worksheet(matrix, cfg, fmt="csv", output_path=None):
     columns.append("Notes")
 
     # Load existing results where available
-    existing_results = {}
+    existing_results: dict[int, dict[str, object]] = {}
     if results_dir:
         for run in matrix.runs:
             result_path = os.path.join(results_dir, f"run_{run.run_id}.json")
@@ -1414,7 +1443,7 @@ def _handle_export_worksheet(matrix, cfg, fmt="csv", output_path=None):
                     existing_results[run.run_id] = json.load(f)
 
     # Build rows
-    rows = []
+    rows: list[list[str]] = []
     for run in matrix.runs:
         row = [str(run.run_id)]
         if multiple_blocks:
@@ -1441,7 +1470,8 @@ def _handle_export_worksheet(matrix, cfg, fmt="csv", output_path=None):
         print(output, end="")
 
 
-def _handle_export_data(matrix, cfg, fmt="csv", output_path=None, partial=False):
+def _handle_export_data(matrix: DesignMatrix, cfg: DOEConfig, fmt: str = "csv",
+                       output_path: str | None = None, partial: bool = False) -> None:
     """Export design matrix with response values as a flat CSV or TSV."""
     results_dir = cfg.out_directory
     delimiter = "\t" if fmt == "tsv" else ","
@@ -1452,8 +1482,8 @@ def _handle_export_data(matrix, cfg, fmt="csv", output_path=None, partial=False)
         columns.append(resp.name)
 
     # Load results
-    results_by_run = {}
-    missing_runs = []
+    results_by_run: dict[int, dict[str, object]] = {}
+    missing_runs: list[int] = []
     if results_dir:
         for run in matrix.runs:
             result_path = os.path.join(results_dir, f"run_{run.run_id}.json")
@@ -1477,7 +1507,7 @@ def _handle_export_data(matrix, cfg, fmt="csv", output_path=None, partial=False)
     for run in matrix.runs:
         if run.run_id in missing_runs and not partial:
             continue
-        row = [run.run_id, run.block_id]
+        row: list[object] = [run.run_id, run.block_id]
         for name in matrix.factor_names:
             row.append(run.factor_values[name])
         run_results = results_by_run.get(run.run_id, {})
@@ -1496,7 +1526,7 @@ def _handle_export_data(matrix, cfg, fmt="csv", output_path=None, partial=False)
         print(output, end="")
 
 
-def _format_csv(columns, rows):
+def _format_csv(columns: list[str], rows: list[list[str]]) -> str:
     buf = io.StringIO()
     writer = csv.writer(buf)
     writer.writerow(columns)
@@ -1505,7 +1535,9 @@ def _format_csv(columns, rows):
     return buf.getvalue()
 
 
-def _format_markdown_worksheet(columns, rows, matrix, cfg, multiple_blocks):
+def _format_markdown_worksheet(columns: list[str], rows: list[list[str]],
+                              matrix: DesignMatrix, cfg: DOEConfig,
+                              multiple_blocks: bool) -> str:
     lines = []
 
     # Header
@@ -1550,11 +1582,12 @@ def _format_markdown_worksheet(columns, rows, matrix, cfg, multiple_blocks):
     return "\n".join(lines)
 
 
-def _handle_sensitivity(matrix, cfg, results_dir, args):
+def _handle_sensitivity(matrix: DesignMatrix, cfg: DOEConfig, results_dir: str,
+                       args: argparse.Namespace) -> None:
     """Sobol sensitivity on the fitted RSM, per requested response."""
     from doe.analysis import _load_all_results, _coerce_response_value
     from doe.rsm import fit_rsm
-    from doe.sensitivity import sobol_indices, make_rsm_predictor
+    from doe.sensitivity import sobol_indices, make_rsm_predictor, SensitivityResult
     import csv
 
     factor_names = matrix.factor_names
@@ -1594,8 +1627,8 @@ def _handle_sensitivity(matrix, cfg, results_dir, args):
     n_quad_params = 1 + 2 * k + k * (k - 1) // 2
     model_type = "quadratic" if n >= n_quad_params + 1 else "linear"
 
-    csv_rows: list[tuple] = []
-    html_results: list = []
+    csv_rows: list[tuple[str, str, float, float, float]] = []
+    html_results: list[SensitivityResult] = []
     for resp in target_responses:
         responses: dict[int, float] = {}
         for run in matrix.runs:
@@ -1660,7 +1693,7 @@ def _handle_sensitivity(matrix, cfg, results_dir, args):
         print(f"HTML report: {args.html}")
 
 
-def _handle_power(matrix, cfg, args):
+def _handle_power(matrix: DesignMatrix, cfg: DOEConfig, args: argparse.Namespace) -> None:
     """Compute and display prospective power for each factor.
 
     Sigma can be supplied directly (--sigma) or estimated post-hoc from
@@ -1682,7 +1715,7 @@ def _handle_power(matrix, cfg, args):
             results_dir = _resolve_results_dir(cfg, args.results_dir)
             all_data = _load_all_results(matrix.runs, results_dir, partial=args.partial)
             resp = cfg.responses[0]
-            responses = {}
+            responses: dict[int, float] = {}
             for run in matrix.runs:
                 data = all_data.get(run.run_id, {})
                 value = _coerce_response_value(data, resp.name, run.run_id, results_dir)
@@ -1719,7 +1752,7 @@ def _handle_power(matrix, cfg, args):
     _print_achieved_power(ap, header_prefix="Power Analysis")
 
 
-def _print_matrix(matrix, cfg=None):
+def _print_matrix(matrix: DesignMatrix, cfg: DOEConfig | None = None) -> None:
     if cfg and cfg.metadata.get("name"):
         print(f"Plan      : {cfg.metadata['name']}")
         if cfg.metadata.get("description"):
@@ -1740,7 +1773,7 @@ def _print_matrix(matrix, cfg=None):
         print(f"Fixed     : {ff_str}")
     if matrix.metadata.get("alias_structure"):
         print(f"\nAlias Structure:")
-        for alias in matrix.metadata["alias_structure"]:
+        for alias in cast("list[object]", matrix.metadata["alias_structure"]):
             print(f"  {alias}")
     print()
 
@@ -1755,7 +1788,7 @@ def _print_matrix(matrix, cfg=None):
         print("".join(v.ljust(col_w) for v in row))
 
 
-def _print_trend_report(report):
+def _print_trend_report(report: TrendReport) -> None:
     print(f"\n=== Trend ({len(report.session_dirs)} sessions) ===")
     print(f"  Factors : {', '.join(report.factor_names)}")
     print(f"  Sessions:")
@@ -1793,7 +1826,7 @@ def _print_trend_report(report):
             print(f"  Note: {note}")
 
 
-def _print_compare_report(report):
+def _print_compare_report(report: ComparisonReport) -> None:
     print(f"\n=== Compare ===")
     print(f"  Baseline : {report.baseline_dir}  ({report.n_baseline_runs} run(s))")
     print(f"  Candidate: {report.candidate_dir}  ({report.n_candidate_runs} run(s))")
@@ -1850,12 +1883,12 @@ def _print_compare_report(report):
                         print(f"    {fname:<20} {shift:>+12.4f} {p_disp:>10}{sig}")
 
 
-def math_isfinite(x):
+def math_isfinite(x: float) -> bool:
     import math
     return math.isfinite(x) if isinstance(x, float) else True
 
 
-def _print_achieved_power(ap, header_prefix: str = "Achieved Power"):
+def _print_achieved_power(ap: AchievedPower, header_prefix: str = "Achieved Power") -> None:
     print(f"\n=== {header_prefix} ===")
     print(f"  Runs: {ap.n_runs}, df_error: {ap.df_error}")
     print(f"  Sigma (sqrt residual MS): {ap.sigma:.4f}   (residual MS = {ap.residual_ms:.4f})")
@@ -1871,7 +1904,7 @@ def _print_achieved_power(ap, header_prefix: str = "Achieved Power"):
         print("  Note: power < 0.80 for some factors at the chosen delta.")
 
 
-def _print_alias_structure(alias):
+def _print_alias_structure(alias: AliasStructure) -> None:
     label = alias.design_type.replace("_", " ").title()
     if alias.resolution is not None:
         label += f" (Resolution {'I' * alias.resolution})"
@@ -1879,7 +1912,7 @@ def _print_alias_structure(alias):
     for note in alias.notes:
         print(f"  Note: {note}")
 
-    def _section(title, entries):
+    def _section(title: str, entries: list[AliasEntry]) -> None:
         if not entries:
             return
         any_partner = any(e.aliased_with for e in entries)
@@ -1901,7 +1934,7 @@ def _print_alias_structure(alias):
     _section("Two-factor interactions", alias.two_factor_interactions)
 
 
-def _print_report(report):
+def _print_report(report: AnalysisReport) -> None:
     if report.alias_structure:
         _print_alias_structure(report.alias_structure)
 

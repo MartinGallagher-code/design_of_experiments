@@ -4,6 +4,7 @@
 
 from dataclasses import dataclass
 import numpy as np
+import numpy.typing as npt
 
 
 @dataclass
@@ -82,7 +83,10 @@ def detect_knee_point(
     )
 
 
-def _fit_piecewise(x, y):
+def _fit_piecewise(
+    x: npt.NDArray[np.float64],
+    y: npt.NDArray[np.float64],
+) -> tuple[float | None, float, float, float, float]:
     """Find optimal breakpoint for piecewise linear fit.
 
     Returns (breakpoint_x, rss, slope1, slope2, y_at_breakpoint) or
@@ -133,7 +137,10 @@ def _fit_piecewise(x, y):
     return best_bp, best_rss, best_s1, best_s2, best_y_bp
 
 
-def _fit_line(x, y):
+def _fit_line(
+    x: npt.NDArray[np.float64],
+    y: npt.NDArray[np.float64],
+) -> tuple[float, float]:
     """Simple least-squares line fit. Returns (slope, intercept)."""
     n = len(x)
     if n < 2:
