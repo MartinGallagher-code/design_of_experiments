@@ -3,6 +3,7 @@
 """Optimization recommendations from DOE results."""
 
 from itertools import combinations
+from typing import Any
 
 from .models import DesignMatrix, DOEConfig
 from .analysis import _load_all_results, _compute_main_effects
@@ -247,6 +248,8 @@ def multi_objective(
         return
 
     # Only use runs that have data for ALL responses
+    if valid_runs_all is None:
+        return
     common_runs = [r for r in matrix.runs if r.run_id in valid_runs_all]
 
     # Compute desirability bounds for each response
@@ -358,9 +361,9 @@ def multi_objective(
 
     # Evaluate RSM predictions at each grid point
     best_grid_D = best_D
-    best_grid_point = None
-    best_grid_individual = None
-    best_grid_predictions = None
+    best_grid_point: Any = None
+    best_grid_individual: dict[str, float] | None = None
+    best_grid_predictions: dict[str, float] | None = None
 
     for i in range(len(grid)):
         point = grid[i]
@@ -428,7 +431,7 @@ def multi_objective(
     print()
 
     # Use grid result if better, otherwise use best observed
-    if best_grid_point is not None and best_grid_D > best_D:
+    if best_grid_point is not None and best_grid_individual is not None and best_grid_predictions is not None and best_grid_D > best_D:
         use_grid = True
         final_D = best_grid_D
         final_individual = best_grid_individual
@@ -461,7 +464,7 @@ def multi_objective(
 
     # Recommended settings
     print("Recommended settings:")
-    if use_grid:
+    if use_grid and best_grid_point is not None:
         for j, fname in enumerate(matrix.factor_names):
             factor = factor_map[fname]
             val = best_grid_point[j]
@@ -485,7 +488,7 @@ def multi_objective(
         if resp.name not in response_data:
             continue
         values = list(response_data[resp.name].values())
-        pred = final_predictions.get(resp.name, 0.0)
+        pred = final_predictions.get(resp.name, 0.0) if final_predictions is not None else 0.0
         if resp.optimize == "maximize":
             best_obs = max(values)
             sacrifice = best_obs - pred

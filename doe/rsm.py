@@ -444,14 +444,15 @@ def compute_model_adequacy(
             "Predicted R² is much lower than R² — model may be over-fit."
         )
 
+    diagnostics = model.diagnostics
     return ModelAdequacy(
         model_type="quadratic" if any("^2" in k or "*" in k for k in model.coefficients) else "linear",
         n_observations=n,
         n_parameters=p,
         r_squared=model.r_squared,
         adj_r_squared=model.adj_r_squared,
-        predicted_r_squared=model.diagnostics.predicted_r_squared,
-        press=model.diagnostics.press,
+        predicted_r_squared=diagnostics.predicted_r_squared if diagnostics is not None else 0.0,
+        press=diagnostics.press if diagnostics is not None else 0.0,
         shapiro_w=shapiro_w,
         shapiro_p=shapiro_p,
         durbin_watson=dw,

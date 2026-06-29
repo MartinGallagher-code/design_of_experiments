@@ -218,9 +218,9 @@ def parse_param_spec(spec: str) -> CalibrationParam:
         low_f, high_f = float(low), float(high)
         initial = (low_f + high_f) / 2.0
     elif len(parts) == 4:
-        name, initial, low, high = parts
+        name, initial_str, low, high = parts
         low_f, high_f = float(low), float(high)
-        initial = float(initial)
+        initial = float(initial_str)
     else:
         raise ValueError(
             f"Param spec must be 'name:low:high' or 'name:initial:low:high', "

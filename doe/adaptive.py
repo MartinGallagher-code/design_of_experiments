@@ -496,9 +496,9 @@ class _FactorEncoder:
             row[j] = 2.0 * (v - low) / (high - low) - 1.0
         for j, fname in enumerate(self.categorical_names):
             lvls = self.categorical_levels[j]
-            v = factor_values.get(fname, lvls[0])
+            v_cat = factor_values.get(fname, lvls[0])
             try:
-                idx = lvls.index(v)
+                idx = lvls.index(v_cat)
             except ValueError:
                 idx = 0
             offset = self.cat_offsets[j]

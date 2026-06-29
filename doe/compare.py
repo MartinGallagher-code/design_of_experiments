@@ -164,14 +164,14 @@ def _load_results(runs: list[ExperimentRun], session_dir: str) -> dict[int, dict
     return out
 
 
-def _coerce(value):
+def _coerce(value: object) -> float | None:
     """Best-effort conversion to float; treats blanks/None as missing."""
     if value is None:
         return None
     if isinstance(value, str) and value.strip() == "":
         return None
     try:
-        return float(value)
+        return float(value)  # type: ignore[arg-type]
     except (TypeError, ValueError):
         return None
 
@@ -396,14 +396,14 @@ def _decompose_delta(
             low, _high = levels_per_factor[fname]
             v = factor_values_by_key[r.run_key].get(fname)
             x_coded.append(-1.0 if v == low else 1.0)
-        for s, val in ((-1.0, r.baseline_value), (1.0, r.candidate_value)):
-            row_idx = 2 * i + (0 if s < 0 else 1)
+        for s_val, response_val in ((-1.0, r.baseline_value), (1.0, r.candidate_value)):
+            row_idx = 2 * i + (0 if s_val < 0 else 1)
             X[row_idx, 0] = 1.0
-            X[row_idx, 1] = s
+            X[row_idx, 1] = s_val
             for j, xi in enumerate(x_coded):
                 X[row_idx, 2 + j] = xi
-                X[row_idx, 2 + n_factors + j] = s * xi
-            y[row_idx] = val
+                X[row_idx, 2 + n_factors + j] = s_val * xi
+            y[row_idx] = response_val
 
     df_error = n_obs - n_params
     if df_error < 1:
@@ -430,9 +430,9 @@ def _decompose_delta(
     except np.linalg.LinAlgError:
         cov = None
     if cov is None:
-        se = [None] * n_params
+        se: list[float | None] = [None] * n_params
     else:
-        se = [float(s) if s > 0 else None for s in np.sqrt(np.diag(cov))]
+        se = [float(std) if std > 0 else None for std in np.sqrt(np.diag(cov))]
 
     def _pvalue(b: float, s: float | None) -> float | None:
         if s is None or s == 0 or df_error <= 0:

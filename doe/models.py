@@ -55,6 +55,7 @@ class DOEConfig:
     metadata: dict = field(default_factory=dict)
     runner: RunnerConfig = field(default_factory=RunnerConfig)
     adaptive: object = None                  # AdaptiveConfig | None
+    _alias_structure: list[object] | None = None  # Internal: computed alias structure during design generation
 
 
 @dataclass

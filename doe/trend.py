@@ -24,7 +24,7 @@ from .compare import (
     _sort_key,
 )
 from .models import (
-    DOEConfig, SessionTrendEntry, TrendReport, TrendResponse,
+    DOEConfig, ExperimentRun, SessionTrendEntry, TrendReport, TrendResponse,
 )
 
 
@@ -103,7 +103,7 @@ def _trend_for_response(
     resp_name: str,
     factor_names: list[str],
     matched_keys: list[str],
-    session_runs: list[dict[str, object]],
+    session_runs: list[dict[str, ExperimentRun]],
     session_data: list[dict[int, dict]],
 ) -> TrendResponse | None:
     try:
@@ -126,7 +126,8 @@ def _trend_for_response(
             continue
         matched_keys_with_data.append(key)
         for s, v in enumerate(per_run_values):
-            per_session_values[s].append(float(v))
+            if v is not None:
+                per_session_values[s].append(float(v))
 
     if not matched_keys_with_data:
         return TrendResponse(
@@ -215,8 +216,8 @@ def _trend_for_response(
             x_coded = []
             for fname in twolevel_names:
                 low, _high = levels_per_factor[fname]
-                v = factor_values_by_key[key].get(fname)
-                x_coded.append(-1.0 if v == low else 1.0)
+                v_str = factor_values_by_key[key].get(fname)
+                x_coded.append(-1.0 if v_str == low else 1.0)
             X[row_idx, 0] = 1.0
             X[row_idx, 1] = float(s)
             for j, xi in enumerate(x_coded):

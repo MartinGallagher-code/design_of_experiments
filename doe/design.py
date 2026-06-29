@@ -96,7 +96,7 @@ def generate_design(cfg: DOEConfig, seed: int | None = None) -> DesignMatrix:
     factor_names = [f.name for f in cfg.factors]
     n_base = len(base_runs)
 
-    metadata = {
+    metadata: dict[str, int | None | list[object]] = {
         "n_factors": len(cfg.factors),
         "n_base_runs": n_base,
         "n_blocks": cfg.block_count,
@@ -105,7 +105,7 @@ def generate_design(cfg: DOEConfig, seed: int | None = None) -> DesignMatrix:
     }
 
     # Include alias structure for fractional factorial designs
-    if hasattr(cfg, '_alias_structure') and cfg._alias_structure:
+    if cfg._alias_structure is not None:
         metadata["alias_structure"] = cfg._alias_structure
 
     return DesignMatrix(
@@ -1151,25 +1151,25 @@ def _mixture_simplex_centroid(cfg: DOEConfig) -> list[ExperimentRun]:
         points.append(point)
 
     # Edge midpoints: two components = 0.5 each
-    for combo in combinations(range(q), 2):
+    for combo_2 in combinations(range(q), 2):
         point = [0.0] * q
-        for idx in combo:
+        for idx in combo_2:
             point[idx] = 0.5
         points.append(point)
 
     # Face centroids: three components = 1/3 each (if q >= 3)
     if q >= 3:
-        for combo in combinations(range(q), 3):
+        for combo_3 in combinations(range(q), 3):
             point = [0.0] * q
-            for idx in combo:
+            for idx in combo_3:
                 point[idx] = 1.0 / 3.0
             points.append(point)
 
     # Higher-order centroids up to overall centroid
     for r in range(4, q + 1):
-        for combo in combinations(range(q), r):
+        for combo_r in combinations(range(q), r):
             point = [0.0] * q
-            for idx in combo:
+            for idx in combo_r:
                 point[idx] = 1.0 / r
             points.append(point)
 
