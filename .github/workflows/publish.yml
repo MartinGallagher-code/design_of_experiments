@@ -24,5 +24,20 @@ jobs:
       - name: Build package
         run: python -m build
 
+      - name: Generate SBOM
+        run: |
+          pip install cyclonedx-python
+          cyclonedx-py -f json -o sbom.json
+          cyclonedx-py -f xml -o sbom.xml
+
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+
+      - name: Upload SBOM to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            sbom.json
+            sbom.xml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -28,6 +28,16 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
+          pip install pip-audit
+
+      - name: Check dependencies for vulnerabilities
+        run: |
+          pip-audit --skip-editable
+
+      - name: Check REUSE license compliance
+        run: |
+          pip install reuse
+          reuse lint
 
       - name: Syntax check
         run: |
@@ -38,16 +48,19 @@ jobs:
           pip install ruff
           ruff check doe tests
 
-      - name: Type check (mypy, advisory)
-        if: matrix.python-version == '3.12'
-        continue-on-error: true
+      - name: Security analysis (bandit)
+        run: |
+          pip install bandit
+          bandit -r doe --exit-zero
+
+      - name: Type check (mypy)
         run: |
           pip install mypy
           mypy doe
 
       - name: Run tests
         run: |
-          pytest tests/ -v --tb=short --cov --cov-report=xml --cov-report=html
+          pytest tests/ -v --tb=short --cov=doe --cov-report=xml --cov-report=html --cov-fail-under=80
 
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
