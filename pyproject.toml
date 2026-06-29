@@ -74,14 +74,21 @@ warn_no_return = true
 warn_unreachable = true
 strict_equality = true
 
-# Ignore missing imports for third-party packages without stubs
+# Third-party packages: don't analyze their stubs/sources. Besides the
+# missing-stub cases, this avoids mypy choking on newer-than-target syntax
+# inside installed stubs (e.g. numpy's __init__.pyi uses PEP 695 `type`
+# statements that fail to parse under python_version = 3.10).
 [[tool.mypy.overrides]]
 module = [
     "pyDOE3.*",
     "matplotlib.*",
     "mpl_toolkits.*",
     "jinja2.*",
+    "numpy",
     "numpy.*",
+    "scipy",
     "scipy.*",
 ]
 ignore_missing_imports = true
+follow_imports = "skip"
+follow_imports_for_stubs = true
