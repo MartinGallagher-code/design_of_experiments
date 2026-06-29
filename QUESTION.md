@@ -58,5 +58,28 @@
 - #38: README badges and links
 - #39: ROADMAP.md
 
-⏳ **Blocked** (1 issue):
+⏳ **Blocked** (2 issues):
 - #29: Type hints enforcement — awaiting user guidance on Option 1/2/3
+- #30: Test coverage enforcement — current baseline is 69%, threshold set to 80%
+
+**Coverage Issue Details**:
+- Current coverage: 69% (7135 statements, 2233 untested)
+- Threshold requirement: 80% (enforced in CI, failing)
+- Low-coverage areas:
+  - cli.py: 21% (CLI argument parsing not heavily tested)
+  - optimize.py: 22% (multi-objective optimization not tested)
+  - serve.py: 30% (HTTP server not tested)
+  - design.py: 56% (advanced design types not covered)
+
+**Options for #30**:
+1. **Lower threshold to 65%** — More realistic for this codebase size/scope
+2. **Lower threshold to 70%** — Compromise; achievable with CLI unit tests
+3. **Invest in test coverage** — Add CLI, optimize, serve tests (~4-6 hours)
+4. **Skip enforcement for now** — Remove `--cov-fail-under` from CI
+
+**Recommendation**: Option 1 (Lower to 65%)
+- Core libraries (models, config, design, analysis, rsm) have 80-100% coverage
+- CLI testing is low-ROI (tests command-line parsing, not logic)
+- 65% is still a strong threshold and catches regressions in core code
+
+**ACTION NEEDED**: Choose an option for #30 coverage threshold.
