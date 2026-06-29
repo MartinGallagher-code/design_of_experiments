@@ -22,29 +22,25 @@
 
 ## Test Coverage Threshold (Issue #30) — ✅ COMPLETED
 
-**Decision**: 75% threshold (practical production-ready target)
+**Decision**: 80% threshold (as requested), achieved 90% overall
 
 **What was done**:
-- Added 59 comprehensive tests in tests/test_coverage_improvements.py:
-  - 13 tests for optimize.py (multi-objective optimization, desirability functions)
-  - 27 tests for design.py (fractional factorial, Plackett-Burman, DSD, Box-Behnken, etc.)
-  - 9 tests for serve.py (web server, error handling, HTML rendering)
-  - 10 additional edge case tests
-- Improved overall coverage from 69% → 75% (+6 percentage points)
-- Core modules now have excellent coverage:
-  - models.py: 100%, design.py: 82%, analysis.py: 91%, optimize.py: 88%
-  - rsm.py: 82%, config.py: 84%, report.py: 96%
-
-**Why 75% instead of 80%**:
-- Reaching 80% would require extensive CLI module testing (1402 lines, currently 21% coverage)
-- CLI testing is lower priority for production readiness (user-facing commands, not core logic)
-- 75% coverage includes all critical production modules (100% of core logic)
-- Trade-off: practical threshold vs. exhaustive coverage
+- Added 59 tests in tests/test_coverage_improvements.py (optimize, design, serve)
+- Added 59 in-process CLI tests in tests/test_cli_coverage.py
+  - Root cause of cli.py's low coverage: existing CLI tests in test_doe.py ran
+    via `subprocess`, a separate process whose execution coverage is never
+    captured. New tests drive `doe.cli.main()` directly via mocked `sys.argv`.
+  - cli.py coverage: 21% → 91%
+- Improved overall coverage from 69% → 90% (+21 percentage points)
+- Module coverage now:
+  - models.py: 100%, report.py: 96%, runner.py: 97%, codegen.py: 95%
+  - cli.py: 91%, analysis.py: 92%, design.py: 86%, optimize.py: 88%
+  - rsm.py: 88%, config.py: 86%, calibrate.py: 89%
 
 **Status**: ✅ **PRODUCTION READY**
-- Test suite: 394 tests, all passing
-- Core module coverage: 82-100%
-- CI enforces 75% threshold with `--cov-fail-under=75`
+- Test suite: 453 tests, all passing
+- Overall coverage: 90% (exceeds the 80% target)
+- CI enforces 80% threshold with `--cov-fail-under=80`
 
 ---
 
@@ -67,11 +63,11 @@
 - **#38**: README badges and links — REUSE badge + resource links
 - **#39**: ROADMAP.md — Project vision and planned features
 
-**Test Results**: ✅ All 394 tests passing (75% coverage)
+**Test Results**: ✅ All 453 tests passing (90% coverage)
 
 ✅ **Complete** (All 17 issues + 2 blocking decisions resolved):
 - **#29**: Type hints enforcement — ✅ Full strict mode implemented
-- **#30**: Test coverage threshold — ✅ 75% achieved and enforced
+- **#30**: Test coverage threshold — ✅ 80% enforced, 90% achieved
 
 ---
 
@@ -82,9 +78,9 @@
 | **Community & Governance** | ✅ | CONTRIBUTING.md, SECURITY.md, CODE_OF_CONDUCT.md |
 | **GitHub Setup** | ✅ | Issue templates, PR template, REUSE check |
 | **Documentation** | ✅ | User guide, API docs, RELEASE.md, ROADMAP.md |
-| **CI/CD** | ✅ | Linting, testing, type check (advisory), security scan, SBOM |
-| **Testing** | ✅ | 335 tests, 69% coverage, integration tests |
-| **Type Safety** | ⏳ | Configuration ready, enforcement awaiting decision |
+| **CI/CD** | ✅ | Linting, testing, strict type check, security scan, SBOM |
+| **Testing** | ✅ | 453 tests, 90% coverage, integration + CLI tests |
+| **Type Safety** | ✅ | mypy strict enforced in CI, 0 errors |
 | **Release Process** | ✅ | Auto-publish, SBOM generation, versioning docs |
 | **License Compliance** | ✅ | REUSE check in CI, GPL-3.0 headers on files |
 
@@ -92,15 +88,8 @@
 
 ## Next Steps for User
 
-1. **Choose Option for #29 (Type Hints)**
-   - Add response to QUESTION.md → Type Hints Enforcement section
-   - Recommendation: Option 2 (Moderate) for practical balance
+All 17 issues and both blocking decisions (#29, #30) are now complete.
 
-2. **Choose Option for #30 (Coverage Threshold)**
-   - Add response to QUESTION.md → Test Coverage Threshold section  
-   - Recommendation: Keep at 70% (achievable without major refactoring)
-
-3. **Remaining Work**
-   - Implement choices for #29, #30
-   - Review and merge production-readiness branch
-   - Create release v0.3.1 (or v0.4.0 if making breaking changes)
+1. **Review and merge** the `claude/production-readiness-29wkhc` branch
+2. **Cut a release** — v0.3.1 (no public API breakage) or v0.4.0 if you treat
+   the new strict typing as a notable change
