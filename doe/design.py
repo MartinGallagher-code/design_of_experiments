@@ -2,7 +2,12 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 import itertools
 import random
+from typing import TYPE_CHECKING
+
 from .models import DOEConfig, DesignMatrix, ExperimentRun, Factor
+
+if TYPE_CHECKING:
+    import numpy as np
 
 
 def _can_sweep(factor: Factor) -> bool:
@@ -96,7 +101,7 @@ def generate_design(cfg: DOEConfig, seed: int | None = None) -> DesignMatrix:
     factor_names = [f.name for f in cfg.factors]
     n_base = len(base_runs)
 
-    metadata = {
+    metadata: dict[str, object] = {
         "n_factors": len(cfg.factors),
         "n_base_runs": n_base,
         "n_blocks": cfg.block_count,
@@ -105,7 +110,7 @@ def generate_design(cfg: DOEConfig, seed: int | None = None) -> DesignMatrix:
     }
 
     # Include alias structure for fractional factorial designs
-    if hasattr(cfg, '_alias_structure') and cfg._alias_structure:
+    if cfg._alias_structure is not None:
         metadata["alias_structure"] = cfg._alias_structure
 
     return DesignMatrix(
@@ -181,7 +186,7 @@ def _latin_hypercube(cfg: DOEConfig, seed: int | None = None) -> list[Experiment
     return runs
 
 
-def _decode_lhs_value(x: float, factor) -> str:
+def _decode_lhs_value(x: float, factor: Factor) -> str:
     """Map a [0, 1] LHS sample to a factor level string."""
     n = len(factor.levels)
     if factor.type == "continuous" and n == 2:
@@ -220,7 +225,7 @@ def _central_composite(cfg: DOEConfig) -> list[ExperimentRun]:
     return runs
 
 
-def _decode_coded_value(code: float, factor) -> str:
+def _decode_coded_value(code: float, factor: Factor) -> str:
     """Map a coded CCD value (-1 / 0 / +1) to a string level.
 
     Uses the user-supplied middle level when 3 levels are given; otherwise
@@ -320,7 +325,7 @@ def _best_generator_choice(
     return list(best_combo)
 
 
-def _design_resolution(coded_design) -> int:
+def _design_resolution(coded_design: "np.ndarray") -> int:
     """Estimate the resolution of a 2-level coded design.
 
     Resolution III: main effects fully aliased with at least one 2FI.
@@ -335,7 +340,7 @@ def _design_resolution(coded_design) -> int:
     return 5
 
 
-def _resolution_diagnostics(coded_design):
+def _resolution_diagnostics(coded_design: "np.ndarray") -> tuple[float, float]:
     """Return (max |corr| ME-vs-2FI, max |corr| between 2FIs)."""
     import numpy as np
     from itertools import combinations as _combinations
@@ -357,7 +362,7 @@ def _resolution_diagnostics(coded_design):
     return me_2fi, twofi_max
 
 
-def _alias_score(coded_design) -> float:
+def _alias_score(coded_design: "np.ndarray") -> float:
     """Maximum absolute correlation between (ME, 2FI) and (2FI, 2FI) pairs.
 
     A score of 0 means a clean Resolution-V or higher design; 1.0 means
@@ -748,18 +753,18 @@ def _d_optimal(cfg: DOEConfig) -> list[ExperimentRun]:
 
     factor_names = [f.name for f in cfg.factors]
 
-    def design_to_runs(design):
+    def design_to_runs(design: list[tuple[str, ...]]) -> list[ExperimentRun]:
         return [
             ExperimentRun(run_id=i + 1, block_id=1,
                          factor_values=dict(zip(factor_names, combo)))
             for i, combo in enumerate(design)
         ]
 
-    def compute_d_criterion(design):
+    def compute_d_criterion(design: list[tuple[str, ...]]) -> float:
         runs_list = design_to_runs(design)
         X, _ = _build_design_matrix(runs_list, factor_names, cfg.factors, model_type="linear")
         try:
-            return np.linalg.det(X.T @ X)
+            return float(np.linalg.det(X.T @ X))
         except Exception:
             return 0.0
 
@@ -830,7 +835,7 @@ def _d_optimal_augment(
 
     rng = np.random.default_rng(42)
 
-    def runs_for(combos: list[tuple]) -> list[ExperimentRun]:
+    def runs_for(combos: list[tuple[str, ...]]) -> list[ExperimentRun]:
         out: list[ExperimentRun] = []
         rid = max_run_id
         for combo in combos:
@@ -841,7 +846,7 @@ def _d_optimal_augment(
             ))
         return out
 
-    def score(extra_combos: list[tuple]) -> float:
+    def score(extra_combos: list[tuple[str, ...]]) -> float:
         pooled = list(existing_runs) + runs_for(extra_combos)
         try:
             X, _ = _build_design_matrix(pooled, factor_names, cfg.factors,
@@ -1151,25 +1156,25 @@ def _mixture_simplex_centroid(cfg: DOEConfig) -> list[ExperimentRun]:
         points.append(point)
 
     # Edge midpoints: two components = 0.5 each
-    for combo in combinations(range(q), 2):
+    for combo_2 in combinations(range(q), 2):
         point = [0.0] * q
-        for idx in combo:
+        for idx in combo_2:
             point[idx] = 0.5
         points.append(point)
 
     # Face centroids: three components = 1/3 each (if q >= 3)
     if q >= 3:
-        for combo in combinations(range(q), 3):
+        for combo_3 in combinations(range(q), 3):
             point = [0.0] * q
-            for idx in combo:
+            for idx in combo_3:
                 point[idx] = 1.0 / 3.0
             points.append(point)
 
     # Higher-order centroids up to overall centroid
     for r in range(4, q + 1):
-        for combo in combinations(range(q), r):
+        for combo_r in combinations(range(q), r):
             point = [0.0] * q
-            for idx in combo:
+            for idx in combo_r:
                 point[idx] = 1.0 / r
             points.append(point)
 
@@ -1193,7 +1198,7 @@ def _mixture_simplex_centroid(cfg: DOEConfig) -> list[ExperimentRun]:
     return runs
 
 
-def evaluate_design(matrix: DesignMatrix, cfg: DOEConfig) -> dict:
+def evaluate_design(matrix: DesignMatrix, cfg: DOEConfig) -> dict[str, float]:
     """Compute design evaluation metrics: D-efficiency, A-efficiency, G-efficiency.
 
     Returns dict with metric names and values.

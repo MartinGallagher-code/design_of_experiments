@@ -89,7 +89,7 @@ def suggest(
     )
 
 
-def _suggest_screening(n_factors, budget, n_cont, n_cat):
+def _suggest_screening(n_factors: int, budget: int, n_cont: int, n_cat: int) -> Suggestion:
     """Lots of factors, small budget — pick a 2-level screening design."""
     rationale: list[str] = [
         f"Goal: screening — identify which of {n_factors} factor(s) matter.",
@@ -148,7 +148,7 @@ def _suggest_screening(n_factors, budget, n_cont, n_cat):
     )
 
 
-def _suggest_response_surface(n_factors, budget, n_cont, n_cat):
+def _suggest_response_surface(n_factors: int, budget: int, n_cont: int, n_cat: int) -> Suggestion:
     rationale: list[str] = [
         f"Goal: response surface — fit a quadratic over {n_factors} factor(s).",
     ]
@@ -220,7 +220,7 @@ def _suggest_response_surface(n_factors, budget, n_cont, n_cat):
     )
 
 
-def _suggest_optimization(n_factors, n_responses, budget, n_cont, n_cat):
+def _suggest_optimization(n_factors: int, n_responses: int, budget: int, n_cont: int, n_cat: int) -> Suggestion:
     rationale: list[str] = [
         f"Goal: optimisation — sequential search over {n_factors} factor(s).",
     ]

@@ -55,11 +55,11 @@ def compute_alias_structure(
     # design; if any factor doesn't have exactly two distinct levels, bail.
     levels_per_factor: list[list[str]] = []
     for f in names:
-        vals = []
-        seen = set()
+        vals: list[str] = []
+        seen: set[str] = set()
         for run in matrix.runs:
             v = run.factor_values.get(f)
-            if v not in seen:
+            if v is not None and v not in seen:
                 seen.add(v)
                 vals.append(v)
         if len(vals) != 2:

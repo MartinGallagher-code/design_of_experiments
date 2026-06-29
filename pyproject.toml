@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "doehelper"
-version = "0.3.0"
+version = "0.4.0"
 description = "A Design of Experiments (DOE) helper tool"
 readme = "README.md"
 authors = [{name = "Martin J. Gallagher"}]
@@ -20,7 +20,7 @@ keywords = [
     "response-surface",
 ]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Environment :: Console",
     "Intended Audience :: Science/Research",
     "Programming Language :: Python :: 3",
@@ -48,7 +48,16 @@ Repository = "https://github.com/MartinGallagher-code/design_of_experiments"
 doe = "doe.cli:main"
 
 [project.optional-dependencies]
-dev = ["pytest>=7.0", "pytest-cov"]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov",
+    "ruff>=0.5",
+    "mypy>=1.8",
+    "bandit>=1.7",
+    "reuse>=3.0",
+    "pip-audit>=2.6.0",
+    "cyclonedx-bom>=4.0.0",
+]
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -56,3 +65,39 @@ include = ["doe*"]
 
 [tool.setuptools.package-data]
 doe = ["templates/*.j2", "use_cases/*/config.json", "use_cases/*/sim.sh", "use_cases/*/README.md"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_calls = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+# Third-party packages: don't analyze their stubs/sources. Besides the
+# missing-stub cases, this avoids mypy choking on newer-than-target syntax
+# inside installed stubs (e.g. numpy's __init__.pyi uses PEP 695 `type`
+# statements that fail to parse under python_version = 3.10).
+[[tool.mypy.overrides]]
+module = [
+    "pyDOE3.*",
+    "matplotlib.*",
+    "mpl_toolkits.*",
+    "jinja2.*",
+    "numpy",
+    "numpy.*",
+    "scipy",
+    "scipy.*",
+]
+ignore_missing_imports = true
+follow_imports = "skip"
+follow_imports_for_stubs = true

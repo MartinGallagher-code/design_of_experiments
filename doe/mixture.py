@@ -21,6 +21,8 @@ from itertools import combinations
 
 import numpy as np
 
+from .models import ExperimentRun
+
 
 @dataclass
 class ScheffeTerm:
@@ -46,7 +48,7 @@ class ScheffeModel:
 
 
 def fit_scheffe(
-    runs,
+    runs: list[ExperimentRun],
     responses: dict[int, float],
     component_names: list[str],
     response_name: str = "",

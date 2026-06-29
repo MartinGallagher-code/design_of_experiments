@@ -4,6 +4,7 @@ import os
 import stat
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 from jinja2 import Environment, PackageLoader
 
@@ -18,7 +19,7 @@ def generate_script(
     session_prefix: str | None = None,
     parallel_workers: int = 1,
     executor: str = "local",
-    slurm_options: dict | None = None,
+    slurm_options: dict[str, Any] | None = None,
 ) -> str:
     """Render a runner script that drives the user's test_script.
 
@@ -59,7 +60,7 @@ def generate_script(
     context["parallel_workers"] = parallel_workers
     if executor == "slurm":
         opts = slurm_options or {}
-        plan_name = cfg.metadata.get("name") or "doe"
+        plan_name = str(cfg.metadata.get("name") or "doe")
         log_dir = opts.get("log_dir") or os.path.join(
             os.path.dirname(output_path) or ".", "slurm-logs",
         )
@@ -75,7 +76,7 @@ def generate_script(
             "slurm_extra_directives": list(opts.get("extra_directives", []) or []),
         })
 
-    rendered = template.render(**context)
+    rendered: str = template.render(**context)
 
     _write_executable(output_path, rendered)
     return rendered
@@ -106,7 +107,7 @@ def generate_test_scaffold(cfg: DOEConfig, output_path: str, language: str = "py
         "arg_style": cfg.runner.arg_style,
         "plan_name": cfg.metadata.get("name", ""),
     }
-    rendered = template.render(**context)
+    rendered: str = template.render(**context)
 
     _write_executable(output_path, rendered)
     return rendered
@@ -133,7 +134,7 @@ def _write_executable(output_path: str, contents: str) -> None:
     path.chmod(path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
 
-def generate_config_template(output_path: str) -> dict:
+def generate_config_template(output_path: str) -> dict[str, Any]:
     """Write an annotated starter config.json the user can edit.
 
     The template is a runnable config (sensible defaults) that also documents
@@ -154,7 +155,7 @@ def generate_config_template(output_path: str) -> dict:
     return template
 
 
-def _blank_config_template() -> dict:
+def _blank_config_template() -> dict[str, Any]:
     """Return the in-memory template dict.  Public for testing."""
     factors = [
         {
@@ -286,7 +287,7 @@ def _build_template_context(
     matrix: DesignMatrix,
     cfg: DOEConfig,
     session_prefix: str | None = None,
-) -> dict:
+) -> dict[str, Any]:
     runs_data = [
         {
             "run_id": run.run_id,
@@ -314,6 +315,6 @@ def _build_template_context(
     }
 
 
-def _tojson(value) -> str:
+def _tojson(value: Any) -> str:
     import json
     return json.dumps(value)

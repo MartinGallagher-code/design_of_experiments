@@ -10,10 +10,16 @@ generate the next batch of runs based on model predictions.
 import json
 import os
 from dataclasses import dataclass, field, asdict
+from typing import TYPE_CHECKING, cast
 
 import numpy as np
 
-from .models import DOEConfig, DesignMatrix, ExperimentRun
+if TYPE_CHECKING:
+    from .bo import GPModel
+
+from .models import (
+    DOEConfig, DesignMatrix, EffectResult, ExperimentRun, Factor, ResponseVar,
+)
 
 
 @dataclass
@@ -30,7 +36,7 @@ class AdaptiveConfig:
 class AdaptiveState:
     phase: int
     total_runs: int
-    completed_phases: list[dict] = field(default_factory=list)
+    completed_phases: list[dict[str, object]] = field(default_factory=list)
     should_stop: bool = False
     stop_reason: str = ""
 
@@ -185,7 +191,7 @@ def plan_next_batch(
 def _check_stopping(
     adaptive_cfg: AdaptiveConfig,
     state: AdaptiveState,
-    effects,
+    effects: list[EffectResult],
 ) -> tuple[bool, str]:
     """Check if the adaptive experiment should stop."""
     if adaptive_cfg.stopping_max_phases > 0 and state.phase >= adaptive_cfg.stopping_max_phases:
@@ -203,7 +209,9 @@ def _check_stopping(
 
 
 def _per_point_noise_from_replicates(
-    valid_runs, responses, factor_names: list[str],
+    valid_runs: list[ExperimentRun],
+    responses: dict[int, float],
+    factor_names: list[str],
 ) -> np.ndarray | None:
     """Estimate variance per training point from replicate scatter.
 
@@ -215,7 +223,7 @@ def _per_point_noise_from_replicates(
     homoscedastic σ_n²).
     """
     from collections import defaultdict
-    groups: dict[tuple, list[int]] = defaultdict(list)
+    groups: dict[tuple[str, ...], list[int]] = defaultdict(list)
     for i, run in enumerate(valid_runs):
         key = tuple(run.factor_values.get(f, "") for f in factor_names)
         groups[key].append(i)
@@ -228,7 +236,7 @@ def _per_point_noise_from_replicates(
     noise = np.zeros(n)
     pooled_sq_dev = 0.0
     pooled_df = 0
-    group_var: dict[tuple, float] = {}
+    group_var: dict[tuple[str, ...], float] = {}
     for key, idxs in groups.items():
         if len(idxs) <= 1:
             continue
@@ -252,7 +260,12 @@ def _per_point_noise_from_replicates(
 
 
 def _multi_objective_strategy(
-    valid_runs, results_dir, cfg, matrix, batch_size, start_run_id,
+    valid_runs: list[ExperimentRun],
+    results_dir: str,
+    cfg: DOEConfig,
+    matrix: DesignMatrix,
+    batch_size: int,
+    start_run_id: int,
     seed: int | None = None,
 ) -> list[ExperimentRun]:
     """Multi-objective BO across every response in ``cfg.responses``.
@@ -287,8 +300,8 @@ def _multi_objective_strategy(
         [encoder.encode(run.factor_values) for run in valid_runs], dtype=float,
     )
 
-    gps = []
-    directions = []
+    gps: list[GPModel] = []
+    directions: list[str] = []
     for resp in cfg.responses:
         responses = _load_response_dict(matrix, results_dir, resp.name)
         usable_idx = [i for i, run in enumerate(valid_runs)
@@ -348,7 +361,9 @@ def _multi_objective_strategy(
     return runs
 
 
-def _load_response_dict(matrix, results_dir, response_name) -> dict[int, float]:
+def _load_response_dict(
+    matrix: DesignMatrix, results_dir: str, response_name: str,
+) -> dict[int, float]:
     from .analysis import _load_all_results, _coerce_response_value
     all_data = _load_all_results(matrix.runs, results_dir, partial=True)
     out: dict[int, float] = {}
@@ -361,7 +376,13 @@ def _load_response_dict(matrix, results_dir, response_name) -> dict[int, float]:
 
 
 def _bayesian_strategy(
-    valid_runs, responses, resp, cfg, matrix, batch_size, start_run_id,
+    valid_runs: list[ExperimentRun],
+    responses: dict[int, float],
+    resp: ResponseVar,
+    cfg: DOEConfig,
+    matrix: DesignMatrix,
+    batch_size: int,
+    start_run_id: int,
     seed: int | None = None,
 ) -> list[ExperimentRun]:
     """Use a GP surrogate + Expected Improvement to pick the next batch.
@@ -433,13 +454,15 @@ class _FactorEncoder:
     numeric_bounds: list[tuple[float, float]]
     categorical_names: list[str]
     categorical_levels: list[list[str]]
-    factor_map: dict
+    factor_map: dict[str, Factor]
     n_numeric_dims: int
     cat_offsets: list[int]                               # start index per categorical block
     n_dims: int
 
     @classmethod
-    def _build(cls, factor_names, factors):
+    def _build(
+        cls, factor_names: list[str], factors: list[Factor],
+    ) -> "_FactorEncoder | None":
         factor_map = {f.name: f for f in factors}
         numeric_names: list[str] = []
         numeric_bounds: list[tuple[float, float]] = []
@@ -496,9 +519,9 @@ class _FactorEncoder:
             row[j] = 2.0 * (v - low) / (high - low) - 1.0
         for j, fname in enumerate(self.categorical_names):
             lvls = self.categorical_levels[j]
-            v = factor_values.get(fname, lvls[0])
+            v_cat = factor_values.get(fname, lvls[0])
             try:
-                idx = lvls.index(v)
+                idx = lvls.index(v_cat)
             except ValueError:
                 idx = 0
             offset = self.cat_offsets[j]
@@ -544,7 +567,7 @@ class _FactorEncoder:
 
     def propose_with_gp(
         self,
-        gp,
+        gp: "GPModel",
         batch_size: int,
         direction: str = "maximize",
         n_candidates: int = 2000,
@@ -590,12 +613,21 @@ class _FactorEncoder:
         return np.vstack(chosen)
 
 
-def _build_factor_encoder(factor_names, factors):
+def _build_factor_encoder(
+    factor_names: list[str], factors: list[Factor],
+) -> "_FactorEncoder | None":
     return _FactorEncoder._build(factor_names, factors)
 
 
 def _model_guided_strategy(
-    valid_runs, responses, resp, cfg, matrix, batch_size, rng, start_run_id,
+    valid_runs: list[ExperimentRun],
+    responses: dict[int, float],
+    resp: ResponseVar,
+    cfg: DOEConfig,
+    matrix: DesignMatrix,
+    batch_size: int,
+    rng: np.random.Generator,
+    start_run_id: int,
 ) -> list[ExperimentRun]:
     """Pick a batch combining model-optimum and max-uncertainty candidates.
 
@@ -636,11 +668,12 @@ def _model_guided_strategy(
     try:
         opt = optimize_surface(model, factor_names, cfg.factors,
                                direction=resp.optimize)
-        if opt.get("optimal_settings"):
+        optimal_settings = opt.get("optimal_settings")
+        if optimal_settings:
             run_id += 1
             opt_runs.append(ExperimentRun(
                 run_id=run_id, block_id=1,
-                factor_values=dict(opt["optimal_settings"]),
+                factor_values=dict(cast("dict[str, str]", optimal_settings)),
             ))
     except Exception:
         pass
@@ -703,14 +736,21 @@ def _model_guided_strategy(
     return opt_runs[:batch_size]
 
 
-def _coded_matrix(runs, factor_names, factors, model_type):
+def _coded_matrix(
+    runs: list[ExperimentRun],
+    factor_names: list[str],
+    factors: list[Factor],
+    model_type: str,
+) -> np.ndarray:
     """Build the same coded design matrix the RSM fitter uses (no intercept-stripping)."""
     from .rsm import _build_design_matrix
     X, _names = _build_design_matrix(runs, factor_names, factors, model_type=model_type)
     return X
 
 
-def _build_candidate_X(candidate_coded, model_type, k):
+def _build_candidate_X(
+    candidate_coded: np.ndarray, model_type: str, k: int,
+) -> np.ndarray:
     """Construct the design-row matrix for candidate coded points so we can
     apply the same X'X^-1 used to score leverage."""
     n = candidate_coded.shape[0]
@@ -727,11 +767,16 @@ def _build_candidate_X(candidate_coded, model_type, k):
     return np.hstack(cols)
 
 
-def _safe_pinv(M):
+def _safe_pinv(M: np.ndarray) -> np.ndarray:
     return np.linalg.pinv(M)
 
 
-def _decoded_run(run_id, coded, factor_names, factors):
+def _decoded_run(
+    run_id: int,
+    coded: np.ndarray,
+    factor_names: list[str],
+    factors: list[Factor],
+) -> ExperimentRun:
     factor_map = {f.name: f for f in factors}
     factor_values: dict[str, str] = {}
     for i, fname in enumerate(factor_names):
@@ -764,11 +809,17 @@ def _decoded_run(run_id, coded, factor_names, factors):
 
 
 def _refine_strategy(
-    valid_runs, responses, cfg, matrix, batch_size, rng, start_run_id,
+    valid_runs: list[ExperimentRun],
+    responses: dict[int, float],
+    cfg: DOEConfig,
+    matrix: DesignMatrix,
+    batch_size: int,
+    rng: np.random.Generator,
+    start_run_id: int,
 ) -> list[ExperimentRun]:
     """Generate new runs near the current best observed region."""
     # Find best run
-    best_run_id = max(responses, key=responses.get)
+    best_run_id = max(responses, key=lambda rid: responses[rid])
     best_run = next(r for r in valid_runs if r.run_id == best_run_id)
 
     factor_names = matrix.factor_names
@@ -807,7 +858,12 @@ def _refine_strategy(
 
 
 def _explore_strategy(
-    valid_runs, cfg, matrix, batch_size, rng, start_run_id,
+    valid_runs: list[ExperimentRun],
+    cfg: DOEConfig,
+    matrix: DesignMatrix,
+    batch_size: int,
+    rng: np.random.Generator,
+    start_run_id: int,
 ) -> list[ExperimentRun]:
     """Generate space-filling runs that are distant from existing points."""
     factor_names = matrix.factor_names

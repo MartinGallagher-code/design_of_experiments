@@ -15,6 +15,7 @@ user can opt into ``--host 0.0.0.0`` if they really want it visible.
 import html
 import http.server
 import os
+import io
 import socketserver
 from functools import partial
 
@@ -37,7 +38,7 @@ def serve(root: str, host: str = "127.0.0.1", port: int = 8000) -> None:
 class _DoeHandler(http.server.SimpleHTTPRequestHandler):
     """SimpleHTTPRequestHandler with a custom index for the root path."""
 
-    def list_directory(self, path):
+    def list_directory(self, path: "str | os.PathLike[str]") -> io.BytesIO | None:
         # Only customise the *root* directory listing; subfolders fall
         # through to the default handler so the user can still browse
         # individual run_*.json files.
@@ -72,7 +73,6 @@ class _DoeHandler(http.server.SimpleHTTPRequestHandler):
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(encoded)))
         self.end_headers()
-        import io
         return io.BytesIO(encoded)
 
 

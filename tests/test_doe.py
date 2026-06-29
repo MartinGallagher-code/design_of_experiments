@@ -5693,14 +5693,16 @@ class TestReleaseNotesExtraction:
     def _extract_section(changelog: str, version: str) -> str:
         out: list[str] = []
         capturing = False
-        header = f"## {version}"
+        # Support both "## VERSION" and "## [VERSION]" formats
+        header1 = f"## {version}"
+        header2 = f"## [{version}]"
         for line in changelog.splitlines():
             if line.startswith("## "):
                 if capturing:
                     break
-                # Match '## VERSION ...' (next char is whitespace, dash, or end).
-                if line.startswith(header) and (
-                    len(line) == len(header) or not line[len(header)].isalnum()
+                # Match '## VERSION ...' or '## [VERSION]' (next char is whitespace, dash, bracket, or end).
+                if (line.startswith(header1) or line.startswith(header2)) and (
+                    len(line) == len(header1) or len(line) == len(header2) or not line[len(header1) if line.startswith(header1) else len(header2)].isalnum()
                 ):
                     capturing = True
                     continue

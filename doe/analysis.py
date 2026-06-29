@@ -4,17 +4,22 @@ import csv
 import json
 import math
 import os
+from typing import TYPE_CHECKING, cast
+
 import numpy as np
+
+if TYPE_CHECKING:
+    from .rsm import ModelDiagnostics
 
 from .models import (
     AnalysisReport, AnovaRow, AnovaTable,
     CrossValidation, DesignMatrix, DOEConfig,
-    EffectResult, ExperimentRun, InteractionEffect, KneePointResult,
-    OrdinalTrendResult, ResponseAnalysis,
+    EffectResult, ExperimentRun, Factor, InteractionEffect, KneePointResult,
+    ModelAdequacy, OrdinalTrendResult, ResponseAnalysis, StationaryPoint,
 )
 
 
-def _numeric_sort_key(x):
+def _numeric_sort_key(x: str) -> tuple[int, float | str]:
     """Sort key that orders numeric strings numerically, falling back to lexicographic."""
     try:
         return (0, float(x))
@@ -22,7 +27,9 @@ def _numeric_sort_key(x):
         return (1, x)
 
 
-def _coerce_response_value(data: dict, resp_name: str, run_id: int, results_dir: str):
+def _coerce_response_value(
+    data: dict[str, object], resp_name: str, run_id: int, results_dir: str,
+) -> float | None:
     """Return a float response value, or None if missing/blank.
 
     Raises ValueError with a clear pointer to the offending file when the
@@ -36,7 +43,7 @@ def _coerce_response_value(data: dict, resp_name: str, run_id: int, results_dir:
     if isinstance(raw, str) and raw.strip() == "":
         return None
     try:
-        return float(raw)
+        return float(cast("str | float", raw))
     except (TypeError, ValueError):
         path = os.path.join(results_dir, f"run_{run_id}.json")
         raise ValueError(
@@ -91,10 +98,10 @@ def analyze(
     # Apply factor filter
     factor_names = matrix.factor_names
     if filter_factors:
-        unknown = [f for f in filter_factors if f not in factor_names]
-        if unknown:
+        unknown_factors = [f for f in filter_factors if f not in factor_names]
+        if unknown_factors:
             raise ValueError(
-                f"Unknown factor(s): {', '.join(unknown)}. "
+                f"Unknown factor(s): {', '.join(unknown_factors)}. "
                 f"Available factors: {', '.join(factor_names)}"
             )
         factor_names = [f for f in factor_names if f in filter_factors]
@@ -311,7 +318,7 @@ def analyze(
     )
 
 
-def _load_all_results(runs: list[ExperimentRun], results_dir: str, partial: bool = False) -> dict[int, dict]:
+def _load_all_results(runs: list[ExperimentRun], results_dir: str, partial: bool = False) -> dict[int, dict[str, object]]:
     """Load all run_{N}.json files.
 
     When *partial* is False (default), raises FileNotFoundError if any file
@@ -319,7 +326,7 @@ def _load_all_results(runs: list[ExperimentRun], results_dir: str, partial: bool
     warning and only existing results are returned.  An error is still raised
     if **no** result files exist at all.
     """
-    result_data: dict[int, dict] = {}
+    result_data: dict[int, dict[str, object]] = {}
     missing: list[int] = []
 
     for run in runs:
@@ -361,8 +368,8 @@ def _compute_model_adequacy_and_stationary(
     runs: list[ExperimentRun],
     responses: dict[int, float],
     factor_names: list[str],
-    factors: list,
-):
+    factors: list[Factor],
+) -> tuple[ModelAdequacy | None, StationaryPoint | None]:
     """Fit an RSM (quadratic where supported, linear otherwise) and compute
     model-adequacy diagnostics and stationary-point characterization.
 
@@ -409,7 +416,7 @@ def _compute_cross_validation_safe(
     runs: list[ExperimentRun],
     responses: dict[int, float],
     factor_names: list[str],
-    factors: list,
+    factors: list[Factor],
     model_type: str,
     k_folds: int | None,
 ) -> CrossValidation | None:
@@ -552,8 +559,8 @@ def _compute_summary_stats(
     runs: list[ExperimentRun],
     responses: dict[int, float],
     factor_names: list[str],
-) -> dict:
-    stats = {}
+) -> dict[str, dict[str, dict[str, float | int]]]:
+    stats: dict[str, dict[str, dict[str, float | int]]] = {}
     for factor_name in factor_names:
         level_responses: dict[str, list[float]] = {}
         for run in runs:
@@ -579,7 +586,7 @@ def _compute_split_plot_anova(
     runs: list[ExperimentRun],
     responses: dict[int, float],
     factor_names: list[str],
-    factors: list,
+    factors: list[Factor],
 ) -> AnovaTable:
     """Two-error-term ANOVA for split-plot designs.
 
@@ -760,7 +767,7 @@ def _compute_anova(
     runs: list[ExperimentRun],
     responses: dict[int, float],
     factor_names: list[str],
-    factors: list,
+    factors: list[Factor],
 ) -> AnovaTable:
     """Compute ANOVA table using Type I (sequential) SS decomposition.
 
@@ -786,9 +793,10 @@ def _compute_anova(
     # match on BOTH block_id and factor settings — otherwise block-induced
     # variation contaminates the pure-error estimate.
     from collections import Counter
+    from typing import Any
     has_blocks_for_replicates = len({r.block_id for r in valid_runs}) > 1
-    setting_counts = Counter()
-    setting_responses: dict[tuple, list[float]] = {}
+    setting_counts: Counter[tuple[Any, ...]] = Counter()
+    setting_responses: dict[tuple[Any, ...], list[float]] = {}
     for run in valid_runs:
         if has_blocks_for_replicates:
             key = (run.block_id,) + tuple(run.factor_values[f] for f in factor_names)
@@ -826,7 +834,7 @@ def _compute_anova(
     # Identify factor levels for each factor
     factor_level_map: dict[str, list[str]] = {}
     for fname in factor_names:
-        levels = set()
+        levels: set[str] = set()
         for run in valid_runs:
             levels.add(run.factor_values[fname])
         factor_level_map[fname] = sorted(levels)
@@ -836,8 +844,8 @@ def _compute_anova(
     # is present.
     ss_model = ss_block
     for fname in factor_names:
-        levels = factor_level_map[fname]
-        df_factor = len(levels) - 1
+        level_list = factor_level_map[fname]
+        df_factor = len(level_list) - 1
 
         # Group responses by level
         level_vals: dict[str, list[float]] = {}
@@ -869,7 +877,7 @@ def _compute_anova(
         levels_b = factor_level_map[fb]
 
         # Group by (level_a, level_b) combination
-        combo_vals: dict[tuple, list[float]] = {}
+        combo_vals: dict[tuple[str, str], list[float]] = {}
         for run in valid_runs:
             key = (run.factor_values[fa], run.factor_values[fb])
             combo_vals.setdefault(key, []).append(responses[run.run_id])
@@ -1012,7 +1020,7 @@ def _compute_anova(
 def _compute_ordinal_trends(
     runs: list[ExperimentRun],
     responses: dict[int, float],
-    factors: list,
+    factors: list[Factor],
     factor_names: list[str],
     response_name: str,
     ms_error: float = 0.0,
@@ -1112,7 +1120,7 @@ def _compute_ordinal_trends(
 def _detect_knee_points(
     runs: list[ExperimentRun],
     responses: dict[int, float],
-    factors: list,
+    factors: list[Factor],
     factor_names: list[str],
     response_name: str,
 ) -> list[KneePointResult]:
@@ -1238,7 +1246,7 @@ def plot_main_effects(
 def plot_rsm_surface(
     runs: list[ExperimentRun],
     responses: dict[int, float],
-    factors: list,
+    factors: list[Factor],
     factor_names: list[str],
     response_name: str,
     output_dir: str,
@@ -1331,7 +1339,7 @@ def plot_rsm_surface(
                 centers[fname] = 0.0
                 half_ranges[fname] = 1.0
 
-        def encode(fname, raw_val):
+        def encode(fname: str, raw_val: np.ndarray) -> np.ndarray | float:
             hr = half_ranges.get(fname, 1.0)
             if hr == 0:
                 return 0.0
@@ -1407,7 +1415,7 @@ def plot_rsm_surface(
 
 
 def plot_diagnostics(
-    diagnostics,
+    diagnostics: "ModelDiagnostics",
     output_path: str,
     title: str = "Model Diagnostics",
 ) -> None:
@@ -1634,7 +1642,8 @@ def export_csv(report: AnalysisReport, output_dir: str) -> list[str]:
 
         # Achieved-power CSV
         if analysis.achieved_power:
-            ap = analysis.achieved_power
+            from .models import AchievedPower
+            ap: AchievedPower = analysis.achieved_power
             ap_path = os.path.join(output_dir, f"achieved_power_{safe}.csv")
             with open(ap_path, "w", newline="") as f:
                 writer = csv.writer(f)
@@ -1647,10 +1656,10 @@ def export_csv(report: AnalysisReport, output_dir: str) -> list[str]:
                 writer.writerow(["alpha", "", "", ap.alpha, ""])
                 writer.writerow(["delta", "", "", ap.delta, ""])
                 writer.writerow(["target_power", "", "", ap.target_power, ""])
-                for entry in ap.per_factor:
-                    mde = entry.mde_at_target if entry.mde_at_target != float("inf") else ""
-                    writer.writerow(["per_factor", entry.factor_name, entry.n_levels,
-                                     entry.power_at_delta, mde])
+                for power_entry in ap.per_factor:
+                    mde = power_entry.mde_at_target if power_entry.mde_at_target != float("inf") else ""
+                    writer.writerow(["per_factor", power_entry.factor_name, power_entry.n_levels,
+                                     power_entry.power_at_delta, mde])
             created.append(ap_path)
 
         # Cross-validation CSV: summary header + per-fold predicted-vs-actual

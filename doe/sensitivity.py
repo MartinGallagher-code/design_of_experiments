@@ -15,9 +15,11 @@ N(k+2) model evaluations. We use ``scipy.stats.qmc.Sobol`` (already a
 dependency).
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 
 import numpy as np
+import numpy.typing as npt
 
 
 @dataclass
@@ -38,7 +40,7 @@ class SensitivityResult:
 
 
 def sobol_indices(
-    predictor,
+    predictor: Callable[[npt.NDArray[np.float64]], npt.NDArray[np.float64]],
     factor_names: list[str],
     bounds: list[tuple[float, float]],
     response_name: str = "",
@@ -271,7 +273,7 @@ def _anchor_id(name: str) -> str:
 
 def make_rsm_predictor(
     coefs: dict[str, float], factor_names: list[str], bounds: list[tuple[float, float]],
-):
+) -> Callable[[np.ndarray], np.ndarray]:
     """Build a numpy-vectorised predictor from a fitted RSM's coefficients.
 
     Inputs are expected in *natural* units; the predictor maps them to

@@ -6,10 +6,42 @@ import base64
 import html
 import os
 from datetime import datetime
+from typing import TypedDict, cast
 
-from .models import DesignMatrix, DOEConfig
+from .models import (
+    DesignMatrix,
+    DOEConfig,
+    AnalysisReport,
+    AliasStructure,
+    ModelAdequacy,
+    StationaryPoint,
+    AchievedPower,
+    CrossValidation,
+    AliasEntry,
+)
 from .analysis import analyze, _load_all_results, _compute_main_effects
 from .rsm import fit_rsm
+
+
+class _OptimizationRecord(TypedDict):
+    """Structured optimization result for a single response."""
+    response_name: str
+    direction: str
+    unit: str
+    best_run_id: int
+    best_settings: dict[str, str]
+    best_value: float
+    linear_r2: float
+    linear_adj_r2: float
+    linear_coeffs: dict[str, float]
+    quad_r2: float | None
+    quad_adj_r2: float | None
+    quad_coeffs: dict[str, float] | None
+    best_model_label: str
+    predicted_optimum: dict[str, str]
+    predicted_value: float
+    quality: str
+    importance: list[tuple[str, float, float]]
 
 
 def generate_report(
@@ -77,8 +109,8 @@ def generate_report(
     optimization_data = _run_optimization(matrix, cfg, results_dir_resolved, partial=partial)
 
     # --- Build HTML sections ---
-    plan_name = html.escape(cfg.metadata.get("name", "Unnamed Experiment"))
-    plan_desc = html.escape(cfg.metadata.get("description", ""))
+    plan_name = html.escape(str(cfg.metadata.get("name", "Unnamed Experiment")))
+    plan_desc = html.escape(str(cfg.metadata.get("description", "")))
     timestamp = html.escape(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
     header_html = _build_header(plan_name, plan_desc, timestamp, partial=partial)
@@ -199,17 +231,22 @@ def _build_design_summary(matrix: DesignMatrix, cfg: DOEConfig) -> str:
     )
 
 
-def _run_optimization(matrix, cfg, results_dir, partial=False):
+def _run_optimization(
+    matrix: DesignMatrix,
+    cfg: DOEConfig,
+    results_dir: str,
+    partial: bool = False,
+) -> list[_OptimizationRecord]:
     """Run optimization analysis and return structured data."""
     all_data = _load_all_results(matrix.runs, results_dir, partial=partial)
-    results = []
+    results: list[_OptimizationRecord] = []
 
     for resp in cfg.responses:
-        responses = {}
+        responses: dict[int, float] = {}
         for run in matrix.runs:
             data = all_data.get(run.run_id, {})
             if resp.name in data:
-                responses[run.run_id] = float(data[resp.name])
+                responses[run.run_id] = float(cast("str | float", data[resp.name]))
         if not responses:
             continue
 
@@ -278,7 +315,7 @@ def _run_optimization(matrix, cfg, results_dir, partial=False):
     return results
 
 
-def _build_optimization(opt_data, cfg) -> str:
+def _build_optimization(opt_data: list[_OptimizationRecord], cfg: DOEConfig) -> str:
     if not opt_data:
         return ""
 
@@ -302,7 +339,7 @@ def _build_optimization(opt_data, cfg) -> str:
         )
 
         # RSM model coefficients (best model)
-        coeffs = opt["quad_coeffs"] if opt["best_model_label"] == "quadratic" else opt["linear_coeffs"]
+        coeffs = opt["quad_coeffs"] if opt["best_model_label"] == "quadratic" and opt["quad_coeffs"] is not None else opt["linear_coeffs"]
         r2 = opt["quad_r2"] if opt["best_model_label"] == "quadratic" else opt["linear_r2"]
         adj_r2 = opt["quad_adj_r2"] if opt["best_model_label"] == "quadratic" else opt["linear_adj_r2"]
 
@@ -367,9 +404,15 @@ def _build_optimization(opt_data, cfg) -> str:
     return "\n".join(sections)
 
 
-def _build_results(report, pareto_images, effects_images, rsm_images=None,
-                    normal_images=None, half_normal_images=None,
-                    diagnostics_images=None) -> str:
+def _build_results(
+    report: AnalysisReport,
+    pareto_images: dict[str, str],
+    effects_images: dict[str, str],
+    rsm_images: dict[str, list[tuple[str, str]]] | None = None,
+    normal_images: dict[str, str] | None = None,
+    half_normal_images: dict[str, str] | None = None,
+    diagnostics_images: dict[str, str] | None = None,
+) -> str:
     if not report.results_by_response:
         return '<p class="muted">No analysis results available.</p>\n'
 
@@ -603,14 +646,14 @@ def _build_results(report, pareto_images, effects_images, rsm_images=None,
     return "\n".join(sections)
 
 
-def _model_adequacy_html(ma) -> str:
+def _model_adequacy_html(ma: ModelAdequacy | None) -> str:
     if ma is None:
         return ""
 
-    def _fmt_optional(v, fmt=".4f"):
+    def _fmt_optional(v: float | None, fmt: str = ".4f") -> str:
         return format(v, fmt) if v is not None else "&mdash;"
 
-    def _flag(condition):
+    def _flag(condition: bool) -> str:
         return ' style="color:#c00;font-weight:bold;"' if condition else ""
 
     rows = ""
@@ -657,7 +700,7 @@ def _model_adequacy_html(ma) -> str:
     )
 
 
-def _stationary_point_html(sp) -> str:
+def _stationary_point_html(sp: StationaryPoint | None) -> str:
     if sp is None:
         return ""
     rows = ""
@@ -697,7 +740,7 @@ def _stationary_point_html(sp) -> str:
     )
 
 
-def _cross_validation_html(cv) -> str:
+def _cross_validation_html(cv: CrossValidation | None) -> str:
     if cv is None:
         return ""
     notes_html = ""
@@ -724,7 +767,7 @@ def _cross_validation_html(cv) -> str:
     )
 
 
-def _achieved_power_html(ap) -> str:
+def _achieved_power_html(ap: AchievedPower | None) -> str:
     if ap is None:
         return ""
     summary = (
@@ -760,7 +803,7 @@ def _achieved_power_html(ap) -> str:
     )
 
 
-def _build_alias_structure(alias) -> str:
+def _build_alias_structure(alias: AliasStructure | None) -> str:
     if alias is None:
         return ""
 
@@ -773,7 +816,7 @@ def _build_alias_structure(alias) -> str:
         items = "".join(f"<li>{html.escape(n)}</li>" for n in alias.notes)
         notes_html = f'  <ul class="muted">{items}</ul>\n'
 
-    def _section(title, entries):
+    def _section(title: str, entries: list[AliasEntry]) -> str:
         if not entries or not any(e.aliased_with for e in entries):
             return ""
         body = ""
@@ -856,7 +899,7 @@ def _anchor_id(name: str) -> str:
     return cleaned or "section"
 
 
-def _build_table_of_contents(report, cfg) -> str:
+def _build_table_of_contents(report: AnalysisReport, cfg: DOEConfig) -> str:
     """Build a sticky navigation block linking to each top-level section."""
     items: list[tuple[str, str]] = [("design-summary", "Design Summary")]
 

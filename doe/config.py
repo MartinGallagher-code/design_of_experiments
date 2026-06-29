@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 import json
 import os
+from typing import Any
 from .models import DOEConfig, Factor, ResponseVar, RunnerConfig
 
 SUPPORTED_OPERATIONS = {
@@ -66,8 +67,8 @@ def load_config(path: str, strict: bool = True) -> DOEConfig:
     return cfg
 
 
-def _parse_factors(raw: list) -> list[Factor]:
-    factors = []
+def _parse_factors(raw: list[Any]) -> list[Factor]:
+    factors: list[Factor] = []
     for item in raw:
         if isinstance(item, dict):
             name = item.get("name")
@@ -93,11 +94,11 @@ def _parse_factors(raw: list) -> list[Factor]:
     return factors
 
 
-def _parse_fixed_factors(raw: dict) -> dict[str, str]:
+def _parse_fixed_factors(raw: dict[str, Any]) -> dict[str, str]:
     if "fixed_factors" in raw:
         return {k: str(v) for k, v in raw["fixed_factors"].items()}
     # Legacy: convert static_settings list of "--key=value" strings
-    result = {}
+    result: dict[str, str] = {}
     for s in raw.get("static_settings", []):
         s = s.strip()
         if s.startswith("--"):
@@ -108,10 +109,10 @@ def _parse_fixed_factors(raw: dict) -> dict[str, str]:
     return result
 
 
-def _parse_responses(raw: list) -> list[ResponseVar]:
+def _parse_responses(raw: list[Any]) -> list[ResponseVar]:
     if not raw:
         return [ResponseVar(name="response")]
-    responses = []
+    responses: list[ResponseVar] = []
     for item in raw:
         if isinstance(item, dict):
             name = item.get("name")
@@ -132,14 +133,14 @@ def _parse_responses(raw: list) -> list[ResponseVar]:
     return responses
 
 
-def _parse_runner(raw: dict) -> RunnerConfig:
+def _parse_runner(raw: dict[str, Any]) -> RunnerConfig:
     return RunnerConfig(
         arg_style=raw.get("arg_style", "double-dash"),
         result_file=raw.get("result_file", "json"),
     )
 
 
-def _parse_adaptive(raw) -> object:
+def _parse_adaptive(raw: dict[str, Any] | None) -> object:
     """Parse optional adaptive experimentation settings."""
     if raw is None:
         return None

@@ -157,7 +157,7 @@ def _resolve_target(target: str) -> Callable[..., Any]:
         raise AttributeError(
             f"Simulator module has no '{func_name}' attribute."
         )
-    func = getattr(module, func_name)
+    func: Callable[..., Any] = getattr(module, func_name)
     if not callable(func):
         raise TypeError(f"Simulator target '{target}' is not callable.")
     return func

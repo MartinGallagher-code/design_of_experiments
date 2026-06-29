@@ -28,6 +28,7 @@ different scales between factors, consider scaling the inputs to
 from dataclasses import dataclass
 
 import numpy as np
+import numpy.typing as npt
 
 
 @dataclass
@@ -90,7 +91,7 @@ def fit_gp(
 
     rng = np.random.default_rng(seed)
 
-    def neg_log_marginal(theta):
+    def neg_log_marginal(theta: npt.NDArray[np.float64]) -> float:
         log_l, log_sf, log_sn = theta
         K = _rbf_kernel(X, X, np.exp(log_l), np.exp(log_sf))
         # Diagonal noise: per-point known + a homoscedastic floor.
@@ -104,7 +105,7 @@ def fit_gp(
         return float(nll)
 
     # Multi-start so the optimiser doesn't get stuck on tiny n
-    best = (None, np.inf)
+    best: tuple[npt.NDArray[np.float64] | None, float] = (None, np.inf)
     starts = [
         np.array([0.0, 0.0, np.log(0.1)]),    # ℓ=1, σ_f=1, σ_n=0.1
         np.array([np.log(2.0), 0.0, np.log(0.05)]),
