@@ -1,72 +1,74 @@
 # Changelog
 
-## 0.3.0 — 2026-05-09
+All notable changes to this project will be documented in this file.
 
-### Bootstrap & scaffolding
-- `doe scaffold-config`, `doe scaffold-test` — annotated starter files.
-- `doe init --factors --budget --goal [--with-test]` — bootstrap a working config (and optionally `test.py`) from a one-line description.
-- `doe suggest` — print a recommended operation + run count + adaptive strategy without committing.
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-### Design generation
-- `split_plot` operation with role-based whole-plot / subplot factors and within-plot randomisation.
-- `--resolution N` knob on `fractional_factorial` (bumps run count until the requested resolution is achievable). Lex tie-break in the candidate-set search lifts the auto path: 2^(4-1) is now Resolution IV by default.
-- `--replicate-center N` (also `settings.replicate_center`) appends N centre-point runs per block.
-- `Factor.dtype: "int"` is now respected by every optimiser (rounded + clamped to the level range).
-- `Factor.role: "whole_plot"` for split-plot designs.
-- Constraint expressions (`"constraints": ["x + y <= 1.5", ...]`) parsed via an AST allow-list.
-- Runner formats: `--format sh|py`, `--parallel N` (thread pool), `--executor slurm` with `--slurm-{partition,time,cpus-per-task,mem,max-concurrent}`.
-- `--session [PREFIX]` writes each runner invocation to `<out>/<PREFIX>-<TIMESTAMP>/` and updates `<out>/latest`.
-- D-optimal candidate set now includes a midpoint per 2-level continuous factor for richer coordinate exchange.
-- `doe augment --type d_optimal` grows an existing design by N runs that maximise pooled `det(X'X)`.
+## [Unreleased]
 
-### Running
-- `doe simulate --func module:fn` drives the design directly from a Python function — no shell.
-- Block-aware skip-existing semantics in every runner template.
+### Added
+- CONTRIBUTING.md with development and PR guidelines
+- SECURITY.md for responsible vulnerability disclosure
+- CODE_OF_CONDUCT.md (Contributor Covenant v2.1)
+- GitHub issue templates (bug report, feature request)
+- GitHub pull request template
+- Pre-commit configuration for code quality checks
 
-### Analysis
-- ANOVA path automatically selected from five options: pooled / replicates (block-aware grouping) / Lenth's PSE / split-plot two-error / blocked.
-- **Model adequacy**: PRESS, predicted R², Shapiro-Wilk, Durbin-Watson, run-order drift slope+p, max leverage, max Cook's distance with `F(0.5, p, n-p)` cutoff.
-- **Stationary point** classification from Hessian eigenvalues (maximum / minimum / saddle / ridge / rising_ridge), decoded into natural factor units.
-- **Achieved power** retrospective from the actual residual MS — per-factor power and minimum detectable effect.
-- **Cross-validation**: k-fold predicted-vs-actual with RMSE / MAE / R²<sub>cv</sub> (`--cv-folds K`, default `min(n, 5)`).
-- **Alias structure** for fractional factorial / Plackett-Burman, with resolution detection.
-- **Scheffé canonical form** for mixture designs.
-- **Sobol sensitivity** (`doe sensitivity`) — first-order and total-order indices on the fitted surrogate, with HTML stacked-bar charts (`--html`).
-- `--no-rsm` skips the RSM refit and the model-adequacy / stationary-point / cross-validation sections (for big designs).
-- HTML report sticky table-of-contents.
+## [0.3.0] — 2026-05-09
 
-### Optimisation & iteration
-- Six adaptive strategies: `refine`, `explore`, `balanced`, `model_guided` (RSM optimum + max-leverage), `bayesian` (numpy-only Gaussian process + Expected Improvement, q-EI via constant-liar fantasising, mixed numeric + one-hot categorical encoder, heteroscedastic noise from replicate scatter), `multi_objective` (per-response GPs + random Tchebycheff scalarisation).
-- `doe calibrate` fits free parameters in a parametric simulator to observed data via L-BFGS-B.
-- Adaptive state lives at `cfg.out_directory` (survives `--session` switches); `--state-name FOO` for trajectory branching.
+### Added
+- `doe scaffold-config`, `doe scaffold-test` — annotated starter files
+- `doe init --factors --budget --goal [--with-test]` — bootstrap a working config
+- `doe suggest` — print a recommended operation + run count + adaptive strategy
+- `split_plot` operation with role-based whole-plot / subplot factors
+- `--resolution N` knob on `fractional_factorial` with automatic bumping
+- `--replicate-center N` for appending centre-point runs per block
+- `Factor.dtype: "int"` support (rounded + clamped by all optimisers)
+- `Factor.role: "whole_plot"` for split-plot designs
+- Constraint expressions via AST allow-list parsing
+- Runner formats: `--format sh|py`, `--parallel N`, `--executor slurm`
+- `--session [PREFIX]` for timestamped result directories
+- D-optimal candidate set enhancements and augmentation
+- `doe simulate --func module:fn` for direct Python function driving
+- ANOVA path auto-selection (pooled / replicates / Lenth's PSE / split-plot / blocked)
+- Model adequacy checks: PRESS, predicted R², Shapiro-Wilk, Durbin-Watson, leverage, Cook's distance
+- Stationary point classification from Hessian eigenvalues
+- Achieved power retrospective from actual residual MS
+- Cross-validation with k-fold predicted-vs-actual (RMSE, MAE, R²_cv)
+- Alias structure detection for fractional factorial designs
+- Scheffé canonical form for mixture designs
+- `doe sensitivity` with Sobol indices and HTML visualizations
+- `--no-rsm` flag to skip RSM refit for large designs
+- HTML report with sticky table-of-contents
+- Six adaptive strategies: `refine`, `explore`, `balanced`, `model_guided`, `bayesian`, `multi_objective`
+- `doe calibrate` for parametric simulator fitting
+- Adaptive state branching with `--state-name`
+- `doe compare` with paired-run delta and Cohen's d
+- `doe trend` with multi-session regression
+- `doe archive` for tarball bundling with SHA-256 manifest
+- `doe serve --root results/` for localhost browsing
+- Comprehensive documentation: user_guide, commands, strategies, config, cookbook
+- `doe analyze --filter-runs` to exclude outliers without file editing
+- `doe init --template <name>` with inferred-goal rationale
 
-### Comparing & reporting
-- `doe compare --baseline DIR --candidate DIR` — paired-run delta + Cohen's d, per-factor effect delta with sign-flip flag, intercept-shift vs slope-shift decomposition. HTML embeds per-run delta dotplot.
-- `doe trend --sessions DIR1 DIR2 …` — multi-session regression with intercept / slope drift per session step. HTML embeds per-session-mean line plot with drift overlay.
-- `doe archive` — bundle a session into a tarball with a SHA-256 manifest.
-- `doe serve --root results/` — stdlib HTTP localhost browser for sessions.
-
-### Documentation
-- `docs/user_guide.md`, `docs/commands.md`, `docs/strategies.md`, `docs/config.md`, `docs/cookbook.md`.
-- README rewritten around the bootstrap path; Documentation block at the top.
-
-### Other
-- `doe analyze --filter-runs IDS` excludes specific run IDs from analysis without editing on-disk files (closes the loop with the high-Cook's-D run IDs Model Adequacy already prints).
-- `doe init --template <name>` prints an inferred-goal rationale alongside what the suggester would have recommended for the same factor / response / budget shape.
+### Changed
+- README restructured around bootstrap workflow
+- Design matrix generation defaults for 2-level factors
 
 ### Fixed
-- Empty-string response values in `run_*.json` no longer raise an opaque `could not convert string to float: ''`; non-numeric values get a file-pointing `ValueError`.
-- Replicate detection is now block-aware so block variance can't double-count when blocks are present.
-- `_apply_blocks` was stripping `whole_plot_id` from `ExperimentRun`; preserved.
-- Cook's distance threshold switched from the aggressive `4/n` rule of thumb to `F(0.5, p, n-p)` (eliminated false-positive flags on small noiseless designs).
-- `runner_py.j2` was emitting `SESSION_PREFIX = null` (JSON literal) for the no-session case — fixed to emit literal `None`.
-- `--strategy` choices on `doe next-batch` were stuck at `refine|explore|balanced` and silently rejected the newer strategies; CLI now accepts all six.
-- `_save_state(state, results_dir)` had one stale call site keeping the legacy signature; phase counters survived `--session` rotation as a result.
+- Empty-string response values in `run_*.json` now provide actionable error messages
+- Replicate detection made block-aware to prevent variance double-counting
+- `_apply_blocks` now preserves `whole_plot_id` in ExperimentRun
+- Cook's distance threshold changed from `4/n` to `F(0.5, p, n-p)` rule
+- `runner_py.j2` no longer emits `SESSION_PREFIX = null` (now proper `None`)
+- `doe next-batch --strategy` now accepts all six strategy options
+- `_save_state()` call sites updated to preserve phase counters across sessions
 
-## 0.1.0 — 2026-03-27
+## [0.1.0] — 2026-03-27
 
-Initial public release.
-
+### Added
+- Initial public release
 - 11 design types: full-factorial, fractional-factorial, Plackett-Burman, Latin hypercube, central composite, Box-Behnken, definitive screening, Taguchi, D-optimal, mixture simplex-lattice, mixture simplex-centroid
 - ANOVA analysis with F-tests and p-values
 - Main effects and two-factor interaction estimation
@@ -77,3 +79,7 @@ Initial public release.
 - Design evaluation metrics (D/A/G-efficiency)
 - Power analysis
 - Design augmentation (fold-over, star points, center points)
+
+[Unreleased]: https://github.com/MartinGallagher-code/design_of_experiments/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/MartinGallagher-code/design_of_experiments/compare/v0.1.0...v0.3.0
+[0.1.0]: https://github.com/MartinGallagher-code/design_of_experiments/releases/tag/v0.1.0
