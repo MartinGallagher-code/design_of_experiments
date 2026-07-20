@@ -16,27 +16,29 @@ DOE Helper is a production-ready, feature-rich tool for automating experimental 
 
 ## Current Status
 
-**Version**: 0.3.0 (Stable)
+**Version**: 0.4.0 (Stable)
 
 - 14 design types fully implemented
 - Comprehensive ANOVA and response surface analysis
 - Multi-objective optimization with adaptive strategies
 - 221 worked use cases across multiple domains
 - Full CLI with documentation
+- mypy strict typing enforced in CI, ~90% test coverage
+- Security scanning (pip-audit, bandit), REUSE compliance, SBOM on release
 
 ## Roadmap by Priority
 
 ### Phase 1: Production Hardening (v0.3.x)
 **Target**: Q3 2026
 
-- [ ] Full type hints on public APIs (mypy strict)
-- [ ] 80%+ test coverage enforcement
-- [ ] Integration test suite
-- [ ] Dependency security scanning
-- [ ] SBOM generation for releases
-- [ ] Formal API stability documentation
+- [x] Full type hints on public APIs (mypy strict)
+- [x] 80%+ test coverage enforcement
+- [x] Integration test suite
+- [x] Dependency security scanning
+- [x] SBOM generation for releases
+- [x] Formal API stability documentation
 
-**Status**: In progress (#23-39)
+**Status**: Completed in v0.4.0 (#40)
 
 ### Phase 2: Enhanced Analysis (v0.4.0)
 **Target**: Q4 2026
@@ -67,11 +69,10 @@ DOE Helper is a production-ready, feature-rich tool for automating experimental 
 
 ## Known Limitations
 
-1. **Type hints**: Currently advisory-only; full enforcement planned for v0.4.0
-2. **Categorical encoding**: Limited to one-hot; ordinal categorical improvements planned
-3. **High-dimensional design**: 50+ factors may be slow in some designs
-4. **Real-time execution**: No live progress updates during experiment runs
-5. **GUI**: CLI-only (web UI planned for v0.6.0)
+1. **Categorical encoding**: Limited to one-hot; ordinal categorical improvements planned
+2. **High-dimensional design**: 50+ factors may be slow in some designs
+3. **Real-time execution**: No live progress updates during experiment runs
+4. **GUI**: CLI-only (web UI planned for v0.6.0)
 
 ## Non-Goals
 
@@ -125,4 +126,4 @@ See [docs/RELEASE.md](docs/RELEASE.md) for release procedures and [CONTRIBUTING.
 
 ---
 
-Last updated: June 29, 2026
+Last updated: July 20, 2026
