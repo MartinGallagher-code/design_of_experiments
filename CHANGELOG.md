@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- ROADMAP.md current status updated to v0.4.0; Phase 1 (Production Hardening) marked complete
+
+### Fixed
+- Auto-release workflow now extracts CHANGELOG notes for Keep-a-Changelog bracketed headings (`## [x.y.z]`), so releases no longer ship with an empty body
+- CI upgrades `setuptools` alongside `pip` so `pip-audit` no longer fails on vulnerabilities in the runner's preinstalled copy (PYSEC-2026-3447)
+
 ## [0.4.0] — 2026-06-29
 
 ### Added

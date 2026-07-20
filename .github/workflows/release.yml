@@ -66,11 +66,15 @@ jobs:
         id: changelog
         run: |
           ver="${{ steps.version.outputs.version }}"
-          # awk: capture everything between '## <ver> ...' and the next '## '
+          # awk: capture everything between '## <ver> ...' and the next '## '.
+          # The heading may be Keep-a-Changelog style ('## [0.4.0] — date') or
+          # bare ('## 0.4.0'), so the brackets are optional and dots in the
+          # version are escaped to match literally.
           notes=$(awk -v ver="$ver" '
+            BEGIN { gsub(/\./, "\\.", ver) }
             /^## / {
               if (capturing) { exit }
-              if ($0 ~ "^## " ver "([^0-9]|$)") { capturing = 1; next }
+              if ($0 ~ "^## \\[?" ver "\\]?([^0-9]|$)") { capturing = 1; next }
             }
             capturing { print }
           ' CHANGELOG.md)
