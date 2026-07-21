@@ -12,11 +12,13 @@ The project includes **221 worked use cases** spanning HPC, cloud infrastructure
 
 ## Installation
 
+The package is published on PyPI at [pypi.org/project/doehelper](https://pypi.org/project/doehelper/) — install the latest release with:
+
 ```bash
 pip install doehelper
 ```
 
-For development:
+The source lives on GitHub at [github.com/MartinGallagher-code/design_of_experiments](https://github.com/MartinGallagher-code/design_of_experiments). You can [download a release archive](https://github.com/MartinGallagher-code/design_of_experiments/releases) (`.zip`/`.tar.gz`) from the releases page, or clone the repository for development:
 
 ```bash
 git clone https://github.com/MartinGallagher-code/design_of_experiments.git
