@@ -10,7 +10,7 @@
 
 ---
 
-**Contributing?** See [CONTRIBUTING.md](CONTRIBUTING.md) • **Found a vulnerability?** See [SECURITY.md](SECURITY.md) • **Community standards** See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+**Contributing?** See [CONTRIBUTING.md](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/CONTRIBUTING.md) • **Found a vulnerability?** See [SECURITY.md](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/SECURITY.md) • **Community standards** See [CODE_OF_CONDUCT.md](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/CODE_OF_CONDUCT.md)
 
 ---
 
@@ -21,18 +21,18 @@ The project includes **221 worked use cases** spanning HPC, cloud infrastructure
 ## Documentation
 
 **Getting Started**:
-- **[User guide](docs/user_guide.md)** — five-step workflow tour from first config to a finished report.
-- **[Quick start](README.md#quick-start)** — first experiment in 5 minutes.
+- **[User guide](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/docs/user_guide.md)** — five-step workflow tour from first config to a finished report.
+- **[Quick start](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/README.md#quick-start)** — first experiment in 5 minutes.
 
 **Reference**:
-- **[Command reference](docs/commands.md)** — one-line-per-subcommand cheat sheet.
-- **[Config reference](docs/config.md)** — every recognised JSON key, default, and constraint.
-- **[Public API](docs/api.md)** — stable APIs, backward compatibility guarantees, deprecation policy.
+- **[Command reference](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/docs/commands.md)** — one-line-per-subcommand cheat sheet.
+- **[Config reference](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/docs/config.md)** — every recognised JSON key, default, and constraint.
+- **[Public API](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/docs/api.md)** — stable APIs, backward compatibility guarantees, deprecation policy.
 
 **Advanced**:
-- **[Adaptive strategies](docs/strategies.md)** — when to pick `refine` / `bayesian` / `multi_objective` etc.
-- **[Release process](docs/RELEASE.md)** — how to cut a release.
-- **[Project roadmap](ROADMAP.md)** — planned features and vision.
+- **[Adaptive strategies](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/docs/strategies.md)** — when to pick `refine` / `bayesian` / `multi_objective` etc.
+- **[Release process](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/docs/RELEASE.md)** — how to cut a release.
+- **[Project roadmap](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/ROADMAP.md)** — planned features and vision.
 
 ## Features
 
@@ -166,7 +166,7 @@ doe init --list
 doe init --template reactor_optimization
 ```
 
-For the full step-by-step tour see **[docs/user_guide.md](docs/user_guide.md)**.
+For the full step-by-step tour see **[docs/user_guide.md](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/docs/user_guide.md)**.
 
 ## Configuration
 
@@ -499,4 +499,4 @@ pytest tests/ --cov=doe --cov-report=term-missing
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 — see [LICENSE](LICENSE) for details.
+This project is licensed under the GNU General Public License v3.0 — see [LICENSE](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/LICENSE) for details.
