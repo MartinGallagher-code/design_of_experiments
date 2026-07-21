@@ -279,8 +279,8 @@ def is_pareto_front(Y: np.ndarray, directions: list[str]) -> np.ndarray:
 
     on_front = np.ones(n, dtype=bool)
     for i in range(n):
-        if not on_front[i]:
-            continue
+        if not on_front[i]:  # pragma: no cover - defensive; only index i is
+            continue         # ever cleared, so this is always still True here
         diffs = Y_max - Y_max[i]
         # j dominates i iff every coord >= and at least one >
         dominated_by_j = np.all(diffs >= 0, axis=1) & np.any(diffs > 0, axis=1)

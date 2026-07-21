@@ -250,8 +250,8 @@ def multi_objective(
         return
 
     # Only use runs that have data for ALL responses
-    if valid_runs_all is None:
-        return
+    if valid_runs_all is None:  # pragma: no cover - defensive; >=2 responses in
+        return  # response_data guarantees valid_runs_all was assigned already
     common_runs = [r for r in matrix.runs if r.run_id in valid_runs_all]
 
     # Compute desirability bounds for each response
@@ -299,8 +299,8 @@ def multi_objective(
             if resp.name not in response_data:
                 continue
             val = response_data[resp.name].get(run.run_id)
-            if val is None:
-                continue
+            if val is None:  # pragma: no cover - defensive; common_runs is the
+                continue     # intersection, so every kept response has this run
             low, high = resp_bounds[resp.name]
             d = _desirability(val, low, high, resp.optimize)
             individual_d[resp.name] = d

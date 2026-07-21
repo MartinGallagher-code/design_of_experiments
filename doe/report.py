@@ -650,9 +650,6 @@ def _model_adequacy_html(ma: ModelAdequacy | None) -> str:
     if ma is None:
         return ""
 
-    def _fmt_optional(v: float | None, fmt: str = ".4f") -> str:
-        return format(v, fmt) if v is not None else "&mdash;"
-
     def _flag(condition: bool) -> str:
         return ' style="color:#c00;font-weight:bold;"' if condition else ""
 
