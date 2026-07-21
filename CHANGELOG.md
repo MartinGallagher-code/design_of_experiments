@@ -7,7 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.2] — 2026-07-21
+
 ### Fixed
+- README links are now absolute GitHub URLs so they work on the PyPI project page, where relative links (User Guide, Quick Start, docs, licence) went nowhere
 - The auto-release publish job now runs on every trigger (idempotent via `skip-existing`), so a failed PyPI publish can be retried by manual dispatch or any pyproject.toml push — the previous gating skipped the retry when the tag already existed
 
 ### Added
@@ -119,7 +122,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Power analysis
 - Design augmentation (fold-over, star points, center points)
 
-[Unreleased]: https://github.com/MartinGallagher-code/design_of_experiments/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/MartinGallagher-code/design_of_experiments/compare/v0.4.2...HEAD
+[0.4.2]: https://github.com/MartinGallagher-code/design_of_experiments/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/MartinGallagher-code/design_of_experiments/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/MartinGallagher-code/design_of_experiments/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/MartinGallagher-code/design_of_experiments/compare/v0.1.0...v0.3.0
