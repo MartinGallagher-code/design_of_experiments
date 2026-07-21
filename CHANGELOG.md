@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+- `training/` (slide decks and teaching materials) and `docs/book/` (LaTeX book sources and build artifacts) — maintained outside this repository
+
+### Changed
+- README modernised: install and quick start moved to the top, badges restyled with logos (also refreshing shields.io's stale pre-publish "not found" cache), contributing/security/conduct links moved into a Contributing section, and the dead doehelper.com link replaced with the in-repo use-cases directory
+
+### Fixed
+- docs/doe_fundamentals.md resource links: removed the deleted book PDF link and corrected the reactor-optimization use case path
+
 ## [0.4.2] — 2026-07-21
 
 ### Fixed
