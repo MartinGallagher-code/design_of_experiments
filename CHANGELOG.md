@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.4] — 2026-07-21
+
+### Added
+- Codecov integration: CI uploads the coverage report and the README carries a live coverage badge
+- Explicit PyPI, GitHub repository, and release-download links in the README installation section
+
+### Changed
+- Test coverage of the `doe` package raised to 100%; CI now enforces `--cov-fail-under=100`
+- Project website restored: `https://doehelper.com` is now the PyPI `Homepage` and is linked from the README header and installation section (aligning packaging metadata with the URL already declared in `CITATION.cff`)
+
 ## [0.4.3] — 2026-07-21
 
 ### Added
