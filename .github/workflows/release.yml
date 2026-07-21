@@ -14,11 +14,13 @@ name: Auto-release
 # the version header and the next `## ` so each release ships with the
 # notes the maintainer already wrote.
 #
+# The publish job runs on every trigger and is idempotent: skip-existing
+# makes re-publishing a version already on PyPI a no-op. This means a
+# failed publish can be retried by manual dispatch, or by any push to
+# main that touches pyproject.toml.
+#
 # Manual trigger is supported via workflow_dispatch for cases where the
-# version was bumped earlier without firing this workflow, and to retry a
-# failed publish: on dispatch the publish job runs even when the tag
-# already exists, and skip-existing makes re-publishing a no-op for
-# versions already on PyPI.
+# version was bumped earlier without firing this workflow.
 
 on:
   push:
@@ -110,7 +112,6 @@ jobs:
 
   publish:
     needs: release
-    if: needs.release.outputs.skip != 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
