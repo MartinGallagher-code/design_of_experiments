@@ -1,5 +1,6 @@
 # Design of Experiments (DOE) Helper Tool
 
+[![Website](https://img.shields.io/badge/web-doehelper.com-steelblue?logo=firefox&logoColor=white)](https://doehelper.com)
 [![CI](https://github.com/MartinGallagher-code/design_of_experiments/actions/workflows/ci.yml/badge.svg)](https://github.com/MartinGallagher-code/design_of_experiments/actions/workflows/ci.yml)
 [![PyPI version](https://img.shields.io/pypi/v/doehelper?logo=pypi&logoColor=white)](https://pypi.org/project/doehelper/)
 [![Python versions](https://img.shields.io/pypi/pyversions/doehelper?logo=python&logoColor=white)](https://pypi.org/project/doehelper/)
@@ -12,11 +13,15 @@ The project includes **221 worked use cases** spanning HPC, cloud infrastructure
 
 ## Installation
 
+Project website: [doehelper.com](https://doehelper.com).
+
+The package is published on PyPI at [pypi.org/project/doehelper](https://pypi.org/project/doehelper/) — install the latest release with:
+
 ```bash
 pip install doehelper
 ```
 
-For development:
+The source lives on GitHub at [github.com/MartinGallagher-code/design_of_experiments](https://github.com/MartinGallagher-code/design_of_experiments). You can [download a release archive](https://github.com/MartinGallagher-code/design_of_experiments/releases) (`.zip`/`.tar.gz`) from the releases page, or clone the repository for development:
 
 ```bash
 git clone https://github.com/MartinGallagher-code/design_of_experiments.git
