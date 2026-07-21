@@ -7,10 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.1] — 2026-07-21
+
 ### Changed
 - ROADMAP.md current status updated to v0.4.0; Phase 1 (Production Hardening) marked complete
+- Project Homepage and Documentation URLs point to the GitHub repository until the standalone website is deployed
 
 ### Fixed
+- PyPI publishing now actually runs: the publish job moved into the auto-release workflow, because releases created with `GITHUB_TOKEN` never trigger the separate `on: release` publish workflow (which had zero runs)
 - Auto-release workflow now extracts CHANGELOG notes for Keep-a-Changelog bracketed headings (`## [x.y.z]`), so releases no longer ship with an empty body
 - CI upgrades `setuptools` alongside `pip` so `pip-audit` no longer fails on vulnerabilities in the runner's preinstalled copy (PYSEC-2026-3447)
 
@@ -109,7 +113,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Power analysis
 - Design augmentation (fold-over, star points, center points)
 
-[Unreleased]: https://github.com/MartinGallagher-code/design_of_experiments/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/MartinGallagher-code/design_of_experiments/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/MartinGallagher-code/design_of_experiments/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/MartinGallagher-code/design_of_experiments/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/MartinGallagher-code/design_of_experiments/compare/v0.1.0...v0.3.0
 [0.1.0]: https://github.com/MartinGallagher-code/design_of_experiments/releases/tag/v0.1.0

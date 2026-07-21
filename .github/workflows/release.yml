@@ -1,9 +1,14 @@
 name: Auto-release
 
 # Detects version bumps in pyproject.toml on the main branch and, when the
-# version is new, creates a matching git tag and GitHub release. Once the
-# release is published, .github/workflows/publish.yml uploads the package
-# to PyPI.
+# version is new, creates a matching git tag and GitHub release, then builds
+# and publishes the package to PyPI (trusted publishing via the `pypi`
+# environment).
+#
+# Publishing lives in this workflow rather than a separate `on: release`
+# workflow because the release here is created with GITHUB_TOKEN, and GitHub
+# suppresses workflow triggers for events created by GITHUB_TOKEN — a
+# separate release-triggered publish workflow would never run.
 #
 # The release body comes from CHANGELOG.md — we extract the section between
 # the version header and the next `## ` so each release ships with the
@@ -25,6 +30,10 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.tag_check.outputs.skip }}
+      tag: ${{ steps.version.outputs.tag }}
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -95,3 +104,43 @@ jobs:
           body_path: /tmp/release-notes.md
           draft: false
           prerelease: false
+
+  publish:
+    needs: release
+    if: needs.release.outputs.skip != 'true'
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write # PyPI trusted publishing (OIDC)
+      contents: write # attach SBOM files to the release
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install build tools
+        run: pip install build
+
+      - name: Build package
+        run: python -m build
+
+      - name: Generate SBOM
+        run: |
+          pip install . cyclonedx-bom
+          cyclonedx-py environment --output-format JSON --output-file sbom.json
+          cyclonedx-py environment --output-format XML --output-file sbom.xml
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+      - name: Upload SBOM to release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ needs.release.outputs.tag }}
+          files: |
+            sbom.json
+            sbom.xml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
