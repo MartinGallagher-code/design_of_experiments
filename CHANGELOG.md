@@ -8,7 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
-- Manually dispatching the auto-release workflow now retries a failed PyPI publish: the publish job runs even when the tag already exists, and `skip-existing` makes already-published versions a no-op
+- The auto-release publish job now runs on every trigger (idempotent via `skip-existing`), so a failed PyPI publish can be retried by manual dispatch or any pyproject.toml push — the previous gating skipped the retry when the tag already existed
+
+### Added
+- Changelog link in the PyPI project URLs
 
 ## [0.4.1] — 2026-07-21
 
