@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.5] — 2026-07-21
+
+### Fixed
+- `doe.__version__` (and therefore `doe --version`) was left at `0.4.3` when `pyproject.toml` was bumped to `0.4.4`, so the published 0.4.4 reported the wrong version and the `test_version_matches_pyproject` guard failed on `main`. Both are now synchronised to the release version.
+
 ## [0.4.4] — 2026-07-21
 
 ### Added
