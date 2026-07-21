@@ -1,5 +1,6 @@
 # Design of Experiments (DOE) Helper Tool
 
+[![Website](https://img.shields.io/badge/web-doehelper.com-steelblue?logo=firefox&logoColor=white)](https://doehelper.com)
 [![CI](https://github.com/MartinGallagher-code/design_of_experiments/actions/workflows/ci.yml/badge.svg)](https://github.com/MartinGallagher-code/design_of_experiments/actions/workflows/ci.yml)
 [![PyPI version](https://img.shields.io/pypi/v/doehelper?logo=pypi&logoColor=white)](https://pypi.org/project/doehelper/)
 [![Python versions](https://img.shields.io/pypi/pyversions/doehelper?logo=python&logoColor=white)](https://pypi.org/project/doehelper/)
@@ -11,6 +12,8 @@ A Python CLI tool that automates the creation and analysis of experimental desig
 The project includes **221 worked use cases** spanning HPC, cloud infrastructure, networking, food science, agriculture, manufacturing, sports, and many more domains — each with a full configuration, simulated results, and analysis walkthrough. Browse them in [`doe/use_cases/`](https://github.com/MartinGallagher-code/design_of_experiments/tree/main/doe/use_cases).
 
 ## Installation
+
+Project website: [doehelper.com](https://doehelper.com).
 
 The package is published on PyPI at [pypi.org/project/doehelper](https://pypi.org/project/doehelper/) — install the latest release with:
 
