@@ -1154,5 +1154,4 @@ Grid search and random search are the default in ML, but DOE is more efficient:
 - NIST/SEMATECH e-Handbook of Statistical Methods: https://www.itl.nist.gov/div898/handbook/ — Free, excellent reference for practitioners.
 
 **This tool's resources:**
-- [Use Case 1: Reactor Optimization (Box-Behnken)](../use_cases/01_reactor_optimization.md)
-- [LaTeX Book: Design of Experiments — A Practical Guide](book/doe_guide.pdf)
+- [Use Case 1: Reactor Optimization (Box-Behnken)](../doe/use_cases/01_reactor_optimization/README.md)
