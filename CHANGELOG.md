@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Manually dispatching the auto-release workflow now retries a failed PyPI publish: the publish job runs even when the tag already exists, and `skip-existing` makes already-published versions a no-op
+
 ## [0.4.1] — 2026-07-21
 
 ### Changed

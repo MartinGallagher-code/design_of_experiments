@@ -15,7 +15,10 @@ name: Auto-release
 # notes the maintainer already wrote.
 #
 # Manual trigger is supported via workflow_dispatch for cases where the
-# version was bumped earlier without firing this workflow.
+# version was bumped earlier without firing this workflow, and to retry a
+# failed publish: on dispatch the publish job runs even when the tag
+# already exists, and skip-existing makes re-publishing a no-op for
+# versions already on PyPI.
 
 on:
   push:
@@ -107,7 +110,7 @@ jobs:
 
   publish:
     needs: release
-    if: needs.release.outputs.skip != 'true'
+    if: needs.release.outputs.skip != 'true' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
@@ -134,6 +137,8 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
 
       - name: Upload SBOM to release
         uses: softprops/action-gh-release@v3
