@@ -2,6 +2,7 @@
 
 [![Website](https://img.shields.io/badge/web-doehelper.com-steelblue?logo=firefox&logoColor=white)](https://doehelper.com)
 [![CI](https://github.com/MartinGallagher-code/design_of_experiments/actions/workflows/ci.yml/badge.svg)](https://github.com/MartinGallagher-code/design_of_experiments/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/MartinGallagher-code/design_of_experiments/graph/badge.svg)](https://codecov.io/gh/MartinGallagher-code/design_of_experiments)
 [![PyPI version](https://img.shields.io/pypi/v/doehelper?logo=pypi&logoColor=white)](https://pypi.org/project/doehelper/)
 [![Python versions](https://img.shields.io/pypi/pyversions/doehelper?logo=python&logoColor=white)](https://pypi.org/project/doehelper/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)

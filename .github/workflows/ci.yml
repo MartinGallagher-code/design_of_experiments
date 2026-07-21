@@ -63,6 +63,16 @@ jobs:
         run: |
           pytest tests/ -v --tb=short --cov=doe --cov-report=xml --cov-report=html --cov-fail-under=100
 
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.12'
+        uses: codecov/codecov-action@v5
+        with:
+          # Public repos work tokenless, but v4+ uploads are flaky without it;
+          # set the CODECOV_TOKEN repo secret to make uploads reliable.
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          fail_ci_if_error: false
+
       - name: Upload coverage report
         uses: actions/upload-artifact@v7
         if: always()
