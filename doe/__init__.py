@@ -2,4 +2,4 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Design of Experiments (DOE) helper tool."""
 
-__version__ = "0.4.2"
+__version__ = "0.4.3"
