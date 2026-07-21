@@ -305,8 +305,8 @@ def _compute_effect_deltas(
             elif level == high:
                 b_high.append(r.baseline_value)
                 c_high.append(r.candidate_value)
-        if not (b_low and b_high and c_low and c_high):
-            continue
+        if not (b_low and b_high and c_low and c_high):  # pragma: no cover - defensive;
+            continue  # both extremes come from the matched runs, so all four are non-empty
         be = sum(b_high) / len(b_high) - sum(b_low) / len(b_low)
         ce = sum(c_high) / len(c_high) - sum(c_low) / len(c_low)
         flipped = (

@@ -1505,8 +1505,8 @@ def _handle_export_data(matrix: DesignMatrix, cfg: DOEConfig, fmt: str = "csv",
     writer = csv.writer(buf, delimiter=delimiter)
     writer.writerow(columns)
     for run in matrix.runs:
-        if run.run_id in missing_runs and not partial:
-            continue
+        if run.run_id in missing_runs and not partial:  # pragma: no cover -
+            continue  # defensive; this exact condition already raised SystemExit above
         row: list[object] = [run.run_id, run.block_id]
         for name in matrix.factor_names:
             row.append(run.factor_values[name])
