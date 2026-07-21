@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- REUSE.toml covering documentation, use-case data, templates, and repo configuration, making the whole repository REUSE-compliant (754/754 files); CI now runs full `reuse lint` instead of the doe/-scoped check
+
 ### Removed
 - `training/` (slide decks and teaching materials) and `docs/book/` (LaTeX book sources and build artifacts) — maintained outside this repository
 
