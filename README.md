@@ -1,87 +1,14 @@
 # Design of Experiments (DOE) Helper Tool
 
 [![CI](https://github.com/MartinGallagher-code/design_of_experiments/actions/workflows/ci.yml/badge.svg)](https://github.com/MartinGallagher-code/design_of_experiments/actions/workflows/ci.yml)
-[![PyPI](https://img.shields.io/pypi/v/doehelper)](https://pypi.org/project/doehelper/)
-[![Python](https://img.shields.io/pypi/pyversions/doehelper)](https://pypi.org/project/doehelper/)
+[![PyPI version](https://img.shields.io/pypi/v/doehelper?logo=pypi&logoColor=white)](https://pypi.org/project/doehelper/)
+[![Python versions](https://img.shields.io/pypi/pyversions/doehelper?logo=python&logoColor=white)](https://pypi.org/project/doehelper/)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![REUSE Compliant](https://api.reuse.software/badge/github.com/MartinGallagher-code/design_of_experiments)](https://reuse.software)
-
-**Martin J. Gallagher**
-
----
-
-**Contributing?** See [CONTRIBUTING.md](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/CONTRIBUTING.md) • **Found a vulnerability?** See [SECURITY.md](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/SECURITY.md) • **Community standards** See [CODE_OF_CONDUCT.md](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/CODE_OF_CONDUCT.md)
-
----
+[![REUSE status](https://api.reuse.software/badge/github.com/MartinGallagher-code/design_of_experiments)](https://api.reuse.software/info/github.com/MartinGallagher-code/design_of_experiments)
 
 A Python CLI tool that automates the creation and analysis of experimental designs. It generates reproducible design matrices, creates executable runner scripts, and analyzes results using classical DOE techniques including ANOVA, response surface modeling, and multi-objective optimization.
 
-The project includes **221 worked use cases** spanning HPC, cloud infrastructure, networking, food science, agriculture, manufacturing, sports, and many more domains — each with a full configuration, simulated results, and analysis walkthrough. Browse them on the [project website](https://doehelper.com/).
-
-## Documentation
-
-**Getting Started**:
-- **[User guide](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/docs/user_guide.md)** — five-step workflow tour from first config to a finished report.
-- **[Quick start](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/README.md#quick-start)** — first experiment in 5 minutes.
-
-**Reference**:
-- **[Command reference](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/docs/commands.md)** — one-line-per-subcommand cheat sheet.
-- **[Config reference](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/docs/config.md)** — every recognised JSON key, default, and constraint.
-- **[Public API](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/docs/api.md)** — stable APIs, backward compatibility guarantees, deprecation policy.
-
-**Advanced**:
-- **[Adaptive strategies](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/docs/strategies.md)** — when to pick `refine` / `bayesian` / `multi_objective` etc.
-- **[Release process](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/docs/RELEASE.md)** — how to cut a release.
-- **[Project roadmap](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/ROADMAP.md)** — planned features and vision.
-
-## Features
-
-### Bootstrap & scaffolding
-- **`doe init --factors N --budget K --goal screening|response_surface|optimization`** writes a working starter `config.json` (with `--with-test` it also scaffolds `test.py`).
-- **`doe suggest`** explains the design choice for any factor count + budget.
-- **`doe scaffold-config`** drops an annotated `config.json` with `_<key>_options` showing the alternatives; **`doe scaffold-test`** writes a test-script stub matching the configured `arg_style`.
-- **`doe init --template <name>`** extracts one of the built-in use-case templates.
-
-### Design generation
-- 14 design strategies: full-factorial, fractional factorial (with `--resolution N` to bump run count until the requested resolution is achievable), Plackett-Burman, Latin Hypercube, central composite, Box-Behnken, definitive screening, Taguchi, D-optimal (with interior-point candidate set), mixture simplex-lattice / centroid, linear / log sweep, **split-plot** with role-based whole-plot / subplot factors.
-- **Constraints**: filter generated runs through Python expressions like `"x + y <= 1"` parsed with an AST allow-list.
-- **Blocking & centre-point replication**: `block_count`, `replicate_center N` per block.
-- **Integer factors**: `Factor.dtype: "int"` rounds and clamps recommended setpoints from every optimiser.
-- **Runner backends**: bash (`--format sh`), Python (`--format py`), parallel thread-pool (`--parallel N`), Slurm sbatch array (`--executor slurm` with full `--slurm-{partition,time,cpus-per-task,mem,max-concurrent}` plumbing).
-- **Sessions**: `--session [PREFIX]` writes each runner invocation to `<out>/<PREFIX>-<TIMESTAMP>/` and updates `<out>/latest`.
-
-### Running
-- **`doe simulate --func module:fn`** drives the design directly from a Python function — no shell.
-- **`doe record --run N`** enters results interactively.
-- **`doe status`** shows progress.
-
-### Analysis
-- **ANOVA**: five error paths chosen automatically (pooled / replicates / Lenth's PSE for unreplicated / split-plot two-error / blocked).
-- **Main effects**, two-factor interactions, ordinal trend decomposition (linear + quadratic for >2-level factors).
-- **Model adequacy**: PRESS / predicted R², Shapiro-Wilk normality, Durbin-Watson, run-order drift, leverage and Cook's distance with the `F(0.5, p, n-p)` cutoff.
-- **Stationary point** classification from Hessian eigenvalues — maximum / minimum / saddle / ridge / rising_ridge with the indeterminate axis surfaced.
-- **Achieved power** from the actual residual MS — per-factor power and minimum detectable effect.
-- **Cross-validation**: k-fold predicted-vs-actual with RMSE / MAE / R²<sub>cv</sub>.
-- **Alias structure** for fractional-factorial / Plackett-Burman.
-- **Scheffé canonical form** for mixture designs.
-- **Knee-point detection** for saturating curves.
-- **Sobol sensitivity** (`doe sensitivity`) — first-order and total-order indices on the fitted RSM via Saltelli sampling.
-
-### Optimisation & iteration
-- **`doe optimize`** — true surface optimum (L-BFGS-B with multi-start), multi-objective desirability, steepest ascent / descent.
-- **`doe next-batch`** — six adaptive strategies: `refine`, `explore`, `balanced`, `model_guided` (RSM optimum + max-leverage), `bayesian` (numpy-only Gaussian process + Expected Improvement, q-EI via constant-liar fantasising, mixed numeric + one-hot categorical encoder, heteroscedastic noise from replicate scatter), `multi_objective` (per-response GPs + random Tchebycheff scalarisation).
-- **`doe calibrate`** fits free parameters in a parametric simulator to observed data.
-
-### Comparing & reporting
-- **`doe compare --baseline DIR --candidate DIR`** — paired-run delta + Cohen's d, per-factor effect delta with sign-flip flag, intercept-shift vs slope-shift decomposition, embedded delta dotplot.
-- **`doe trend --sessions DIR1 DIR2 …`** — multi-session regression with per-session means and per-step intercept / slope drift; embedded line plot.
-- **`doe report`** — self-contained interactive HTML with sticky table-of-contents and embedded plots.
-- **`doe archive`** — bundles a session into a tarball with a SHA-256 manifest.
-- **`doe serve --root results/`** — stdlib HTTP localhost browser for sessions.
-
-### Power & quality
-- **`doe power`** — prospective power analysis (`--sigma`, `--delta`) plus the post-hoc achieved-power block in every `doe analyze`.
-- **D-efficiency / A-efficiency / G-efficiency** metrics in `doe info`.
+The project includes **221 worked use cases** spanning HPC, cloud infrastructure, networking, food science, agriculture, manufacturing, sports, and many more domains — each with a full configuration, simulated results, and analysis walkthrough. Browse them in [`doe/use_cases/`](https://github.com/MartinGallagher-code/design_of_experiments/tree/main/doe/use_cases).
 
 ## Installation
 
@@ -167,6 +94,71 @@ doe init --template reactor_optimization
 ```
 
 For the full step-by-step tour see **[docs/user_guide.md](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/docs/user_guide.md)**.
+
+## Documentation
+
+**Getting Started**:
+- **[User guide](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/docs/user_guide.md)** — five-step workflow tour from first config to a finished report.
+- **[Quick start](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/README.md#quick-start)** — first experiment in 5 minutes.
+
+**Reference**:
+- **[Command reference](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/docs/commands.md)** — one-line-per-subcommand cheat sheet.
+- **[Config reference](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/docs/config.md)** — every recognised JSON key, default, and constraint.
+- **[Public API](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/docs/api.md)** — stable APIs, backward compatibility guarantees, deprecation policy.
+
+**Advanced**:
+- **[Adaptive strategies](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/docs/strategies.md)** — when to pick `refine` / `bayesian` / `multi_objective` etc.
+- **[Release process](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/docs/RELEASE.md)** — how to cut a release.
+- **[Project roadmap](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/ROADMAP.md)** — planned features and vision.
+
+## Features
+
+### Bootstrap & scaffolding
+- **`doe init --factors N --budget K --goal screening|response_surface|optimization`** writes a working starter `config.json` (with `--with-test` it also scaffolds `test.py`).
+- **`doe suggest`** explains the design choice for any factor count + budget.
+- **`doe scaffold-config`** drops an annotated `config.json` with `_<key>_options` showing the alternatives; **`doe scaffold-test`** writes a test-script stub matching the configured `arg_style`.
+- **`doe init --template <name>`** extracts one of the built-in use-case templates.
+
+### Design generation
+- 14 design strategies: full-factorial, fractional factorial (with `--resolution N` to bump run count until the requested resolution is achievable), Plackett-Burman, Latin Hypercube, central composite, Box-Behnken, definitive screening, Taguchi, D-optimal (with interior-point candidate set), mixture simplex-lattice / centroid, linear / log sweep, **split-plot** with role-based whole-plot / subplot factors.
+- **Constraints**: filter generated runs through Python expressions like `"x + y <= 1"` parsed with an AST allow-list.
+- **Blocking & centre-point replication**: `block_count`, `replicate_center N` per block.
+- **Integer factors**: `Factor.dtype: "int"` rounds and clamps recommended setpoints from every optimiser.
+- **Runner backends**: bash (`--format sh`), Python (`--format py`), parallel thread-pool (`--parallel N`), Slurm sbatch array (`--executor slurm` with full `--slurm-{partition,time,cpus-per-task,mem,max-concurrent}` plumbing).
+- **Sessions**: `--session [PREFIX]` writes each runner invocation to `<out>/<PREFIX>-<TIMESTAMP>/` and updates `<out>/latest`.
+
+### Running
+- **`doe simulate --func module:fn`** drives the design directly from a Python function — no shell.
+- **`doe record --run N`** enters results interactively.
+- **`doe status`** shows progress.
+
+### Analysis
+- **ANOVA**: five error paths chosen automatically (pooled / replicates / Lenth's PSE for unreplicated / split-plot two-error / blocked).
+- **Main effects**, two-factor interactions, ordinal trend decomposition (linear + quadratic for >2-level factors).
+- **Model adequacy**: PRESS / predicted R², Shapiro-Wilk normality, Durbin-Watson, run-order drift, leverage and Cook's distance with the `F(0.5, p, n-p)` cutoff.
+- **Stationary point** classification from Hessian eigenvalues — maximum / minimum / saddle / ridge / rising_ridge with the indeterminate axis surfaced.
+- **Achieved power** from the actual residual MS — per-factor power and minimum detectable effect.
+- **Cross-validation**: k-fold predicted-vs-actual with RMSE / MAE / R²<sub>cv</sub>.
+- **Alias structure** for fractional-factorial / Plackett-Burman.
+- **Scheffé canonical form** for mixture designs.
+- **Knee-point detection** for saturating curves.
+- **Sobol sensitivity** (`doe sensitivity`) — first-order and total-order indices on the fitted RSM via Saltelli sampling.
+
+### Optimisation & iteration
+- **`doe optimize`** — true surface optimum (L-BFGS-B with multi-start), multi-objective desirability, steepest ascent / descent.
+- **`doe next-batch`** — six adaptive strategies: `refine`, `explore`, `balanced`, `model_guided` (RSM optimum + max-leverage), `bayesian` (numpy-only Gaussian process + Expected Improvement, q-EI via constant-liar fantasising, mixed numeric + one-hot categorical encoder, heteroscedastic noise from replicate scatter), `multi_objective` (per-response GPs + random Tchebycheff scalarisation).
+- **`doe calibrate`** fits free parameters in a parametric simulator to observed data.
+
+### Comparing & reporting
+- **`doe compare --baseline DIR --candidate DIR`** — paired-run delta + Cohen's d, per-factor effect delta with sign-flip flag, intercept-shift vs slope-shift decomposition, embedded delta dotplot.
+- **`doe trend --sessions DIR1 DIR2 …`** — multi-session regression with per-session means and per-step intercept / slope drift; embedded line plot.
+- **`doe report`** — self-contained interactive HTML with sticky table-of-contents and embedded plots.
+- **`doe archive`** — bundles a session into a tarball with a SHA-256 manifest.
+- **`doe serve --root results/`** — stdlib HTTP localhost browser for sessions.
+
+### Power & quality
+- **`doe power`** — prospective power analysis (`--sigma`, `--delta`) plus the post-hoc achieved-power block in every `doe analyze`.
+- **D-efficiency / A-efficiency / G-efficiency** metrics in `doe info`.
 
 ## Configuration
 
@@ -496,6 +488,10 @@ pytest tests/ -v
 # Run with coverage
 pytest tests/ --cov=doe --cov-report=term-missing
 ```
+
+## Contributing
+
+Contributions are welcome — see [CONTRIBUTING.md](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/CONTRIBUTING.md) for development setup and PR guidelines. Please report security vulnerabilities privately per [SECURITY.md](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/SECURITY.md), and note that this project follows the [Contributor Covenant](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/CODE_OF_CONDUCT.md).
 
 ## License
 
