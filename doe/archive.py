@@ -10,6 +10,8 @@ another machine: paste the config and the result files back in place
 and re-invoke.
 """
 
+from __future__ import annotations
+
 import datetime
 import hashlib
 import io

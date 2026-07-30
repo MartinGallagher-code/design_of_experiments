@@ -12,6 +12,8 @@ defaults to ``127.0.0.1`` so the server isn't exposed externally; the
 user can opt into ``--host 0.0.0.0`` if they really want it visible.
 """
 
+from __future__ import annotations
+
 import html
 import http.server
 import os
@@ -38,7 +40,7 @@ def serve(root: str, host: str = "127.0.0.1", port: int = 8000) -> None:
 class _DoeHandler(http.server.SimpleHTTPRequestHandler):
     """SimpleHTTPRequestHandler with a custom index for the root path."""
 
-    def list_directory(self, path: "str | os.PathLike[str]") -> io.BytesIO | None:
+    def list_directory(self, path: str | os.PathLike[str]) -> io.BytesIO | None:
         # Only customise the *root* directory listing; subfolders fall
         # through to the default handler so the user can still browse
         # individual run_*.json files.

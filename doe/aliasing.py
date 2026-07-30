@@ -12,6 +12,8 @@ The same routine handles both fractional factorial (full aliases) and
 Plackett-Burman (partial aliases) designs.
 """
 
+from __future__ import annotations
+
 from itertools import combinations
 
 import numpy as np

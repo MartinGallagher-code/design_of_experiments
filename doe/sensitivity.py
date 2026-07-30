@@ -15,6 +15,8 @@ N(k+2) model evaluations. We use ``scipy.stats.qmc.Sobol`` (already a
 dependency).
 """
 
+from __future__ import annotations
+
 from collections.abc import Callable
 from dataclasses import dataclass, field
 

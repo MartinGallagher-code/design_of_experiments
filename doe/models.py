@@ -1,5 +1,7 @@
 # Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -235,7 +237,7 @@ class ResponseAnalysis:
     stationary_point: StationaryPoint | None = None
     achieved_power: AchievedPower | None = None
     cross_validation: CrossValidation | None = None
-    scheffe_model: "ScheffeModel | None" = None
+    scheffe_model: ScheffeModel | None = None
 
 
 @dataclass
@@ -249,7 +251,7 @@ class AnalysisReport:
     knee_point_results: dict[str, list[KneePointResult]] = field(default_factory=dict)
     knee_point_plot_paths: dict[str, str] = field(default_factory=dict)
     ordinal_trend_plot_paths: dict[str, str] = field(default_factory=dict)
-    alias_structure: "AliasStructure | None" = None
+    alias_structure: AliasStructure | None = None
 
 
 @dataclass
