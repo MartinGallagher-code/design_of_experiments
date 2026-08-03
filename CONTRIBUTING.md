@@ -52,8 +52,14 @@ Open `htmlcov/index.html` to view coverage details.
 This project enforces code quality through:
 
 - **Linting**: `ruff check doe tests` (also runs in pre-commit)
-- **Type checking**: `mypy doe --strict` (Python 3.12 in CI)
+- **Type checking**: `mypy doe --strict` (Python 3.12 in CI, targeting `python_version = 3.9`)
 - **Formatting**: Follow PEP 8; ruff auto-fixes many issues with `ruff check --fix`
+
+The minimum supported runtime is Python 3.9, so every module in `doe/` that uses
+PEP 604 unions (`str | None`) must start with `from __future__ import annotations`.
+Without it those annotations are evaluated at import time and raise `TypeError` on
+3.9. Avoid 3.10+ runtime features (`match` statements, `zip(..., strict=)`,
+`itertools.pairwise`, `dataclass(slots=...)`) in library code.
 
 Pre-commit hooks automatically run ruff on each commit. If a check fails:
 1. Fix the issues locally

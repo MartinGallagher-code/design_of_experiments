@@ -16,6 +16,8 @@ This module hides the wiring:
     emit(out, throughput=throughput)
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import os

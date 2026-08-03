@@ -14,6 +14,8 @@ that don't generalise neatly to N sessions, while a regression makes
 sense for any N >= 2.
 """
 
+from __future__ import annotations
+
 import os
 
 from .compare import (

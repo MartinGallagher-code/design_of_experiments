@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Minimum supported Python lowered from 3.10 to 3.9. `requires-python`, the PyPI classifiers, the mypy target, and the ruff target version were updated, and CI now also runs the full test suite on 3.9.
+- Every module in `doe/` that uses PEP 604 union annotations (`str | None`) now carries `from __future__ import annotations`, so those annotations are never evaluated at import time and the package imports cleanly on 3.9.
+
 ## [0.4.5] — 2026-07-21
 
 ### Fixed

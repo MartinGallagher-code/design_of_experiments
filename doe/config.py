@@ -1,5 +1,8 @@
 # Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+
+from __future__ import annotations
+
 import json
 import os
 from typing import Any

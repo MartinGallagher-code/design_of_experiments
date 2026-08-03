@@ -1,5 +1,8 @@
 # Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+
+from __future__ import annotations
+
 import csv
 import json
 import math
@@ -1415,7 +1418,7 @@ def plot_rsm_surface(
 
 
 def plot_diagnostics(
-    diagnostics: "ModelDiagnostics",
+    diagnostics: ModelDiagnostics,
     output_path: str,
     title: str = "Model Diagnostics",
 ) -> None:

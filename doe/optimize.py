@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Optimization recommendations from DOE results."""
 
+from __future__ import annotations
+
 from itertools import combinations
 from typing import Any, cast
 
