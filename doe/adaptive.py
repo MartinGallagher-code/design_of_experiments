@@ -7,6 +7,8 @@ results.  After running an initial design, use ``plan_next_batch`` to
 generate the next batch of runs based on model predictions.
 """
 
+from __future__ import annotations
+
 import json
 import os
 from dataclasses import dataclass, field, asdict
@@ -462,7 +464,7 @@ class _FactorEncoder:
     @classmethod
     def _build(
         cls, factor_names: list[str], factors: list[Factor],
-    ) -> "_FactorEncoder | None":
+    ) -> _FactorEncoder | None:
         factor_map = {f.name: f for f in factors}
         numeric_names: list[str] = []
         numeric_bounds: list[tuple[float, float]] = []
@@ -567,7 +569,7 @@ class _FactorEncoder:
 
     def propose_with_gp(
         self,
-        gp: "GPModel",
+        gp: GPModel,
         batch_size: int,
         direction: str = "maximize",
         n_candidates: int = 2000,
@@ -615,7 +617,7 @@ class _FactorEncoder:
 
 def _build_factor_encoder(
     factor_names: list[str], factors: list[Factor],
-) -> "_FactorEncoder | None":
+) -> _FactorEncoder | None:
     return _FactorEncoder._build(factor_names, factors)
 
 

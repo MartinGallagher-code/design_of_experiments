@@ -10,6 +10,8 @@ Target: Increase coverage from 69% to 80%+ by adding tests for:
 - Complex design operations (fractional factorial, Plackett-Burman, etc.)
 """
 
+from __future__ import annotations
+
 import io
 import json
 import os

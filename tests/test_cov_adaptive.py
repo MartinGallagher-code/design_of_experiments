@@ -9,6 +9,8 @@ and small helper edge cases. All inputs are crafted and deterministic
 (fixed seeds, ``tmp_path`` only) so the tests are hermetic.
 """
 
+from __future__ import annotations
+
 import json
 import os
 import sys

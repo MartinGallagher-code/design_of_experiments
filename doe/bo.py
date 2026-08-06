@@ -25,6 +25,8 @@ different scales between factors, consider scaling the inputs to
 ``[-1, 1]`` first (which we do automatically in the adaptive driver).
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 
 import numpy as np

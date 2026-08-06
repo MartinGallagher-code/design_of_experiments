@@ -14,6 +14,8 @@ Two ways to use this module:
   and uses the same primitives.
 """
 
+from __future__ import annotations
+
 
 from .models import AchievedPower, AchievedPowerEntry, DesignMatrix, Factor
 

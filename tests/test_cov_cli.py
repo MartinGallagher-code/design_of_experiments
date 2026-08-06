@@ -10,6 +10,8 @@ call the module-level helper functions (``_print_report``,
 directly to exercise pure formatting/error branches deterministically.
 """
 
+from __future__ import annotations
+
 import json
 import os
 import sys

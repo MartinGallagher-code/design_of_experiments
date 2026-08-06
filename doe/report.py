@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Generate self-contained interactive HTML report from DOE results."""
 
+from __future__ import annotations
+
 import base64
 import html
 import os

@@ -11,7 +11,7 @@ assignees: ''
 A clear and concise description of what the bug is.
 
 ## Environment
-- **Python version**: [e.g., 3.10, 3.11, 3.12]
+- **Python version**: [e.g., 3.9, 3.10, 3.11, 3.12]
 - **OS**: [e.g., macOS, Linux, Windows]
 - **DOE Helper version**: [e.g., 0.3.0]
 - **Installation method**: [e.g., `pip install doehelper`, from source]

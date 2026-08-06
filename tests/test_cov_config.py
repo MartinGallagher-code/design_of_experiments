@@ -10,6 +10,8 @@ ports (an ephemeral test server on 127.0.0.1 with guaranteed shutdown),
 and deterministic inputs.
 """
 
+from __future__ import annotations
+
 import http.client
 import http.server
 import io

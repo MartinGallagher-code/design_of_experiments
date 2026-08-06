@@ -1,5 +1,7 @@
 # Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+from __future__ import annotations
+
 import itertools
 import random
 from typing import TYPE_CHECKING
@@ -325,7 +327,7 @@ def _best_generator_choice(
     return list(best_combo)
 
 
-def _design_resolution(coded_design: "np.ndarray") -> int:
+def _design_resolution(coded_design: np.ndarray) -> int:
     """Estimate the resolution of a 2-level coded design.
 
     Resolution III: main effects fully aliased with at least one 2FI.
@@ -340,7 +342,7 @@ def _design_resolution(coded_design: "np.ndarray") -> int:
     return 5
 
 
-def _resolution_diagnostics(coded_design: "np.ndarray") -> tuple[float, float]:
+def _resolution_diagnostics(coded_design: np.ndarray) -> tuple[float, float]:
     """Return (max |corr| ME-vs-2FI, max |corr| between 2FIs)."""
     import numpy as np
     from itertools import combinations as _combinations
@@ -362,7 +364,7 @@ def _resolution_diagnostics(coded_design: "np.ndarray") -> tuple[float, float]:
     return me_2fi, twofi_max
 
 
-def _alias_score(coded_design: "np.ndarray") -> float:
+def _alias_score(coded_design: np.ndarray) -> float:
     """Maximum absolute correlation between (ME, 2FI) and (2FI, 2FI) pairs.
 
     A score of 0 means a clean Resolution-V or higher design; 1.0 means

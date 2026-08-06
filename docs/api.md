@@ -221,7 +221,7 @@ generate_report(cfg, results_dir="results/", output_path="report.html")
 
 ## Backward Compatibility
 
-- **Python versions**: Minimum supported version is Python 3.10
+- **Python versions**: Minimum supported version is Python 3.9
 - **Dependencies**: Pins are in `pyproject.toml`; transitive versions are semver-compatible
 - **Configuration files**: JSON config format is backwards compatible; new keys have defaults
 

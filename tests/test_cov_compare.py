@@ -12,6 +12,8 @@ All fixtures are hermetic: on-disk sessions are built under ``tmp_path``,
 numpy randomness is unused, and optional imports are toggled via monkeypatch.
 """
 
+from __future__ import annotations
+
 import json
 import os
 import sys

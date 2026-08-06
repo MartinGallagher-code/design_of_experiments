@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Minimum supported Python lowered from 3.10 to 3.9. `requires-python`, the trove classifiers, the ruff target, the CI matrix, and the docs that state the floor all now say 3.9, and CI runs the full suite on 3.9 alongside 3.10/3.11/3.12
+- Every module in `doe/` and `tests/` now starts with `from __future__ import annotations`. The package used PEP 604 `X | None` annotations in 24 modules, which are a runtime `TypeError` on 3.9; deferring annotation evaluation makes them legal again without rewriting them as `Optional[...]`
+- `_weighted_sse` and `_residual_metrics` in `doe/calibrate.py` express their skip conditions positively instead of via `continue`. Behaviour is unchanged; on 3.9 a bare `continue` emits no line-trace event, so coverage scored those lines unrun and the 100% gate failed there (PEP 626 fixed the tracing in 3.10)
+- `[tool.mypy] python_version` is no longer pinned — mypy now targets whichever interpreter it runs under, so the 3.9 CI job enforces the floor while the newer jobs check their own versions. mypy 2.x rejects an explicit `python_version` below 3.10, so pinning it to 3.9 was not possible
+
 ## [0.4.5] — 2026-07-21
 
 ### Fixed

@@ -11,7 +11,7 @@ Every source file is included verbatim below — copy them into the specified pa
 - **Version:** 0.1.0
 - **License:** GPL-3.0-or-later
 - **Author:** Martin J. Gallagher
-- **Python:** >=3.10
+- **Python:** >=3.9
 - **Entry point:** `doe` (maps to `doe.cli:main`)
 - **Repository:** https://github.com/MartinGallagher-code/design_of_experiments
 - **Homepage:** https://doehelper.com
@@ -109,7 +109,7 @@ version = "0.1.0"
 description = "A Design of Experiments (DOE) helper tool"
 readme = "README.md"
 authors = [{name = "Martin J. Gallagher"}]
-requires-python = ">=3.10"
+requires-python = ">=3.9"
 license = "GPL-3.0-or-later"
 keywords = [
     "doe",
@@ -125,6 +125,7 @@ classifiers = [
     "Environment :: Console",
     "Intended Audience :: Science/Research",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -1947,7 +1948,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
 
     steps:
       - uses: actions/checkout@v4

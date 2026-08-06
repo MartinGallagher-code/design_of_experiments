@@ -11,6 +11,8 @@ The tests are deterministic (seeded numpy / generate_design) and hermetic
 (all IO under tmp_path, no network).
 """
 
+from __future__ import annotations
+
 import json
 import math
 

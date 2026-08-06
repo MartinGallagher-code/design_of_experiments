@@ -104,7 +104,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## Versioning & API Stability
 
-- **Python support**: 3.10+; dropping 3.10 requires major version bump
+- **Python support**: 3.9+; dropping 3.9 requires major version bump
 - **CLI interface**: Stable across minor versions; changes trigger major bump
 - **Configuration format**: Backwards compatible; new keys have defaults
 - **Public APIs**: Documented functions stable across minor versions

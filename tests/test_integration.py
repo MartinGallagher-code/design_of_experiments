@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Integration tests for end-to-end DOE workflows."""
 
+from __future__ import annotations
+
 import json
 import tempfile
 from pathlib import Path

@@ -10,6 +10,8 @@ the design-suggestion decision tree, and archive skip/error paths.
 All tests are deterministic (seeded numpy) and hermetic (tmp_path only).
 """
 
+from __future__ import annotations
+
 import json
 import os
 

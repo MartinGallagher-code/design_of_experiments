@@ -9,6 +9,8 @@ and the plotting/export fallbacks. Everything is hermetic (tmp_path, seeded
 numpy, no network) and deterministic.
 """
 
+from __future__ import annotations
+
 import json
 import os
 import sys

@@ -16,6 +16,8 @@ at the *pure i-th component*, and β_{ij} captures the synergistic /
 antagonistic effect of blending i and j.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from itertools import combinations
 

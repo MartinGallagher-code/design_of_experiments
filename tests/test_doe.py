@@ -7,6 +7,8 @@ Covers: config loading/validation, design generation, analysis, codegen, and CLI
 Run with: pytest tests/test_doe.py -v
 """
 
+from __future__ import annotations
+
 import json
 import math
 import os

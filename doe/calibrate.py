@@ -25,6 +25,8 @@ CLI::
         --report calibration.json
 """
 
+from __future__ import annotations
+
 import json
 import os
 from dataclasses import dataclass, field, asdict
@@ -181,11 +183,14 @@ def _weighted_sse(
     for run in runs:
         result = sim(dict(run.factor_values), **kwargs)
         for name in response_names:
-            if name not in observed[run.run_id] or name not in result:
-                continue
-            w = float(weights.get(name, 1.0))
-            diff = float(result[name]) - float(observed[run.run_id][name])
-            total += w * diff * diff
+            # Written in the positive rather than as a `continue` guard: on
+            # Python 3.9 a bare `continue` emits no line-trace event, so
+            # coverage reports it unrun even when it runs (PEP 626 fixed
+            # that in 3.10).
+            if name in observed[run.run_id] and name in result:
+                w = float(weights.get(name, 1.0))
+                diff = float(result[name]) - float(observed[run.run_id][name])
+                total += w * diff * diff
     return total
 
 
@@ -206,13 +211,13 @@ def _residual_metrics(
         except Exception:
             continue
         for name in response_names:
-            if name not in observed[run.run_id] or name not in result:
-                continue
-            diff = float(result[name]) - float(observed[run.run_id][name])
-            per_resp[name].append(diff * diff)
-            w = float(weights.get(name, 1.0))
-            sq_total += w * diff * diff
-            n_total += 1
+            # Positive form, not a `continue` guard — see _weighted_sse.
+            if name in observed[run.run_id] and name in result:
+                diff = float(result[name]) - float(observed[run.run_id][name])
+                per_resp[name].append(diff * diff)
+                w = float(weights.get(name, 1.0))
+                sq_total += w * diff * diff
+                n_total += 1
     rmse = float(np.sqrt(sq_total / n_total)) if n_total else float("inf")
     per_rmse = {
         name: float(np.sqrt(np.mean(sq))) if sq else float("inf")

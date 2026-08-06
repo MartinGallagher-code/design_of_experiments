@@ -11,6 +11,8 @@ error handling.  Everything is deterministic (seeded / monkeypatched) and
 hermetic (no filesystem writes, no network).
 """
 
+from __future__ import annotations
+
 import sys
 from itertools import combinations
 

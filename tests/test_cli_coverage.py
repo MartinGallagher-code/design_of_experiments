@@ -6,6 +6,8 @@ These tests drive ``doe.cli.main()`` directly (NOT via subprocess) so that
 coverage of the CLI dispatch and handler functions is captured.
 """
 
+from __future__ import annotations
+
 import json
 import os
 import sys
