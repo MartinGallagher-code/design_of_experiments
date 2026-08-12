@@ -478,7 +478,7 @@ design_of_experiments/
 ├── website/                # Project website with 221 use case walkthroughs
 ├── pyproject.toml          # Package metadata and build config
 └── .github/workflows/
-    ├── ci.yml              # CI pipeline (Python 3.10/3.11/3.12)
+    ├── ci.yml              # CI pipeline (Python 3.9/3.10/3.11/3.12)
     └── publish.yml         # PyPI publish on release
 ```
 

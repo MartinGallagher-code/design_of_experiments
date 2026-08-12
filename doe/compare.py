@@ -10,6 +10,8 @@ or levels are rejected; sessions where some runs only exist on one side
 are matched on the intersection with a warning.
 """
 
+from __future__ import annotations
+
 import json
 import math
 import os

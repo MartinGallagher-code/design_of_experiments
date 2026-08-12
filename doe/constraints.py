@@ -17,6 +17,8 @@ Example expressions::
     "x * y >= 0"                       # quadrant restriction
 """
 
+from __future__ import annotations
+
 import ast
 from typing import Any
 

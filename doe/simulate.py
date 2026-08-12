@@ -15,6 +15,8 @@ Use cases:
   the function in their REPL and call ``simulate`` repeatedly)
 """
 
+from __future__ import annotations
+
 import datetime
 import importlib
 import importlib.util

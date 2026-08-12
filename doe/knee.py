@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Knee-point (saturation point) detection via piecewise linear regression."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 import numpy as np
 import numpy.typing as npt

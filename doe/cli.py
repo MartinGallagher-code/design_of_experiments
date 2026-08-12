@@ -3,6 +3,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Design of Experiments helper tool — CLI entry point."""
 
+from __future__ import annotations
+
 import argparse
 from importlib.abc import Traversable
 from typing import TypedDict, cast

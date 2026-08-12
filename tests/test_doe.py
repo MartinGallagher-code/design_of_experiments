@@ -5681,6 +5681,78 @@ class TestPackageVersion:
         assert match.group(1) == __version__
 
 
+class TestPython39Compatibility:
+    """Guards the 3.9 floor declared by `requires-python` in pyproject.toml.
+
+    The package is written with PEP 604 annotations (``X | None``), which 3.9
+    cannot evaluate. They stay legal there only because every module defers
+    annotations via ``from __future__ import annotations``. A new module that
+    forgets the import imports fine on 3.10+ and raises TypeError on 3.9, so
+    the breakage would otherwise only surface for users on the oldest
+    supported interpreter.
+    """
+
+    @staticmethod
+    def _package_modules():
+        import doe
+        return sorted(Path(doe.__file__).parent.rglob("*.py"))
+
+    def test_all_modules_parse_as_python_39(self):
+        import ast
+        failures = []
+        for path in self._package_modules():
+            try:
+                ast.parse(path.read_text(), feature_version=(3, 9))
+            except SyntaxError as exc:
+                failures.append(f"{path.name}:{exc.lineno}: {exc.msg}")
+        assert not failures, "Syntax not valid on Python 3.9:\n" + "\n".join(failures)
+
+    @staticmethod
+    def _uses_pep604_annotations(tree):
+        """True if any annotation in the module contains an `X | Y` union."""
+        import ast
+        annotations = []
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.AnnAssign, ast.arg)) and node.annotation:
+                annotations.append(node.annotation)
+            elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.returns:
+                annotations.append(node.returns)
+        return any(
+            isinstance(sub, ast.BinOp) and isinstance(sub.op, ast.BitOr)
+            for ann in annotations
+            for sub in ast.walk(ann)
+        )
+
+    def test_modules_using_union_syntax_defer_annotations(self):
+        import ast
+        missing = []
+        for path in self._package_modules():
+            tree = ast.parse(path.read_text())
+            if not self._uses_pep604_annotations(tree):
+                continue
+            deferred = any(
+                isinstance(node, ast.ImportFrom)
+                and node.module == "__future__"
+                and any(alias.name == "annotations" for alias in node.names)
+                for node in tree.body
+            )
+            if not deferred:
+                missing.append(path.name)
+        assert not missing, (
+            "Modules use `X | Y` annotations without "
+            "`from __future__ import annotations`, which raises TypeError on "
+            "Python 3.9: " + ", ".join(missing)
+        )
+
+    def test_requires_python_floor_is_39(self):
+        import re
+        with open("pyproject.toml") as f:
+            text = f.read()
+        match = re.search(r'^requires-python\s*=\s*"([^"]+)"', text, flags=re.MULTILINE)
+        assert match is not None, "Could not find requires-python in pyproject.toml"
+        assert match.group(1) == ">=3.9"
+
+
 class TestReleaseNotesExtraction:
     """Regression test for the awk snippet in .github/workflows/release.yml.
 

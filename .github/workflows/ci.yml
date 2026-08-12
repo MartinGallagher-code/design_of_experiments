@@ -9,8 +9,11 @@ jobs:
   test:
     runs-on: ubuntu-latest
     strategy:
+      # Without this, the first job to fail cancels the rest and we lose the
+      # signal from every other interpreter in the same run.
+      fail-fast: false
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
 
     steps:
       - uses: actions/checkout@v7
@@ -32,11 +35,21 @@ jobs:
           python -m pip install --upgrade pip setuptools
           pip install -e ".[dev]"
 
+      # The static and environment-level gates below check the repository, not
+      # the interpreter, so they run once on the newest supported version
+      # rather than once per matrix entry. Pinning them to 3.12 also keeps
+      # them meaningful: on 3.9 (EOL since October 2025) pip can only resolve
+      # the last 3.9-compatible release of each transitive dependency, and
+      # several of those carry advisories whose fixes ship only in releases
+      # requiring 3.10+ (e.g. pillow 11.3.0, fixed in 12.x). Auditing there
+      # reports findings that no dependency bump in this repo can clear.
       - name: Check dependencies for vulnerabilities
+        if: matrix.python-version == '3.12'
         run: |
           pip-audit --skip-editable
 
       - name: Check REUSE license compliance
+        if: matrix.python-version == '3.12'
         run: |
           # Whole-repo REUSE compliance: doe/ source files carry in-file SPDX
           # headers; everything else is covered by the REUSE.toml catch-all.
@@ -48,20 +61,40 @@ jobs:
           python -m compileall -q doe tests
 
       - name: Lint (ruff, fail-on-issue)
+        if: matrix.python-version == '3.12'
         run: |
           ruff check doe tests
 
       - name: Security analysis (bandit)
+        if: matrix.python-version == '3.12'
         run: |
           bandit -r doe --exit-zero
 
+      # mypy targets the interpreter it runs under and current releases refuse
+      # to target 3.9 at all, so check types once on 3.12 rather than per entry.
       - name: Type check (mypy)
+        if: matrix.python-version == '3.12'
         run: |
           mypy doe
 
+      # The 100% gate is enforced on 3.10+ only. Python 3.9 predates PEP 626
+      # (precise line numbers, added in 3.10): a `continue` that ends an `if`
+      # inside a nested loop emits no line event there, because the jump is
+      # folded into the condition's. Coverage then reports such a line as
+      # unexecuted even though it runs — `_weighted_sse` and
+      # `_residual_metrics` in doe/calibrate.py each have one, and their tests
+      # pass on 3.9 while the lines read as uncovered. Marking them
+      # `# pragma: no cover` would hide lines that are genuinely covered
+      # everywhere else, so 3.9 runs the same tests without the threshold.
       - name: Run tests
+        if: matrix.python-version != '3.9'
         run: |
           pytest tests/ -v --tb=short --cov=doe --cov-report=xml --cov-report=html --cov-fail-under=100
+
+      - name: Run tests (no coverage threshold)
+        if: matrix.python-version == '3.9'
+        run: |
+          pytest tests/ -v --tb=short
 
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.12'

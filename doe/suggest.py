@@ -22,6 +22,8 @@ recommended block / replicate counts, and short rationale text. The CLI
 formats it as advice; the user still has to write the config.
 """
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 
 

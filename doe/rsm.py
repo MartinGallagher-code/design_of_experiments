@@ -2,6 +2,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Response Surface Modeling for DOE results."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass, field
 from itertools import combinations
 

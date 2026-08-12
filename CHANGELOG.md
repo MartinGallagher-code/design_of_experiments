@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Lowered the minimum supported Python from 3.10 to 3.9. The only 3.10-specific
+  construct in the package was PEP 604 union syntax (`X | None`) in annotations;
+  every module now carries `from __future__ import annotations`, so those are
+  never evaluated at runtime. Installs that previously failed with
+  "Could not find a version that satisfies the requirement doehelper" on a 3.9
+  interpreter — pip filters on `Requires-Python` and reports an empty version
+  list — now resolve. CI covers 3.9 alongside 3.10/3.11/3.12.
+
 ## [0.4.5] — 2026-07-21
 
 ### Fixed
