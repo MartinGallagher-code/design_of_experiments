@@ -986,7 +986,7 @@ Follow up with a CCD on the 2 important parameters (13 runs) to find the exact o
 
 **Chemical process optimization:**
 
-See the [reactor optimization use case](../use_cases/01_reactor_optimization.md) for a complete worked example using Box-Behnken design.
+See the [reactor optimization use case](https://github.com/MartinGallagher-code/design_of_experiments/tree/main/doe/use_cases/01_reactor_optimization) for a complete worked example using Box-Behnken design.
 
 **Agricultural field trials** (Fisher's original use case):
 
@@ -1154,4 +1154,4 @@ Grid search and random search are the default in ML, but DOE is more efficient:
 - NIST/SEMATECH e-Handbook of Statistical Methods: https://www.itl.nist.gov/div898/handbook/ — Free, excellent reference for practitioners.
 
 **This tool's resources:**
-- [Use Case 1: Reactor Optimization (Box-Behnken)](../doe/use_cases/01_reactor_optimization/README.md)
+- [Use Case 1: Reactor Optimization (Box-Behnken)](https://github.com/MartinGallagher-code/design_of_experiments/tree/main/doe/use_cases/01_reactor_optimization)
