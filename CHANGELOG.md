@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+- **`merge.sh` and `split.sh`.** The canonical copies live in
+  [shared_tools](https://github.com/MartinGallagher-code/shared_tools) under
+  `scripts/`, and every repository now uses those rather than keeping its
+  own. The pair removed here was the original 26-line version, several
+  revisions behind: it had none of the multi-part splitting, per-file
+  checksums, permission and symlink preservation, or path-traversal refusal
+  that the canonical copy has gained since. Keeping private copies is
+  precisely how that drift happened.
+
+  Nothing in this repository referenced either script.
+
 ### Changed
 - Lowered the minimum supported Python from 3.10 to 3.9. The only 3.10-specific
   construct in the package was PEP 604 union syntax (`X | None`) in annotations;
