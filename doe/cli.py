@@ -146,6 +146,8 @@ def _print_version() -> None:
     print(f"doe {__version__}")
     print("Copyright (C) 2026 Martin J. Gallagher")
     print("License: GPL-3.0-or-later <https://www.gnu.org/licenses/gpl-3.0.html>")
+    print("This is free software: you are free to change and redistribute it.")
+    print("There is no warranty, to the extent permitted by law.")
     raise SystemExit(0)
 
 
