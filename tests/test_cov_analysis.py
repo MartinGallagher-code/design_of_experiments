@@ -1,5 +1,5 @@
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 """Line-coverage tests for doe/analysis.py, doe/aliasing.py and doe/power.py.
 
 These tests deliberately exercise the edge and error branches of the DOE

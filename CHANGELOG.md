@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Licensing and attribution are now identical across every repository in
+  the suite.** The notice said the same thing eleven slightly different ways —
+  different badge text, different `--version` wording, five styles of file
+  header, and in places a different holder or even a different licence. All of
+  it is now one form:
+  - **Holder:** `Martin J. Gallagher` everywhere (several places said
+    "Martin Gallagher", dropping the middle initial).
+  - **Licence:** `GPL-3.0-or-later` everywhere, with `LICENSE` and
+    `LICENSES/GPL-3.0-or-later.txt` the same verbatim FSF text in every repo.
+  - **File headers:** the two-line SPDX pair
+    (`SPDX-License-Identifier` then `SPDX-FileCopyrightText`), replacing the
+    `Copyright (C) …` variants and the long inline GPL notices.
+  - **`--version`:** the same five-line GNU-style block under every tool's own
+    name and version.
+  - **README:** the same licence badge and the same `## License` section.
+  - **REUSE:** a `REUSE.toml` of the same shape in every repo; `reuse lint`
+    passes in all of them.
+
 ### Removed
 - **`merge.sh` and `split.sh`.** The canonical copies live in
   [shared_tools](https://github.com/MartinGallagher-code/shared_tools) under

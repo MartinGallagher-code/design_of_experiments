@@ -1,5 +1,5 @@
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 """Drive the design from a Python function instead of an external script.
 
 Bypasses the generated bash/python runner: imports the user-supplied

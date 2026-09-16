@@ -5,7 +5,7 @@
 [![codecov](https://codecov.io/gh/MartinGallagher-code/design_of_experiments/graph/badge.svg)](https://codecov.io/gh/MartinGallagher-code/design_of_experiments)
 [![PyPI version](https://img.shields.io/pypi/v/doehelper?logo=pypi&logoColor=white)](https://pypi.org/project/doehelper/)
 [![Python versions](https://img.shields.io/pypi/pyversions/doehelper?logo=python&logoColor=white)](https://pypi.org/project/doehelper/)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![License: GPL-3.0-or-later](https://img.shields.io/badge/license-GPL--3.0--or--later-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![REUSE status](https://api.reuse.software/badge/github.com/MartinGallagher-code/design_of_experiments)](https://api.reuse.software/info/github.com/MartinGallagher-code/design_of_experiments)
 
 A Python CLI tool that automates the creation and analysis of experimental designs. It generates reproducible design matrices, creates executable runner scripts, and analyzes results using classical DOE techniques including ANOVA, response surface modeling, and multi-objective optimization.
@@ -501,4 +501,21 @@ Contributions are welcome — see [CONTRIBUTING.md](https://github.com/MartinGal
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 — see [LICENSE](https://github.com/MartinGallagher-code/design_of_experiments/blob/main/LICENSE) for details.
+Copyright (C) 2026 Martin J. Gallagher
+
+This program is free software: you can redistribute it and/or modify it under
+the terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with
+this program. If not, see <https://www.gnu.org/licenses/>.
+
+Full text: [LICENSE](LICENSE) — SPDX identifier `GPL-3.0-or-later`. This
+repository follows the [REUSE Specification](https://reuse.software/): source
+files carry SPDX copyright and licence headers, and the licence text lives in
+[`LICENSES/`](LICENSES).

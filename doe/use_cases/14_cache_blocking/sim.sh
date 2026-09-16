@@ -1,6 +1,7 @@
 #!/bin/bash
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 # Cache Blocking Strategy Simulator
 # Simulates DGEMM performance (GFLOPS) and cache miss rate for tile/block sizes.
 # Usage: bash sim.sh --block_i 64 --block_j 64 --block_k 64 --prefetch_dist 4 --out results.json

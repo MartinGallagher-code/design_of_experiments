@@ -1,5 +1,5 @@
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 """Targeted line-coverage tests for bo.py, report.py, suggest.py, archive.py.
 
 These tests exercise the edge/error branches that the broader suites leave

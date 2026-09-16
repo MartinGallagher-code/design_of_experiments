@@ -1,5 +1,5 @@
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 """Line-coverage tests for doe/rsm.py and doe/optimize.py.
 
 These tests target edge and error branches that the main suite does not

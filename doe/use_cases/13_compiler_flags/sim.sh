@@ -1,6 +1,7 @@
 #!/bin/bash
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 # Compiler Optimization Flags Simulator
 # Simulates execution time and binary size for various GCC flag combinations.
 # Usage: bash sim.sh --opt_level O3 --vectorize avx512 --lto on --march native \
