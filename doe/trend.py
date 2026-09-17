@@ -1,5 +1,5 @@
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 """Multi-session trend analysis.
 
 Given N (>= 2) sessions of the same experiment in chronological order,

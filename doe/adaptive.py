@@ -1,5 +1,5 @@
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 """Adaptive / sequential experimentation support.
 
 Allows multi-phase experiments where each phase is informed by previous

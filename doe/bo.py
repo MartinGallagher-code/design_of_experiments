@@ -1,5 +1,5 @@
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 """Minimal Gaussian-process surrogate + Expected-Improvement acquisition.
 
 Self-contained Bayesian-optimization helpers used by the ``bayesian``

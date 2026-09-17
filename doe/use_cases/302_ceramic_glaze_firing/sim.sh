@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 # Simulated ceramic glaze firing — produces surface_smoothness and color_accuracy responses.
 #
 # Model accounts for categorical factors (clay_type, cooling_rate) and ordinal (glaze_thickness).

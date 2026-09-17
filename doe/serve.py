@@ -1,5 +1,5 @@
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 """Tiny stdlib HTTP server for browsing DOE result sessions.
 
 ``doe serve --root results/`` starts a localhost server that lists every

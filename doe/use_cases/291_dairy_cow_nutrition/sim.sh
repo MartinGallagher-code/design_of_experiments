@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 # Simulated: Dairy Cow Feed Ration
 set -euo pipefail
 OUTFILE=""

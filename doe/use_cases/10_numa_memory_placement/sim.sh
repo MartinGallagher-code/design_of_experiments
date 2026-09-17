@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 # Simulated NUMA memory benchmark — produces stream_triad and latency_ns.
 #
 # Hidden model:

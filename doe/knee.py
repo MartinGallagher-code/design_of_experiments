@@ -1,5 +1,5 @@
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 """Knee-point (saturation point) detection via piecewise linear regression."""
 
 from __future__ import annotations

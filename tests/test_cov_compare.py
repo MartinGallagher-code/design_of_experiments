@@ -1,5 +1,5 @@
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 """Line-coverage tests for doe/compare.py, doe/trend.py, and doe/calibrate.py.
 
 These exercise the edge and error branches that the main suite leaves

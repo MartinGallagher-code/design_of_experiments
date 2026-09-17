@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 # Simulated pharmaceutical tablet compression — produces hardness, dissolution_rate, friability.
 #
 # Trade-offs: higher compression increases hardness but reduces dissolution and increases friability risk.
