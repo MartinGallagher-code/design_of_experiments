@@ -5,10 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.5.0] — 2026-11-10
+
+This release numbers the changes that built up under `[Unreleased]` since
+0.4.5. It is a minor release because one of them is new for users: doehelper
+now installs and runs on Python 3.9.
+
+### Added
+- **Every change moves the version** (shared_tools ticket BN-002). Each pull
+  request into `main` now carries its own version bump, in `pyproject.toml`,
+  `doe/__init__.py` and `CITATION.cff`, and its own numbered, dated section at
+  the top of this file, never an `[Unreleased]` heading. `tests/check_version.sh`
+  fails if those disagree, and a new **version** job in CI fails a pull request
+  whose version is not greater than its base branch's. `CITATION.cff`, which
+  was still at 0.4.0, now follows the package version. `CLAUDE.md`,
+  `CONTRIBUTING.md`, `docs/RELEASE.md` and `docs/releasing.md` say the same.
+- Read the Docs integration (MkDocs): `.readthedocs.yaml`, `mkdocs.yml` and a
+  `docs/index.md` landing page.
 
 ### Changed
 
+- CI's `test` job runs on `ubuntu-24.04`: `ubuntu-latest` became Ubuntu 26.04
+  in November 2026, and `setup-python` has no Python 3.9 for it, so the 3.9
+  entry of the matrix could not start.
 - **Licensing and attribution are now identical across every repository in
   the suite.** The notice said the same thing eleven slightly different ways —
   different badge text, different `--version` wording, five styles of file
@@ -38,6 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   precisely how that drift happened.
 
   Nothing in this repository referenced either script.
+- `ROADMAP.md` and `QUESTION.md`.
 
 ### Changed
 - Lowered the minimum supported Python from 3.10 to 3.9. The only 3.10-specific
@@ -47,6 +67,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   "Could not find a version that satisfies the requirement doehelper" on a 3.9
   interpreter — pip filters on `Requires-Python` and reports an empty version
   list — now resolve. CI covers 3.9 alongside 3.10/3.11/3.12.
+- CI: the repository-level gates (pip-audit, REUSE, ruff, bandit, mypy) run
+  once, on 3.12; `codecov/codecov-action` 5 → 7; per-run artifacts are kept
+  7 days rather than 90. The docs build requires `mkdocs-material>=9.7.7`.
 
 ## [0.4.5] — 2026-07-21
 
@@ -192,7 +215,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Power analysis
 - Design augmentation (fold-over, star points, center points)
 
-[Unreleased]: https://github.com/MartinGallagher-code/design_of_experiments/compare/v0.4.3...HEAD
+[0.5.0]: https://github.com/MartinGallagher-code/design_of_experiments/compare/v0.4.5...v0.5.0
+[0.4.5]: https://github.com/MartinGallagher-code/design_of_experiments/compare/v0.4.4...v0.4.5
+[0.4.4]: https://github.com/MartinGallagher-code/design_of_experiments/compare/v0.4.3...v0.4.4
 [0.4.3]: https://github.com/MartinGallagher-code/design_of_experiments/compare/v0.4.2...v0.4.3
 [0.4.2]: https://github.com/MartinGallagher-code/design_of_experiments/compare/v0.4.1...v0.4.2
 [0.4.1]: https://github.com/MartinGallagher-code/design_of_experiments/compare/v0.4.0...v0.4.1
