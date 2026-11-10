@@ -25,6 +25,9 @@ now installs and runs on Python 3.9.
 
 ### Changed
 
+- CI's `test` job runs on `ubuntu-24.04`: `ubuntu-latest` became Ubuntu 26.04
+  in November 2026, and `setup-python` has no Python 3.9 for it, so the 3.9
+  entry of the matrix could not start.
 - **Licensing and attribution are now identical across every repository in
   the suite.** The notice said the same thing eleven slightly different ways —
   different badge text, different `--version` wording, five styles of file
