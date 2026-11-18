@@ -1,5 +1,5 @@
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 """Recommend a DOE design given factor count, run budget, and goal.
 
 Encodes the standard "which design should I use?" decision tree from

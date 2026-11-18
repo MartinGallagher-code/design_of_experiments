@@ -1,5 +1,5 @@
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 """In-process coverage tests for doe/cli.py.
 
 These tests drive ``doe.cli.main()`` directly (NOT via subprocess) so that

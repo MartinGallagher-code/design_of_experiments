@@ -1,5 +1,5 @@
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 """Line-coverage tests for adaptive.py, sensitivity.py, knee.py, codegen.py.
 
 These target the error/edge branches that the functional test-suite does not

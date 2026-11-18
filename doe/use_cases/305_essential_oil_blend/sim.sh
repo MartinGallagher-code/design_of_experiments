@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 # Simulated essential oil blend — produces relaxation_score and antimicrobial_zone.
 #
 # Mixture design: lavender + eucalyptus + peppermint + tea_tree = 100%.

@@ -1,5 +1,5 @@
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 """Alias / confounding structure for two-level screening designs.
 
 For a two-level design (every factor at -1/+1), each main effect column and

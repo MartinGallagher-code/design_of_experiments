@@ -1,6 +1,7 @@
 #!/bin/bash
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 # Distributed Deep Learning Scaling Simulator
 # Simulates multi-GPU training throughput and scaling efficiency for ResNet-50.
 # Usage: bash sim.sh --gpu_count 32 --batch_per_gpu 128 --gradient_compression 50 --out results.json

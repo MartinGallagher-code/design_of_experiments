@@ -92,18 +92,40 @@ Describe:
 
 2. **Make your changes** and commit with clear messages (see below)
 
-3. **Push to your fork** and open a pull request against `main`
+3. **Move the version** in the same pull request, however small the change
+   (see [Versioning](#versioning) below)
 
-4. **Fill out the PR template** with:
+4. **Push to your fork** and open a pull request against `main`
+
+5. **Fill out the PR template** with:
    - Link to related issue(s)
    - Description of changes
    - Type of change (bug fix, feature, refactor, docs)
    - Testing performed
    - Confirmation that tests pass and coverage doesn't decrease
 
-5. **Address review feedback** — maintainers will review and may request changes
+6. **Address review feedback** — maintainers will review and may request changes
 
-6. **Merge** — Once approved, the PR will be merged to main
+7. **Merge** — Once approved, the PR will be merged to main. Merging publishes
+   it: the new version is tagged, released on GitHub and uploaded to PyPI
+   (see [docs/releasing.md](docs/releasing.md))
+
+### Versioning
+
+Every pull request moves the version, whatever it changes: code, tests, docs
+or CI. Dependabot's pull requests included.
+
+- **Patch** (0.0.X) for fixes, docs, tests and CI; **minor** (0.X.0) for
+  anything new a user can use; **major** (X.0.0) only when something that
+  worked stops working the way it did.
+- Write the new version in all three places: `pyproject.toml`,
+  `doe/__init__.py`, and `CITATION.cff` (with its `date-released`).
+- Add a `## [X.Y.Z] — YYYY-MM-DD` section at the top of `CHANGELOG.md` for it.
+  There is no `[Unreleased]` section to add to.
+- `bash tests/check_version.sh origin/main` checks all of that before you
+  push; CI's **version** job runs the same check and fails a pull request whose
+  version is not greater than its base branch's. If `main` moves while your
+  pull request is open, rebase and bump again.
 
 ### Commit Message Conventions
 
@@ -137,7 +159,8 @@ docs: add example of mixture design usage
 2. Make changes and add tests
 3. Run tests locally: `pytest tests/ -v`
 4. Run code checks: `ruff check doe tests` and `mypy doe --strict`
-5. Pre-commit hooks will run automatically on commit
+5. Move the version and check it: `bash tests/check_version.sh origin/main`
+6. Pre-commit hooks will run automatically on commit
 
 ### Testing Guidelines
 
@@ -159,7 +182,7 @@ def test_load_config_with_missing_file():
 - Update docstrings for public functions/classes
 - Update [docs/](docs/) markdown files for user-facing changes
 - Update [README.md](README.md) for major changes
-- Update [CHANGELOG.md](CHANGELOG.md) in an `[Unreleased]` section
+- Add your change to [CHANGELOG.md](CHANGELOG.md), under the new version's own dated section (see [Versioning](#versioning))
 
 ## Design Considerations
 

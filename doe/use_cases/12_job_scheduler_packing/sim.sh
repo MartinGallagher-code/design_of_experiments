@@ -1,6 +1,7 @@
 #!/bin/bash
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 # Job Scheduler Packing Simulator
 # Simulates throughput and efficiency for various scheduler packing configurations.
 # Usage: bash sim.sh --nodes N --tasks_per_node T --mem_per_task M --out results.json

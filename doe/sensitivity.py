@@ -1,5 +1,5 @@
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 """Variance-based sensitivity analysis (Sobol indices).
 
 Reuses the quadratic RSM that ``analyze`` already fits as the surrogate;

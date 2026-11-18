@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
 """Generate website HTML pages for use cases 27-86 and inject experimental matrices into all use case pages (1-86)."""
 import json, os, glob, html, subprocess, re
 

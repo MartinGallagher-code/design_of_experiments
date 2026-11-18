@@ -1,6 +1,11 @@
 # Release Process
 
-This document describes how to release a new version of DOE Helper.
+This document describes how a new version of DOE Helper is made and released.
+
+Every pull request moves the version, however small the change: code, tests,
+docs or CI, and Dependabot's pull requests included. The bump and the
+changelog section are part of the pull request, never left for a later
+release. Merging the pull request is what publishes it.
 
 ## Semantic Versioning
 
@@ -8,18 +13,26 @@ We follow [Semantic Versioning](https://semver.org/):
 
 - **MAJOR** version (X.0.0): Breaking changes to the public API
 - **MINOR** version (0.X.0): New backward-compatible features
-- **PATCH** version (0.0.X): Bug fixes and internal improvements
+- **PATCH** version (0.0.X): Bug fixes, docs, tests, CI and internal improvements
 
 ## Release Checklist
 
-### 1. Prepare the Release
+### 1. In every pull request
 
 - [ ] Ensure all tests pass: `pytest tests/ -v --cov`
 - [ ] Ensure type checking passes: `mypy doe --strict`
 - [ ] Ensure linting passes: `ruff check doe tests`
 - [ ] Ensure security checks pass: `bandit -r doe`
-- [ ] Review CHANGELOG.md for completeness
-- [ ] Create or update the entry for the new version in CHANGELOG.md
+- [ ] Bump the version in `pyproject.toml`, `doe/__init__.py` and
+      `CITATION.cff` (with its `date-released`)
+- [ ] Add the new version's own section at the top of CHANGELOG.md
+- [ ] `bash tests/check_version.sh origin/main` passes (CI's **version** job
+      runs the same check)
+
+```toml
+[project]
+version = "X.Y.Z"
+```
 
 Example CHANGELOG entry:
 ```markdown
@@ -44,74 +57,38 @@ Example CHANGELOG entry:
 - Security fixes
 ```
 
-### 2. Update Version
+There is no `[Unreleased]` section: each pull request's changes go under its
+own version.
 
-Update the version in `pyproject.toml`:
+### 2. Merge, which publishes
 
-```toml
-[project]
-version = "X.Y.Z"
-```
+Merging the pull request into `main` is the release. The
+[Auto-release workflow](https://github.com/MartinGallagher-code/design_of_experiments/actions/workflows/release.yml)
+(`.github/workflows/release.yml`) sees the new version in `pyproject.toml`,
+creates the `vX.Y.Z` tag and the GitHub release from the CHANGELOG section,
+and publishes to PyPI. Do not tag by hand. See [releasing.md](releasing.md).
 
-Commit this change:
-```bash
-git add pyproject.toml CHANGELOG.md
-git commit -m "chore: release v0.X.Z"
-```
+### 3. Monitor the Release
 
-### 3. Create Git Tag
-
-Create a signed (or unsigned) tag:
-
-```bash
-# Unsigned tag (simple)
-git tag vX.Y.Z
-
-# Or signed tag (recommended)
-git tag -s -m "Release X.Y.Z" vX.Y.Z
-```
-
-### 4. Push to Repository
-
-```bash
-git push origin main
-git push origin vX.Y.Z
-```
-
-This will trigger the GitHub Actions publish workflow.
-
-### 5. Monitor the Release
-
-- Watch the [publish workflow](https://github.com/MartinGallagher-code/design_of_experiments/actions/workflows/publish.yml)
+- Watch the [Auto-release workflow](https://github.com/MartinGallagher-code/design_of_experiments/actions/workflows/release.yml)
 - Confirm the package appears on [PyPI](https://pypi.org/project/doehelper/)
 - Confirm the GitHub Release is created with SBOM artifacts
 
-### 6. Post-Release
+### 4. Post-Release
 
 - [ ] Verify package installation: `pip install --upgrade doehelper`
 - [ ] Test basic functionality
 - [ ] Announce release on relevant channels
-- [ ] Update version in CHANGELOG.md with `[Unreleased]` section for next development cycle
-
-Example:
-```markdown
-## [Unreleased]
-
-### Added
-(None yet)
-
-## [X.Y.Z] — YYYY-MM-DD
-...
-```
 
 ## Automated Release Process
 
-The GitHub Actions workflow (`.github/workflows/publish.yml`) automatically:
+The GitHub Actions workflow (`.github/workflows/release.yml`) automatically:
 
-1. Builds the package using `python -m build`
-2. Generates SBOM in JSON and XML formats
-3. Publishes to PyPI using trusted publishing (no credentials stored)
-4. Uploads SBOM to the GitHub Release
+1. Creates the `vX.Y.Z` tag and the GitHub Release from CHANGELOG.md
+2. Builds the package using `python -m build`
+3. Generates SBOM in JSON and XML formats
+4. Publishes to PyPI using trusted publishing (no credentials stored)
+5. Uploads SBOM to the GitHub Release
 
 ## Version Numbering Decision Tree
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Copyright (C) 2026 Martin J. Gallagher
 # SPDX-License-Identifier: GPL-3.0-or-later
+# SPDX-FileCopyrightText: 2026 Martin J. Gallagher
+
 # Simulated: Lithium-Ion Battery Cell Design (LHS with 25 samples, 6 factors, 3 responses)
 set -euo pipefail
 

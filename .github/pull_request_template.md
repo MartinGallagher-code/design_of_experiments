@@ -30,7 +30,8 @@ Describe the testing performed:
 - [ ] Code follows the project's style guidelines (ruff)
 - [ ] Type hints are added/updated where appropriate
 - [ ] Documentation has been updated (README, user_guide, etc.)
-- [ ] CHANGELOG.md has been updated
+- [ ] Version bumped in `pyproject.toml`, `doe/__init__.py` and `CITATION.cff` (every PR, however small)
+- [ ] CHANGELOG.md opens with the new version's own `## [X.Y.Z] — YYYY-MM-DD` section
 - [ ] Commit messages follow the convention (`fix:`, `feat:`, `docs:`, etc.)
 - [ ] No breaking changes, or they are documented
 
