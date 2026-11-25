@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.1] — 2026-11-25
+
+The documentation build's requirements only; the package, its dependencies
+and the `doe` command are unchanged.
+
+### Fixed
+
+- `docs/requirements.txt` asks for `mkdocs-material>=9.7.7` again, as 0.5.0
+  says it does (#75). Merging #70 put back the `>=9.5` that #71 had raised it
+  from: #70's branch was brought up to date with `main` by a merge that kept
+  its own copy of the file.
+
+### Changed
+
+- The documentation build requires `mkdocs>=1.6.1` (#70). It was merged after
+  0.5.0 without a version of its own, so it is recorded here.
+
 ## [0.5.0] — 2026-11-10
 
 This release numbers the changes that built up under `[Unreleased]` since
